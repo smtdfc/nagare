@@ -10,9 +10,10 @@ import (
 )
 
 type Agent struct {
-	Model   model.ChatModel
-	History messages.ListMessage
-	Tools   tool.ListTool
+	Model       model.ChatModel
+	History     messages.ListMessage
+	Tools       tool.ListTool
+	Middlewares []any
 }
 
 func (a *Agent) WithHistory(h messages.ListMessage) *Agent {
