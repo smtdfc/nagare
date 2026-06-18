@@ -46,20 +46,26 @@ func (a *Agent) Invoke(ctx context.Context, prompt string) <-chan messages.Messa
 
 	go func() {
 		defer close(ch)
-		a.processChat(execCtx, func(msg messages.Message) {
+		err := a.processChat(execCtx, func(msg messages.Message) {
 			ch <- msg
 		})
+
+		if err != nil {
+			ch <- &messages.StreamErrorMessage{
+				Cause: err.Error(),
+			}
+		}
 	}()
 
 	return ch
 }
 
-func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) {
+func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) error {
 	for {
 		fullTextMessage := ""
 		var toolCalls []*messages.ToolCallMessage
 
-		a.Model.Chat(ctx, a.History, func(msg messages.Message) {
+		err := a.Model.Chat(ctx, a.History, func(msg messages.Message) {
 			switch m := msg.(type) {
 			case *messages.ToolCallMessage:
 				toolCalls = append(toolCalls, m)
@@ -70,6 +76,10 @@ func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) {
 				fullTextMessage += m.Content
 			}
 		})
+
+		if err != nil {
+			return err
+		}
 
 		if fullTextMessage != "" {
 			a.History = append(a.History, &messages.TextMessage{Role: messages.AGENT, Content: fullTextMessage})
@@ -92,6 +102,8 @@ func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) {
 			a.History = append(a.History, toolResultMsg)
 		}
 	}
+
+	return nil
 }
 
 func NewAgent(model model.ChatModel) *Agent {

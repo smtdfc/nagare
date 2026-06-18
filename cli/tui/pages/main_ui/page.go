@@ -28,7 +28,7 @@ func (m *MainPage) Init() tea.Cmd {
 
 func NewMainPage() *MainPage {
 	items := []list.Item{
-		components.NewListItem("Chat", "Chat with Nagare", "chat"),
+		components.NewListItem("Chat", "Start a chat with Nagare Agent", "chat"),
 		components.NewListItem("Settings", "Settings for Nagare", "settings"),
 		components.NewListItem("Plugin", "Manage your plugins", "settings:plugin"),
 	}

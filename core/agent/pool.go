@@ -21,7 +21,7 @@ func NewAgentPool(size int, model model.ChatModel, tools tool.ListTool) *AgentPo
 	return p
 }
 
-func (p *AgentPool) GetOrNew(model model.ChatModel) *Agent {
+func (p *AgentPool) GetOrNew() *Agent {
 	select {
 	case a := <-p.Pool:
 		return a
