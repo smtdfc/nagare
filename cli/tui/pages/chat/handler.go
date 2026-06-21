@@ -107,9 +107,6 @@ func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case "enter":
-			if m.currentAgent != nil {
-				break
-			}
 			v := strings.TrimSpace(m.textarea.Value())
 			if v == "" {
 				break
