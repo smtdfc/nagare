@@ -2,8 +2,11 @@ package model
 
 import (
 	"github.com/smtdfc/nagare/core/context"
+	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/messages"
 )
+
+var appLogger = logger.GetLogger()
 
 type ChatModelConfig struct {
 	APIKey  string

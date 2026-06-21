@@ -36,12 +36,12 @@ func (d *ToolDeclaration[T, R]) Execute(ctx context.Context, argsRaw string) (st
 	var args T
 
 	if err := json.Unmarshal([]byte(argsRaw), &args); err != nil {
-		return "", exceptions.NewToolException(fmt.Sprintf("invalid json params for tool %s: %w", d.Name, err), d.Name)
+		return "", exceptions.NewToolException(fmt.Sprintf("invalid json params for tool %s: %s", d.Name, err), d.Name)
 	}
 
 	result, err := d.Callback(ctx, args)
 	if err != nil {
-		return "", exceptions.NewToolException(fmt.Sprintf("failed to call tool %s: %w", d.Name, err), d.Name)
+		return "", exceptions.NewToolException(fmt.Sprintf("failed to call tool %s: %s", d.Name, err), d.Name)
 	}
 
 	if strResult, ok := any(result).(string); ok {
@@ -50,7 +50,7 @@ func (d *ToolDeclaration[T, R]) Execute(ctx context.Context, argsRaw string) (st
 
 	jsonData, err := json.Marshal(result)
 	if err != nil {
-		return "", exceptions.NewToolException(fmt.Sprintf("cannot marshal result of tool %s: %w", d.Name, err), d.Name)
+		return "", exceptions.NewToolException(fmt.Sprintf("cannot marshal result of tool %s: %s", d.Name, err), d.Name)
 	}
 
 	return string(jsonData), nil

@@ -9,12 +9,9 @@ import (
 	"github.com/openai/openai-go/v3/responses"
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/exceptions"
-	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/messages"
 	"github.com/smtdfc/nagare/core/tool"
 )
-
-var appLogger = logger.GetLogger()
 
 type OpenAICompatibleChatModel struct {
 	Config *ChatModelConfig
