@@ -9,9 +9,12 @@ import (
 	"github.com/openai/openai-go/v3/responses"
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/exceptions"
+	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/messages"
 	"github.com/smtdfc/nagare/core/tool"
 )
+
+var appLogger = logger.GetLogger()
 
 type OpenAICompatibleChatModel struct {
 	Config *ChatModelConfig
@@ -177,6 +180,7 @@ func (o *OpenAICompatibleChatModel) Chat(ctx context.ExecuteContext, history mes
 	}
 
 	if err := stream.Err(); err != nil {
+		appLogger.Info(fmt.Sprintf("Error when streaming data from LLM provider: %s", err), "error", err, "compatible", "open-ai")
 		return exceptions.NewStreamException(err.Error())
 	}
 

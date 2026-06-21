@@ -2,12 +2,16 @@ package agent
 
 import (
 	"context"
+	"fmt"
 
 	ectx "github.com/smtdfc/nagare/core/context"
+	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/messages"
 	"github.com/smtdfc/nagare/core/model"
 	"github.com/smtdfc/nagare/core/tool"
 )
+
+var appLogger = logger.GetLogger()
 
 type Agent struct {
 	Model       model.ChatModel
@@ -61,6 +65,7 @@ func (a *Agent) Invoke(ctx context.Context, prompt string) <-chan messages.Messa
 }
 
 func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) error {
+	appLogger.Info("Agent processing chat ")
 	for {
 		fullTextMessage := ""
 		var toolCalls []*messages.ToolCallMessage
@@ -92,6 +97,7 @@ func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) e
 		}
 
 		for _, tc := range toolCalls {
+			appLogger.Info(fmt.Sprintf("Agent use tool %s", tc.FunctionName))
 			result, err := ctx.CallTool(tc.FunctionName, tc.Args)
 
 			toolResultMsg := &messages.ToolResultMessage{
@@ -106,6 +112,7 @@ func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) e
 	}
 
 	cb(&messages.AgentResponseDoneMessage{})
+	appLogger.Info("Agent response completed")
 	return nil
 }
 

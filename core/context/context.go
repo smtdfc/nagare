@@ -5,8 +5,11 @@ import (
 	"fmt"
 
 	"github.com/smtdfc/nagare/core/exceptions"
+	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/tool"
 )
+
+var appLogger = logger.GetLogger()
 
 type ExecuteContext struct {
 	context.Context
@@ -16,11 +19,13 @@ type ExecuteContext struct {
 func (e *ExecuteContext) CallTool(name string, args string) (string, error) {
 	tool, ok := e.Tools[name]
 	if !ok {
+		appLogger.Error(fmt.Sprintf("Tool %s not found ", name))
 		return "", exceptions.NewToolException(fmt.Sprintf("tool not found: %s", name), name)
 	}
 
 	r, err := tool.Execute(args)
 	if err != nil {
+		appLogger.Error(fmt.Sprintf("Tool return with error: %s", err))
 		return "", err
 	}
 	return r, nil
