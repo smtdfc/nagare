@@ -8,11 +8,15 @@ import (
 
 // View implements [tui.Page].
 func (m *ChatPage) View() tea.View {
-	return tea.NewView(
+	view := tea.NewView(
 		fmt.Sprintf(
 			"%s\n\n%s",
 			m.viewport.View(),
 			m.textarea.View(),
 		),
 	)
+
+	view.AltScreen = true
+
+	return view
 }

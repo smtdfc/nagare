@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 )
 
 func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -23,16 +24,21 @@ func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch msg.ChunkType {
 		case "error":
-			m.messages = append(m.messages, fmt.Sprintf("Error: %s\n", msg.Content))
+			m.messages = append(m.messages, lipgloss.NewStyle().Foreground(lipgloss.Color("#ff5555")).Render(fmt.Sprintf("Error: %s", msg.Content)))
 		case "text":
 			if len(m.messages) > 0 && m.currentMessageChunkType == "text" {
 				m.messages[len(m.messages)-1] += msg.Content
 			} else {
-				m.messages = append(m.messages, fmt.Sprintf("Agent: %s", msg.Content))
+				m.messages = append(m.messages, fmt.Sprintf("%s %s", lipgloss.NewStyle().Foreground(lipgloss.Color("#55ff66")).Render("Agent:"), msg.Content))
 			}
-
+		case "reasoning":
+			if len(m.messages) > 0 && m.currentMessageChunkType == "reasoning" {
+				m.messages[len(m.messages)-1] += msg.Content
+			} else {
+				m.messages = append(m.messages, lipgloss.NewStyle().MarginLeft(10).Foreground(lipgloss.Color("#605959")).Render(fmt.Sprintf("Reasoning: %s", msg.Content)))
+			}
 		case "tool_call":
-			m.messages = append(m.messages, fmt.Sprintf("Using tool : %s\n", msg.Content))
+			m.messages = append(m.messages, lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("#605959")).Render(fmt.Sprintf("-> Using tool: %s", msg.Content)))
 		}
 
 		m.currentMessageChunkType = msg.ChunkType
@@ -65,8 +71,8 @@ func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			m.messages = append(m.messages, fmt.Sprintf("You: %s \n", v))
-			m.viewport.SetContent(strings.Join(m.messages, "\n\n"))
+			m.messages = append(m.messages, fmt.Sprintf("You: %s", v))
+			m.viewport.SetContent(strings.Join(m.messages, "\n"))
 			m.viewport.GotoBottom()
 			m.textarea.Reset()
 
@@ -77,7 +83,7 @@ func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a.History = m.sessionMgr.GetHistory(m.sessionID)
 			m.currentAgent = a
 			m.currentStream = a.Invoke(context.Background(), v)
-
+			m.currentMessageChunkType = "unknown"
 			cmds = append(cmds, waitForMessage(m.currentStream))
 			return m, tea.Batch(cmds...)
 		}
