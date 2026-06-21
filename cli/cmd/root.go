@@ -11,12 +11,8 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "nagare",
-	Short: "Nagare AI Agent Platform",
-	Long: `Nagare is a high-performance, modular AI agent platform designed for local 
-intelligence, RAG-enabled knowledge retrieval, and interactive automation.
-
-Nagare provides a unified interface for agent orchestration, allowing seamless 
-interaction between local knowledge bases and advanced reasoning models.`,
+	Short: "Nagare AI Agent",
+	Long:  ``,
 
 	// Disable default completion if not needed for cleaner UI
 	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
