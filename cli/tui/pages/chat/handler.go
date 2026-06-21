@@ -23,6 +23,11 @@ func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case StreamMsg:
 
 		switch msg.ChunkType {
+		case "done":
+			separator := lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#555555")).
+				Render("────────────────────")
+			m.messages = append(m.messages, separator)
 		case "error":
 			m.messages = append(m.messages, lipgloss.NewStyle().Foreground(lipgloss.Color("#ff5555")).Render(fmt.Sprintf("Error: %s", msg.Content)))
 		case "text":
