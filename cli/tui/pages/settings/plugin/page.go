@@ -38,7 +38,7 @@ func (m *Page) Init() tea.Cmd {
 func NewPage(conf *config.Config) *Page {
 	items := []list.Item{
 		components.NewListItem("List", "Show list plugin", "settings:plugin:list"),
-		components.NewListItem("Remove", "Remove provider", "settings:plugin:remove"),
+		components.NewListItem("Remove", "Remove plugin", "settings:plugin:remove"),
 		components.NewListItem("Back", "Return to main settings", "settings"),
 	}
 

@@ -7,6 +7,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/smtdfc/nagare/cli/tui/router"
 )
 
 func (m *ChatPage) renderReasoningMessage(msg string) string {
@@ -25,10 +26,22 @@ func (m *ChatPage) renderErrorMessage(msg string) string {
 }
 
 func (m *ChatPage) renderSeparator() string {
-	separator := lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("────────────────────")
+	separator := lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render(strings.Repeat("─", m.viewport.Width()))
 	return separator
 }
 
+func (m *ChatPage) close() {
+	if m.currentAgent != nil {
+		m.agentPool.Put(m.currentAgent)
+	}
+}
+
+func (m *ChatPage) prepare() {
+	if m.currentAgent == nil {
+		a := m.agentPool.GetOrNew()
+		m.currentAgent = a
+	}
+}
 func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
@@ -78,9 +91,6 @@ func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case StreamDoneMsg:
 		m.sessionMgr.SaveHistory(m.sessionID, m.currentAgent.History)
-		m.agentPool.Put(m.currentAgent)
-		m.currentAgent = nil
-
 		m.textarea.Placeholder = "Type a message... (Press Enter to send)"
 		cmd := m.textarea.Focus()
 		cmds = append(cmds, cmd)
@@ -90,7 +100,12 @@ func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "ctrl+c", "esc":
-			return m, tea.Quit
+			m.close()
+			return m, func() tea.Msg {
+				return router.ChangePageMsg{
+					Target: "main",
+				}
+			}
 		case "enter":
 			if m.currentAgent != nil {
 				break
@@ -109,13 +124,29 @@ func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.viewport.GotoBottom()
 			m.textarea.Reset()
 
+			switch v {
+			case "/exit":
+				m.close()
+				return m, func() tea.Msg {
+					return router.ChangePageMsg{
+						Target: "main",
+					}
+				}
+			case "/settings":
+				m.close()
+				return m, func() tea.Msg {
+					return router.ChangePageMsg{
+						Target: "settings",
+					}
+				}
+			}
+
 			m.textarea.Blur()
 			m.textarea.Placeholder = "Waiting for response..."
 
-			a := m.agentPool.GetOrNew()
-			a.History = m.sessionMgr.GetHistory(m.sessionID)
-			m.currentAgent = a
-			m.currentStream = a.Invoke(context.Background(), v)
+			m.prepare()
+			m.currentAgent.History = m.sessionMgr.GetHistory(m.sessionID)
+			m.currentStream = m.currentAgent.Invoke(context.Background(), v)
 			m.currentMessageChunkType = "unknown"
 			cmds = append(cmds, waitForMessage(m.currentStream))
 			return m, tea.Batch(cmds...)

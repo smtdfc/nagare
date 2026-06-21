@@ -3,6 +3,7 @@ package agent
 import (
 	"context"
 	"fmt"
+	"time"
 
 	ectx "github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/logger"
@@ -65,6 +66,7 @@ func (a *Agent) Invoke(ctx context.Context, prompt string) <-chan messages.Messa
 }
 
 func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) error {
+	start := time.Now()
 	appLogger.Info("Agent processing chat ")
 	for {
 		fullTextMessage := ""
@@ -112,7 +114,11 @@ func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) e
 	}
 
 	cb(&messages.AgentResponseDoneMessage{})
-	appLogger.Info("Agent response completed")
+	elapsed := time.Since(start)
+	appLogger.Info(
+		"Agent response completed",
+		"duration", elapsed.String(),
+	)
 	return nil
 }
 

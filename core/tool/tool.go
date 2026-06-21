@@ -1,6 +1,7 @@
 package tool
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -9,12 +10,12 @@ import (
 
 type Tool interface {
 	GetName() string
-	Execute(string) (string, error)
+	Execute(context.Context, string) (string, error)
 	GetArgumentsSchema() string
 	GetDesc() string
 }
 
-type ToolCallback[T any, R any] func(args T) (R, error)
+type ToolCallback[T any, R any] func(ctx context.Context, args T) (R, error)
 type ToolDeclaration[T any, R any] struct {
 	Name        string
 	Description string
@@ -31,14 +32,14 @@ func (d *ToolDeclaration[T, R]) GetName() string {
 	return d.Name
 }
 
-func (d *ToolDeclaration[T, R]) Execute(argsRaw string) (string, error) {
+func (d *ToolDeclaration[T, R]) Execute(ctx context.Context, argsRaw string) (string, error) {
 	var args T
 
 	if err := json.Unmarshal([]byte(argsRaw), &args); err != nil {
 		return "", exceptions.NewToolException(fmt.Sprintf("invalid json params for tool %s: %w", d.Name, err), d.Name)
 	}
 
-	result, err := d.Callback(args)
+	result, err := d.Callback(ctx, args)
 	if err != nil {
 		return "", exceptions.NewToolException(fmt.Sprintf("failed to call tool %s: %w", d.Name, err), d.Name)
 	}

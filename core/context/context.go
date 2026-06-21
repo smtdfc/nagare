@@ -3,6 +3,7 @@ package context
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/smtdfc/nagare/core/exceptions"
 	"github.com/smtdfc/nagare/core/logger"
@@ -17,17 +18,24 @@ type ExecuteContext struct {
 }
 
 func (e *ExecuteContext) CallTool(name string, args string) (string, error) {
+	start := time.Now()
 	tool, ok := e.Tools[name]
 	if !ok {
 		appLogger.Error(fmt.Sprintf("Tool %s not found ", name))
 		return "", exceptions.NewToolException(fmt.Sprintf("tool not found: %s", name), name)
 	}
 
-	r, err := tool.Execute(args)
+	r, err := tool.Execute(e, args)
 	if err != nil {
 		appLogger.Error(fmt.Sprintf("Tool return with error: %s", err))
 		return "", err
 	}
+	elapsed := time.Since(start)
+	appLogger.Info(
+		fmt.Sprintf("Tool %s executed", name),
+		"duration", elapsed.String(),
+		"tool_name", name,
+	)
 	return r, nil
 }
 
