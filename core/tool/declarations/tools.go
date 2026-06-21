@@ -2,4 +2,4 @@ package declarations
 
 import "github.com/smtdfc/nagare/core/tool"
 
-var Tools = tool.ListTool{geolocation, get_weather}
+var Tools = tool.ListTool{geolocation, get_weather, get_local_time}
