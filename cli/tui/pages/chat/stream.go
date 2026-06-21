@@ -50,7 +50,7 @@ func waitForMessage(ch <-chan messages.Message) tea.Cmd {
 				ChunkType: "reasoning",
 				Content:   chunk.Content,
 			}
-		case *messages.ResponseCompletedMessage:
+		case *messages.AgentResponseDoneMessage:
 			return StreamMsg{
 				Role:      "system",
 				ChunkType: "done",

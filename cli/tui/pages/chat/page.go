@@ -18,6 +18,8 @@ type ChatPage struct {
 	textarea textarea.Model
 
 	currentMessageChunkType string
+	textMessage             string
+	reasoningMessage        string
 	messages                []string
 	err                     error
 

@@ -9,6 +9,26 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
+func (m *ChatPage) renderReasoningMessage(msg string) string {
+	style := lipgloss.NewStyle().Italic(true).MarginLeft(1).Foreground(lipgloss.Color("#605959"))
+	return style.Render(fmt.Sprintf("Reasoning: %s", msg))
+}
+
+func (m *ChatPage) renderAgentTextMessage(msg string) string {
+	agentMsg := fmt.Sprintf("%s %s", lipgloss.NewStyle().Foreground(lipgloss.Color("#55ff66")).Render("Agent:"), msg)
+	return agentMsg
+}
+
+func (m *ChatPage) renderErrorMessage(msg string) string {
+	errMsg := lipgloss.NewStyle().Foreground(lipgloss.Color("#ff5555")).Render(fmt.Sprintf("Error: %s", msg))
+	return errMsg
+}
+
+func (m *ChatPage) renderSeparator() string {
+	separator := lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("────────────────────")
+	return separator
+}
+
 func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
@@ -24,30 +44,34 @@ func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch msg.ChunkType {
 		case "done":
-			separator := lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#555555")).
-				Render("────────────────────")
-			m.messages = append(m.messages, separator)
+			m.messages = append(m.messages, m.renderSeparator())
 		case "error":
-			m.messages = append(m.messages, lipgloss.NewStyle().Foreground(lipgloss.Color("#ff5555")).Render(fmt.Sprintf("Error: %s", msg.Content)))
+			m.messages = append(m.messages, m.renderErrorMessage(msg.Content))
 		case "text":
 			if len(m.messages) > 0 && m.currentMessageChunkType == "text" {
-				m.messages[len(m.messages)-1] += msg.Content
+				m.textMessage += msg.Content
+				m.messages[len(m.messages)-1] = m.renderAgentTextMessage(m.textMessage)
 			} else {
-				m.messages = append(m.messages, fmt.Sprintf("%s %s", lipgloss.NewStyle().Foreground(lipgloss.Color("#55ff66")).Render("Agent:"), msg.Content))
+				m.textMessage = msg.Content
+				m.messages = append(m.messages, m.renderAgentTextMessage(m.textMessage))
 			}
 		case "reasoning":
 			if len(m.messages) > 0 && m.currentMessageChunkType == "reasoning" {
-				m.messages[len(m.messages)-1] += msg.Content
+				m.reasoningMessage += msg.Content
+				m.messages[len(m.messages)-1] = m.renderReasoningMessage(m.reasoningMessage)
 			} else {
-				m.messages = append(m.messages, lipgloss.NewStyle().MarginLeft(10).Foreground(lipgloss.Color("#605959")).Render(fmt.Sprintf("Reasoning: %s", msg.Content)))
+				m.reasoningMessage = msg.Content
+				m.messages = append(m.messages, m.renderReasoningMessage(m.reasoningMessage))
 			}
 		case "tool_call":
-			m.messages = append(m.messages, lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("#605959")).Render(fmt.Sprintf("-> Using tool: %s", msg.Content)))
+			toolMsg := lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("#605959")).Render(fmt.Sprintf("-> Using tool: %s", msg.Content))
+			m.messages = append(m.messages, toolMsg)
 		}
 
 		m.currentMessageChunkType = msg.ChunkType
-		m.viewport.SetContent(strings.Join(m.messages, "\n"))
+		content := strings.Join(m.messages, "\n")
+		wrapped := lipgloss.NewStyle().Width(m.viewport.Width()).Render(content)
+		m.viewport.SetContent(wrapped)
 		m.viewport.GotoBottom()
 		cmds = append(cmds, waitForMessage(m.currentStream))
 		return m, tea.Batch(cmds...)
@@ -76,8 +100,12 @@ func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			m.messages = append(m.messages, fmt.Sprintf("You: %s", v))
-			m.viewport.SetContent(strings.Join(m.messages, "\n"))
+			// Wrap user input
+			userMsg := fmt.Sprintf("You: %s", v)
+			m.messages = append(m.messages, userMsg)
+			content := strings.Join(m.messages, "\n")
+			wrapped := lipgloss.NewStyle().Width(m.viewport.Width()).Render(content)
+			m.viewport.SetContent(wrapped)
 			m.viewport.GotoBottom()
 			m.textarea.Reset()
 

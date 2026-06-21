@@ -105,6 +105,7 @@ func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) e
 		}
 	}
 
+	cb(&messages.AgentResponseDoneMessage{})
 	return nil
 }
 

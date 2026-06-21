@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"path"
@@ -22,7 +21,7 @@ func init() {
 		log.Fatalf("%v", err)
 	}
 
-	fmt.Println(ConfigFile)
+	// fmt.Println(ConfigFile)
 }
 
 func LoadConfig() (*Config, error) {
