@@ -81,7 +81,7 @@ func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) e
 			case *messages.TextMessage:
 				cb(m)
 				fullTextMessage += m.Content
-			case *messages.ReasoningMessage, *messages.ResponseFailedMessage, *messages.ResponseCreatedMessage:
+			case *messages.ReasoningMessage, *messages.ResponseFailedMessage, *messages.ResponseCreatedMessage, *messages.ResponseStatsMessage:
 				cb(m)
 			}
 		})

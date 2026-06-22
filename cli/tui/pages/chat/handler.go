@@ -56,8 +56,6 @@ func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case StreamMsg:
 
 		switch msg.ChunkType {
-		case "done":
-			m.messages = append(m.messages, m.renderSeparator())
 		case "error":
 			m.messages = append(m.messages, m.renderErrorMessage(msg.Content))
 		case "text":
@@ -94,7 +92,7 @@ func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.textarea.Placeholder = "Type a message... (Press Enter to send)"
 		cmd := m.textarea.Focus()
 		cmds = append(cmds, cmd)
-
+		m.messages = append(m.messages, m.renderSeparator())
 		return m, tea.Batch(cmds...)
 
 	case tea.KeyPressMsg:

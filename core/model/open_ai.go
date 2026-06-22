@@ -139,13 +139,28 @@ func (o *OpenAICompatibleChatModel) Chat(ctx context.ExecuteContext, history mes
 			cb(&messages.ResponseCreatedMessage{})
 
 		case "response.completed":
+			usage := event.AsResponseCompleted().Response.Usage
+			cb(&messages.ResponseStatsMessage{
+				InputTokens:     usage.InputTokens,
+				OutputTokens:    usage.OutputTokens,
+				ReasoningTokens: usage.OutputTokensDetails.ReasoningTokens,
+				TotalTokens:     usage.TotalTokens,
+			})
 			cb(&messages.ResponseCompletedMessage{})
 
 		case "response.failed":
-			respErr := event.AsResponseFailed().Response.Error
+			resp := event.AsResponseFailed().Response
+			err := resp.Error
+			usage := resp.Usage
+			cb(&messages.ResponseStatsMessage{
+				InputTokens:     usage.InputTokens,
+				OutputTokens:    usage.OutputTokens,
+				ReasoningTokens: usage.OutputTokensDetails.ReasoningTokens,
+				TotalTokens:     usage.TotalTokens,
+			})
 			cb(&messages.ResponseFailedMessage{
-				Code:    fmt.Sprintf("%s", respErr.Code),
-				Message: respErr.Message,
+				Code:    fmt.Sprintf("%s", err.Code),
+				Message: err.Message,
 			})
 
 		case "response.output_item.done":
