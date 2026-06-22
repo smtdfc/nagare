@@ -18,8 +18,8 @@ func LoadConfig() (*Config, error) {
 		if errors.Is(err, os.ErrNotExist) {
 			// Return default config
 			conf := &Config{
-				CurrentMode: PROVIDER_MODE,
-				Providers:   map[string]Provider{},
+
+				Providers: map[string]Provider{},
 			}
 			err = SaveConfig(conf)
 			return conf, err

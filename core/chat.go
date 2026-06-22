@@ -12,24 +12,20 @@ import (
 func InitAgent(conf *config.Config) (*agent.AgentPool, *agent.SessionManager) {
 	sessionMgr := agent.NewSessionManager()
 	var chatModel model.ChatModel
-	if conf.CurrentMode == config.PROVIDER_MODE {
-		currentProvider, ok := conf.Providers[conf.CurrentProvider]
-		if !ok || !currentProvider.Enabled {
-			return nil, sessionMgr
-		}
 
-		if currentProvider.Compatible == config.OPEN_AI_COMPATIBLE {
-			chatModel = model.NewOpenAICompatibleClient(&model.ChatModelConfig{
-				BaseURL: currentProvider.BaseURL,
-				APIKey:  currentProvider.APIKey,
-				Model:   currentProvider.ModelName,
-			})
-		} else {
-			fmt.Println("no compatible")
-		}
-
-	} else {
+	currentProvider, ok := conf.Providers[conf.CurrentProvider]
+	if !ok || !currentProvider.Enabled {
 		return nil, sessionMgr
+	}
+
+	if currentProvider.Compatible == config.OPEN_AI_COMPATIBLE {
+		chatModel = model.NewOpenAICompatibleClient(&model.ChatModelConfig{
+			BaseURL: currentProvider.BaseURL,
+			APIKey:  currentProvider.APIKey,
+			Model:   currentProvider.ModelName,
+		})
+	} else {
+		fmt.Println("no compatible")
 	}
 
 	return agent.NewAgentPool(10, chatModel, tool_declarations.Tools), sessionMgr

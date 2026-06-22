@@ -19,7 +19,6 @@ type Page struct {
 
 func BuildList(conf *config.Config) list.Model {
 	items := []list.Item{
-		components.NewListItem("Mode", fmt.Sprintf("Select mode for Nagare (Current: %s)", conf.CurrentMode.String()), "settings:mode"),
 		components.NewListItem("Provider", fmt.Sprintf("Manage your LLM providers (Added: %d provider)", len(conf.Providers)), "settings:provider"),
 		components.NewListItem("Plugin", fmt.Sprintf("Manage your Plugin (Added: %d plugin)", len(conf.Plugins)), "settings:plugin"),
 		components.NewListItem("Back", "", "main"),

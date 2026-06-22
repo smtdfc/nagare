@@ -20,7 +20,6 @@ var rootCmd = &cobra.Command{
 		conf, err := config.LoadConfig()
 		if err != nil {
 			conf = &config.Config{
-				CurrentMode: config.PROVIDER_MODE,
 				Providers: map[string]config.Provider{
 					"OpenAI": {
 						Name:       "OpenAI",

@@ -8,7 +8,7 @@ import (
 	"github.com/smtdfc/nagare/cli/tui/pages/chat"
 	"github.com/smtdfc/nagare/cli/tui/pages/main_ui"
 	"github.com/smtdfc/nagare/cli/tui/pages/settings"
-	mode_setting_page "github.com/smtdfc/nagare/cli/tui/pages/settings/mode"
+
 	plugin_setting_page "github.com/smtdfc/nagare/cli/tui/pages/settings/plugin"
 	provider_setting_page "github.com/smtdfc/nagare/cli/tui/pages/settings/provider"
 	"github.com/smtdfc/nagare/cli/tui/router"
@@ -71,9 +71,6 @@ func NewRootTUI(conf *config.Config) {
 	model.Router.Pages["main"] = main_ui.NewMainPage()
 	model.Router.Pages["chat"] = chat.NewPage(sessionMgr, agentPool)
 	model.Router.Pages["settings"] = settings.NewPage(conf)
-
-	// Mode settings
-	model.Router.Pages["settings:mode"] = mode_setting_page.NewPage(conf)
 
 	// Provider settings
 	model.Router.Pages["settings:provider"] = provider_setting_page.NewPage(conf)

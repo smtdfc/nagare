@@ -42,7 +42,6 @@ type Plugin struct {
 }
 
 type Config struct {
-	CurrentMode     Mode                `json:"current_mode,omitempty"`
 	CurrentProvider string              `json:"current_provider,omitempty"`
 	Providers       map[string]Provider `json:"providers,omitempty"`
 	Plugins         map[string]Plugin   `json:"plugins,omitempty"`

@@ -15,14 +15,7 @@ type Page struct {
 
 // Refresh implements [router.Page].
 func (m *Page) Refresh() {
-	for i, item := range m.list.Items() {
-		if li, ok := item.(components.ListItem[config.Mode]); ok {
-			if li.Value() == m.config.CurrentMode {
-				m.list.Select(i)
-				break
-			}
-		}
-	}
+
 }
 
 // GetName implements [tui.Page].
