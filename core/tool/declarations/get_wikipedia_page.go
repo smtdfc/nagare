@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/smtdfc/nagare/core/tool"
-	"github.com/smtdfc/nagare/core/utils"
+	"github.com/smtdfc/nagare/core/utils/endpoints"
 )
 
 type GetWikipediaPageArgs struct {
@@ -31,7 +31,7 @@ func getWikipediaPage(pageID int) (*WikiExtractResp, error) {
 		Timeout: 5 * time.Second,
 	}
 
-	req := utils.CreateWikipediaContentEndpoint(pageID)
+	req := endpoints.CreateWikipediaContentEndpoint(pageID)
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

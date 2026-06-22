@@ -12,4 +12,4 @@ func init() {
 }
 
 var appLogger = logger.GetLogger()
-var Tools = tool.ListTool{geolocation, get_weather, get_local_time, search_wikipedia, get_wikipedia_page}
+var Tools = tool.ListTool{geolocation, get_weather, get_local_time, search_wikipedia, get_wikipedia_page, search_github}

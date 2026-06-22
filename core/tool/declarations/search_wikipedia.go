@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/smtdfc/nagare/core/tool"
-	"github.com/smtdfc/nagare/core/utils"
+	"github.com/smtdfc/nagare/core/utils/endpoints"
 )
 
 type WikiArgs struct {
@@ -30,7 +30,7 @@ func searchWikipedia(query string) (*WikiSearchResp, error) {
 		Timeout: 5 * time.Second,
 	}
 
-	req := utils.CreateWikipediaSearchEndpoint(query)
+	req := endpoints.CreateWikipediaSearchEndpoint(query)
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
