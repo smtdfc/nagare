@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/messages"
 )
 
@@ -27,6 +28,11 @@ func (s *SessionManager) SaveHistory(sessionID string, history messages.ListMess
 	s.Lock()
 	defer s.Unlock()
 	s.data[sessionID] = history
+}
+
+func (s *SessionManager) CreateSessionID() string {
+	id := uuid.New()
+	return id.String()
 }
 
 func NewSessionManager() *SessionManager {

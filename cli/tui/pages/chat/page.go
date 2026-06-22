@@ -57,7 +57,7 @@ func NewPage(sessionMgr *agent.SessionManager, agentPool *agent.AgentPool) *Chat
 	return &ChatPage{
 		agentPool:               agentPool,
 		sessionMgr:              sessionMgr,
-		sessionID:               "1",
+		sessionID:               sessionMgr.CreateSessionID(),
 		textarea:                ta,
 		viewport:                vp,
 		messages:                []string{},
