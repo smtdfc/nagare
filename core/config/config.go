@@ -39,6 +39,7 @@ type Plugin struct {
 	Version  string   `json:"version"`
 	Path     string   `json:"path"`
 	Features []string `json:"features"`
+	Bin      string   `json:"bin"`
 }
 
 type Config struct {

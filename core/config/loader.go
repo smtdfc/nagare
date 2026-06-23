@@ -9,16 +9,15 @@ import (
 	"github.com/smtdfc/nagare/core/utils"
 )
 
-var appLogger = logger.GetLogger()
-
 func LoadConfig() (*Config, error) {
+	var appLogger = logger.GetLogger("Config loader")
 
 	data, err := os.ReadFile(utils.ConfigFile)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			// Return default config
 			conf := &Config{
-
+				Plugins:   map[string]Plugin{},
 				Providers: map[string]Provider{},
 			}
 			err = SaveConfig(conf)
@@ -42,6 +41,7 @@ func LoadConfig() (*Config, error) {
 }
 
 func SaveConfig(conf *Config) error {
+	var appLogger = logger.GetLogger("Config loader")
 	data, err := json.MarshalIndent(conf, "", "  ")
 	if err != nil {
 		appLogger.Error("Saving the configuration file failed.", "error", err)

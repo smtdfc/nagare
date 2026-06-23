@@ -3,18 +3,21 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
 	"github.com/openai/openai-go/v3/responses"
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/exceptions"
+	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/messages"
 	"github.com/smtdfc/nagare/core/tool"
 )
 
 type OpenAICompatibleChatModel struct {
 	Config *ChatModelConfig
+	logger *slog.Logger
 }
 
 func (o *OpenAICompatibleChatModel) Transform(msg messages.Message) (responses.ResponseInputItemUnionParam, error) {
@@ -192,7 +195,7 @@ func (o *OpenAICompatibleChatModel) Chat(ctx context.ExecuteContext, history mes
 	}
 
 	if err := stream.Err(); err != nil {
-		appLogger.Info(fmt.Sprintf("Error when streaming data from LLM provider: %s", err), "error", err, "compatible", "open-ai")
+		o.logger.Info(fmt.Sprintf("Error when streaming data from LLM provider: %s", err), "error", err, "compatible", "open-ai")
 		return exceptions.NewStreamException(err.Error())
 	}
 
@@ -203,5 +206,6 @@ func (o *OpenAICompatibleChatModel) Chat(ctx context.ExecuteContext, history mes
 func NewOpenAICompatibleClient(config *ChatModelConfig) ChatModel {
 	return &OpenAICompatibleChatModel{
 		Config: config,
+		logger: logger.GetLogger("Open AI compatible client"),
 	}
 }

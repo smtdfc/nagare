@@ -3,6 +3,7 @@ package agent
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	ectx "github.com/smtdfc/nagare/core/context"
@@ -12,13 +13,12 @@ import (
 	"github.com/smtdfc/nagare/core/tool"
 )
 
-var appLogger = logger.GetLogger()
-
 type Agent struct {
 	Model       model.ChatModel
 	History     messages.ListMessage
 	Tools       tool.ListTool
 	Middlewares []any
+	logger      *slog.Logger
 }
 
 func (a *Agent) WithHistory(h messages.ListMessage) *Agent {
@@ -66,8 +66,9 @@ func (a *Agent) Invoke(ctx context.Context, prompt string) <-chan messages.Messa
 }
 
 func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) error {
+
 	start := time.Now()
-	appLogger.Info("Agent processing chat ")
+	a.logger.Info("Agent processing chat ")
 	for {
 		fullTextMessage := ""
 		var toolCalls []*messages.ToolCallMessage
@@ -99,7 +100,7 @@ func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) e
 		}
 
 		for _, tc := range toolCalls {
-			appLogger.Info(fmt.Sprintf("Agent use tool %s", tc.FunctionName))
+			a.logger.Info(fmt.Sprintf("Agent use tool %s", tc.FunctionName))
 			result, err := ctx.CallTool(tc.FunctionName, tc.Args)
 
 			toolResultMsg := &messages.ToolResultMessage{
@@ -115,7 +116,7 @@ func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) e
 
 	cb(&messages.AgentResponseDoneMessage{})
 	elapsed := time.Since(start)
-	appLogger.Info(
+	a.logger.Info(
 		"Agent response completed",
 		"duration", elapsed.String(),
 	)
@@ -127,5 +128,6 @@ func NewAgent(model model.ChatModel) *Agent {
 		Model:   model,
 		History: messages.ListMessage{SYSTEM_PROMPT},
 		Tools:   tool.ListTool{},
+		logger:  logger.GetLogger("Agent"),
 	}
 }

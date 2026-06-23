@@ -9,13 +9,12 @@ import (
 	tool_declarations "github.com/smtdfc/nagare/core/tool/declarations"
 )
 
-func InitAgent(conf *config.Config) (*agent.AgentPool, *agent.SessionManager) {
-	sessionMgr := agent.NewSessionManager()
+func InitAgent(conf *config.Config) *agent.AgentPool {
 	var chatModel model.ChatModel
 
 	currentProvider, ok := conf.Providers[conf.CurrentProvider]
 	if !ok || !currentProvider.Enabled {
-		return nil, sessionMgr
+		return nil
 	}
 
 	if currentProvider.Compatible == config.OPEN_AI_COMPATIBLE {
@@ -28,5 +27,5 @@ func InitAgent(conf *config.Config) (*agent.AgentPool, *agent.SessionManager) {
 		fmt.Println("no compatible")
 	}
 
-	return agent.NewAgentPool(10, chatModel, tool_declarations.Tools), sessionMgr
+	return agent.NewAgentPool(10, chatModel, tool_declarations.Tools)
 }

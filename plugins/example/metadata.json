@@ -1,0 +1,8 @@
+{
+    "name": "Nagare Example Plugin",
+    "id": "org.smtdfc.nagare.plugins.example",
+    "author": "smtdfc",
+    "version": "1.0.0",
+    "features": [],
+    "bin": "plugin.exe"
+}

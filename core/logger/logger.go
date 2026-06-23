@@ -10,9 +10,9 @@ import (
 	"github.com/smtdfc/nagare/core/utils"
 )
 
-var logger *slog.Logger
+var Logger *slog.Logger
 
-func init() {
+func InitLogger() error {
 	ts := time.Now().UnixNano()
 	file, err := os.OpenFile(
 		path.Join(utils.LogDir, fmt.Sprintf("nagare_%d.log", ts)),
@@ -20,14 +20,16 @@ func init() {
 		0666,
 	)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("could not open log file: %w", err)
 	}
 
-	logger = slog.New(
+	Logger = slog.New(
 		slog.NewJSONHandler(file, nil),
 	)
+
+	return nil
 }
 
-func GetLogger() *slog.Logger {
-	return logger
+func GetLogger(name string) *slog.Logger {
+	return Logger.With(name)
 }

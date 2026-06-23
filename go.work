@@ -3,4 +3,7 @@ go 1.26.3
 use (
 	./cli
 	./core
+	./plugin-builder
+	./plugin-sdk
+	./plugins/example
 )
