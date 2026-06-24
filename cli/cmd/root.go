@@ -17,13 +17,13 @@ var rootCmd = &cobra.Command{
 	// Disable default completion if not needed for cleaner UI
 	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		err := core.LoadAllPlugin()
+		err := core.PreStart()
 		if err != nil {
 			return err
 		}
 
 		tui.NewRootTUI(core.Config)
-		core.ShutdownAllPlugin()
+		core.Shutdown()
 		return nil
 	},
 }

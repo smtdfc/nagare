@@ -32,10 +32,12 @@ func SetupEnvironment() error {
 	return nil
 }
 
-func LoadAllPlugin() error {
+func PreStart() error {
+	go PluginMgr.StartHost()
 	return PluginMgr.LoadPlugin()
 }
 
-func ShutdownAllPlugin() {
+func Shutdown() {
 	PluginMgr.Shutdown()
+	config.SaveConfig(Config)
 }

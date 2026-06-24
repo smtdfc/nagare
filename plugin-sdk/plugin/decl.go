@@ -1,4 +1,4 @@
-package plugin_sdk
+package plugin
 
 type PluginMetadata struct {
 	ID       string   `json:"id"`

@@ -6,4 +6,5 @@ use (
 	./plugin-builder
 	./plugin-sdk
 	./plugins/example
+	./plugins/telegram
 )

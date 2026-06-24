@@ -7,7 +7,7 @@ import (
 	"path"
 
 	"github.com/smtdfc/nagare/plugin-builder/utils"
-	plugin_sdk "github.com/smtdfc/nagare/plugin-sdk"
+	"github.com/smtdfc/nagare/plugin-sdk/plugin"
 )
 
 func main() {
@@ -24,7 +24,7 @@ func main() {
 		return
 	}
 
-	var metadata plugin_sdk.PluginMetadata
+	var metadata plugin.PluginMetadata
 	err = utils.ReadJSON(pluginMetadataFile, &metadata)
 
 	fmt.Printf("Building plugin %s %s\n", metadata.ID, metadata.Version)

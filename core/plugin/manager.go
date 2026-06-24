@@ -9,23 +9,24 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/go-plugin"
 	"github.com/smtdfc/nagare/core/config"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/utils"
-	plugin_sdk "github.com/smtdfc/nagare/plugin-sdk"
-	"github.com/smtdfc/nagare/plugin-sdk/proto"
+	"github.com/smtdfc/nagare/plugin-sdk/host"
+	"github.com/smtdfc/nagare/plugin-sdk/plugin"
 	"go.uber.org/multierr"
 )
 
 type PluginManager struct {
-	Conf     *config.Config
-	Clients  map[string]*plugin.Client
-	Services map[string]proto.PluginClient
-	Bridges  map[string]interface{}
-	logger   *slog.Logger
+	mu              *sync.RWMutex
+	Conf            *config.Config
+	PluginInstances map[string]*exec.Cmd
+	Host            *host.Host
+	Arena           map[string]interface{}
+	logger          *slog.Logger
 }
 
 func (m *PluginManager) Install(pluginPackPath string) error {
@@ -38,7 +39,7 @@ func (m *PluginManager) Install(pluginPackPath string) error {
 	}
 
 	pluginMetadataFile := filepath.Join(pluginPath, "metadata.json")
-	var metadata plugin_sdk.PluginMetadata
+	var metadata plugin.PluginMetadata
 	err = utils.ReadJSON(pluginMetadataFile, &metadata)
 	if err != nil {
 		return fmt.Errorf("failed to read metadata: %w", err)
@@ -74,50 +75,25 @@ func (m *PluginManager) Install(pluginPackPath string) error {
 	return config.SaveConfig(m.Conf)
 }
 
+func (m *PluginManager) StartHost() {
+	m.Host.Start()
+}
+
 func (m *PluginManager) LoadPlugin() error {
 	var pluginErr error
-
 	for pluginName, pluginConfig := range m.Conf.Plugins {
 		pluginPath := filepath.Join(utils.PluginDir, pluginConfig.Path, pluginConfig.Bin)
+		cmd := exec.Command(pluginPath)
 
-		client := plugin.NewClient(&plugin.ClientConfig{
-			HandshakeConfig: plugin.HandshakeConfig{
-				ProtocolVersion:  plugin_sdk.PLUGIN_PROTOCOL_VERSION,
-				MagicCookieKey:   plugin_sdk.PLUGIN_MAGIC_COOKIE_KEY,
-				MagicCookieValue: plugin_sdk.PLUGIN_MAGIC_COOKIE_VALUE,
-			},
-			Plugins: map[string]plugin.Plugin{
-				"plugin": &plugin_sdk.NagarePlugin{},
-			},
-			Cmd:              exec.Command(pluginPath),
-			Managed:          true,
-			AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
-		})
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 
-		rpcClient, err := client.Client()
+		err := cmd.Start()
 		if err != nil {
-			client.Kill()
-			pluginErr = multierr.Append(pluginErr, fmt.Errorf("failed to get rpc client for %s: %w", pluginName, err))
-			continue
+			pluginErr = multierr.Append(pluginErr, fmt.Errorf("Cannot start plugin %s: %s", pluginName, err))
 		}
-
-		raw, err := rpcClient.Dispense("plugin")
-		if err != nil {
-			client.Kill()
-			pluginErr = multierr.Append(pluginErr, fmt.Errorf("failed to resolve plugin %s: %w", pluginName, err))
-			continue
-		}
-
-		svc, ok := raw.(proto.PluginClient)
-		if !ok {
-			client.Kill()
-			pluginErr = multierr.Append(pluginErr, fmt.Errorf("plugin %s does not implement PluginClient", pluginName))
-			continue
-		}
-
-		m.Clients[pluginName] = client
-		m.Bridges[pluginName] = raw
-		m.Services[pluginName] = svc
+		m.logger.Info("Started plugin", "plugin", pluginName)
+		m.PluginInstances[pluginName] = cmd
 	}
 
 	return pluginErr
@@ -167,18 +143,23 @@ func extractPlugin(zipPath, destDir string) error {
 }
 
 func (m *PluginManager) Shutdown() {
-	for name, client := range m.Clients {
-		m.logger.Info("Killing plugin", "plugin", name)
-		client.Kill()
+	for name, instance := range m.PluginInstances {
+		err := instance.Process.Kill()
+		if err != nil {
+			m.logger.Info("Kill plugin failed", "plugin", name)
+		}
+
+		m.logger.Info("Killed plugin", "plugin", name)
 	}
 }
 
 func NewPluginManager(conf *config.Config) *PluginManager {
 	return &PluginManager{
-		Conf:     conf,
-		Clients:  map[string]*plugin.Client{},
-		Services: map[string]proto.PluginClient{},
-		Bridges:  map[string]interface{}{},
-		logger:   logger.GetLogger("Plugin manager"),
+		mu:              &sync.RWMutex{},
+		Conf:            conf,
+		PluginInstances: map[string]*exec.Cmd{},
+		Arena:           map[string]interface{}{},
+		Host:            host.NewHost(logger.GetLogger("Plugin Host")),
+		logger:          logger.GetLogger("Plugin manager"),
 	}
 }

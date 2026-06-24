@@ -1,0 +1,8 @@
+{
+    "name": "Nagare Telegram Plugin",
+    "id": "org.smtdfc.nagare.plugins.telegram",
+    "author": "smtdfc",
+    "version": "1.0.0",
+    "features": [],
+    "bin": "plugin.exe"
+}

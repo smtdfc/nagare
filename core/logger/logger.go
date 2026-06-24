@@ -31,5 +31,5 @@ func InitLogger() error {
 }
 
 func GetLogger(name string) *slog.Logger {
-	return Logger.With(name)
+	return Logger.With(slog.String("module", name))
 }
