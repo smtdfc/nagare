@@ -2,12 +2,13 @@ package main
 
 import (
 	"archive/zip"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 )
 
-func createPluginPackage(binaryPath, metadataPath, outputName string) error {
+func createPluginPackage(binaries map[string]string, metadataPath, outputName string) error {
 	archive, err := os.Create(outputName)
 	if err != nil {
 		return err
@@ -16,12 +17,15 @@ func createPluginPackage(binaryPath, metadataPath, outputName string) error {
 
 	writer := zip.NewWriter(archive)
 	defer writer.Close()
-
-	files := []string{binaryPath, metadataPath}
+	files := []string{metadataPath}
+	for _, output := range binaries {
+		files = append(files, output)
+	}
 
 	for _, file := range files {
+		fmt.Println("Compressing ", file)
 		if err := addFileToZip(writer, file); err != nil {
-			return err
+			return fmt.Errorf("failed to add file %s to zip: %w", file, err)
 		}
 	}
 	return nil
@@ -43,7 +47,13 @@ func addFileToZip(writer *zip.Writer, filename string) error {
 	if err != nil {
 		return err
 	}
-	header.Name = filepath.Base(filename)
+
+	if filepath.Base(filename) == "metadata.json" {
+		header.Name = "metadata.json"
+	} else {
+		header.Name = filename
+	}
+
 	header.Method = zip.Deflate
 
 	writerEntry, err := writer.CreateHeader(header)

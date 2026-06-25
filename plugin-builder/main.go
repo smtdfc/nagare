@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 
 	"github.com/smtdfc/nagare/plugin-builder/utils"
 	"github.com/smtdfc/nagare/plugin-sdk/plugin"
@@ -28,13 +29,27 @@ func main() {
 	err = utils.ReadJSON(pluginMetadataFile, &metadata)
 
 	fmt.Printf("Building plugin %s %s\n", metadata.ID, metadata.Version)
-	cmd := exec.Command("go", "build", "-v", "-o", metadata.Bin)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
-	if err != nil {
-		fmt.Println("Build failed with error:", err)
-		return
+
+	for platform, output := range metadata.Bin {
+		parts := strings.Split(platform, "/")
+		if len(parts) != 2 {
+			fmt.Println("Invalid platform format, expected os/arch:", platform)
+			continue
+		}
+		goos := parts[0]
+		goarch := parts[1]
+
+		cmd := exec.Command("go", "build", "-v", "-o", output)
+		cmd.Env = append(os.Environ(), "GOOS="+goos, "GOARCH="+goarch)
+
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err = cmd.Run()
+		if err != nil {
+			fmt.Printf("Build failed for %s with error: %v\n", platform, err)
+			return
+		}
 	}
 
 	fmt.Println("Build completed successfully!")
