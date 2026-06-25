@@ -10,6 +10,8 @@ import (
 	nagare_logger "github.com/smtdfc/nagare/shared/logger"
 )
 
+const NAGARE_LIST_MESSAGE_SIZE_LIMIT = 10
+
 type SessionManager struct {
 	sync.RWMutex
 	data   map[string]messages.ListMessage
@@ -20,15 +22,24 @@ func (s *SessionManager) GetHistory(sessionID string, limit int) messages.ListMe
 	s.RLock()
 	defer s.RUnlock()
 
-	if history, exists := s.data[sessionID]; exists {
-		if limit > 0 && len(history) > limit {
-			start := len(history) - limit
-			return history[start:]
-		}
-		return history
+	history, exists := s.data[sessionID]
+	if !exists {
+		return messages.ListMessage{SYSTEM_PROMPT}
 	}
 
-	return messages.ListMessage{SYSTEM_PROMPT}
+	// apply limit
+	if limit > 0 && len(history) > limit {
+		history = history[len(history)-limit:]
+	}
+
+	// pre-allocate: 1 system + history size
+	n := len(history) + 1
+	result := make(messages.ListMessage, 0, n)
+
+	result = append(result, SYSTEM_PROMPT)
+	result = append(result, history...)
+
+	return result
 }
 
 func (s *SessionManager) SaveHistory(sessionID string, history messages.ListMessage) {

@@ -8,6 +8,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/smtdfc/nagare/cli/tui/router"
+	"github.com/smtdfc/nagare/core/agent"
 )
 
 func (m *ChatPage) renderReasoningMessage(msg string) string {
@@ -140,7 +141,7 @@ func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.textarea.Placeholder = "Waiting for response..."
 
 			m.prepare()
-			m.currentAgent.History = m.sessionMgr.GetHistory(m.sessionID, 10)
+			m.currentAgent.History = m.sessionMgr.GetHistory(m.sessionID, agent.NAGARE_LIST_MESSAGE_SIZE_LIMIT)
 			m.currentStream = m.currentAgent.Invoke(context.Background(), v)
 			m.currentMessageChunkType = "unknown"
 			cmds = append(cmds, waitForMessage(m.currentStream))
