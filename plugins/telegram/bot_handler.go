@@ -21,6 +21,7 @@ func NewTelegramHandler(state *BotState, plg *plugin.Plugin) bot.HandlerFunc {
 
 		state.Lock()
 		if !state.isInitialized[chatID] {
+			PluginLogger.Info("Register chat channel", "chatID", chatID)
 			state.msgQueue[chatID] = append(state.msgQueue[chatID], text)
 			if _, exists := state.userChannels[chatID]; !exists {
 				channelID := fmt.Sprintf("telegram:%d", chatID)

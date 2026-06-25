@@ -6,16 +6,14 @@ import (
 	"os"
 	"path"
 	"time"
-
-	nagare_path "github.com/smtdfc/nagare/shared/path"
 )
 
 var Logger *slog.Logger
 
-func InitLogger() error {
+func InitLogger(logDir string) error {
 	ts := time.Now().UnixNano()
 	file, err := os.OpenFile(
-		path.Join(nagare_path.LogDir, fmt.Sprintf("nagare_%d.log", ts)),
+		path.Join(logDir, fmt.Sprintf("nagare_%d.log", ts)),
 		os.O_CREATE|os.O_WRONLY|os.O_APPEND,
 		0666,
 	)

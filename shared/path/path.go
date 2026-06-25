@@ -12,7 +12,18 @@ var PluginDir = "plugins"
 var TempDir = "temp"
 var DataDir string
 
-func InitGlobalPath() {
+func GetPluginLogDir(name string) string {
+	dir := path.Join(LogDir, "plugins", name)
+
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+
+	return dir
+}
+
+func init() {
 	userDir, _ := os.UserConfigDir()
 	DataDir = path.Join(userDir, ".nagare")
 	ConfigFile = path.Join(DataDir, "config.json")

@@ -13,6 +13,11 @@ import (
 func main() {
 
 	botApiKey := os.Getenv("TELEGRAM_NAGARE_BOT_API_KEY")
+	if botApiKey == "" {
+		PluginLogger.Warn("Missing telegram Bot API key")
+		return
+	}
+
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
@@ -28,11 +33,12 @@ func main() {
 	opts := []bot.Option{bot.WithDefaultHandler(NewTelegramHandler(state, plg))}
 	b, err := bot.New(botApiKey, opts...)
 	if err != nil {
-		panic(err)
+		PluginLogger.Error("Failed to initialize bot", "cause", err)
+		return
 	}
 
 	go b.Start(ctx)
-
+	PluginLogger.Info("Bot started")
 	plg.Listen(func(msg shared.Message) {
 		HandlePluginMessages(ctx, b, plg, state, msg)
 	})

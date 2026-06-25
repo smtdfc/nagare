@@ -14,8 +14,7 @@ var Config *config.Config
 var AgentPool *agent.AgentPool
 
 func SetupEnvironment() error {
-	nagare_path.InitGlobalPath()
-	err := nagare_logger.InitLogger()
+	err := nagare_logger.InitLogger(nagare_path.LogDir)
 	if err != nil {
 		return err
 	}

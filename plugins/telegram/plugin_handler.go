@@ -1,26 +1,23 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/go-telegram/bot"
 	"github.com/smtdfc/nagare/plugin-sdk/plugin"
 	"github.com/smtdfc/nagare/plugin-sdk/shared"
-	"github.com/yuin/goldmark"
 )
 
-func markdownToHTML(mdContent string) (string, error) {
-	var buf bytes.Buffer
-	if err := goldmark.Convert([]byte(mdContent), &buf); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
-}
+// func markdownToHTML(mdContent string) (string, error) {
+// 	var buf bytes.Buffer
+// 	if err := goldmark.Convert([]byte(mdContent), &buf); err != nil {
+// 		return "", err
+// 	}
+// 	return buf.String(), nil
+// }
 
 func escapeMarkdownV2(text string) string {
 	specialChars := []string{"_", "*", "[", "]", "(", ")", "~", "`", ">", "#", "+", "-", "=", "|", "{", "}", ".", "!"}
@@ -33,6 +30,7 @@ func escapeMarkdownV2(text string) string {
 func HandlePluginMessages(ctx context.Context, b *bot.Bot, plg *plugin.Plugin, state *BotState, msg shared.Message) {
 	switch msg.Kind {
 	case shared.SHUTDOWN_PLUGIN_REQUEST:
+		PluginLogger.Info("Plugin received shutdown request")
 	case shared.REGISTER_CHAT_CHANNEL_SUCCESS:
 		var payload shared.RegisterChatChannelSuccessPayload
 		json.Unmarshal(msg.Payload, &payload)
@@ -41,6 +39,7 @@ func HandlePluginMessages(ctx context.Context, b *bot.Bot, plg *plugin.Plugin, s
 		if len(parts) >= 2 {
 			chatID, _ = strconv.ParseInt(parts[1], 10, 64)
 		}
+		PluginLogger.Info("Registered chat channel", "chatID", chatID, "channel", payload.ID)
 
 		state.Lock()
 		state.isInitialized[chatID] = true
@@ -69,7 +68,7 @@ func HandlePluginMessages(ctx context.Context, b *bot.Bot, plg *plugin.Plugin, s
 			})
 
 			if err != nil {
-				fmt.Println(err)
+				PluginLogger.Error("Failed to send message", "chatID", extractedChatID, "channel", payload.Channel, "cause", err)
 			}
 		}
 	}
