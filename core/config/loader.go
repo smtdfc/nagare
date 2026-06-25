@@ -5,14 +5,14 @@ import (
 	"errors"
 	"os"
 
-	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/core/utils"
+	nagare_logger "github.com/smtdfc/nagare/shared/logger"
+	nagare_path "github.com/smtdfc/nagare/shared/path"
 )
 
 func LoadConfig() (*Config, error) {
-	var appLogger = logger.GetLogger("Config loader")
+	var appLogger = nagare_logger.GetLogger("Config loader")
 
-	data, err := os.ReadFile(utils.ConfigFile)
+	data, err := os.ReadFile(nagare_path.ConfigFile)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			// Return default config
@@ -41,14 +41,14 @@ func LoadConfig() (*Config, error) {
 }
 
 func SaveConfig(conf *Config) error {
-	var appLogger = logger.GetLogger("Config loader")
+	var appLogger = nagare_logger.GetLogger("Config loader")
 	data, err := json.MarshalIndent(conf, "", "  ")
 	if err != nil {
 		appLogger.Error("Saving the configuration file failed.", "error", err)
 		return err
 	}
 
-	err = os.WriteFile(utils.ConfigFile, data, 0644)
+	err = os.WriteFile(nagare_path.ConfigFile, data, 0644)
 	if err != nil {
 		appLogger.Error("Saving the configuration file failed.", "error", err)
 		return err

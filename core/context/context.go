@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/smtdfc/nagare/core/exceptions"
-	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/tool"
+	nagare_logger "github.com/smtdfc/nagare/shared/logger"
 )
 
 type ExecuteContext struct {
@@ -48,6 +48,6 @@ func NewExecuteContext(ctx context.Context, listTool tool.ListTool) ExecuteConte
 	return ExecuteContext{
 		Context: ctx,
 		Tools:   toolMap,
-		logger:  logger.GetLogger("Execute context"),
+		logger:  nagare_logger.GetLogger("Execute context"),
 	}
 }

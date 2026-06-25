@@ -3,9 +3,9 @@ package core
 import (
 	"github.com/smtdfc/nagare/core/agent"
 	"github.com/smtdfc/nagare/core/config"
-	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/plugin"
-	"github.com/smtdfc/nagare/core/utils"
+	nagare_logger "github.com/smtdfc/nagare/shared/logger"
+	nagare_path "github.com/smtdfc/nagare/shared/path"
 )
 
 var SessionMgr *agent.SessionManager
@@ -14,8 +14,8 @@ var Config *config.Config
 var AgentPool *agent.AgentPool
 
 func SetupEnvironment() error {
-	utils.InitGlobalPath()
-	err := logger.InitLogger()
+	nagare_path.InitGlobalPath()
+	err := nagare_logger.InitLogger()
 	if err != nil {
 		return err
 	}

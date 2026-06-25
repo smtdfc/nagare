@@ -1,4 +1,4 @@
-package logger
+package nagare_logger
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/smtdfc/nagare/core/utils"
+	nagare_path "github.com/smtdfc/nagare/shared/path"
 )
 
 var Logger *slog.Logger
@@ -15,7 +15,7 @@ var Logger *slog.Logger
 func InitLogger() error {
 	ts := time.Now().UnixNano()
 	file, err := os.OpenFile(
-		path.Join(utils.LogDir, fmt.Sprintf("nagare_%d.log", ts)),
+		path.Join(nagare_path.LogDir, fmt.Sprintf("nagare_%d.log", ts)),
 		os.O_CREATE|os.O_WRONLY|os.O_APPEND,
 		0666,
 	)

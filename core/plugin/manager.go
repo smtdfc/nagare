@@ -15,11 +15,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/agent"
 	"github.com/smtdfc/nagare/core/config"
-	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/utils"
 	"github.com/smtdfc/nagare/plugin-sdk/host"
 	"github.com/smtdfc/nagare/plugin-sdk/plugin"
 	"github.com/smtdfc/nagare/plugin-sdk/shared"
+	nagare_logger "github.com/smtdfc/nagare/shared/logger"
+	nagare_path "github.com/smtdfc/nagare/shared/path"
 	"go.uber.org/multierr"
 )
 
@@ -36,7 +37,7 @@ type PluginManager struct {
 
 func (m *PluginManager) Install(pluginPackPath string) error {
 	id := uuid.New()
-	pluginPath := filepath.Join(utils.TempDir, id.String())
+	pluginPath := filepath.Join(nagare_path.TempDir, id.String())
 
 	err := extractPlugin(pluginPackPath, pluginPath)
 	if err != nil {
@@ -56,7 +57,7 @@ func (m *PluginManager) Install(pluginPackPath string) error {
 	}
 
 	pluginDirName := fmt.Sprintf("%s.%s", metadata.ID, base64.URLEncoding.EncodeToString([]byte(metadata.ID)))
-	pluginDest := filepath.Join(utils.PluginDir, pluginDirName)
+	pluginDest := filepath.Join(nagare_path.PluginDir, pluginDirName)
 
 	if m.Conf.Plugins == nil {
 		m.Conf.Plugins = map[string]config.Plugin{}
@@ -116,7 +117,7 @@ func (m *PluginManager) StartHost(pool *agent.AgentPool, sessionMgr *agent.Sessi
 func (m *PluginManager) LoadPlugin() error {
 	var pluginErr error
 	for pluginName, pluginConfig := range m.Conf.Plugins {
-		pluginPath := filepath.Join(utils.PluginDir, pluginConfig.Path, pluginConfig.Bin)
+		pluginPath := filepath.Join(nagare_path.PluginDir, pluginConfig.Path, pluginConfig.Bin)
 		cmd := exec.Command(pluginPath)
 
 		cmd.Stdout = os.Stdout
@@ -194,7 +195,7 @@ func NewPluginManager(conf *config.Config) *PluginManager {
 		Conf:            conf,
 		PluginInstances: map[string]*exec.Cmd{},
 		Arena:           map[string]interface{}{},
-		Host:            host.NewHost(logger.GetLogger("Plugin Host")),
-		logger:          logger.GetLogger("Plugin manager"),
+		Host:            host.NewHost(nagare_logger.GetLogger("Plugin Host")),
+		logger:          nagare_logger.GetLogger("Plugin manager"),
 	}
 }

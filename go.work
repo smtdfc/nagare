@@ -7,4 +7,5 @@ use (
 	./plugin-sdk
 	./plugins/example
 	./plugins/telegram
+	./shared
 )

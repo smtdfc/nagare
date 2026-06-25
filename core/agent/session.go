@@ -6,8 +6,8 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/messages"
+	nagare_logger "github.com/smtdfc/nagare/shared/logger"
 )
 
 type SessionManager struct {
@@ -39,5 +39,5 @@ func (s *SessionManager) CreateSessionID() string {
 }
 
 func NewSessionManager() *SessionManager {
-	return &SessionManager{data: make(map[string]messages.ListMessage), logger: logger.GetLogger("Session Manager")}
+	return &SessionManager{data: make(map[string]messages.ListMessage), logger: nagare_logger.GetLogger("Session Manager")}
 }

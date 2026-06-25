@@ -1,15 +1,34 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/go-telegram/bot"
 	"github.com/smtdfc/nagare/plugin-sdk/plugin"
 	"github.com/smtdfc/nagare/plugin-sdk/shared"
+	"github.com/yuin/goldmark"
 )
+
+func markdownToHTML(mdContent string) (string, error) {
+	var buf bytes.Buffer
+	if err := goldmark.Convert([]byte(mdContent), &buf); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
+
+func escapeMarkdownV2(text string) string {
+	specialChars := []string{"_", "*", "[", "]", "(", ")", "~", "`", ">", "#", "+", "-", "=", "|", "{", "}", ".", "!"}
+	for _, char := range specialChars {
+		text = strings.ReplaceAll(text, char, "\\"+char)
+	}
+	return text
+}
 
 func HandlePluginMessages(ctx context.Context, b *bot.Bot, plg *plugin.Plugin, state *BotState, msg shared.Message) {
 	switch msg.Kind {
@@ -43,10 +62,15 @@ func HandlePluginMessages(ctx context.Context, b *bot.Bot, plg *plugin.Plugin, s
 			extractedChatID, _ = strconv.ParseInt(parts[1], 10, 64)
 		}
 		if extractedChatID != 0 {
-			b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID: extractedChatID,
-				Text:   payload.Message,
+			_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID:    extractedChatID,
+				Text:      escapeMarkdownV2(payload.Message),
+				ParseMode: "MarkdownV2",
 			})
+
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 	}
 }

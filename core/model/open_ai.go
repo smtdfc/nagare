@@ -10,9 +10,9 @@ import (
 	"github.com/openai/openai-go/v3/responses"
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/exceptions"
-	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/messages"
 	"github.com/smtdfc/nagare/core/tool"
+	nagare_logger "github.com/smtdfc/nagare/shared/logger"
 )
 
 type OpenAICompatibleChatModel struct {
@@ -206,6 +206,6 @@ func (o *OpenAICompatibleChatModel) Chat(ctx context.ExecuteContext, history mes
 func NewOpenAICompatibleClient(config *ChatModelConfig) ChatModel {
 	return &OpenAICompatibleChatModel{
 		Config: config,
-		logger: logger.GetLogger("Open AI compatible client"),
+		logger: nagare_logger.GetLogger("Open AI compatible client"),
 	}
 }

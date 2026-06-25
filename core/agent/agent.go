@@ -7,10 +7,10 @@ import (
 	"time"
 
 	ectx "github.com/smtdfc/nagare/core/context"
-	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/messages"
 	"github.com/smtdfc/nagare/core/model"
 	"github.com/smtdfc/nagare/core/tool"
+	nagare_logger "github.com/smtdfc/nagare/shared/logger"
 )
 
 type Agent struct {
@@ -128,6 +128,6 @@ func NewAgent(model model.ChatModel) *Agent {
 		Model:   model,
 		History: messages.ListMessage{SYSTEM_PROMPT},
 		Tools:   tool.ListTool{},
-		logger:  logger.GetLogger("Agent"),
+		logger:  nagare_logger.GetLogger("Agent"),
 	}
 }

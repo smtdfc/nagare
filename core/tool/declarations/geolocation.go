@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/smtdfc/nagare/core/tool"
 )
 
 type GeoArgs struct {
-	Query string `json:"query" jsonschema:"description=Place name, for example: Hanoi"`
+	Query string `json:"query" jsonschema:"description=The exact name of the city or place in English or local language, URL-encoded if necessary. Example: 'Hanoi', 'Ho Chi Minh City'"`
 }
 
 type geoResult struct {
@@ -26,14 +27,16 @@ type geoAPIResponse struct {
 }
 
 func callGeoAPI(query string) (*geoResult, error) {
-	url := fmt.Sprintf(
-		"https://geocoding-api.open-meteo.com/v1/search?name=%s&count=1",
-		query,
+	encodedQuery := url.QueryEscape(query)
+
+	urlStr := fmt.Sprintf(
+		"https://geocoding-api.open-meteo.com/v1/search?name=%s&count=1&language=en&format=json",
+		encodedQuery,
 	)
 
 	client := &http.Client{Timeout: 5 * time.Second}
 
-	resp, err := client.Get(url)
+	resp, err := client.Get(urlStr)
 	if err != nil {
 		return nil, err
 	}
