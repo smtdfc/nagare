@@ -3,6 +3,13 @@
     "id": "org.smtdfc.nagare.plugins.telegram",
     "author": "smtdfc",
     "version": "1.0.0",
-    "features": [],
-    "bin": "plugin.exe"
+    "features": [
+        "chat-channel"
+    ],
+    "bin": {
+        "linux/amd64": "dist/telegram-plugin-linux-amd64",
+        "linux/arm64": "dist/telegram-plugin-linux-arm64",
+        "windows/amd64": "dist/telegram-plugin-windows-amd64.exe",
+        "darwin/arm64": "dist/telegram-plugin-darwin-arm64"
+    }
 }

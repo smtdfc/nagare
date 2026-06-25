@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sync"
 
 	"github.com/google/uuid"
@@ -26,6 +27,10 @@ import (
 
 var ChatMgr *ChatChannelManager
 
+func GetCurrentPlatform() string {
+	return fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)
+}
+
 type PluginManager struct {
 	mu              *sync.RWMutex
 	Conf            *config.Config
@@ -37,6 +42,7 @@ type PluginManager struct {
 
 func (m *PluginManager) Install(pluginPackPath string) error {
 	id := uuid.New()
+	platform := GetCurrentPlatform()
 	pluginPath := filepath.Join(nagare_path.TempDir, id.String())
 
 	err := extractPlugin(pluginPackPath, pluginPath)
@@ -51,7 +57,12 @@ func (m *PluginManager) Install(pluginPackPath string) error {
 		return fmt.Errorf("failed to read metadata: %w", err)
 	}
 
-	binPath := filepath.Join(pluginPath, metadata.Bin)
+	bin, ok := metadata.Bin[platform]
+	if !ok {
+		return fmt.Errorf("plugin not support platform: %s", platform)
+	}
+
+	binPath := filepath.Join(pluginPath, bin)
 	if _, err := os.Stat(binPath); os.IsNotExist(err) {
 		return fmt.Errorf("plugin binary not found at: %s", binPath)
 	}
@@ -70,7 +81,7 @@ func (m *PluginManager) Install(pluginPackPath string) error {
 		Version:  metadata.Version,
 		Path:     pluginDirName,
 		Features: metadata.Features,
-		Bin:      metadata.Bin,
+		Bin:      bin,
 	}
 
 	err = utils.CopyDir(pluginPath, pluginDest)
