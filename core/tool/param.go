@@ -33,9 +33,13 @@ func ExtractParameters(args any) ParameterDefinition {
 		}
 	}
 
+	required := rootDef.Required
+	if required == nil {
+		required = []string{}
+	}
 	return ParameterDefinition{
 		Type:       "object",
 		Properties: props,
-		Required:   rootDef.Required,
+		Required:   required,
 	}
 }
