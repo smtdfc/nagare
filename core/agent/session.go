@@ -16,13 +16,18 @@ type SessionManager struct {
 	logger *slog.Logger
 }
 
-func (s *SessionManager) GetHistory(sessionID string) messages.ListMessage {
+func (s *SessionManager) GetHistory(sessionID string, limit int) messages.ListMessage {
 	s.RLock()
 	defer s.RUnlock()
+
 	if history, exists := s.data[sessionID]; exists {
-		s.logger.Info(fmt.Sprintf("Successfully retrieved chat history for session %s", sessionID))
+		if limit > 0 && len(history) > limit {
+			start := len(history) - limit
+			return history[start:]
+		}
 		return history
 	}
+
 	return messages.ListMessage{SYSTEM_PROMPT}
 }
 

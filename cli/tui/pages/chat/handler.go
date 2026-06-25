@@ -140,7 +140,7 @@ func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.textarea.Placeholder = "Waiting for response..."
 
 			m.prepare()
-			m.currentAgent.History = m.sessionMgr.GetHistory(m.sessionID)
+			m.currentAgent.History = m.sessionMgr.GetHistory(m.sessionID, 10)
 			m.currentStream = m.currentAgent.Invoke(context.Background(), v)
 			m.currentMessageChunkType = "unknown"
 			cmds = append(cmds, waitForMessage(m.currentStream))

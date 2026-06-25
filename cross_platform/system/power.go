@@ -18,7 +18,13 @@ func ExecutePowerCommand(action string) error {
 			cmd = exec.Command("shutdown", "/r", "/t", "0")
 		case "sleep":
 			cmd = exec.Command("powershell", "-Command", "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Application]::SetSuspendState('Suspend', $false, $false)")
+		case "lock_screen":
+			cmd = exec.Command(
+				"rundll32.exe",
+				"user32.dll,LockWorkStation",
+			)
 		}
+
 	case "linux", "darwin":
 		switch action {
 		case "shutdown":

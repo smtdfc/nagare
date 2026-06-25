@@ -8,12 +8,12 @@ import (
 )
 
 type PowerArgs struct {
-	Action string `json:"action" jsonschema:"description=Action to perform: shutdown, reboot, sleep"`
+	Action string `json:"action" jsonschema:"description=Action to perform: shutdown, reboot, sleep, lock_screen"`
 }
 
 var power_control = tool.DeclareTool(
 	"power_control",
-	"Control system power states: shutdown, reboot, or sleep.",
+	"Control system power states: shutdown, reboot,lock_screen, or sleep.",
 	func(ctx context.Context, args PowerArgs) (any, error) {
 		err := system.ExecutePowerCommand(args.Action)
 		if err != nil {

@@ -12,7 +12,7 @@ type GetSystemInfoArgs struct {
 
 var get_system_info = tool.DeclareTool(
 	"get_system_info",
-	"Retrieve detailed system information including CPU, Memory, and OS details.",
+	"Retrieve detailed system information.",
 	func(ctx context.Context, args GetSystemInfoArgs) (any, error) {
 		sysInfo, err := system.GetSystemInfo()
 		if err != nil {

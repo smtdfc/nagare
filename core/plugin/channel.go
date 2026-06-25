@@ -39,7 +39,7 @@ func (m *ChatChannelManager) Handle(payload *shared.HandleChatMessagePayload, pl
 	m.mu.Unlock()
 
 	message := payload.Message
-	channel.Agent.History = channel.SessionMgr.GetHistory(channel.SessionID)
+	channel.Agent.History = channel.SessionMgr.GetHistory(channel.SessionID, 10)
 	responseChannel := channel.Agent.Invoke(context.Background(), message)
 
 	var fullResponse string
