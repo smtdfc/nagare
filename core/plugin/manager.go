@@ -3,6 +3,7 @@ package plugin
 import (
 	"archive/zip"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -12,13 +13,17 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/smtdfc/nagare/core/agent"
 	"github.com/smtdfc/nagare/core/config"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/utils"
 	"github.com/smtdfc/nagare/plugin-sdk/host"
 	"github.com/smtdfc/nagare/plugin-sdk/plugin"
+	"github.com/smtdfc/nagare/plugin-sdk/shared"
 	"go.uber.org/multierr"
 )
+
+var ChatMgr *ChatChannelManager
 
 type PluginManager struct {
 	mu              *sync.RWMutex
@@ -75,7 +80,36 @@ func (m *PluginManager) Install(pluginPackPath string) error {
 	return config.SaveConfig(m.Conf)
 }
 
-func (m *PluginManager) StartHost() {
+func (m *PluginManager) StartHost(pool *agent.AgentPool, sessionMgr *agent.SessionManager) {
+	m.Host.Handler(shared.REGISTER_CHAT_CHANNEL, func(msg shared.Message) {
+		if ChatMgr == nil {
+			ChatMgr = NewChatChannelManager(m.Host)
+		}
+
+		var payload shared.RegisterChatChannelPayload
+		json.Unmarshal(msg.Payload, &payload)
+		agent := pool.GetOrNew()
+		ChatMgr.Register(&ChatChannel{
+			Id:         payload.ID,
+			Agent:      agent,
+			SessionMgr: sessionMgr,
+			SessionID:  payload.ID,
+			CleanUp: func() {
+				pool.Put(agent)
+			},
+		})
+
+		m.Host.Send(msg.PluginID, shared.REGISTER_CHAT_CHANNEL_SUCCESS, shared.RegisterChatChannelSuccessPayload{
+			ID: payload.ID,
+		})
+	})
+
+	m.Host.Handler(shared.HANDLE_CHAT_MESSAGE, func(msg shared.Message) {
+		var payload shared.HandleChatMessagePayload
+		json.Unmarshal(msg.Payload, &payload)
+		ChatMgr.Handle(&payload, msg.PluginID)
+	})
+
 	m.Host.Start()
 }
 
@@ -143,6 +177,7 @@ func extractPlugin(zipPath, destDir string) error {
 }
 
 func (m *PluginManager) Shutdown() {
+	m.Host.Shutdown()
 	for name, instance := range m.PluginInstances {
 		err := instance.Process.Kill()
 		if err != nil {

@@ -33,7 +33,7 @@ func SetupEnvironment() error {
 }
 
 func PreStart() error {
-	go PluginMgr.StartHost()
+	go PluginMgr.StartHost(AgentPool, SessionMgr)
 	return PluginMgr.LoadPlugin()
 }
 

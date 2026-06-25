@@ -24,12 +24,20 @@ func GetFreePort(startPort int) (int, error) {
 	return 0, fmt.Errorf("No port free")
 }
 
+type Handler func(shared.Message)
 type Host struct {
-	port    int
-	ln      net.Listener
-	plugins map[string]net.Conn
-	mu      sync.RWMutex
-	logger  *slog.Logger
+	port     int
+	ln       net.Listener
+	plugins  map[string]net.Conn
+	mu       sync.RWMutex
+	logger   *slog.Logger
+	handlers map[string]Handler
+}
+
+func (h *Host) Handler(kind string, handler Handler) {
+	h.mu.Lock()
+	h.handlers[kind] = handler
+	h.mu.Unlock()
 }
 
 func (h *Host) Register(id string, conn net.Conn) {
@@ -38,14 +46,22 @@ func (h *Host) Register(id string, conn net.Conn) {
 	h.mu.Unlock()
 }
 
-func (h *Host) SendTo(id string, msg shared.Message) {
+func (h *Host) Send(id string, method string, payload interface{}) error {
 	h.mu.RLock()
 	conn := h.plugins[id]
 	h.mu.RUnlock()
 
 	if conn != nil {
+		data, _ := json.Marshal(payload)
+		msg := shared.Message{
+			PluginID: id,
+			Kind:     method,
+			Payload:  data,
+		}
 		json.NewEncoder(conn).Encode(msg)
 	}
+
+	return nil
 }
 
 func handlePlugin(h *Host, conn net.Conn) {
@@ -75,11 +91,18 @@ func handlePlugin(h *Host, conn net.Conn) {
 				Kind: shared.REGISTER_PLUGIN_SUCCESS,
 			})
 			h.logger.Info("Plugin registered", "plugin_id", pluginID)
+			continue
 
 		case "log":
 			encoder.Encode(shared.Message{
 				Kind: "plugin:log:success",
 			})
+			continue
+		}
+
+		handler, ok := h.handlers[msg.Kind]
+		if ok {
+			handler(msg)
 		}
 	}
 }
@@ -125,10 +148,11 @@ func NewHost(logger *slog.Logger) *Host {
 	os.Setenv(shared.ADDR_ENV, CreateConnectionString("localhost", port))
 
 	return &Host{
-		port:    port,
-		ln:      nil,
-		plugins: map[string]net.Conn{},
-		mu:      sync.RWMutex{},
-		logger:  logger,
+		port:     port,
+		ln:       nil,
+		plugins:  map[string]net.Conn{},
+		handlers: map[string]Handler{},
+		mu:       sync.RWMutex{},
+		logger:   logger,
 	}
 }
