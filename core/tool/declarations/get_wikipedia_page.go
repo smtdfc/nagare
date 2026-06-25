@@ -12,7 +12,6 @@ import (
 )
 
 type GetWikipediaPageArgs struct {
-	// Title  string `json:"title" jsonschema:"description=Wikipedia page title"`
 	PageID int `json:"query" jsonschema:"description=Wikipedia page ID"`
 }
 

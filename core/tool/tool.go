@@ -72,6 +72,7 @@ func DeclareTool[T any, R any](
 		panic(fmt.Sprintf("error marshaling schema: %v", err))
 	}
 
+	// fmt.Println(string(schemaBytes))
 	return &ToolDeclaration[T, R]{
 		Name:        name,
 		Description: description,

@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"context"
+	"encoding/base64"
 
 	"sync"
 
@@ -49,15 +50,15 @@ func (m *ChatChannelManager) Handle(payload *shared.HandleChatMessagePayload, pl
 			fullResponse += msg.Content
 
 		case *messages.StreamErrorMessage:
-			fullResponse = "Oop! Nagare 😭: " + msg.Cause
+			fullResponse = "Oop! Nagare cannot action 😭.Error code: " + base64.URLEncoding.EncodeToString([]byte(msg.Cause))
 
 		case *messages.ResponseFailedMessage:
-			fullResponse = "Hummmm 🤡, Your LLM provider said: " + msg.Message
+			fullResponse = "Oop! Nagare cannot action 😭.Error code: " + base64.URLEncoding.EncodeToString([]byte(msg.Message))
 
 		case *messages.ToolCallMessage:
 			m.Host.Send(pluginID, shared.HANDLE_CHAT_MESSAGE, shared.HandleChatMessagePayload{
 				Channel: payload.Channel,
-				Message: "🤖  Using " + msg.FunctionName,
+				Message: "🛠️ Using tool" + msg.FunctionName,
 			})
 		}
 	}
