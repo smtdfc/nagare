@@ -2,12 +2,10 @@ package declarations
 
 import (
 	"context"
-	"fmt"
-	"os/exec"
-	"runtime"
 	"strings"
 
 	"github.com/smtdfc/nagare/core/tool"
+	"github.com/smtdfc/nagare/cross-platform/system"
 )
 
 type OpenWebArgs struct {
@@ -23,21 +21,9 @@ var open_web = tool.DeclareTool(
 			target = "https://" + target
 		}
 
-		var cmd *exec.Cmd
-
-		switch runtime.GOOS {
-		case "windows":
-			cmd = exec.Command("cmd", "/c", "start", target)
-		case "darwin":
-			cmd = exec.Command("open", target)
-		case "linux":
-			cmd = exec.Command("xdg-open", target)
-		default:
-			return nil, fmt.Errorf("unsupported operating system: %s", runtime.GOOS)
-		}
-
-		if err := cmd.Start(); err != nil {
-			return nil, fmt.Errorf("failed to open browser: %w", err)
+		err := system.OpenWeb(target)
+		if err != nil {
+			return nil, err
 		}
 
 		return map[string]any{

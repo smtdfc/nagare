@@ -14,4 +14,5 @@ func InitTools() {
 	tool.GlobalToolRegistry.Register(open_web)
 	tool.GlobalToolRegistry.Register(get_system_info)
 	tool.GlobalToolRegistry.Register(power_control)
+	tool.GlobalToolRegistry.Register(set_volume)
 }
