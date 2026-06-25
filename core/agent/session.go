@@ -12,6 +12,11 @@ import (
 
 const NAGARE_LIST_MESSAGE_SIZE_LIMIT = 10
 
+var DEFAULT_MESSAGES = messages.ListMessage{
+	SYSTEM_PROMPT,
+	DEVELOPER_PROMPT,
+}
+
 type SessionManager struct {
 	sync.RWMutex
 	data   map[string]messages.ListMessage
@@ -24,22 +29,10 @@ func (s *SessionManager) GetHistory(sessionID string, limit int) messages.ListMe
 
 	history, exists := s.data[sessionID]
 	if !exists {
-		return messages.ListMessage{SYSTEM_PROMPT}
+		return DEFAULT_MESSAGES
 	}
 
-	// apply limit
-	if limit > 0 && len(history) > limit {
-		history = history[len(history)-limit:]
-	}
-
-	// pre-allocate: 1 system + history size
-	n := len(history) + 1
-	result := make(messages.ListMessage, 0, n)
-
-	result = append(result, SYSTEM_PROMPT)
-	result = append(result, history...)
-
-	return result
+	return history
 }
 
 func (s *SessionManager) SaveHistory(sessionID string, history messages.ListMessage) {

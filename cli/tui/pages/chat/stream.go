@@ -26,6 +26,12 @@ func waitForMessage(ch <-chan messages.Message) tea.Cmd {
 				ChunkType: "error",
 				Content:   chunk.Cause,
 			}
+		case *messages.ResponseFailedMessage:
+			return StreamMsg{
+				Role:      "system",
+				ChunkType: "error",
+				Content:   chunk.Message,
+			}
 		case *messages.ToolCallMessage:
 			return StreamMsg{
 				Role:      "agent",

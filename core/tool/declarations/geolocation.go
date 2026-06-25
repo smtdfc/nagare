@@ -1,13 +1,13 @@
 package declarations
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"time"
 
+	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/tool"
 )
 
@@ -57,7 +57,7 @@ func callGeoAPI(query string) (*geoResult, error) {
 var geolocation = tool.DeclareTool(
 	"geolocation",
 	"Convert location names to coordinates.",
-	func(ctx context.Context, args GeoArgs) (any, error) {
+	func(ctx domains.AgentContext, args GeoArgs) (any, error) {
 
 		r, err := callGeoAPI(args.Query)
 		if err != nil {
@@ -71,6 +71,6 @@ var geolocation = tool.DeclareTool(
 			"country": r.Country,
 		}, nil
 	},
-	tool.STATIC_TOOL,
-	tool.NO_GROUP,
+	domains.STATIC_TOOL,
+	domains.NO_GROUP,
 )

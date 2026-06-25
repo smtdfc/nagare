@@ -1,11 +1,11 @@
 package declarations
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"time"
 
+	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/core/utils/endpoints"
 )
@@ -52,7 +52,7 @@ func searchGithub(query string) (*GithubSearchResp, error) {
 var search_github = tool.DeclareTool(
 	"search_github",
 	"Search for repository information on Github.",
-	func(ctx context.Context, args SearchGithubArgs) (any, error) {
+	func(ctx domains.AgentContext, args SearchGithubArgs) (any, error) {
 
 		data, err := searchGithub(args.Query)
 		if err != nil {
@@ -82,6 +82,6 @@ var search_github = tool.DeclareTool(
 			"results": results,
 		}, nil
 	},
-	tool.STATIC_TOOL,
-	tool.NO_GROUP,
+	domains.STATIC_TOOL,
+	domains.NO_GROUP,
 )

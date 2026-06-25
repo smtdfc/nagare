@@ -5,6 +5,7 @@ import (
 )
 
 func InitTools() {
+	tool.GlobalToolRegistry.Register(get_tool_by_categories)
 	tool.GlobalToolRegistry.Register(geolocation)
 	tool.GlobalToolRegistry.Register(get_weather)
 	tool.GlobalToolRegistry.Register(get_local_time)
@@ -15,4 +16,5 @@ func InitTools() {
 	tool.GlobalToolRegistry.Register(get_system_info)
 	tool.GlobalToolRegistry.Register(power_control)
 	tool.GlobalToolRegistry.Register(set_volume)
+	tool.GlobalToolRegistry.Register(open_file_manager)
 }

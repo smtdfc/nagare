@@ -100,14 +100,18 @@ func (m *PluginManager) StartHost(pool *agent.AgentPool, sessionMgr *agent.Sessi
 
 		var payload shared.RegisterChatChannelPayload
 		json.Unmarshal(msg.Payload, &payload)
-		agent := pool.GetOrNew()
+		a := pool.GetOrNew()
+		a.State.ExtendHistory(
+			sessionMgr.GetHistory(payload.ID, agent.NAGARE_LIST_MESSAGE_SIZE_LIMIT),
+		)
 		ChatMgr.Register(&ChatChannel{
 			Id:         payload.ID,
-			Agent:      agent,
+			Agent:      a,
 			SessionMgr: sessionMgr,
 			SessionID:  payload.ID,
 			CleanUp: func() {
-				pool.Put(agent)
+				sessionMgr.SaveHistory(payload.ID, a.State.History)
+				pool.Put(a)
 			},
 		})
 

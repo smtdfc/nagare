@@ -1,12 +1,12 @@
 package declarations
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/tool"
 )
 
@@ -49,7 +49,7 @@ func callWeatherAPI(lat, lon float64) (*weatherResponse, error) {
 var get_weather = tool.DeclareTool(
 	"get_weather",
 	"Get weather information by coordinates.",
-	func(ctx context.Context, args WeatherArgs) (any, error) {
+	func(ctx domains.AgentContext, args WeatherArgs) (any, error) {
 
 		data, err := callWeatherAPI(args.Lat, args.Lon)
 		if err != nil {
@@ -63,6 +63,6 @@ var get_weather = tool.DeclareTool(
 			"weather_code": data.CurrentWeather.WeatherCode,
 		}, nil
 	},
-	tool.STATIC_TOOL,
-	tool.NO_GROUP,
+	domains.STATIC_TOOL,
+	domains.NO_GROUP,
 )

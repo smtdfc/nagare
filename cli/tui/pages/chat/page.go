@@ -25,6 +25,7 @@ type ChatPage struct {
 
 	currentStream <-chan messages.Message
 	currentAgent  *agent.Agent
+	currentState  *agent.AgentLoopState
 }
 
 // GetName implements [tui.Page].
@@ -54,10 +55,17 @@ func NewPage(sessionMgr *agent.SessionManager, agentPool *agent.AgentPool) *Chat
 	vp.SetHeight(20)
 	vp.SetContent("Welcome to Nagare Agent Chat!")
 
+	sessionID := sessionMgr.CreateSessionID()
+	currentState := agent.NewAgentLoopState()
+	currentState.ExtendHistory(
+		sessionMgr.GetHistory(sessionID, agent.NAGARE_LIST_MESSAGE_SIZE_LIMIT),
+	)
+
 	return &ChatPage{
 		agentPool:               agentPool,
 		sessionMgr:              sessionMgr,
-		sessionID:               sessionMgr.CreateSessionID(),
+		sessionID:               sessionID,
+		currentState:            currentState,
 		textarea:                ta,
 		viewport:                vp,
 		messages:                []string{},

@@ -1,8 +1,7 @@
 package declarations
 
 import (
-	"context"
-
+	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/cross-platform/system"
 )
@@ -13,7 +12,7 @@ type GetSystemInfoArgs struct {
 var get_system_info = tool.DeclareTool(
 	"get_system_info",
 	"Retrieve detailed system information.",
-	func(ctx context.Context, args GetSystemInfoArgs) (any, error) {
+	func(ctx domains.AgentContext, args GetSystemInfoArgs) (any, error) {
 		sysInfo, err := system.GetSystemInfo()
 		if err != nil {
 			return nil, err
@@ -33,6 +32,6 @@ var get_system_info = tool.DeclareTool(
 			},
 		}, nil
 	},
-	tool.STATIC_TOOL,
-	tool.NO_GROUP,
+	domains.STATIC_TOOL,
+	domains.NO_GROUP,
 )

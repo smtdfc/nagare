@@ -7,11 +7,12 @@ import (
 
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
+	"github.com/openai/openai-go/v3/packages/param"
 	"github.com/openai/openai-go/v3/responses"
 	"github.com/smtdfc/nagare/core/context"
+	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/exceptions"
 	"github.com/smtdfc/nagare/core/messages"
-	"github.com/smtdfc/nagare/core/tool"
 	nagare_logger "github.com/smtdfc/nagare/shared/logger"
 )
 
@@ -43,6 +44,11 @@ func (o *OpenAICompatibleChatModel) Transform(msg messages.Message) (responses.R
 
 		case messages.SYSTEM:
 			message.Role = "system"
+			return responses.ResponseInputItemUnionParam{
+				OfInputMessage: message,
+			}, nil
+		case messages.DEVELOPER:
+			message.Role = "developer"
 			return responses.ResponseInputItemUnionParam{
 				OfInputMessage: message,
 			}, nil
@@ -83,7 +89,7 @@ func (o *OpenAICompatibleChatModel) Transform(msg messages.Message) (responses.R
 	return responses.ResponseInputItemUnionParam{}, nil
 }
 
-func (o *OpenAICompatibleChatModel) TransformToolDeclarations(tools tool.ListTool) ([]responses.ToolUnionParam, error) {
+func (o *OpenAICompatibleChatModel) TransformToolDeclarations(tools domains.ListTool) ([]responses.ToolUnionParam, error) {
 	toolParams := make([]responses.ToolUnionParam, len(tools))
 
 	for i, tool := range tools {
@@ -107,7 +113,7 @@ func (o *OpenAICompatibleChatModel) TransformToolDeclarations(tools tool.ListToo
 }
 
 // chat implements [ChatModel].
-func (o *OpenAICompatibleChatModel) Chat(ctx context.ExecuteContext, history messages.ListMessage, cb MessageCallback, tools tool.ListTool) error {
+func (o *OpenAICompatibleChatModel) Chat(ctx context.ExecuteContext, history messages.ListMessage, cb MessageCallback, tools domains.ListTool) error {
 	client := openai.NewClient(
 		option.WithAPIKey(o.Config.APIKey),
 		option.WithBaseURL(o.Config.BaseURL),
@@ -131,6 +137,8 @@ func (o *OpenAICompatibleChatModel) Chat(ctx context.ExecuteContext, history mes
 		Input: responses.ResponseNewParamsInputUnion{
 			OfInputItemList: inputs,
 		},
+		Temperature: param.NewOpt(0.1),
+		TopP:        param.NewOpt(0.9),
 
 		Tools: listTool,
 	})

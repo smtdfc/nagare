@@ -1,14 +1,13 @@
 package agent
 
 import (
-	"github.com/smtdfc/nagare/core/messages"
+	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/model"
-	"github.com/smtdfc/nagare/core/tool"
 )
 
 type AgentPool struct {
 	Pool    chan *Agent
-	ToolReg tool.ListTool
+	ToolReg domains.ListTool
 	Model   model.ChatModel
 }
 
@@ -31,9 +30,7 @@ func (p *AgentPool) GetOrNew() *Agent {
 }
 
 func (p *AgentPool) Put(a *Agent) {
-	a.History = messages.ListMessage{
-		SYSTEM_PROMPT,
-	} // Reset History
+	a.State = NewAgentLoopState()
 
 	select {
 	case p.Pool <- a:

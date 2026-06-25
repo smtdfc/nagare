@@ -7,40 +7,28 @@ import (
 	"time"
 
 	ectx "github.com/smtdfc/nagare/core/context"
+	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/messages"
 	"github.com/smtdfc/nagare/core/model"
-	"github.com/smtdfc/nagare/core/tool"
 	nagare_logger "github.com/smtdfc/nagare/shared/logger"
 )
 
 type Agent struct {
 	Model       model.ChatModel
-	History     messages.ListMessage
+	State       *AgentLoopState
 	Middlewares []any
 	logger      *slog.Logger
 }
 
-func (a *Agent) WithHistory(h messages.ListMessage) *Agent {
-	a.History = make(messages.ListMessage, len(h))
-	copy(a.History, h)
-	return a
-}
-
-func (a *Agent) ExtendHistory(history messages.ListMessage) *Agent {
-	newHistory := make(messages.ListMessage, len(a.History)+len(history))
-	copy(newHistory, a.History)
-	copy(newHistory[len(a.History):], history)
-
-	a.History = newHistory
-	return a
-}
-
 func (a *Agent) Invoke(ctx context.Context, prompt string) <-chan messages.Message {
 	ch := make(chan messages.Message)
-	a.History = append(a.History, &messages.TextMessage{
-		Role:    messages.USER,
-		Content: prompt,
+	a.State.ExtendHistory(messages.ListMessage{
+		&messages.TextMessage{
+			Role:    messages.USER,
+			Content: prompt,
+		},
 	})
+
 	execCtx := ectx.NewExecuteContext(ctx)
 
 	go func() {
@@ -63,15 +51,17 @@ func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) e
 
 	start := time.Now()
 	a.logger.Info("Agent processing chat ")
+
 	for {
+		a.State.BeforeTurn()
 		fullTextMessage := ""
 		var toolCalls []*messages.ToolCallMessage
 
-		err := a.Model.Chat(ctx, a.History, func(msg messages.Message) {
+		err := a.Model.Chat(ctx, a.State.GetHistory(NAGARE_LIST_MESSAGE_SIZE_LIMIT), func(msg messages.Message) {
 			switch m := msg.(type) {
 			case *messages.ToolCallMessage:
 				toolCalls = append(toolCalls, m)
-				a.History = append(a.History, m)
+				a.State.History = append(a.State.History, m)
 				cb(m)
 			case *messages.TextMessage:
 				cb(m)
@@ -79,14 +69,14 @@ func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) e
 			case *messages.ReasoningMessage, *messages.ResponseFailedMessage, *messages.ResponseCreatedMessage, *messages.ResponseStatsMessage:
 				cb(m)
 			}
-		}, tool.GlobalToolRegistry.GetStaticTool())
+		}, a.State.FinalTools)
 
 		if err != nil {
 			return err
 		}
 
 		if fullTextMessage != "" {
-			a.History = append(a.History, &messages.TextMessage{Role: messages.AGENT, Content: fullTextMessage})
+			a.State.History = append(a.State.History, &messages.TextMessage{Role: messages.AGENT, Content: fullTextMessage})
 		}
 
 		if len(toolCalls) == 0 {
@@ -97,15 +87,21 @@ func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) e
 			a.logger.Info(fmt.Sprintf("Agent use tool %s", tc.FunctionName))
 			result, err := ctx.CallTool(tc.FunctionName, tc.Args)
 
+			if result.Tool.GetType() == domains.DYNAMIC_TOOL && err == nil {
+				a.State.InjectDynamicTool(result.Tool)
+			}
+
 			toolResultMsg := &messages.ToolResultMessage{
 				CallID: tc.CallID,
-				Result: result,
+				Result: result.Result,
 				Error:  err,
 			}
 
 			cb(toolResultMsg)
-			a.History = append(a.History, toolResultMsg)
+			a.State.History = append(a.State.History, toolResultMsg)
 		}
+
+		ctx.CallMiddlewares(ectx.AFTER_TOOL_CALL, a.State)
 	}
 
 	cb(&messages.AgentResponseDoneMessage{})
@@ -119,8 +115,8 @@ func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) e
 
 func NewAgent(model model.ChatModel) *Agent {
 	return &Agent{
-		Model:   model,
-		History: messages.ListMessage{SYSTEM_PROMPT},
-		logger:  nagare_logger.GetLogger("Agent"),
+		Model:  model,
+		State:  NewAgentLoopState(),
+		logger: nagare_logger.GetLogger("Agent"),
 	}
 }

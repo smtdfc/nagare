@@ -1,9 +1,9 @@
 package declarations
 
 import (
-	"context"
 	"strings"
 
+	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/cross-platform/system"
 )
@@ -15,7 +15,7 @@ type OpenWebArgs struct {
 var open_web = tool.DeclareTool(
 	"open_web",
 	"Opens the specified URL in the default system web browser.",
-	func(ctx context.Context, args OpenWebArgs) (any, error) {
+	func(ctx domains.AgentContext, args OpenWebArgs) (any, error) {
 		target := args.URL
 		if !strings.HasPrefix(target, "http://") && !strings.HasPrefix(target, "https://") {
 			target = "https://" + target
@@ -31,6 +31,6 @@ var open_web = tool.DeclareTool(
 			"url":    target,
 		}, nil
 	},
-	tool.STATIC_TOOL,
-	tool.NO_GROUP,
+	domains.STATIC_TOOL,
+	domains.NO_GROUP,
 )

@@ -1,11 +1,11 @@
 package declarations
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"time"
 
+	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/core/utils/endpoints"
 )
@@ -47,7 +47,7 @@ func searchWikipedia(query string) (*WikiSearchResp, error) {
 var search_wikipedia = tool.DeclareTool(
 	"search_wikipedia",
 	"Search for information on Wikipedia.",
-	func(ctx context.Context, args WikiSearchArgs) (any, error) {
+	func(ctx domains.AgentContext, args WikiSearchArgs) (any, error) {
 
 		data, err := searchWikipedia(args.Query)
 		if err != nil {
@@ -82,6 +82,6 @@ var search_wikipedia = tool.DeclareTool(
 			"results": results,
 		}, nil
 	},
-	tool.STATIC_TOOL,
-	tool.NO_GROUP,
+	domains.STATIC_TOOL,
+	domains.NO_GROUP,
 )

@@ -1,12 +1,12 @@
 package declarations
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/core/utils/endpoints"
 )
@@ -47,7 +47,7 @@ func getWikipediaPage(pageID int) (*WikiExtractResp, error) {
 var get_wikipedia_page = tool.DeclareTool(
 	"get_wikipedia_page",
 	"Retrieve detailed content or the latest information from a specific Wikipedia page.",
-	func(ctx context.Context, args GetWikipediaPageArgs) (any, error) {
+	func(ctx domains.AgentContext, args GetWikipediaPageArgs) (any, error) {
 
 		data, err := getWikipediaPage(args.PageID)
 		if err != nil {
@@ -65,6 +65,6 @@ var get_wikipedia_page = tool.DeclareTool(
 			},
 		}, nil
 	},
-	tool.STATIC_TOOL,
-	tool.NO_GROUP,
+	domains.STATIC_TOOL,
+	domains.NO_GROUP,
 )

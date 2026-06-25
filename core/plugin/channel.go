@@ -38,9 +38,7 @@ func (m *ChatChannelManager) Handle(payload *shared.HandleChatMessagePayload, pl
 	channel := m.ChatChannels[payload.Channel]
 	m.mu.Unlock()
 
-	message := payload.Message
-	channel.Agent.History = channel.SessionMgr.GetHistory(channel.SessionID, agent.NAGARE_LIST_MESSAGE_SIZE_LIMIT)
-	responseChannel := channel.Agent.Invoke(context.Background(), message)
+	responseChannel := channel.Agent.Invoke(context.Background(), payload.Message)
 
 	var fullResponse string
 
@@ -67,7 +65,7 @@ func (m *ChatChannelManager) Handle(payload *shared.HandleChatMessagePayload, pl
 		Channel: payload.Channel,
 		Message: fullResponse,
 	})
-	channel.SessionMgr.SaveHistory(channel.SessionID, channel.Agent.History)
+	channel.SessionMgr.SaveHistory(channel.SessionID, channel.Agent.State.History)
 }
 
 func NewChatChannelManager(host *host.Host) *ChatChannelManager {

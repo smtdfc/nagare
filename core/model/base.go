@@ -2,8 +2,8 @@ package model
 
 import (
 	"github.com/smtdfc/nagare/core/context"
+	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/messages"
-	"github.com/smtdfc/nagare/core/tool"
 )
 
 type ChatModelConfig struct {
@@ -14,5 +14,5 @@ type ChatModelConfig struct {
 
 type MessageCallback func(messages.Message)
 type ChatModel interface {
-	Chat(ctx context.ExecuteContext, messages messages.ListMessage, cb MessageCallback, tools tool.ListTool) error
+	Chat(ctx context.ExecuteContext, messages messages.ListMessage, cb MessageCallback, tools domains.ListTool) error
 }

@@ -1,9 +1,9 @@
 package declarations
 
 import (
-	"context"
 	"time"
 
+	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/tool"
 )
 
@@ -12,7 +12,7 @@ type LocalTimeArgs struct{}
 var get_local_time = tool.DeclareTool(
 	"get_local_time",
 	"Get the current local date and time of the system.",
-	func(ctx context.Context, args LocalTimeArgs) (any, error) {
+	func(ctx domains.AgentContext, args LocalTimeArgs) (any, error) {
 		now := time.Now()
 
 		return map[string]any{
@@ -23,6 +23,6 @@ var get_local_time = tool.DeclareTool(
 			"offset":       now.Format("-07:00"),
 		}, nil
 	},
-	tool.STATIC_TOOL,
-	tool.NO_GROUP,
+	domains.STATIC_TOOL,
+	domains.NO_GROUP,
 )

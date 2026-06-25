@@ -8,7 +8,6 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/smtdfc/nagare/cli/tui/router"
-	"github.com/smtdfc/nagare/core/agent"
 )
 
 func (m *ChatPage) renderReasoningMessage(msg string) string {
@@ -33,6 +32,7 @@ func (m *ChatPage) renderSeparator() string {
 
 func (m *ChatPage) close() {
 	if m.currentAgent != nil {
+		m.sessionMgr.SaveHistory(m.sessionID, m.currentAgent.State.History)
 		m.agentPool.Put(m.currentAgent)
 	}
 }
@@ -42,7 +42,17 @@ func (m *ChatPage) prepare() {
 		a := m.agentPool.GetOrNew()
 		m.currentAgent = a
 	}
+
+	if m.currentState != nil {
+		m.currentAgent.State = m.currentState
+	}
 }
+
+func (m *ChatPage) done() {
+	m.sessionMgr.SaveHistory(m.sessionID, m.currentAgent.State.History)
+	*m.currentState = *m.currentAgent.State
+}
+
 func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	var cmd tea.Cmd
@@ -89,7 +99,7 @@ func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(cmds...)
 
 	case StreamDoneMsg:
-		m.sessionMgr.SaveHistory(m.sessionID, m.currentAgent.History)
+		m.done()
 		m.textarea.Placeholder = "Type a message... (Press Enter to send)"
 		cmd := m.textarea.Focus()
 		cmds = append(cmds, cmd)
@@ -141,7 +151,6 @@ func (m *ChatPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.textarea.Placeholder = "Waiting for response..."
 
 			m.prepare()
-			m.currentAgent.History = m.sessionMgr.GetHistory(m.sessionID, agent.NAGARE_LIST_MESSAGE_SIZE_LIMIT)
 			m.currentStream = m.currentAgent.Invoke(context.Background(), v)
 			m.currentMessageChunkType = "unknown"
 			cmds = append(cmds, waitForMessage(m.currentStream))

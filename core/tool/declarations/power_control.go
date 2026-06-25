@@ -1,8 +1,7 @@
 package declarations
 
 import (
-	"context"
-
+	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/cross-platform/system"
 )
@@ -14,7 +13,7 @@ type PowerArgs struct {
 var power_control = tool.DeclareTool(
 	"power_control",
 	"Control system power states: shutdown, reboot,lock_screen, or sleep.",
-	func(ctx context.Context, args PowerArgs) (any, error) {
+	func(ctx domains.AgentContext, args PowerArgs) (any, error) {
 		err := system.ExecutePowerCommand(args.Action)
 		if err != nil {
 			return map[string]any{
@@ -29,6 +28,6 @@ var power_control = tool.DeclareTool(
 			"success": true,
 		}, nil
 	},
-	tool.STATIC_TOOL,
-	tool.NO_GROUP,
+	domains.STATIC_TOOL,
+	domains.NO_GROUP,
 )
