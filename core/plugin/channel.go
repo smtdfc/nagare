@@ -58,7 +58,7 @@ func (m *ChatChannelManager) Handle(payload *shared.HandleChatMessagePayload, pl
 		case *messages.ToolCallMessage:
 			m.Host.Send(pluginID, shared.HANDLE_CHAT_MESSAGE, shared.HandleChatMessagePayload{
 				Channel: payload.Channel,
-				Message: "🛠️ Using tool" + msg.FunctionName,
+				Message: "🛠️ Using tool " + msg.FunctionName,
 			})
 		}
 	}

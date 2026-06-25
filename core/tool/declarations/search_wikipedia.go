@@ -10,7 +10,7 @@ import (
 	"github.com/smtdfc/nagare/core/utils/endpoints"
 )
 
-type WikiArgs struct {
+type WikiSearchArgs struct {
 	Query string `json:"query" jsonschema:"description=Wikipedia search keywords"`
 }
 
@@ -47,7 +47,7 @@ func searchWikipedia(query string) (*WikiSearchResp, error) {
 var search_wikipedia = tool.DeclareTool(
 	"search_wikipedia",
 	"Search for information on Wikipedia.",
-	func(ctx context.Context, args WikiArgs) (any, error) {
+	func(ctx context.Context, args WikiSearchArgs) (any, error) {
 
 		data, err := searchWikipedia(args.Query)
 		if err != nil {
@@ -82,4 +82,6 @@ var search_wikipedia = tool.DeclareTool(
 			"results": results,
 		}, nil
 	},
+	tool.STATIC_TOOL,
+	tool.NO_GROUP,
 )

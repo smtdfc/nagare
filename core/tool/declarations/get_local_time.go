@@ -96,4 +96,6 @@ var get_local_time = tool.DeclareTool(
 			"time": now.Format("2006-01-02 15:04:05"),
 		}, nil
 	},
+	tool.STATIC_TOOL,
+	tool.NO_GROUP,
 )

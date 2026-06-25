@@ -65,4 +65,6 @@ var get_wikipedia_page = tool.DeclareTool(
 			},
 		}, nil
 	},
+	tool.STATIC_TOOL,
+	tool.NO_GROUP,
 )

@@ -7,15 +7,14 @@ import (
 )
 
 type AgentPool struct {
-	Pool  chan *Agent
-	Tools tool.ListTool
-	Model model.ChatModel
+	Pool    chan *Agent
+	ToolReg tool.ListTool
+	Model   model.ChatModel
 }
 
-func NewAgentPool(size int, model model.ChatModel, tools tool.ListTool) *AgentPool {
+func NewAgentPool(size int, model model.ChatModel) *AgentPool {
 	p := &AgentPool{
 		Pool:  make(chan *Agent, size),
-		Tools: tools,
 		Model: model,
 	}
 	return p
@@ -27,7 +26,6 @@ func (p *AgentPool) GetOrNew() *Agent {
 		return a
 	default:
 		a := NewAgent(p.Model)
-		a.Tools = p.Tools
 		return a
 	}
 }

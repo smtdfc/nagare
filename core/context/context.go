@@ -13,13 +13,12 @@ import (
 
 type ExecuteContext struct {
 	context.Context
-	Tools  tool.ToolMap
 	logger *slog.Logger
 }
 
 func (e *ExecuteContext) CallTool(name string, args string) (string, error) {
 	start := time.Now()
-	tool, ok := e.Tools[name]
+	tool, ok := tool.GlobalToolRegistry.GetByName(name)
 	if !ok {
 		e.logger.Error(fmt.Sprintf("Tool %s not found ", name))
 		return "", exceptions.NewToolException(fmt.Sprintf("tool not found: %s", name), name)
@@ -39,15 +38,9 @@ func (e *ExecuteContext) CallTool(name string, args string) (string, error) {
 	return r, nil
 }
 
-func NewExecuteContext(ctx context.Context, listTool tool.ListTool) ExecuteContext {
-	toolMap := tool.ToolMap{}
-	for _, tool := range listTool {
-		toolMap[tool.GetName()] = tool
-	}
-
+func NewExecuteContext(ctx context.Context) ExecuteContext {
 	return ExecuteContext{
 		Context: ctx,
-		Tools:   toolMap,
 		logger:  nagare_logger.GetLogger("Execute context"),
 	}
 }

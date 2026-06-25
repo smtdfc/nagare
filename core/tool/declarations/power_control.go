@@ -62,4 +62,6 @@ var power_control = tool.DeclareTool(
 			"success": true,
 		}, nil
 	},
+	tool.STATIC_TOOL,
+	tool.NO_GROUP,
 )

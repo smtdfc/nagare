@@ -45,4 +45,6 @@ var open_web = tool.DeclareTool(
 			"url":    target,
 		}, nil
 	},
+	tool.STATIC_TOOL,
+	tool.NO_GROUP,
 )

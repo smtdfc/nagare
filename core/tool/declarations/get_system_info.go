@@ -36,4 +36,6 @@ var get_system_info = tool.DeclareTool(
 			},
 		}, nil
 	},
+	tool.STATIC_TOOL,
+	tool.NO_GROUP,
 )

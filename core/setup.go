@@ -4,6 +4,7 @@ import (
 	"github.com/smtdfc/nagare/core/agent"
 	"github.com/smtdfc/nagare/core/config"
 	"github.com/smtdfc/nagare/core/plugin"
+	"github.com/smtdfc/nagare/core/tool/declarations"
 	nagare_logger "github.com/smtdfc/nagare/shared/logger"
 	nagare_path "github.com/smtdfc/nagare/shared/path"
 )
@@ -28,6 +29,7 @@ func SetupEnvironment() error {
 	SessionMgr = agent.NewSessionManager()
 	PluginMgr = plugin.NewPluginManager(config)
 	AgentPool = InitAgent(config)
+	declarations.InitTools()
 	return nil
 }
 

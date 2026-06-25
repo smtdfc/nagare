@@ -71,4 +71,6 @@ var geolocation = tool.DeclareTool(
 			"country": r.Country,
 		}, nil
 	},
+	tool.STATIC_TOOL,
+	tool.NO_GROUP,
 )

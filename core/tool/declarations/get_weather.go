@@ -63,4 +63,6 @@ var get_weather = tool.DeclareTool(
 			"weather_code": data.CurrentWeather.WeatherCode,
 		}, nil
 	},
+	tool.STATIC_TOOL,
+	tool.NO_GROUP,
 )

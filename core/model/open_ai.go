@@ -83,10 +83,10 @@ func (o *OpenAICompatibleChatModel) Transform(msg messages.Message) (responses.R
 	return responses.ResponseInputItemUnionParam{}, nil
 }
 
-func (o *OpenAICompatibleChatModel) TransformToolDeclarations(tools tool.ToolMap) ([]responses.ToolUnionParam, error) {
-	toolParams := []responses.ToolUnionParam{}
+func (o *OpenAICompatibleChatModel) TransformToolDeclarations(tools tool.ListTool) ([]responses.ToolUnionParam, error) {
+	toolParams := make([]responses.ToolUnionParam, len(tools))
 
-	for _, tool := range tools {
+	for i, tool := range tools {
 		var params map[string]any
 
 		// println(tool.GetArgumentsSchema())
@@ -95,26 +95,26 @@ func (o *OpenAICompatibleChatModel) TransformToolDeclarations(tools tool.ToolMap
 			return nil, exceptions.NewToolException(fmt.Sprintf("JSON parse error %s: %v\n", tool.GetName(), err), tool.GetName())
 		}
 
-		toolParams = append(toolParams, responses.ToolUnionParam{
+		toolParams[i] = responses.ToolUnionParam{
 			OfFunction: &responses.FunctionToolParam{
 				Name:        tool.GetName(),
 				Description: openai.String(tool.GetDesc()),
 				Parameters:  params,
 			},
-		})
+		}
 	}
 	return toolParams, nil
 }
 
 // chat implements [ChatModel].
-func (o *OpenAICompatibleChatModel) Chat(ctx context.ExecuteContext, history messages.ListMessage, cb MessageCallback) error {
+func (o *OpenAICompatibleChatModel) Chat(ctx context.ExecuteContext, history messages.ListMessage, cb MessageCallback, tools tool.ListTool) error {
 	client := openai.NewClient(
 		option.WithAPIKey(o.Config.APIKey),
 		option.WithBaseURL(o.Config.BaseURL),
 	)
 
 	inputs := responses.ResponseInputParam{}
-	listTool, err := o.TransformToolDeclarations(ctx.Tools)
+	listTool, err := o.TransformToolDeclarations(tools)
 	if err != nil {
 		return err
 	}

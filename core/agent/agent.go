@@ -16,7 +16,6 @@ import (
 type Agent struct {
 	Model       model.ChatModel
 	History     messages.ListMessage
-	Tools       tool.ListTool
 	Middlewares []any
 	logger      *slog.Logger
 }
@@ -36,18 +35,13 @@ func (a *Agent) ExtendHistory(history messages.ListMessage) *Agent {
 	return a
 }
 
-func (a *Agent) WithTools(tools ...tool.Tool) *Agent {
-	a.Tools = append(a.Tools, tools...)
-	return a
-}
-
 func (a *Agent) Invoke(ctx context.Context, prompt string) <-chan messages.Message {
 	ch := make(chan messages.Message)
 	a.History = append(a.History, &messages.TextMessage{
 		Role:    messages.USER,
 		Content: prompt,
 	})
-	execCtx := ectx.NewExecuteContext(ctx, a.Tools)
+	execCtx := ectx.NewExecuteContext(ctx)
 
 	go func() {
 		defer close(ch)
@@ -85,7 +79,7 @@ func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) e
 			case *messages.ReasoningMessage, *messages.ResponseFailedMessage, *messages.ResponseCreatedMessage, *messages.ResponseStatsMessage:
 				cb(m)
 			}
-		})
+		}, tool.GlobalToolRegistry.GetStaticTool())
 
 		if err != nil {
 			return err
@@ -127,7 +121,6 @@ func NewAgent(model model.ChatModel) *Agent {
 	return &Agent{
 		Model:   model,
 		History: messages.ListMessage{SYSTEM_PROMPT},
-		Tools:   tool.ListTool{},
 		logger:  nagare_logger.GetLogger("Agent"),
 	}
 }
