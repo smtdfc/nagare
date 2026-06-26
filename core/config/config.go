@@ -42,8 +42,14 @@ type Plugin struct {
 	Bin      string   `json:"bin"`
 }
 
+type AgentMail struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type Config struct {
 	CurrentProvider string              `json:"current_provider,omitempty"`
 	Providers       map[string]Provider `json:"providers,omitempty"`
 	Plugins         map[string]Plugin   `json:"plugins,omitempty"`
+	Mail            *AgentMail          `json:"mail,omitempty"`
 }

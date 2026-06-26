@@ -6,7 +6,6 @@ import (
 	"net"
 	"os"
 
-	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/plugin-sdk/shared"
 )
 
@@ -18,11 +17,12 @@ type Plugin struct {
 
 func NewPlugin() *Plugin {
 	cs := os.Getenv(shared.ADDR_ENV)
+	id := os.Getenv(shared.PLUGIN_ID_ENV)
 	if cs == "" {
 		log.Fatal("Nagare not running ")
 		return nil
 	}
-	id := uuid.New().String()
+
 	return &Plugin{ID: id, ConnectionStr: cs}
 }
 

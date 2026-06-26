@@ -13,7 +13,7 @@ var get_tool_by_categories = tool.DeclareTool(
 	"get_tool_by_categories",
 	"When no suitable tool is found in the current tool list, you MUST call this",
 	func(ctx domains.AgentContext, args GetToolByCategoriesArgs) (any, error) {
-		listToolAvb := tool.GlobalToolRegistry.GetToolByCategories(args.Categories)
+		listToolAvb := ctx.GetToolByCategories(args.Categories)
 		summarize := tool.GetToolSummary(listToolAvb)
 
 		ctx.AfterToolCall(func(arg domains.MiddlewareArg) {

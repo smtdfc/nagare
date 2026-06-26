@@ -30,7 +30,12 @@ func main() {
 	plg := plugin.NewPlugin()
 	plg.Connect()
 
-	opts := []bot.Option{bot.WithDefaultHandler(NewTelegramHandler(state, plg))}
+	opts := []bot.Option{
+		bot.WithDefaultHandler(NewTelegramHandler(state, plg)),
+		bot.WithErrorsHandler(func(err error) {
+			PluginLogger.Error("Bot Error", "error", err)
+		}),
+	}
 	b, err := bot.New(botApiKey, opts...)
 	if err != nil {
 		PluginLogger.Error("Failed to initialize bot", "cause", err)

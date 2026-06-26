@@ -25,7 +25,7 @@ Example:
 			return fmt.Errorf("Error: %w", err)
 		}
 
-		err = core.PluginMgr.Install(pluginAbsPath)
+		err = core.GlobalPluginMgr.Install(pluginAbsPath)
 		if err != nil {
 			return err
 		}

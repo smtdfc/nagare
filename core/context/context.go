@@ -26,8 +26,14 @@ type Middleware struct {
 
 type ExecuteContext struct {
 	context.Context
-	Middlewares []Middleware
-	logger      *slog.Logger
+	ToolRegistry *tool.ToolRegistry
+	Middlewares  []Middleware
+	logger       *slog.Logger
+}
+
+// GetToolByCategories implements [domains.AgentContext].
+func (e *ExecuteContext) GetToolByCategories(cats []string) domains.ListTool {
+	return e.ToolRegistry.GetToolByCategories(cats)
 }
 
 func (e *ExecuteContext) AfterToolCall(fn domains.MiddlewareFunc, once bool) {
@@ -55,7 +61,7 @@ func (e *ExecuteContext) CallMiddlewares(kind MiddlewareKind, arg domains.Middle
 
 func (e *ExecuteContext) CallTool(name string, args string) (*domains.ToolCallResult, error) {
 	start := time.Now()
-	tool, ok := tool.GlobalToolRegistry.GetByName(name)
+	tool, ok := e.ToolRegistry.GetByName(name)
 
 	if !ok {
 		e.logger.Error(fmt.Sprintf("Tool %s not found ", name))
@@ -79,10 +85,11 @@ func (e *ExecuteContext) CallTool(name string, args string) (*domains.ToolCallRe
 	}, nil
 }
 
-func NewExecuteContext(ctx context.Context) ExecuteContext {
+func NewExecuteContext(ctx context.Context, toolReg *tool.ToolRegistry) ExecuteContext {
 	return ExecuteContext{
-		Context:     ctx,
-		logger:      nagare_logger.GetLogger("Execute context"),
-		Middlewares: make([]Middleware, 0),
+		Context:      ctx,
+		ToolRegistry: toolReg,
+		logger:       nagare_logger.GetLogger("Execute context"),
+		Middlewares:  make([]Middleware, 0),
 	}
 }

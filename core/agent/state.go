@@ -63,9 +63,17 @@ func (a *AgentLoopState) ExtendHistory(history messages.ListMessage) *AgentLoopS
 	return a
 }
 
-func NewAgentLoopState() *AgentLoopState {
+func (a *AgentLoopState) AddHistory(msg messages.Message) {
+	a.History = append(a.History, msg)
+}
+
+func (a *AgentLoopState) GetTools() domains.ListTool {
+	return a.FinalTools
+}
+
+func NewAgentLoopState(toolReg *tool.ToolRegistry) *AgentLoopState {
 	return &AgentLoopState{
-		Tools:            tool.GlobalToolRegistry.GetStaticTool(),
+		Tools:            toolReg.GetStaticTool(),
 		DynamicTools:     domains.ListTool{},
 		History:          DEFAULT_MESSAGES,
 		IsDynamicToolSet: false,

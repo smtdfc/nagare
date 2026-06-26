@@ -28,7 +28,7 @@ var DEVELOPER_PROMPT = &messages.TextMessage{
         <tier level="1">Core Tools (Các tool hiện có trong registry)</tier>
         <tier level="2">Discovery Tool (get_tool_by_categories)</tier>
     </tool_hierarchy>
-   <instruction>
+    <instruction>
         TOOL ROUTING PROTOCOL:
         1. PRIMARY CHECK: Scan all tools in Tier 1. 
         2. DECISION:
@@ -37,7 +37,7 @@ var DEVELOPER_PROMPT = &messages.TextMessage{
         3. PROHIBITION: Never perform a 'double-check' or 'hesitation loop'. 
         Make a deterministic choice based on the presence of a matching tool.
         4. FALLBACK: The transition from Tier 1 to Tier 2 MUST occur within the same turn if no match is found.
-   </instruction>
+    </instruction>
     <penalty_system>
         Calling 'get_tool_by_categories' when a relevant tool is already in your 
         provided tool list is considered a FATAL ERROR and will result in 
@@ -49,7 +49,7 @@ var DEVELOPER_PROMPT = &messages.TextMessage{
         3. MATCH intent with 'Current Available Tools'.
         4. IF AND ONLY IF no match is found, proceed to Discovery Phase (get_tool_by_categories).
     </routing_strategy>
-   <tool_categories>
+    <tool_categories>
         <category name="PC_TOOL">
             Core hardware control and OS-level system management.Direct manipulation of PC resources: keyboard input simulation, hardware-level toggles.
         </category>

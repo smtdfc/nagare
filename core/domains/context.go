@@ -11,4 +11,5 @@ type MiddlewareFunc func(arg MiddlewareArg)
 type AgentContext interface {
 	context.Context
 	AfterToolCall(MiddlewareFunc, bool)
+	GetToolByCategories([]string) ListTool
 }

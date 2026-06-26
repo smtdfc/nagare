@@ -10,26 +10,28 @@ import (
 	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/messages"
 	"github.com/smtdfc/nagare/core/model"
+	"github.com/smtdfc/nagare/core/tool"
 	nagare_logger "github.com/smtdfc/nagare/shared/logger"
 )
 
 type Agent struct {
-	Model       model.ChatModel
-	State       *AgentLoopState
-	Middlewares []any
-	logger      *slog.Logger
+	ToolRegistry *tool.ToolRegistry
+	Model        model.ChatModel
+	State        *AgentLoopState
+	Middlewares  []any
+	logger       *slog.Logger
 }
 
 func (a *Agent) Invoke(ctx context.Context, prompt string) <-chan messages.Message {
 	ch := make(chan messages.Message)
-	a.State.ExtendHistory(messages.ListMessage{
+	a.State.AddHistory(
 		&messages.TextMessage{
 			Role:    messages.USER,
 			Content: prompt,
 		},
-	})
+	)
 
-	execCtx := ectx.NewExecuteContext(ctx)
+	execCtx := ectx.NewExecuteContext(ctx, a.ToolRegistry)
 
 	go func() {
 		defer close(ch)
@@ -69,14 +71,14 @@ func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) e
 			case *messages.ReasoningMessage, *messages.ResponseFailedMessage, *messages.ResponseCreatedMessage, *messages.ResponseStatsMessage:
 				cb(m)
 			}
-		}, a.State.FinalTools)
+		}, a.State.GetTools())
 
 		if err != nil {
 			return err
 		}
 
 		if fullTextMessage != "" {
-			a.State.History = append(a.State.History, &messages.TextMessage{Role: messages.AGENT, Content: fullTextMessage})
+			a.State.AddHistory(&messages.TextMessage{Role: messages.AGENT, Content: fullTextMessage})
 		}
 
 		if len(toolCalls) == 0 {
@@ -113,10 +115,11 @@ func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) e
 	return nil
 }
 
-func NewAgent(model model.ChatModel) *Agent {
+func NewAgent(model model.ChatModel, toolReg *tool.ToolRegistry) *Agent {
 	return &Agent{
-		Model:  model,
-		State:  NewAgentLoopState(),
-		logger: nagare_logger.GetLogger("Agent"),
+		Model:        model,
+		State:        NewAgentLoopState(toolReg),
+		logger:       nagare_logger.GetLogger("Agent"),
+		ToolRegistry: toolReg,
 	}
 }

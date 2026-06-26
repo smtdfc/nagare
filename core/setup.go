@@ -3,16 +3,23 @@ package core
 import (
 	"github.com/smtdfc/nagare/core/agent"
 	"github.com/smtdfc/nagare/core/config"
-	"github.com/smtdfc/nagare/core/plugin"
+	"github.com/smtdfc/nagare/core/plugin/features"
+	plugin_host "github.com/smtdfc/nagare/core/plugin/host"
+	"github.com/smtdfc/nagare/core/plugin/manager"
+	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/core/tool/declarations"
+	"github.com/smtdfc/nagare/plugin-sdk/host"
 	nagare_logger "github.com/smtdfc/nagare/shared/logger"
 	nagare_path "github.com/smtdfc/nagare/shared/path"
 )
 
-var SessionMgr *agent.SessionManager
-var PluginMgr *plugin.PluginManager
-var Config *config.Config
-var AgentPool *agent.AgentPool
+var GlobalSessionMgr *agent.SessionManager
+var GlobalPluginMgr *manager.PluginManager
+var GlobalConfig *config.Config
+var GlobalAgentPool *agent.AgentPool
+var GlobalPluginHost *host.Host
+var GlobalChatChannelMgr *features.ChatChannelManager
+var GlobalToolRegistry *tool.ToolRegistry
 
 func SetupEnvironment() error {
 	err := nagare_logger.InitLogger(nagare_path.LogDir)
@@ -25,20 +32,27 @@ func SetupEnvironment() error {
 		return err
 	}
 
-	Config = config
-	SessionMgr = agent.NewSessionManager()
-	PluginMgr = plugin.NewPluginManager(config)
-	AgentPool = InitAgent(config)
-	declarations.InitTools()
+	GlobalConfig = config
+	GlobalToolRegistry = tool.NewToolRegistry()
+	declarations.InitTools(GlobalToolRegistry)
+	GlobalSessionMgr = agent.NewSessionManager()
+	GlobalPluginMgr = manager.NewPluginManager(GlobalConfig)
+	GlobalAgentPool = InitAgent(GlobalConfig, GlobalToolRegistry)
 	return nil
 }
 
 func PreStart() error {
-	go PluginMgr.StartHost(AgentPool, SessionMgr)
-	return PluginMgr.LoadPlugin()
+	if GlobalAgentPool == nil || GlobalSessionMgr == nil || GlobalPluginMgr == nil {
+		panic("Error: Please call SetupEnvironment first.")
+	}
+
+	GlobalPluginHost = host.NewHost(nagare_logger.GetLogger("Plugin Host"))
+	GlobalChatChannelMgr = features.NewChatChannelManager(GlobalPluginHost)
+	go plugin_host.StartHost(GlobalPluginHost, GlobalPluginMgr, GlobalChatChannelMgr, GlobalAgentPool, GlobalSessionMgr)
+	return GlobalPluginMgr.LoadPlugin()
 }
 
 func Shutdown() {
-	PluginMgr.Shutdown()
-	config.SaveConfig(Config)
+	GlobalPluginMgr.Shutdown()
+	config.SaveConfig(GlobalConfig)
 }

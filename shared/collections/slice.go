@@ -37,3 +37,12 @@ func HasStringIntersection(slice1 []string, slice2 []string) bool {
 
 	return false
 }
+
+func Every[T any](slice []T, predicate func(T) bool) bool {
+	for _, v := range slice {
+		if !predicate(v) {
+			return false
+		}
+	}
+	return true
+}

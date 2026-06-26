@@ -1,4 +1,4 @@
-package plugin
+package features
 
 import (
 	"context"
@@ -11,6 +11,8 @@ import (
 	"github.com/smtdfc/nagare/plugin-sdk/host"
 	"github.com/smtdfc/nagare/plugin-sdk/shared"
 )
+
+var ChatMgr *ChatChannelManager
 
 type ChatChannel struct {
 	Id string
@@ -39,7 +41,6 @@ func (m *ChatChannelManager) Handle(payload *shared.HandleChatMessagePayload, pl
 	m.mu.Unlock()
 
 	responseChannel := channel.Agent.Invoke(context.Background(), payload.Message)
-
 	var fullResponse string
 
 	for chunk := range responseChannel {

@@ -58,8 +58,8 @@ func (r *RootTUIModel) View() tea.View {
 }
 
 func NewRootTUI(conf *config.Config) {
-	agentPool := core.AgentPool
-	sessionMgr := core.SessionMgr
+	agentPool := core.GlobalAgentPool
+	sessionMgr := core.GlobalSessionMgr
 	model := &RootTUIModel{
 		Router:     router.NewTUIRouter(),
 		Config:     conf,

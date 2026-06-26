@@ -6,9 +6,10 @@ import (
 	"github.com/smtdfc/nagare/core/agent"
 	"github.com/smtdfc/nagare/core/config"
 	"github.com/smtdfc/nagare/core/model"
+	"github.com/smtdfc/nagare/core/tool"
 )
 
-func InitAgent(conf *config.Config) *agent.AgentPool {
+func InitAgent(conf *config.Config, toolReg *tool.ToolRegistry) *agent.AgentPool {
 	var chatModel model.ChatModel
 
 	currentProvider, ok := conf.Providers[conf.CurrentProvider]
@@ -26,5 +27,5 @@ func InitAgent(conf *config.Config) *agent.AgentPool {
 		fmt.Println("no compatible")
 	}
 
-	return agent.NewAgentPool(10, chatModel)
+	return agent.NewAgentPool(10, chatModel, toolReg)
 }

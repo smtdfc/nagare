@@ -57,5 +57,3 @@ func NewToolRegistry() *ToolRegistry {
 		Tools:        make(domains.ToolMap),
 	}
 }
-
-var GlobalToolRegistry = NewToolRegistry()

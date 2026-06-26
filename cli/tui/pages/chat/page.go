@@ -4,6 +4,7 @@ import (
 	"charm.land/bubbles/v2/textarea"
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
+	"github.com/smtdfc/nagare/core"
 	"github.com/smtdfc/nagare/core/agent"
 	"github.com/smtdfc/nagare/core/messages"
 )
@@ -56,7 +57,7 @@ func NewPage(sessionMgr *agent.SessionManager, agentPool *agent.AgentPool) *Chat
 	vp.SetContent("Welcome to Nagare Agent Chat!")
 
 	sessionID := sessionMgr.CreateSessionID()
-	currentState := agent.NewAgentLoopState()
+	currentState := agent.NewAgentLoopState(core.GlobalToolRegistry)
 	currentState.ExtendHistory(
 		sessionMgr.GetHistory(sessionID, agent.NAGARE_LIST_MESSAGE_SIZE_LIMIT),
 	)

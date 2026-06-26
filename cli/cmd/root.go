@@ -22,7 +22,7 @@ var rootCmd = &cobra.Command{
 			return err
 		}
 
-		tui.NewRootTUI(core.Config)
+		tui.NewRootTUI(core.GlobalConfig)
 		core.Shutdown()
 		return nil
 	},

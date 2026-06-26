@@ -1,9 +1,8 @@
-package plugin
+package manager
 
 import (
 	"archive/zip"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -14,10 +13,9 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/smtdfc/nagare/core/agent"
 	"github.com/smtdfc/nagare/core/config"
+	"github.com/smtdfc/nagare/core/exceptions"
 	"github.com/smtdfc/nagare/core/utils"
-	"github.com/smtdfc/nagare/plugin-sdk/host"
 	"github.com/smtdfc/nagare/plugin-sdk/plugin"
 	"github.com/smtdfc/nagare/plugin-sdk/shared"
 	nagare_logger "github.com/smtdfc/nagare/shared/logger"
@@ -25,17 +23,21 @@ import (
 	"go.uber.org/multierr"
 )
 
-var ChatMgr *ChatChannelManager
-
 func GetCurrentPlatform() string {
 	return fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)
+}
+
+type PluginData struct {
+	Cmd    *exec.Cmd
+	Config *config.Plugin
+	ID     string
+	Name   string
 }
 
 type PluginManager struct {
 	mu              *sync.RWMutex
 	Conf            *config.Config
-	PluginInstances map[string]*exec.Cmd
-	Host            *host.Host
+	PluginInstances map[string]*PluginData
 	Arena           map[string]interface{}
 	logger          *slog.Logger
 }
@@ -92,58 +94,30 @@ func (m *PluginManager) Install(pluginPackPath string) error {
 	return config.SaveConfig(m.Conf)
 }
 
-func (m *PluginManager) StartHost(pool *agent.AgentPool, sessionMgr *agent.SessionManager) {
-	m.Host.Handler(shared.REGISTER_CHAT_CHANNEL, func(msg shared.Message) {
-		if ChatMgr == nil {
-			ChatMgr = NewChatChannelManager(m.Host)
-		}
-
-		var payload shared.RegisterChatChannelPayload
-		json.Unmarshal(msg.Payload, &payload)
-		a := pool.GetOrNew()
-		a.State.ExtendHistory(
-			sessionMgr.GetHistory(payload.ID, agent.NAGARE_LIST_MESSAGE_SIZE_LIMIT),
-		)
-		ChatMgr.Register(&ChatChannel{
-			Id:         payload.ID,
-			Agent:      a,
-			SessionMgr: sessionMgr,
-			SessionID:  payload.ID,
-			CleanUp: func() {
-				sessionMgr.SaveHistory(payload.ID, a.State.History)
-				pool.Put(a)
-			},
-		})
-
-		m.Host.Send(msg.PluginID, shared.REGISTER_CHAT_CHANNEL_SUCCESS, shared.RegisterChatChannelSuccessPayload{
-			ID: payload.ID,
-		})
-	})
-
-	m.Host.Handler(shared.HANDLE_CHAT_MESSAGE, func(msg shared.Message) {
-		var payload shared.HandleChatMessagePayload
-		json.Unmarshal(msg.Payload, &payload)
-		ChatMgr.Handle(&payload, msg.PluginID)
-	})
-
-	m.Host.Start()
-}
-
 func (m *PluginManager) LoadPlugin() error {
 	var pluginErr error
 	for pluginName, pluginConfig := range m.Conf.Plugins {
 		pluginPath := filepath.Join(nagare_path.PluginDir, pluginConfig.Path, pluginConfig.Bin)
+		id := uuid.New().String()
 		cmd := exec.Command(pluginPath)
-
+		cmd.Env = append(os.Environ(),
+			fmt.Sprintf("%s=%s", shared.PLUGIN_ID_ENV, id),
+		)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
 		err := cmd.Start()
 		if err != nil {
-			pluginErr = multierr.Append(pluginErr, fmt.Errorf("Cannot start plugin %s: %s", pluginName, err))
+			pluginErr = multierr.Append(pluginErr, exceptions.NewPluginException(fmt.Sprintf("Cannot start plugin %s: %s", pluginName, err), pluginName))
 		}
+
 		m.logger.Info("Started plugin", "plugin", pluginName)
-		m.PluginInstances[pluginName] = cmd
+		m.PluginInstances[id] = &PluginData{
+			Cmd:    cmd,
+			Config: &pluginConfig,
+			ID:     id,
+			Name:   pluginName,
+		}
 	}
 
 	return pluginErr
@@ -193,14 +167,14 @@ func extractPlugin(zipPath, destDir string) error {
 }
 
 func (m *PluginManager) Shutdown() {
-	m.Host.Shutdown()
-	for name, instance := range m.PluginInstances {
-		err := instance.Process.Kill()
+	// GlobalPluginHost.Shutdown()
+	for id, instance := range m.PluginInstances {
+		err := instance.Cmd.Process.Kill()
 		if err != nil {
-			m.logger.Info("Kill plugin failed", "plugin", name)
+			m.logger.Info("Kill plugin failed", "plugin", instance.Name, "instance", id)
 		}
 
-		m.logger.Info("Killed plugin", "plugin", name)
+		m.logger.Info("Killed plugin", "plugin", instance.Name, "instance", id)
 	}
 }
 
@@ -208,9 +182,8 @@ func NewPluginManager(conf *config.Config) *PluginManager {
 	return &PluginManager{
 		mu:              &sync.RWMutex{},
 		Conf:            conf,
-		PluginInstances: map[string]*exec.Cmd{},
+		PluginInstances: make(map[string]*PluginData),
 		Arena:           map[string]interface{}{},
-		Host:            host.NewHost(nagare_logger.GetLogger("Plugin Host")),
 		logger:          nagare_logger.GetLogger("Plugin manager"),
 	}
 }
