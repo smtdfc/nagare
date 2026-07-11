@@ -1,11 +1,1 @@
-go 1.26.3
-
-use (
-	./cli
-	./core
-	./cross_platform
-	./plugin-builder
-	./plugin-sdk
-	./plugins/telegram
-	./shared
-)
+go 1.26.5
