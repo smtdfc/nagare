@@ -1,125 +1,73 @@
 package agent
 
 import (
-	"context"
-	"fmt"
-	"log/slog"
-	"time"
+	"strings"
 
-	ectx "github.com/smtdfc/nagare/core/context"
-	"github.com/smtdfc/nagare/core/domains"
-	"github.com/smtdfc/nagare/core/messages"
-	"github.com/smtdfc/nagare/core/model"
-	"github.com/smtdfc/nagare/core/tool"
-	nagare_logger "github.com/smtdfc/nagare/shared/logger"
+	"github.com/smtdfc/nagare/core/context"
+	"github.com/smtdfc/nagare/core/llm"
+	"github.com/smtdfc/nagare/shared/messages"
 )
 
 type Agent struct {
-	ToolRegistry *tool.ToolRegistry
-	Model        model.ChatModel
-	State        *AgentLoopState
-	Middlewares  []any
-	logger       *slog.Logger
+	State       *AgentState
+	LLMProvider llm.LLMProviderAdapter
+	Model       string
 }
 
-func (a *Agent) Invoke(ctx context.Context, prompt string) <-chan messages.Message {
-	ch := make(chan messages.Message)
-	a.State.AddHistory(
-		&messages.TextMessage{
-			Role:    messages.USER,
-			Content: prompt,
-		},
-	)
+func (a *Agent) Invoke(msg messages.Message) llm.MessageChannel {
+	ectx := context.NewExecuteContext()
+	a.State.AddMessage(msg)
 
-	execCtx := ectx.NewExecuteContext(ctx, a.ToolRegistry)
+	output := make(llm.MessageChannel)
 
 	go func() {
-		defer close(ch)
-		err := a.processChat(execCtx, func(msg messages.Message) {
-			ch <- msg
-		})
+		defer close(output)
 
-		if err != nil {
-			ch <- &messages.StreamErrorMessage{
-				Cause: err.Error(),
+		for {
+			llmProviderOutput, _ := a.LLMProvider.Chat(a.Model, ectx, a.State.GetHistory())
+			isFlushText := false
+			var text strings.Builder
+			var toolCallCount = 0
+			for chunk := range llmProviderOutput {
+				switch message := chunk.(type) {
+				case *messages.Text:
+					text.WriteString(message.Content)
+					isFlushText = true
+				case *messages.ToolCall:
+					toolCallCount += 1
+					a.State.AddMessage(&messages.ToolCall{
+						Name:   message.Name,
+						Args:   message.Args,
+						CallID: message.CallID,
+					})
+
+				default:
+					if isFlushText {
+						a.State.AddMessage(&messages.Text{
+							Content: text.String(),
+							Role:    messages.AGENT,
+						})
+
+						text.Reset()
+					}
+				}
+
+				output <- chunk
 			}
+
+			if toolCallCount == 0 {
+				break
+			}
+
 		}
 	}()
 
-	return ch
+	return output
 }
-
-func (a *Agent) processChat(ctx ectx.ExecuteContext, cb model.MessageCallback) error {
-
-	start := time.Now()
-	a.logger.Info("Agent processing chat ")
-
-	for {
-		a.State.BeforeTurn()
-		fullTextMessage := ""
-		var toolCalls []*messages.ToolCallMessage
-
-		err := a.Model.Chat(ctx, a.State.GetHistory(NAGARE_LIST_MESSAGE_SIZE_LIMIT), func(msg messages.Message) {
-			switch m := msg.(type) {
-			case *messages.ToolCallMessage:
-				toolCalls = append(toolCalls, m)
-				a.State.History = append(a.State.History, m)
-				cb(m)
-			case *messages.TextMessage:
-				cb(m)
-				fullTextMessage += m.Content
-			case *messages.ReasoningMessage, *messages.ResponseFailedMessage, *messages.ResponseCreatedMessage, *messages.ResponseStatsMessage:
-				cb(m)
-			}
-		}, a.State.GetTools())
-
-		if err != nil {
-			return err
-		}
-
-		if fullTextMessage != "" {
-			a.State.AddHistory(&messages.TextMessage{Role: messages.AGENT, Content: fullTextMessage})
-		}
-
-		if len(toolCalls) == 0 {
-			break
-		}
-
-		for _, tc := range toolCalls {
-			a.logger.Info(fmt.Sprintf("Agent use tool %s", tc.FunctionName))
-			result, err := ctx.CallTool(tc.FunctionName, tc.Args)
-
-			if result.Tool.GetType() == domains.DYNAMIC_TOOL && err == nil {
-				a.State.InjectDynamicTool(result.Tool)
-			}
-
-			toolResultMsg := &messages.ToolResultMessage{
-				CallID: tc.CallID,
-				Result: result.Result,
-				Error:  err,
-			}
-
-			cb(toolResultMsg)
-			a.State.History = append(a.State.History, toolResultMsg)
-		}
-
-		ctx.CallMiddlewares(ectx.AFTER_TOOL_CALL, a.State)
-	}
-
-	cb(&messages.AgentResponseDoneMessage{})
-	elapsed := time.Since(start)
-	a.logger.Info(
-		"Agent response completed",
-		"duration", elapsed.String(),
-	)
-	return nil
-}
-
-func NewAgent(model model.ChatModel, toolReg *tool.ToolRegistry) *Agent {
+func NewAgent(model string, llmProvider llm.LLMProviderAdapter, state *AgentState) *Agent {
 	return &Agent{
-		Model:        model,
-		State:        NewAgentLoopState(toolReg),
-		logger:       nagare_logger.GetLogger("Agent"),
-		ToolRegistry: toolReg,
+		Model:       model,
+		State:       state,
+		LLMProvider: llmProvider,
 	}
 }

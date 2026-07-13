@@ -1,4 +1,1 @@
-.env
-*.exe
-*.nagare_plugin
-dist
+.dix
