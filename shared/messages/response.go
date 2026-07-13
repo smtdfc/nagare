@@ -1,5 +1,12 @@
 package messages
 
+type ResponseStarted struct {
+}
+
+func (r *ResponseStarted) Kind() string {
+	return "ResponseStarted"
+}
+
 type ResponseCompleted struct {
 }
 
@@ -8,6 +15,7 @@ func (r *ResponseCompleted) Kind() string {
 }
 
 type ResponseFailed struct {
+	Code  string
 	Cause string `json:"cause"`
 }
 
