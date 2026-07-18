@@ -25,6 +25,20 @@ func (c *ConfigManager) Load() (*Config, error) {
 	return &conf, nil
 }
 
+func (c *ConfigManager) Save(conf *Config) error {
+	raw, err := json.Marshal(conf)
+	if err != nil {
+		return custom_errors.NewConfigError("failed to save config ")
+	}
+
+	err = os.WriteFile(paths.ConfigFile, raw, 0644)
+	if err != nil {
+		return custom_errors.NewConfigError("failed to save config ")
+	}
+
+	return nil
+}
+
 func NewConfigManager() *ConfigManager {
 	return &ConfigManager{}
 }
