@@ -4,7 +4,9 @@ import (
 	"strings"
 
 	"github.com/smtdfc/nagare/core/context"
+	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/llm"
+	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/shared/messages"
 )
 
@@ -12,10 +14,41 @@ type Agent struct {
 	State       *AgentState
 	LLMProvider llm.LLMProviderAdapter
 	Model       string
+	ToolMgr     *tool.ToolManager
 }
 
-func (a *Agent) Invoke(msg messages.Message) llm.MessageChannel {
-	ectx := context.NewExecuteContext()
+func (a *Agent) WithLLMProvider(provider llm.LLMProviderAdapter) *Agent {
+	a.LLMProvider = provider
+	return a
+}
+
+func (a *Agent) WithModel(model string) *Agent {
+	a.Model = model
+	return a
+}
+
+func (a *Agent) WithState(state *AgentState) *Agent {
+	a.State = state
+	return a
+}
+
+func (a *Agent) WithToolManager(toolMgr *tool.ToolManager) *Agent {
+	a.ToolMgr = toolMgr
+	return a
+}
+
+func (a *Agent) Reset() {
+	a.Model = ""
+	a.LLMProvider = nil
+	a.State = nil
+}
+
+func (a *Agent) Invoke(msg messages.Message) (llm.MessageChannel, error) {
+	if a.LLMProvider == nil || a.State == nil {
+		return nil, custom_errors.NewAgentError("Agent initialized incorrectly")
+	}
+
+	ectx := context.NewExecuteContext(a.ToolMgr)
 	a.State.AddMessage(msg)
 
 	output := make(llm.MessageChannel)
@@ -26,6 +59,8 @@ func (a *Agent) Invoke(msg messages.Message) llm.MessageChannel {
 		for {
 			llmProviderOutput, _ := a.LLMProvider.Chat(a.Model, ectx, a.State.GetHistory())
 			isFlushText := false
+			var toolCalls = tool.ListToolCall{}
+
 			var text strings.Builder
 			var toolCallCount = 0
 			for chunk := range llmProviderOutput {
@@ -40,6 +75,12 @@ func (a *Agent) Invoke(msg messages.Message) llm.MessageChannel {
 						Args:   message.Args,
 						CallID: message.CallID,
 					})
+
+					toolCalls = append(toolCalls, tool.NewToolCall(
+						message.Name,
+						message.Args,
+						message.CallID,
+					))
 
 				default:
 					if isFlushText {
@@ -62,8 +103,9 @@ func (a *Agent) Invoke(msg messages.Message) llm.MessageChannel {
 		}
 	}()
 
-	return output
+	return output, nil
 }
+
 func NewAgent(model string, llmProvider llm.LLMProviderAdapter, state *AgentState) *Agent {
 	return &Agent{
 		Model:       model,
