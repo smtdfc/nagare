@@ -45,7 +45,7 @@ func (a *Agent) Reset() {
 
 func (a *Agent) Invoke(msg messages.Message) (llm.MessageChannel, error) {
 	if a.LLMProvider == nil || a.State == nil {
-		return nil, custom_errors.NewAgentError("Agent initialized incorrectly")
+		return nil, custom_errors.NewAgentError("Agent initialization failed. Please check the configuration settings")
 	}
 
 	ectx := context.NewExecuteContext(a.ToolMgr)

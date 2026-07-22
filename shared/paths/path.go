@@ -37,7 +37,7 @@ func EnsureConfigWithDefaults() error {
 func init() {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		log.Fatal(fmt.Errorf("failed to get home dir: %w", err))
+		log.Fatal(fmt.Errorf("Could not determine the user's home directory: %w", err))
 	}
 
 	DataDir = filepath.Join(home, ".nagare")
@@ -58,6 +58,6 @@ func init() {
 	ConfigFile = filepath.Join(DataDir, "config.json")
 	err = EnsureConfigWithDefaults()
 	if err != nil {
-		log.Fatal(fmt.Errorf("failed to create config file %s: %w", ConfigFile, err))
+		log.Fatal(fmt.Errorf("Could not initialize or create the config file at '%s': %w", ConfigFile, err))
 	}
 }
