@@ -111,7 +111,7 @@ func (o *OpenAICompatibleProviderAdapter) TransformToProviderMessage(msg message
 
 func (o *OpenAICompatibleProviderAdapter) Chat(model string, ctx *context.ExecuteContext, listMessage messages.ListMessage) (llm.MessageChannel, error) {
 	if !slices.Contains(o.Models, model) {
-		return nil, fmt.Errorf("Provider doesn't support model %s", model)
+		return nil, fmt.Errorf("Model compatibility error: The current provider does not support the requested model '%s'.", model)
 	}
 
 	inputs := responses.ResponseInputParam{}
