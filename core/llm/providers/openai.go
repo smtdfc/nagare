@@ -2,6 +2,7 @@ package providers
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
@@ -14,6 +15,7 @@ import (
 
 type OpenAICompatibleProviderAdapter struct {
 	Client *openai.Client
+	Models []string
 }
 
 func (o *OpenAICompatibleProviderAdapter) TransformToProviderMessage(msg messages.Message) (responses.ResponseInputItemUnionParam, error) {
@@ -108,6 +110,10 @@ func (o *OpenAICompatibleProviderAdapter) TransformToProviderMessage(msg message
 // }
 
 func (o *OpenAICompatibleProviderAdapter) Chat(model string, ctx *context.ExecuteContext, listMessage messages.ListMessage) (llm.MessageChannel, error) {
+	if !slices.Contains(o.Models, model) {
+		return nil, fmt.Errorf("Provider doesn't support model %s", model)
+	}
+
 	inputs := responses.ResponseInputParam{}
 	// listTool, err := o.TransformToolDeclarations(tools)
 	// if err != nil {
@@ -204,10 +210,11 @@ func (o *OpenAICompatibleProviderAdapter) Chat(model string, ctx *context.Execut
 	return outputChannel, nil
 }
 
-func NewOpenAICompatibleProviderAdapter(baseURL, APIKey string) *OpenAICompatibleProviderAdapter {
+func NewOpenAICompatibleProviderAdapter(baseURL, APIKey string, Models []string) *OpenAICompatibleProviderAdapter {
 	client := openai.NewClient(option.WithAPIKey(APIKey), option.WithBaseURL(baseURL))
 	return &OpenAICompatibleProviderAdapter{
 		Client: &client,
+		Models: Models,
 	}
 
 }
