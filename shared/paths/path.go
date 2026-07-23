@@ -41,7 +41,7 @@ func init() {
 	}
 
 	DataDir = filepath.Join(home, ".nagare")
-
+	DatabaseDir = filepath.Join(DataDir, "databases")
 	dirs := []string{
 		DataDir,
 		filepath.Join(DataDir, "databases"),
