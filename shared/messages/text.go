@@ -1,10 +1,19 @@
 package messages
 
 type Text struct {
-	Content string `json:"content"`
-	Role    Role   `json:"role"`
+	Type    MessageType `json:"type"`
+	Content string      `json:"content"`
+	Role    Role        `json:"role"`
 }
 
-func (t *Text) Kind() string {
-	return "Text"
+func NewText(content string, role Role) *Text {
+	return &Text{
+		Type:    TEXT_MESSAGE,
+		Content: content,
+		Role:    role,
+	}
+}
+
+func (t *Text) GetType() MessageType {
+	return t.Type
 }

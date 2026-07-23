@@ -1,9 +1,17 @@
 package messages
 
 type Reasoning struct {
-	Content string `json:"content"`
+	Type    MessageType `json:"type"`
+	Content string      `json:"content"`
 }
 
-func (t *Reasoning) Kind() string {
-	return "Reasoning"
+func (t *Reasoning) GetType() MessageType {
+	return t.Type
+}
+
+func NewReasoning(t string) *Reasoning {
+	return &Reasoning{
+		Type:    REASONING_MESSAGE,
+		Content: t,
+	}
 }
