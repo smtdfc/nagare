@@ -5,7 +5,7 @@ import (
 )
 
 type Message interface {
-	Kind() string
+	GetType() MessageType
 }
 
 type ListMessage []Message
