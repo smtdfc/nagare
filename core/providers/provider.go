@@ -1,12 +1,14 @@
-package singleton
+package providers
 
 import (
 	"github.com/smtdfc/nagare/core/agent"
 	"github.com/smtdfc/nagare/core/config"
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/custom_errors"
-	"github.com/smtdfc/nagare/core/llm"
+	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/llm/providers"
+	"github.com/smtdfc/nagare/core/persistence/database"
+	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/shared/messages"
 )
@@ -14,9 +16,9 @@ import (
 var AGENT_POOL_SIZE = 10
 var GlobalAgentPool *agent.AgentPool
 var GlobalConfigMgr *config.ConfigManager
-var GlobalConfig *config.Config
-
+var GlobalConfig *domains.Config
 var GlobalToolManager *tool.ToolManager
+var GlobalSessionManager *session.SessionManager
 
 func ensureItemInitialized[T any](item *T) {
 	if item == nil {
@@ -33,12 +35,18 @@ func Init() error {
 		return err
 	}
 
+	_, err = database.InitDatabase()
+	if err != nil {
+		return err
+	}
+
+	GlobalSessionManager = session.NewSessionManager()
 	GlobalToolManager = tool.NewToolManager()
 
 	return nil
 }
 
-func GetLLMProvider() (llm.LLMProviderAdapter, error) {
+func GetLLMProvider() (domains.LLMProviderAdapter, error) {
 	ensureItemInitialized(GlobalConfigMgr)
 	ensureItemInitialized(GlobalConfig)
 
@@ -52,7 +60,7 @@ func GetLLMProvider() (llm.LLMProviderAdapter, error) {
 	}
 
 	switch currentProviderConfig.Compatible {
-	case config.OPEN_AI:
+	case domains.OPEN_AI:
 		return providers.NewOpenAICompatibleProviderAdapter(
 			currentProviderConfig.BaseURL,
 			currentProviderConfig.APIKey,

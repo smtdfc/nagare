@@ -1,44 +1,24 @@
 package config
 
 import (
-	"encoding/json"
-	"os"
-
-	"github.com/smtdfc/nagare/core/custom_errors"
-	"github.com/smtdfc/nagare/shared/paths"
+	"github.com/smtdfc/nagare/core/domains"
+	persistence "github.com/smtdfc/nagare/core/persistence/config"
 )
 
-type ConfigManager struct{}
-
-func (c *ConfigManager) Load() (*Config, error) {
-	var conf Config
-	raw, err := os.ReadFile(paths.ConfigFile)
-	if err != nil {
-		return nil, custom_errors.NewConfigError("Configuration loading error: The specified config file could not be read or is invalid.")
-	}
-
-	err = json.Unmarshal(raw, &conf)
-	if err != nil {
-		return nil, custom_errors.NewConfigError("Configuration loading error: The specified config file could not be read or is invalid.")
-	}
-
-	return &conf, nil
+type ConfigManager struct {
+	io *persistence.ConfigIO
 }
 
-func (c *ConfigManager) Save(conf *Config) error {
-	raw, err := json.Marshal(conf)
-	if err != nil {
-		return custom_errors.NewConfigError("Configuration saving error: Could not write to the specified config file.")
-	}
+func (c *ConfigManager) Load() (*domains.Config, error) {
+	return c.io.Read()
+}
 
-	err = os.WriteFile(paths.ConfigFile, raw, 0644)
-	if err != nil {
-		return custom_errors.NewConfigError("Configuration saving error: Could not write to the specified config file.")
-	}
-
-	return nil
+func (c *ConfigManager) Save(conf *domains.Config) error {
+	return c.io.Write(conf)
 }
 
 func NewConfigManager() *ConfigManager {
-	return &ConfigManager{}
+	return &ConfigManager{
+		io: persistence.NewConfigIO(),
+	}
 }

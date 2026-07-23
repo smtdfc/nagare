@@ -1,4 +1,4 @@
-package config
+package domains
 
 type ProviderCompatible string
 

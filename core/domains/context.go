@@ -4,5 +4,5 @@ import "context"
 
 type Context interface {
 	context.Context
-	ExecuteToolCalls() error
+	// ExecuteToolCalls() error
 }

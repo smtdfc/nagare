@@ -8,8 +8,7 @@ import (
 	"github.com/openai/openai-go/v3/option"
 	"github.com/openai/openai-go/v3/packages/param"
 	"github.com/openai/openai-go/v3/responses"
-	"github.com/smtdfc/nagare/core/context"
-	"github.com/smtdfc/nagare/core/llm"
+	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/shared/messages"
 )
 
@@ -109,7 +108,7 @@ func (o *OpenAICompatibleProviderAdapter) TransformToProviderMessage(msg message
 // 	return toolParams, nil
 // }
 
-func (o *OpenAICompatibleProviderAdapter) Chat(model string, ctx *context.ExecuteContext, listMessage messages.ListMessage) (llm.MessageChannel, error) {
+func (o *OpenAICompatibleProviderAdapter) Chat(model string, ctx domains.Context, listMessage messages.ListMessage) (domains.MessageChannel, error) {
 	if !slices.Contains(o.Models, model) {
 		return nil, fmt.Errorf("Model compatibility error: The current provider does not support the requested model '%s'.", model)
 	}

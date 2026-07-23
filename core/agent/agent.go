@@ -5,19 +5,19 @@ import (
 
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/custom_errors"
-	"github.com/smtdfc/nagare/core/llm"
+	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/shared/messages"
 )
 
 type Agent struct {
 	State       *AgentState
-	LLMProvider llm.LLMProviderAdapter
+	LLMProvider domains.LLMProviderAdapter
 	Model       string
 	ToolMgr     *tool.ToolManager
 }
 
-func (a *Agent) WithLLMProvider(provider llm.LLMProviderAdapter) *Agent {
+func (a *Agent) WithLLMProvider(provider domains.LLMProviderAdapter) *Agent {
 	a.LLMProvider = provider
 	return a
 }
@@ -43,7 +43,7 @@ func (a *Agent) Reset() {
 	a.State = nil
 }
 
-func (a *Agent) Invoke(msg messages.Message) (llm.MessageChannel, error) {
+func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 	if a.LLMProvider == nil || a.State == nil {
 		return nil, custom_errors.NewAgentError("Agent initialization failed. Please check the configuration settings")
 	}
@@ -51,7 +51,7 @@ func (a *Agent) Invoke(msg messages.Message) (llm.MessageChannel, error) {
 	ectx := context.NewExecuteContext(a.ToolMgr)
 	a.State.AddMessage(msg)
 
-	output := make(llm.MessageChannel)
+	output := make(domains.MessageChannel)
 
 	go func() {
 		defer close(output)
@@ -106,7 +106,7 @@ func (a *Agent) Invoke(msg messages.Message) (llm.MessageChannel, error) {
 	return output, nil
 }
 
-func NewAgent(model string, llmProvider llm.LLMProviderAdapter, state *AgentState) *Agent {
+func NewAgent(model string, llmProvider domains.LLMProviderAdapter, state *AgentState) *Agent {
 	return &Agent{
 		Model:       model,
 		State:       state,
