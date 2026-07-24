@@ -25,6 +25,21 @@ func (r *MessageRepository) GetMessageBySessionID(ctx context.Context, id string
 	return messages, nil
 }
 
+func (r *MessageRepository) SaveMessages(ctx context.Context, messages []*models.Message) error {
+	if len(messages) == 0 {
+		return nil
+	}
+
+	batchSize := 500
+
+	err := r.db.WithContext(ctx).CreateInBatches(messages, batchSize).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func NewMessageRepository() *MessageRepository {
 	db, _ := database.GetDatabase()
 	return &MessageRepository{

@@ -3,6 +3,7 @@ package mappers
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/persistence/database/models"
 	"github.com/smtdfc/nagare/shared/helpers"
 	"github.com/smtdfc/nagare/shared/messages"
@@ -31,12 +32,13 @@ func (m *MessageMapper) ToDomain(model models.Message) (messages.Message, error)
 	}
 }
 
-func (m *MessageMapper) ToModel(domain messages.Message) (*models.Message, error) {
+func (m *MessageMapper) ToModel(domain messages.Message, sessionID string) (*models.Message, error) {
 	raw, err := helpers.MapObjectToJson(domain)
 	if err != nil {
 		return nil, err
 	}
 	var model = &models.Message{
+		SessionID:   uuid.MustParse(sessionID),
 		MessageType: string(domain.GetType()),
 		Content:     raw,
 	}

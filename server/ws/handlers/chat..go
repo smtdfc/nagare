@@ -81,7 +81,25 @@ func (h *ChatHandler) InvokeAgent(i *ws.WsInstance, message *dto.WsMessage[any])
 		})
 	}
 
-	state.CommitMessage()
+	err = providers.GlobalSessionManager.SaveSession(sessionID, state.PendingMessages)
+	if err != nil {
+		ws.SendMessage(i, dto.WS_INVOKE_AGENT_FAILED, dto.InvokeAgentFailed{
+			ID:    id,
+			Cause: "Failed to save history",
+		})
+
+		return
+	}
+
+	err = state.CommitMessage()
+	if err != nil {
+		ws.SendMessage(i, dto.WS_INVOKE_AGENT_FAILED, dto.InvokeAgentFailed{
+			ID:    id,
+			Cause: "Failed to save history",
+		})
+
+		return
+	}
 }
 
 // @Injectable
