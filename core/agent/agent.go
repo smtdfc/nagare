@@ -70,12 +70,7 @@ func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 					isFlushText = true
 				case *messages.ToolCall:
 					toolCallCount += 1
-					a.State.AddMessage(&messages.ToolCall{
-						Name:   message.Name,
-						Args:   message.Args,
-						CallID: message.CallID,
-					})
-
+					a.State.AddMessage(messages.NewToolCall(message.Name, message.Args, message.CallID))
 					toolCalls = append(toolCalls, tool.NewToolCall(
 						message.Name,
 						message.Args,
@@ -84,11 +79,7 @@ func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 
 				default:
 					if isFlushText {
-						a.State.AddMessage(&messages.Text{
-							Content: text.String(),
-							Role:    messages.AGENT,
-						})
-
+						a.State.AddMessage(messages.NewText(text.String(), messages.AGENT))
 						text.Reset()
 					}
 				}

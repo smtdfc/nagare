@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/gofiber/contrib/v3/websocket"
 	"github.com/smtdfc/nagare/shared/dto"
 )
@@ -47,8 +48,12 @@ func ReadMessage[T any](i *WsInstance) (*dto.WsMessage[T], error) {
 
 	_ = mt
 	return &msg, nil
+}
 
-	return nil, fmt.Errorf("Unsupported message type")
+func GetPayload[T any](msg *dto.WsMessage[any]) (*T, error) {
+	var result T
+	err := mapstructure.Decode(msg.Payload, &result)
+	return &result, err
 }
 
 func NewWsInstance(c *websocket.Conn) *WsInstance {
