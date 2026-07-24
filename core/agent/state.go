@@ -7,8 +7,14 @@ type AgentState struct {
 	PendingMessages messages.ListMessage
 }
 
-func (a *AgentState) AddMessage(msg messages.Message) {
+func (a *AgentState) WithHistory(history messages.ListMessage) *AgentState {
+	a.Messages = append(a.Messages, history...)
+	return a
+}
+
+func (a *AgentState) AddMessage(msg messages.Message) *AgentState {
 	a.PendingMessages = append(a.PendingMessages, msg)
+	return a
 }
 
 func (a *AgentState) GetHistory() messages.ListMessage {
