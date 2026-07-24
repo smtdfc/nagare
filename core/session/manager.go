@@ -25,6 +25,24 @@ func (m *SessionManager) CreateSession() (string, error) {
 	return session.ID.String(), nil
 }
 
+func (m *SessionManager) SaveSession(sessionID string, list messages.ListMessage) error {
+	ctx := context.Background()
+	mapper := &mappers.MessageMapper{}
+	models, err := helpers.Map(list, func(t messages.Message) (*models.Message, error) {
+		return mapper.ToModel(t, sessionID)
+	})
+	if err != nil {
+		return err
+	}
+
+	err = m.messageRepo.SaveMessages(ctx, models)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *SessionManager) GetMessagesBySessionID(id string) ([]messages.Message, error) {
 	ctx := context.Background()
 	mapper := &mappers.MessageMapper{}
