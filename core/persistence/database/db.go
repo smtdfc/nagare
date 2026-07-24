@@ -23,7 +23,7 @@ func InitDatabase() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	err = db.AutoMigrate(&models.Session{})
+	err = db.AutoMigrate(&models.Session{}, &models.Message{})
 	if err != nil {
 		return nil, err
 	}
