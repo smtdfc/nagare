@@ -39,6 +39,8 @@ func InitRoutes(app *fiber.App, heathController *controllers.HealthController, c
 			switch wsMsg.Event {
 			case dto.WS_CREATE_SESSION:
 				chatHandler.CreateSession(instance)
+			case dto.WS_INVOKE_AGENT:
+				chatHandler.InvokeAgent(instance, wsMsg)
 			}
 		}
 	}))
