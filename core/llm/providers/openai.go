@@ -153,7 +153,7 @@ func (o *OpenAICompatibleProviderAdapter) Chat(model string, ctx domains.Context
 				// 	ReasoningTokens: usage.OutputTokensDetails.ReasoningTokens,
 				// 	TotalTokens:     usage.TotalTokens,
 				// })
-				outputChannel <- &messages.ResponseCompleted{}
+				outputChannel <- messages.NewResponseCompleted()
 
 			case "response.failed":
 				resp := event.AsResponseFailed().Response
@@ -165,44 +165,41 @@ func (o *OpenAICompatibleProviderAdapter) Chat(model string, ctx domains.Context
 				// 	ReasoningTokens: usage.OutputTokensDetails.ReasoningTokens,
 				// 	TotalTokens:     usage.TotalTokens,
 				// })
-				outputChannel <- &messages.ResponseFailed{
-					Code:  fmt.Sprintf("%s", err.Code),
-					Cause: err.Message,
-				}
+				outputChannel <- messages.NewResponseFailed(fmt.Sprintf("%s", err.Code), err.Message)
 
 			case "response.output_item.done":
 				if event.AsResponseOutputItemAdded().Item.Type == "function_call" {
 					item := event.AsResponseOutputItemAdded().Item
-					outputChannel <- &messages.ToolCall{
-						CallID: item.CallID,
-						Name:   item.Name,
-						Args:   item.Arguments.OfString,
-					}
+					outputChannel <- messages.NewToolCall(
+						item.Name,
+						item.Arguments.OfString,
+						item.CallID,
+					)
 				}
 
 			case "response.output_text.delta":
 				if event.Delta != "" {
-					outputChannel <- &messages.Text{
-						Role:    messages.AGENT,
-						Content: event.Delta,
-					}
+					outputChannel <- messages.NewText(
+						event.Delta,
+						messages.AGENT,
+					)
 				}
 
 			case "response.reasoning_text.delta":
 				if event.Delta != "" {
-					outputChannel <- &messages.Reasoning{
-						Content: event.Delta,
-					}
+					outputChannel <- messages.NewReasoning(
+						event.Delta,
+					)
 				}
 
 			}
 		}
 
 		if err := stream.Err(); err != nil {
-			outputChannel <- &messages.ResponseFailed{
-				Code:  "400",
-				Cause: err.Error(),
-			}
+			outputChannel <- messages.NewResponseFailed(
+				"400",
+				err.Error(),
+			)
 		}
 	})()
 
