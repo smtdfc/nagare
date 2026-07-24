@@ -32,7 +32,7 @@ func (r *MessageRepository) SaveMessages(ctx context.Context, messages []*models
 
 	batchSize := 500
 
-	err := r.db.WithContext(ctx).Debug().CreateInBatches(messages, batchSize).Error
+	err := r.db.WithContext(ctx).CreateInBatches(messages, batchSize).Error
 	if err != nil {
 		return err
 	}
