@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/persistence/database/models"
 	"github.com/smtdfc/nagare/shared/helpers"
 	"github.com/smtdfc/nagare/shared/messages"
@@ -28,7 +29,7 @@ func (m *MessageMapper) ToDomain(model models.Message) (messages.Message, error)
 	case string(messages.TOOL_RESULT_MESSAGE):
 		return helpers.MapObjectFromJson(model.Content, messages.NewToolCallResult("", "", ""))
 	default:
-		return nil, fmt.Errorf("unknown message type: %s", model.MessageType)
+		return nil, custom_errors.NewDataError(fmt.Sprintf("Unknown message type received: %s", model.MessageType))
 	}
 }
 
