@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/smtdfc/nagare/core/context"
@@ -57,7 +58,14 @@ func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 		defer close(output)
 		output <- messages.NewAgentResponse(messages.AGENT_RESPONSE_STARTED)
 		for {
-			llmProviderOutput, _ := a.LLMProvider.Chat(a.Model, ectx, a.State.GetHistory(), a.ToolMgr.GetListTool())
+			llmProviderOutput, err := a.LLMProvider.Chat(a.Model, ectx, a.State.GetHistory(), a.ToolMgr.GetListTool())
+			if err != nil {
+				msg := messages.NewAgentResponse(messages.AGENT_RESPONSE_FAILED)
+				msg.Content = fmt.Sprintf("LLM Provider Error: %s", err.Error())
+				output <- msg
+				return
+			}
+
 			isFlushText := false
 			var toolCalls = domains.ListToolCall{}
 
@@ -94,7 +102,10 @@ func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 			for _, call := range toolCalls {
 				result := ectx.ExecuteToolCalls(call)
 				if result.Status == domains.TOOL_CALL_PENDING {
-					panic("Execution race condition detected: Results were retrieved before the tool finished processing. Please verify that the tool operates synchronously.")
+					msg := messages.NewAgentResponse(messages.AGENT_RESPONSE_FAILED)
+					msg.Content = "Execution race condition detected: Results were retrieved before the tool finished processing. Please verify that the tool operates synchronously."
+					output <- msg
+					return
 				}
 
 				a.State.AddMessage(messages.NewToolCallResult(
