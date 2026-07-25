@@ -55,7 +55,7 @@ func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 
 	go func() {
 		defer close(output)
-
+		output <- messages.NewAgentResponse(messages.AGENT_RESPONSE_STARTED)
 		for {
 			llmProviderOutput, _ := a.LLMProvider.Chat(a.Model, ectx, a.State.GetHistory(), a.ToolMgr.GetListTool())
 			isFlushText := false
@@ -68,6 +68,7 @@ func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 				case *messages.Text:
 					text.WriteString(message.Content)
 					isFlushText = true
+					output <- chunk
 				case *messages.ToolCall:
 					toolCallCount += 1
 					a.State.AddMessage(messages.NewToolCall(message.Name, message.Args, message.CallID))
@@ -76,6 +77,7 @@ func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 						message.Args,
 						message.CallID,
 					))
+					output <- chunk
 
 				default:
 					if isFlushText {
@@ -83,8 +85,6 @@ func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 						text.Reset()
 					}
 				}
-
-				output <- chunk
 			}
 
 			if toolCallCount == 0 {
@@ -104,6 +104,8 @@ func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 				))
 			}
 		}
+
+		output <- messages.NewAgentResponse(messages.AGENT_RESPONSE_COMPLETED)
 	}()
 
 	return output, nil
