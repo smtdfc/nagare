@@ -57,9 +57,9 @@ func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 		defer close(output)
 
 		for {
-			llmProviderOutput, _ := a.LLMProvider.Chat(a.Model, ectx, a.State.GetHistory())
+			llmProviderOutput, _ := a.LLMProvider.Chat(a.Model, ectx, a.State.GetHistory(), a.ToolMgr.GetListTool())
 			isFlushText := false
-			var toolCalls = tool.ListToolCall{}
+			var toolCalls = domains.ListToolCall{}
 
 			var text strings.Builder
 			var toolCallCount = 0
@@ -71,7 +71,7 @@ func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 				case *messages.ToolCall:
 					toolCallCount += 1
 					a.State.AddMessage(messages.NewToolCall(message.Name, message.Args, message.CallID))
-					toolCalls = append(toolCalls, tool.NewToolCall(
+					toolCalls = append(toolCalls, domains.NewToolCall(
 						message.Name,
 						message.Args,
 						message.CallID,
@@ -91,6 +91,18 @@ func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 				break
 			}
 
+			for _, call := range toolCalls {
+				result := ectx.ExecuteToolCalls(call)
+				if result.Status == domains.TOOL_CALL_PENDING {
+					panic("Execution race condition detected: Results were retrieved before the tool finished processing. Please verify that the tool operates synchronously.")
+				}
+
+				a.State.AddMessage(messages.NewToolCallResult(
+					result.CallID,
+					result.Result,
+					result.Error,
+				))
+			}
 		}
 	}()
 

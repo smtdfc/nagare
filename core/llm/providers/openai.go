@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"encoding/json"
 	"fmt"
 	"slices"
 
@@ -85,39 +86,40 @@ func (o *OpenAICompatibleProviderAdapter) TransformToProviderMessage(msg message
 	return responses.ResponseInputItemUnionParam{}, nil
 }
 
-// func (o *OpenAICompatibleChatModel) TransformToolDeclarations(tools domains.ListTool) ([]responses.ToolUnionParam, error) {
-// 	toolParams := make([]responses.ToolUnionParam, len(tools))
+func (o *OpenAICompatibleProviderAdapter) TransformToolDeclarations(tools domains.ListTool) ([]responses.ToolUnionParam, error) {
+	toolParams := make([]responses.ToolUnionParam, len(tools))
 
-// 	for i, tool := range tools {
-// 		var params map[string]any
+	for i, tool := range tools {
+		var params map[string]any
 
-// 		// println(tool.GetArgumentsSchema())
-// 		err := json.Unmarshal([]byte(tool.GetArgumentsSchema()), &params)
-// 		if err != nil {
-// 			return nil, exceptions.NewToolException(fmt.Sprintf("JSON parse error %s: %v\n", tool.GetName(), err), tool.GetName())
-// 		}
+		// println(tool.GetArgumentsSchema())
+		err := json.Unmarshal([]byte(tool.GetArgs()), &params)
+		if err != nil {
+			return nil, fmt.Errorf("JSON parse error %s: %v\n", tool.GetName(), err)
+		}
 
-// 		toolParams[i] = responses.ToolUnionParam{
-// 			OfFunction: &responses.FunctionToolParam{
-// 				Name:        tool.GetName(),
-// 				Description: openai.String(tool.GetDesc()),
-// 				Parameters:  params,
-// 			},
-// 		}
-// 	}
-// 	return toolParams, nil
-// }
+		toolParams[i] = responses.ToolUnionParam{
+			OfFunction: &responses.FunctionToolParam{
+				Name:        tool.GetName(),
+				Description: openai.String(tool.GetDescription()),
+				Parameters:  params,
+			},
+		}
+	}
+	return toolParams, nil
+}
 
-func (o *OpenAICompatibleProviderAdapter) Chat(model string, ctx domains.Context, listMessage messages.ListMessage) (domains.MessageChannel, error) {
+func (o *OpenAICompatibleProviderAdapter) Chat(model string, ctx domains.Context, listMessage messages.ListMessage, tools domains.ListTool) (domains.MessageChannel, error) {
 	if !slices.Contains(o.Models, model) {
 		return nil, fmt.Errorf("Model compatibility error: The current provider does not support the requested model '%s'.", model)
 	}
 
 	inputs := responses.ResponseInputParam{}
-	// listTool, err := o.TransformToolDeclarations(tools)
-	// if err != nil {
-	// 	return err
-	// }
+	listTool, err := o.TransformToolDeclarations(tools)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, msg := range listMessage {
 		input, err := o.TransformToProviderMessage(msg)
 		if err != nil {
@@ -135,6 +137,7 @@ func (o *OpenAICompatibleProviderAdapter) Chat(model string, ctx domains.Context
 			Input: responses.ResponseNewParamsInputUnion{
 				OfInputItemList: inputs,
 			},
+			Tools:       listTool,
 			Temperature: param.NewOpt(0.1),
 			TopP:        param.NewOpt(0.9),
 		})

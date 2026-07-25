@@ -7,5 +7,5 @@ import (
 type ChatCallback func(messages.Message)
 type MessageChannel chan messages.Message
 type LLMProviderAdapter interface {
-	Chat(string, Context, messages.ListMessage) (MessageChannel, error)
+	Chat(string, Context, messages.ListMessage, ListTool) (MessageChannel, error)
 }
