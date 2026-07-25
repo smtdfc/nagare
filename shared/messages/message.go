@@ -15,9 +15,9 @@ var EMPTY_LIST = ListMessage{}
 func PrintMessage(raw Message) {
 	switch message := raw.(type) {
 	case *Text:
-		fmt.Printf("[TEXT] %s:%s\n", message.Role, message.Content)
+		fmt.Printf("[TEXT] %s: %s\n", message.Role, message.Content)
 	case *Reasoning:
-		fmt.Printf("[Reasoning] Agent:%s\n", message.Content)
+		fmt.Printf("[Reasoning] Agent: %s\n", message.Content)
 	case *ResponseStarted:
 		fmt.Printf("[System] Response started\n")
 	case *ResponseCompleted:

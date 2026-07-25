@@ -6,11 +6,13 @@ import (
 
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/gofiber/contrib/v3/websocket"
+	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/shared/dto"
 )
 
 type WsInstance struct {
 	conn *websocket.Conn
+	ID   string
 }
 
 func SendMessage[T any](i *WsInstance, event dto.WsEvent, payload T) error {
@@ -59,5 +61,6 @@ func GetPayload[T any](msg *dto.WsMessage[any]) (*T, error) {
 func NewWsInstance(c *websocket.Conn) *WsInstance {
 	return &WsInstance{
 		conn: c,
+		ID:   uuid.New().String(),
 	}
 }
