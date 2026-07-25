@@ -1,9 +1,9 @@
 package database
 
 import (
-	"fmt"
 	"path"
 
+	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/persistence/database/models"
 	"github.com/smtdfc/nagare/shared/paths"
 	"gorm.io/driver/sqlite"
@@ -36,6 +36,5 @@ func GetDatabase() (*gorm.DB, error) {
 		return db, nil
 	}
 
-	fmt.Println("Error")
-	return nil, fmt.Errorf("The database connection has not been established. Ensure InitDatabase is called before performing operations")
+	return nil, custom_errors.NewDatabaseError("The database connection has not been established. Ensure InitDatabase is called before performing operations")
 }

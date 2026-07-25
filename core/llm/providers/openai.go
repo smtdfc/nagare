@@ -9,6 +9,7 @@ import (
 	"github.com/openai/openai-go/v3/option"
 	"github.com/openai/openai-go/v3/packages/param"
 	"github.com/openai/openai-go/v3/responses"
+	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/shared/messages"
 )
@@ -95,7 +96,7 @@ func (o *OpenAICompatibleProviderAdapter) TransformToolDeclarations(tools domain
 		// println(tool.GetArgumentsSchema())
 		err := json.Unmarshal([]byte(tool.GetArgs()), &params)
 		if err != nil {
-			return nil, fmt.Errorf("JSON parse error %s: %v\n", tool.GetName(), err)
+			return nil, custom_errors.NewLLMProviderError(fmt.Sprintf("JSON parse error %s: %v\n", tool.GetName(), err))
 		}
 
 		toolParams[i] = responses.ToolUnionParam{
@@ -111,7 +112,7 @@ func (o *OpenAICompatibleProviderAdapter) TransformToolDeclarations(tools domain
 
 func (o *OpenAICompatibleProviderAdapter) Chat(model string, ctx domains.Context, listMessage messages.ListMessage, tools domains.ListTool) (domains.MessageChannel, error) {
 	if !slices.Contains(o.Models, model) {
-		return nil, fmt.Errorf("Model compatibility error: The current provider does not support the requested model '%s'.", model)
+		return nil, custom_errors.NewLLMProviderError(fmt.Sprintf("Model compatibility error: The current provider does not support the requested model '%s'.", model))
 	}
 
 	inputs := responses.ResponseInputParam{}
