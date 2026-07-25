@@ -24,5 +24,7 @@ func PrintMessage(raw Message) {
 		fmt.Printf("[System] Response completed\n")
 	case *ResponseFailed:
 		fmt.Printf("[System] Response failed. Cause: %s\n", message.Cause)
+	case *AgentResponse:
+		fmt.Printf("[Agent] Update status: %s\n", message.Status)
 	}
 }
