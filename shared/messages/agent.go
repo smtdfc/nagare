@@ -4,6 +4,7 @@ type AgentResponseStatus string
 
 const (
 	AGENT_RESPONSE_COMPLETED AgentResponseStatus = "AGENT_RESPONSE_COMPLETED"
+	AGENT_RESPONSE_STARTED   AgentResponseStatus = "AGENT_RESPONSE_STARTED"
 	AGENT_RESPONSE_FAILED    AgentResponseStatus = "AGENT_RESPONSE_FAILED"
 )
 
