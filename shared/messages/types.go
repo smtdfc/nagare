@@ -3,6 +3,7 @@ package messages
 type MessageType string
 
 const (
+	AGENT_RESPONSE             MessageType = "AGENT_RESPONSE"
 	REASONING_MESSAGE          MessageType = "REASONING_MESSAGE"
 	RESPONSE_STARTED_MESSAGE   MessageType = "RESPONSE_STARTED_MESSAGE"
 	RESPONSE_COMPLETED_MESSAGE MessageType = "RESPONSE_COMPLETED_MESSAGE"
