@@ -2,9 +2,9 @@ package tool_declaration
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/invopop/jsonschema"
+	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/domains"
 )
 
@@ -44,7 +44,7 @@ func (t *ToolDeclaration[I, O]) Execute(ctx domains.Context, argsJson string) (s
 	var args I
 	err := json.Unmarshal([]byte(argsJson), &args)
 	if err != nil {
-		return "{}", fmt.Errorf("Error: tool argument error")
+		return "{}", custom_errors.NewToolError("Tool validation failed: One or more arguments provided to the tool are incorrect or improperly formatted.", t.Name)
 	}
 
 	result, err := t.Callback(ctx, args)
@@ -54,7 +54,7 @@ func (t *ToolDeclaration[I, O]) Execute(ctx domains.Context, argsJson string) (s
 
 	resultJson, err := json.Marshal(&result)
 	if err != nil {
-		return "{}", fmt.Errorf("Error: tool result error")
+		return "{}", custom_errors.NewToolError("Tool processing error: An unexpected error occurred while processing the tool's output.", t.Name)
 	}
 
 	return string(resultJson), nil

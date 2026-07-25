@@ -1,8 +1,7 @@
 package tool
 
 import (
-	"fmt"
-
+	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/domains"
 )
 
@@ -20,7 +19,7 @@ func (m *ToolManager) GetListTool() domains.ListTool {
 func (m *ToolManager) CallTool(ctx domains.Context, name string, args string) (string, error) {
 	tool, ok := ToolRegistry[name]
 	if !ok {
-		return "", fmt.Errorf("Tool not found")
+		return "", custom_errors.NewToolError("Tool resolution failed: The requested tool is either unregistered, deprecated, or unavailable.", name)
 	}
 
 	return tool.Execute(ctx, args)
