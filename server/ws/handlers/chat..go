@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/smtdfc/nagare/core/providers"
 	"github.com/smtdfc/nagare/server/ws"
@@ -10,6 +11,11 @@ import (
 )
 
 type ChatHandler struct{}
+
+var (
+	pendingMutex     sync.Mutex
+	pendingResponses = make(map[string]bool)
+)
 
 func (h *ChatHandler) CreateSession(i *ws.WsInstance) {
 	sessionID, err := providers.GlobalSessionManager.CreateSession()
@@ -26,9 +32,26 @@ func (h *ChatHandler) CreateSession(i *ws.WsInstance) {
 }
 
 func (h *ChatHandler) InvokeAgent(i *ws.WsInstance, message *dto.WsMessage[any]) {
+	pendingMutex.Lock()
+	if pendingResponses[i.ID] {
+		pendingMutex.Unlock()
+		ws.SendMessage(i, dto.WS_INVOKE_AGENT_FAILED, dto.InvokeAgentFailed{
+			ID:    "",
+			Cause: "Request rejected: The agent is busy processing an active response. Please wait until it completes.",
+		})
+		return
+	}
+	pendingResponses[i.ID] = true
+	pendingMutex.Unlock()
+
+	defer func() {
+		pendingMutex.Lock()
+		pendingResponses[i.ID] = false
+		pendingMutex.Unlock()
+	}()
+
 	payload, err := ws.GetPayload[dto.InvokeAgent](message)
 	if err != nil {
-		fmt.Println(err.Error())
 		ws.SendMessage(i, dto.WS_INVOKE_AGENT_FAILED, dto.InvokeAgentFailed{
 			ID:    "",
 			Cause: "Invalid payload",
@@ -63,6 +86,7 @@ func (h *ChatHandler) InvokeAgent(i *ws.WsInstance, message *dto.WsMessage[any])
 		return
 	}
 
+	pendingResponses[i.ID] = true
 	output, err := agent.Invoke(messages.NewText(text, messages.USER))
 	if err != nil {
 		ws.SendMessage(i, dto.WS_INVOKE_AGENT_FAILED, dto.InvokeAgentFailed{
