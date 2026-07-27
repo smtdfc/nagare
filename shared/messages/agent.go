@@ -1,5 +1,7 @@
 package messages
 
+import "github.com/google/uuid"
+
 type AgentResponseStatus string
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 type AgentResponse struct {
+	ID      string              `json:"id"`
 	Type    MessageType         `json:"type"`
 	Status  AgentResponseStatus `json:"status"`
 	Content string              `json:"content"`
@@ -20,6 +23,7 @@ func (t *AgentResponse) GetType() MessageType {
 
 func NewAgentResponse(status AgentResponseStatus) *AgentResponse {
 	return &AgentResponse{
+		ID:     uuid.New().String(),
 		Type:   AGENT_RESPONSE,
 		Status: status,
 	}
