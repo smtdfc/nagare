@@ -10,6 +10,7 @@ import (
 var UserHomeDir = ""
 var DataDir = ""
 var ConfigFile = ""
+var ServerBinFile = "/usr/bin/nagare"
 var LogDir = ""
 var PluginLogDir = ""
 var DatabaseDir = ""
