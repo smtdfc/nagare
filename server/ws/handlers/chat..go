@@ -124,6 +124,8 @@ func (h *ChatHandler) InvokeAgent(i *ws.WsInstance, message *dto.WsMessage[any])
 
 		return
 	}
+
+	providers.PutAgentIntoPool(agent)
 }
 
 // @Injectable
