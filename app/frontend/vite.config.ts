@@ -6,6 +6,10 @@ import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 const config = defineConfig({
+  server: {
+    port: 5173,
+    strictPort: true,
+  },
   resolve: {
     tsconfigPaths: true, alias: {
       '@wails': path.resolve(__dirname, './wailsjs'),
