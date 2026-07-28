@@ -14,7 +14,7 @@ export class WebSocketHelper {
     }
 
 
-    public connect(): void {
+    public connect() {
         this.isManualClose = false;
         this.ws = new WebSocket(this.url);
 
@@ -23,11 +23,15 @@ export class WebSocketHelper {
             this.trigger("open", event);
         };
 
-        this.ws.onmessage = (event) => {
+        this.ws.onmessage = async (event) => {
             try {
-                const message = JSON.parse(event.data) as WsMessage<any>;
-                const { event: eventName, payload } = message;
+                let rawData = event.data;
+                if (rawData instanceof Blob) {
+                    rawData = await rawData.text();
+                }
 
+                const message = JSON.parse(rawData) as WsMessage<any>;
+                const { event: eventName, payload } = message;
                 if (eventName && this.listeners.has(eventName)) {
                     this.listeners.get(eventName)?.forEach((callback) => {
                         callback(payload);
@@ -99,4 +103,43 @@ export class WebSocketHelper {
             });
         }
     }
+}
+
+export function wsRequest<TResponse, TError = any, TSendEvent extends WsEvent = WsEvent, TSuccessEvent extends WsEvent = WsEvent, TFailedEvent extends WsEvent = WsEvent>(
+    ws: WebSocketHelper,
+    sendEvent: TSendEvent,
+    successEvent: TSuccessEvent,
+    failureEvent: TFailedEvent,
+    payload: any = {},
+    timeoutMs: number = 10000
+): Promise<TResponse> {
+    return new Promise((resolve, reject) => {
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+        const cleanup = () => {
+            ws.off(successEvent, handleSuccess);
+            ws.off(failureEvent, handleFailure);
+            if (timeoutId) clearTimeout(timeoutId);
+        };
+
+        const handleSuccess = (data: TResponse) => {
+            cleanup();
+            resolve(data);
+        };
+
+        const handleFailure = (data: TError) => {
+            cleanup();
+            reject(data);
+        };
+
+        ws.on(successEvent, handleSuccess);
+        ws.on(failureEvent, handleFailure);
+
+        timeoutId = setTimeout(() => {
+            cleanup();
+            reject(new Error(`WebSocket request timeout for event: ${sendEvent}`));
+        }, timeoutMs);
+
+        ws.send(sendEvent, payload);
+    });
 }

@@ -1,18 +1,19 @@
 import { RouterProvider } from '@tanstack/react-router';
 import { TooltipProvider } from './components/ui/tooltip';
 import { initWebsocketConnection } from './services/chat';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 
 
 export default function App({ router }: any) {
+    const [isReady, setIsReady] = useState(false);
     useEffect(() => {
-        setTimeout(() => { initWebsocketConnection() }, 2000);
+        setTimeout(() => { initWebsocketConnection().then(() => { setIsReady(true) }) }, 2000);
     }, []);
 
     return (
         <TooltipProvider>
-            <RouterProvider router={router} />
+            {isReady ? <RouterProvider router={router} /> : "Loading ..."}
         </TooltipProvider>
     );
 }
