@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"os"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -13,7 +14,7 @@ var assets embed.FS
 
 func main() {
 	app := NewApp()
-
+	os.Setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1")
 	err := wails.Run(&options.App{
 		Title:                    "Nagare Desktop",
 		Width:                    1024,

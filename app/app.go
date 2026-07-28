@@ -1,10 +1,10 @@
 package main
 
 import (
-	"app/helpers"
 	"context"
 	"fmt"
 
+	"github.com/smtdfc/nagare/shared/helpers"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
