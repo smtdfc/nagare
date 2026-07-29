@@ -23,13 +23,14 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
-	isStart, err := helpers.CheckServerRun("3000")
+	isStart, err := helpers.CheckServerRun("9832")
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	if !isStart {
-		err = helpers.TryStartServer("3000")
+		fmt.Println("Trying start server")
+		err = helpers.TryStartServer("9832")
 	}
 
 	if err != nil {
@@ -49,5 +50,5 @@ func (a *App) startup(ctx context.Context) {
 }
 
 func (a *App) GetWebsocketConnect() (string, error) {
-	return helpers.GetWebsocketConnect("3000")
+	return helpers.GetWebsocketConnect("9832")
 }
