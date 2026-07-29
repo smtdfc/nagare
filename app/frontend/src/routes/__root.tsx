@@ -1,5 +1,4 @@
 import { Outlet, createRootRoute } from '@tanstack/react-router'
-import '../styles.css'
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   SidebarInset,

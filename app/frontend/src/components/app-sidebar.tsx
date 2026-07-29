@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Settings2Icon, LifeBuoyIcon, SendIcon, FrameIcon, PieChartIcon, MapIcon, TerminalIcon, MessageCircle, WorkflowIcon } from "lucide-react"
+import { Settings2Icon, LifeBuoyIcon, SendIcon, FrameIcon, PieChartIcon, MapIcon, TerminalIcon, MessageCircle, WorkflowIcon, Plug2Icon } from "lucide-react"
 
 const data = {
   user: {
@@ -34,6 +34,24 @@ const data = {
       url: "#",
       icon: (
         <WorkflowIcon />
+      ),
+      isActive: true,
+      items: [
+        {
+          title: "Manage",
+          url: "#",
+        },
+        {
+          title: "Logs",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Plugins",
+      url: "#",
+      icon: (
+        <Plug2Icon />
       ),
       isActive: true,
       items: [
