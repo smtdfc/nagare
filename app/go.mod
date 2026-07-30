@@ -5,6 +5,7 @@ go 1.26.5
 require (
 	github.com/smtdfc/nagare/shared v0.0.0-20260725175612-043cf64cda97
 	github.com/wailsapp/wails/v2 v2.13.0
+	github.com/zalando/go-keyring v0.2.8
 )
 
 require (

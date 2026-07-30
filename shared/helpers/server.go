@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os/exec"
 	"time"
-
-	"github.com/smtdfc/nagare/shared/paths"
 )
 
 func CheckServerRun(port string) (bool, error) {
@@ -33,16 +30,6 @@ func CheckServerRun(port string) (bool, error) {
 	}
 
 	return false, fmt.Errorf("server error: %d", resp.StatusCode)
-}
-
-func TryStartServer(port string) error {
-	cmd := exec.Command(paths.ServerBinFile, "--port", port)
-	err := cmd.Start()
-	if err != nil {
-		return fmt.Errorf("Cannot start server. Cause: %w", err)
-	}
-
-	return nil
 }
 
 func GetWebsocketConnect(port string) (string, error) {
