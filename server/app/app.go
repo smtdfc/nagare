@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/smtdfc/nagare/server/config"
 	"github.com/smtdfc/nagare/server/utils"
 )
@@ -19,6 +20,12 @@ func NewFiberApp(config *config.ServerConfig) *fiber.App {
 			return utils.ErrorResponse(err, c)
 		},
 	})
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"*"},
+		AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Nagare-Secure"},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	}))
 
 	return app
 }

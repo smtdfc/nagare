@@ -3,11 +3,17 @@ import ChatMessage from '#/components/chat-message.tsx';
 import WelcomeHeader from '#/components/welcome-header.tsx';
 import { AgentResponseStatus } from '#/dto/messages.ts';
 import { isAgentResponseMessage, isTextMessage, isToolCallMessage } from '#/lib/messages.ts';
+import { initChatWebsocketConnection } from '#/lib/websocket.ts';
 import { ChatService } from '#/services/chat.ts';
 import { createFileRoute } from '@tanstack/react-router';
 import { useState, useRef, useEffect, useCallback } from 'react';
 
-export const Route = createFileRoute('/')({ component: Home })
+export const Route = createFileRoute('/')({
+  component: Home,
+  staticData: {
+    breadcrumb: 'Chat',
+  },
+})
 
 interface MessageItem {
   id: string;
@@ -16,13 +22,14 @@ interface MessageItem {
 }
 
 enum Status {
+  CONNECTING,
   IDLE,
   PENDING
 }
 
 function Home() {
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [status, setStatus] = useState<Status>(Status.IDLE);
+  const [status, setStatus] = useState<Status>(Status.CONNECTING);
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [prompt, setPrompt] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -82,50 +89,67 @@ function Home() {
   };
 
   useEffect(() => {
-    let mustNewMessage = false;
-    const unsubscribe = ChatService.listenMessage((_isSuccess: boolean, messageChunk?: Message, err?: string) => {
+    let isMounted = true;
+    let unsubscribe: (() => void) | undefined;
 
-      if (!messageChunk) {
-        addMessage({
-          id: `agent_${Date.now().toString()}`,
-          role: "agent",
-          content: err || "Unknown error"
-        }, mustNewMessage);
+    const setupChat = async () => {
+      try {
+        await initChatWebsocketConnection();
 
-        return;
-      }
-
-      if (isTextMessage(messageChunk)) {
-        addMessage({
-          id: `agent_${Date.now().toString()}`,
-          role: "agent",
-          content: messageChunk.content
-        }, mustNewMessage);
-        mustNewMessage = false;
-      }
-
-      if (isToolCallMessage(messageChunk)) {
-        addMessage({
-          id: `agent_${Date.now().toString()}`,
-          role: "agent",
-          content: `Call: ${messageChunk.name}`
-        }, true);
-        mustNewMessage = true;
-      }
-
-      if (isAgentResponseMessage(messageChunk) && messageChunk.status === AgentResponseStatus.AGENT_RESPONSE_COMPLETED) {
-        mustNewMessage = true;
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 50);
-
+        if (!isMounted) return;
         setStatus(Status.IDLE);
+        let mustNewMessage = false;
 
+        unsubscribe = ChatService.listenMessage((_isSuccess: boolean, messageChunk?: Message, err?: string) => {
+          if (!messageChunk) {
+            addMessage({
+              id: `agent_${Date.now().toString()}`,
+              role: "agent",
+              content: err || "Unknown error"
+            }, mustNewMessage);
+            return;
+          }
+
+          if (isTextMessage(messageChunk)) {
+            addMessage({
+              id: `agent_${Date.now().toString()}`,
+              role: "agent",
+              content: messageChunk.content
+            }, mustNewMessage);
+            mustNewMessage = false;
+          }
+
+          if (isToolCallMessage(messageChunk)) {
+            addMessage({
+              id: `agent_${Date.now().toString()}`,
+              role: "agent",
+              content: `Call: ${messageChunk.name}`
+            }, true);
+            mustNewMessage = true;
+          }
+
+          if (isAgentResponseMessage(messageChunk) && messageChunk.status === AgentResponseStatus.AGENT_RESPONSE_COMPLETED) {
+            mustNewMessage = true;
+            setTimeout(() => {
+              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, 50);
+
+            setStatus(Status.IDLE);
+          }
+        });
+
+      } catch (error) {
+        console.error("Connection Error:", error);
       }
-    });
+    };
+
+    setupChat();
 
     return () => {
-      unsubscribe();
+      isMounted = false;
+      if (unsubscribe) {
+        unsubscribe();
+      }
     };
   }, [addMessage]);
 

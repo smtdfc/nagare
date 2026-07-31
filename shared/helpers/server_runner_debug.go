@@ -5,11 +5,14 @@ package helpers
 import (
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func TryStartServer(port, publicKey string) error {
-	cmd := exec.Command("go", "run", "../server/main.go", "--port", port, "--pubkey", publicKey)
+	cleanKey := strings.ReplaceAll(publicKey, "\n", " ")
+	script := "cd ../server && dix wire && go run . --port " + port + " --pubkey \"" + cleanKey + "\""
 
+	cmd := exec.Command("sh", "-c", script)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 

@@ -22,11 +22,10 @@ const data = {
   navMain: [
     {
       title: "Chat",
-      url: "#",
+      url: "/",
       icon: (
         <MessageCircle />
       ),
-      isActive: true,
       items: [],
     },
     {
@@ -35,7 +34,6 @@ const data = {
       icon: (
         <WorkflowIcon />
       ),
-      isActive: true,
       items: [
         {
           title: "Manage",
@@ -53,7 +51,6 @@ const data = {
       icon: (
         <Plug2Icon />
       ),
-      isActive: true,
       items: [
         {
           title: "Manage",
@@ -69,67 +66,22 @@ const data = {
       title: "Settings",
       url: "#",
       icon: (
-        <Settings2Icon
-        />
+        <Settings2Icon />
       ),
       items: [
         {
           title: "General",
-          url: "#",
+          url: "/settings/general",
         },
         {
           title: "LLM Provider",
-          url: "#",
+          url: "/settings/llm-provider",
         },
         {
           title: "Limits",
           url: "#",
         },
       ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Support",
-      url: "#",
-      icon: (
-        <LifeBuoyIcon
-        />
-      ),
-    },
-    {
-      title: "Feedback",
-      url: "#",
-      icon: (
-        <SendIcon
-        />
-      ),
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: (
-        <FrameIcon
-        />
-      ),
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: (
-        <PieChartIcon
-        />
-      ),
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: (
-        <MapIcon
-        />
-      ),
     },
   ],
 }
@@ -157,3 +109,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </Sidebar>
   )
 }
+
+

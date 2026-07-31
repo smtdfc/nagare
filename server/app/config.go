@@ -2,6 +2,7 @@ package app
 
 import (
 	"flag"
+	"strings"
 
 	"github.com/smtdfc/nagare/server/config"
 )
@@ -19,7 +20,7 @@ func NewCliInjectedConfiguration() *CliInjectedConfiguration {
 	flag.Parse()
 	return &CliInjectedConfiguration{
 		Port:      *port,
-		PublicKey: *pubKey,
+		PublicKey: strings.ReplaceAll(*pubKey, "\n", " "),
 	}
 }
 

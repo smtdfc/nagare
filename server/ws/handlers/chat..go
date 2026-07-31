@@ -80,7 +80,7 @@ func (h *ChatHandler) InvokeAgent(i *ws.WsInstance, message *dto.WsMessage[any])
 	if err != nil {
 		ws.SendMessage(i, dto.WS_INVOKE_AGENT_FAILED, dto.InvokeAgentFailed{
 			ID:    id,
-			Cause: "The agent is currently initializing or busy and cannot process requests",
+			Cause: err.Error(),
 		})
 
 		return

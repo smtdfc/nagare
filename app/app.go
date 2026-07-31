@@ -3,14 +3,18 @@ package main
 import (
 	"app/security"
 	"context"
+	"encoding/json"
 	"fmt"
 
+	"github.com/google/uuid"
+	"github.com/smtdfc/nagare/shared/dto"
 	"github.com/smtdfc/nagare/shared/helpers"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App struct
 type App struct {
+	id      string
 	ctx     context.Context
 	keypair *helpers.RSAKeys
 }
@@ -31,6 +35,7 @@ func ShowErrorDialog(ctx context.Context, message string) (string, error) {
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
+	a.id = uuid.New().String()
 	a.ctx = ctx
 	keypair, err := security.GetKeyPair()
 	if err != nil {
@@ -67,4 +72,22 @@ func (a *App) startup(ctx context.Context) {
 
 func (a *App) GetWebsocketConnect() (string, error) {
 	return helpers.GetWebsocketConnect("9832")
+}
+
+func (a *App) GetRestApiConnect() (string, error) {
+	return helpers.GetRestApiConnect("9832")
+}
+
+func (a *App) GenerateToken() (string, error) {
+	authPayload := dto.AuthPayload{
+		ID: a.id,
+	}
+
+	json, err := json.Marshal(&authPayload)
+	if err != nil {
+		return "", err
+	}
+
+	jsonString := string(json)
+	return helpers.GenerateToken(a.keypair.PrivateKeyPEM, jsonString)
 }

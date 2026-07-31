@@ -14,8 +14,14 @@ import (
 type AppRoute struct{}
 
 // @Injectable
-func InitRoutes(app *fiber.App, heathController *controllers.HealthController, chatHandler *handlers.ChatHandler) *AppRoute {
+func InitRoutes(
+	app *fiber.App,
+	heathController *controllers.HealthController,
+	providerController *controllers.ProviderController,
+	chatHandler *handlers.ChatHandler,
+) *AppRoute {
 	app.Get("/api/v1/health/check", heathController.CheckHealth)
+	app.Get("/api/v1/provider/list", providerController.GetListProvider)
 	app.Use("/ws", func(c fiber.Ctx) error {
 		// IsWebSocketUpgrade returns true if the client
 		// requested upgrade to the WebSocket protocol.

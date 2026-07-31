@@ -1,6 +1,25 @@
 import type { WsEvent, WsMessage } from "#/dto/api.ts";
+import { GetWebsocketConnect } from "@wails/go/main/App";
+import { waitForWails } from "./wails";
 
 type EventCallback<T> = (data: T) => void;
+
+type BuiltInWebsocket = {
+    chat: WebSocketHelper | null
+}
+
+const builtInWs: BuiltInWebsocket = {
+    chat: null,
+}
+
+export async function initChatWebsocketConnection() {
+    await waitForWails();
+    const wsUrl = await GetWebsocketConnect()
+    builtInWs.chat = new WebSocketHelper(wsUrl);
+    builtInWs.chat.connect();
+}
+
+export { builtInWs };
 
 export class WebSocketHelper {
     private url: string;

@@ -36,3 +36,8 @@ func GetWebsocketConnect(port string) (string, error) {
 	url := fmt.Sprintf("http://localhost:%s/ws/chat", port)
 	return url, nil
 }
+
+func GetRestApiConnect(port string) (string, error) {
+	url := fmt.Sprintf("http://localhost:%s/api/v1", port)
+	return url, nil
+}

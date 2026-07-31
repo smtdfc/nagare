@@ -71,6 +71,10 @@ func GetLLMProvider() (domains.LLMProviderAdapter, error) {
 	return nil, custom_errors.NewLLMProviderError("The selected provider is not compatible with Nagare")
 }
 
+func GetAllProviderConfig() []domains.ProviderConfig {
+	return config.GetListProvider(GlobalConfig)
+}
+
 func FetchReadyAgent(state *agent.AgentState) (*agent.Agent, error) {
 	ensureItemInitialized(GlobalConfigMgr)
 	ensureItemInitialized(GlobalConfig)
