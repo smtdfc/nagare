@@ -5,6 +5,7 @@ go 1.26.5
 require (
 	github.com/google/uuid v1.6.0
 	github.com/smtdfc/nagare/shared v0.0.0-20260725175612-043cf64cda97
+	github.com/wailsapp/wails/v2 v2.13.0
 	github.com/zalando/go-keyring v0.2.8
 )
 
@@ -35,11 +36,9 @@ require (
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/wailsapp/go-webview2 v1.0.22 // indirect
 	github.com/wailsapp/mimetype v1.4.1 // indirect
-	github.com/wailsapp/wails/v2 v2.13.0 // indirect
-	github.com/wailsapp/wails/v3 v3.0.0-alpha2.119 // indirect
 	golang.org/x/crypto v0.51.0 // indirect
-	golang.org/x/net v0.54.0 // indirect
-	golang.org/x/sys v0.44.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 )
 
