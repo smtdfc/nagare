@@ -1,6 +1,8 @@
 package global
 
 import (
+	"errors"
+
 	"github.com/smtdfc/nagare/core/agent"
 	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/llm/providers"
@@ -30,9 +32,17 @@ func FetchReadyAgent(state *agent.AgentState) (*agent.Agent, error) {
 		return nil, err
 	}
 
+	if generalConfig.CurrentProvider == "" {
+		return nil, errors.New("LLM provider not configured. Please configure it first.")
+	}
+
 	currentProviderConfig, err := GlobalConfigMgr.GetLLMProviderConfigByID(generalConfig.CurrentModel)
 	if err != nil {
 		return nil, err
+	}
+
+	if currentProviderConfig == nil {
+		return nil, errors.New("LLM provider not found. Please configure it first.")
 	}
 
 	var currentProvider domains.LLMProviderAdapter

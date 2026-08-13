@@ -28,6 +28,10 @@ func (r *LLMProviderRepository) Save(provider *models.LLMProvider) error {
 func (r *LLMProviderRepository) FindByID(id string) (*models.LLMProvider, error) {
 	var provider models.LLMProvider
 	if err := r.db.First(&provider, id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 	return &provider, nil
