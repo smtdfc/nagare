@@ -24,13 +24,21 @@ type Provider struct {
 	Compatible      string   `json:"compatible"`
 	Name            string   `json:"name"`
 	BaseURL         string   `json:"base_url"`
-	APIKey          string   `json:"api_key"`
 	IsEnable        bool     `json:"is_enable"`
 	AvailableModels []string `json:"available_models"`
+	APIKey          string   `json:"api_key"`
+}
+
+type ProviderInfo struct {
+	ID         string `json:"id"`
+	Compatible string `json:"compatible"`
+	Name       string `json:"name"`
+	BaseURL    string `json:"base_url"`
+	IsEnable   bool   `json:"is_enable"`
 }
 
 type GetListProviderResponse struct {
-	Providers []Provider `json:"providers"`
+	Providers []ProviderInfo `json:"providers"`
 }
 
 type GetProviderByIDRequest struct {
@@ -42,9 +50,12 @@ type GetProviderByIDResponse struct {
 }
 
 type UpdateProviderRequest struct {
+	ID              string   `json:"id"`
+	Compatible      string   `json:"compatible"`
 	Name            string   `json:"name"`
 	BaseURL         string   `json:"base_url"`
 	APIKey          string   `json:"api_key"`
 	IsEnable        bool     `json:"is_enable"`
 	AvailableModels []string `json:"available_models"`
+	ModelName       string   `json:"model_name"`
 }

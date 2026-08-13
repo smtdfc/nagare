@@ -57,7 +57,7 @@ export interface CreateSessionSuccess {
 
 // From dto/api.go
 export interface GetListProviderResponse {
-    providers: Provider[];
+    providers: ProviderInfo[];
 }
 
 // From dto/api.go
@@ -95,9 +95,30 @@ export interface Provider {
     compatible: string;
     name: string;
     base_url: string;
+    is_enable: boolean;
+    available_models: string[];
+    api_key: string;
+}
+
+// From dto/api.go
+export interface ProviderInfo {
+    id: string;
+    compatible: string;
+    name: string;
+    base_url: string;
+    is_enable: boolean;
+}
+
+// From dto/api.go
+export interface UpdateProviderRequest {
+    id: string;
+    compatible: string;
+    name: string;
+    base_url: string;
     api_key: string;
     is_enable: boolean;
     available_models: string[];
+    model_name: string;
 }
 
 // From dto/ws.go

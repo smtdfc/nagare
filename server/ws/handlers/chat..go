@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/smtdfc/nagare/core/providers"
+	"github.com/smtdfc/nagare/core/global"
+
 	"github.com/smtdfc/nagare/server/ws"
 	"github.com/smtdfc/nagare/shared/dto"
 	"github.com/smtdfc/nagare/shared/messages"
@@ -18,7 +19,7 @@ var (
 )
 
 func (h *ChatHandler) CreateSession(i *ws.WsInstance) {
-	sessionID, err := providers.GlobalSessionManager.CreateSession()
+	sessionID, err := global.GlobalSessionMgr.CreateSession()
 	if err != nil {
 		ws.SendMessage(i, dto.WS_CREATE_SESSION_FAILED, dto.CreateSessionFailed{
 			Cause: err.Error(),
@@ -64,7 +65,7 @@ func (h *ChatHandler) InvokeAgent(i *ws.WsInstance, message *dto.WsMessage[any])
 	sessionID := payload.SessionID
 	text := payload.Text
 
-	history, err := providers.GlobalSessionManager.GetMessagesBySessionID(sessionID)
+	history, err := global.GlobalSessionMgr.GetMessagesBySessionID(sessionID)
 	if err != nil {
 		fmt.Println(err.Error())
 		ws.SendMessage(i, dto.WS_INVOKE_AGENT_FAILED, dto.InvokeAgentFailed{
@@ -75,8 +76,8 @@ func (h *ChatHandler) InvokeAgent(i *ws.WsInstance, message *dto.WsMessage[any])
 		return
 	}
 
-	state := providers.CreateEmptyAgentState().WithHistory(history)
-	agent, err := providers.FetchReadyAgent(state)
+	state := global.CreateEmptyAgentState().WithHistory(history)
+	agent, err := global.FetchReadyAgent(state)
 	if err != nil {
 		ws.SendMessage(i, dto.WS_INVOKE_AGENT_FAILED, dto.InvokeAgentFailed{
 			ID:    id,
@@ -105,7 +106,7 @@ func (h *ChatHandler) InvokeAgent(i *ws.WsInstance, message *dto.WsMessage[any])
 		})
 	}
 
-	err = providers.GlobalSessionManager.SaveSession(sessionID, state.PendingMessages)
+	err = global.GlobalSessionMgr.SaveSession(sessionID, state.PendingMessages)
 	if err != nil {
 		ws.SendMessage(i, dto.WS_INVOKE_AGENT_FAILED, dto.InvokeAgentFailed{
 			ID:    id,
@@ -125,7 +126,7 @@ func (h *ChatHandler) InvokeAgent(i *ws.WsInstance, message *dto.WsMessage[any])
 		return
 	}
 
-	providers.PutAgentIntoPool(agent)
+	global.PutAgentIntoPool(agent)
 }
 
 // @Injectable

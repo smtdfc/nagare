@@ -4,12 +4,12 @@
 package main
 
 import (
-	providers "github.com/smtdfc/nagare/core/providers"
+	"github.com/smtdfc/nagare/core/global"
 	"github.com/smtdfc/nagare/server/.dix/generated"
 )
 
 func main() {
-	err := providers.Init()
+	err := global.Init()
 	if err != nil {
 		panic(err)
 	}

@@ -56,9 +56,9 @@ func (m *SessionManager) GetMessagesBySessionID(id string) ([]messages.Message, 
 	})
 }
 
-func NewSessionManager() *SessionManager {
+func NewSessionManager(sessionRepo *repositories.SessionRepository, messageRepo *repositories.MessageRepository) *SessionManager {
 	return &SessionManager{
-		sessionRepo: repositories.NewSessionRepository(),
-		messageRepo: repositories.NewMessageRepository(),
+		sessionRepo: sessionRepo,
+		messageRepo: messageRepo,
 	}
 }
