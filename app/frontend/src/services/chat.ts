@@ -32,8 +32,9 @@ export class ChatService {
     }
 
     static async createChatSession() {
+        if (!builtInWs.chat) throw new Error("Websocket is not ready");
         return (await wsRequest<CreateSessionSuccess>(
-            builtInWs.chat!,
+            builtInWs.chat,
             WsEvent.WS_CREATE_SESSION,
             WsEvent.WS_CREATE_SESSION_SUCCESS,
             WsEvent.WS_CREATE_SESSION_FAILED,

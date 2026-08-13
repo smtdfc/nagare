@@ -32,3 +32,19 @@ type Provider struct {
 type GetListProviderResponse struct {
 	Providers []Provider `json:"providers"`
 }
+
+type GetProviderByIDRequest struct {
+	ID string `json:"id"`
+}
+
+type GetProviderByIDResponse struct {
+	Provider Provider `json:"provider"`
+}
+
+type UpdateProviderRequest struct {
+	Name            string   `json:"name"`
+	BaseURL         string   `json:"base_url"`
+	APIKey          string   `json:"api_key"`
+	IsEnable        bool     `json:"is_enable"`
+	AvailableModels []string `json:"available_models"`
+}

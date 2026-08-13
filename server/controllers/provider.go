@@ -19,6 +19,16 @@ func (p *ProviderController) GetListProvider(ctx fiber.Ctx) error {
 	return utils.SuccessResponse(resp, 200, ctx)
 }
 
+func (p *ProviderController) GetProviderDetails(ctx fiber.Ctx) error {
+	id := ctx.Params("id")
+	resp, err := p.providerService.GetProviderDetails(id)
+	if err != nil {
+		return err
+	}
+
+	return utils.SuccessResponse(resp, 200, ctx)
+}
+
 // @Injectable
 func NewProviderController(ProviderService *services.ProviderService) *ProviderController {
 	return &ProviderController{

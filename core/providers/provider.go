@@ -75,6 +75,14 @@ func GetAllProviderConfig() []domains.ProviderConfig {
 	return config.GetListProvider(GlobalConfig)
 }
 
+func FindProviderConfigByID(id string) (domains.ProviderConfig, bool) {
+	config, ok := GlobalConfig.Providers[id]
+	if config == nil {
+		return domains.ProviderConfig{}, false
+	}
+	return *config, ok
+}
+
 func FetchReadyAgent(state *agent.AgentState) (*agent.Agent, error) {
 	ensureItemInitialized(GlobalConfigMgr)
 	ensureItemInitialized(GlobalConfig)

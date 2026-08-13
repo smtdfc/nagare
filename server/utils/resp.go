@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"errors"
-
 	"github.com/gofiber/fiber/v3"
 	"github.com/smtdfc/nagare/server/custom_errors"
 	"github.com/smtdfc/nagare/shared/dto"
@@ -22,15 +20,25 @@ func ErrorResponse(err error, ctx fiber.Ctx) error {
 		Message: "",
 		Details: map[string]string{},
 	}
-
-	if errors.As(err, &custom_errors.ServiceError{}) {
+	switch e := err.(type) {
+	case *custom_errors.ServiceError:
 		errResp.Name = "ServiceError"
-		errResp.Message = err.Error()
-		status = err.(custom_errors.ServiceError).Status
-	} else {
+		errResp.Message = e.Message
+		status = e.Status
+
+	default:
 		errResp.Name = "InternalServiceError"
 		errResp.Message = "InternalServiceError"
 	}
+
+	// if errors.As(err, &custom_errors.ServiceError{}) {
+	// 	errResp.Name = "ServiceError"
+	// 	errResp.Message = err.Error()
+	// 	status = err.(custom_errors.ServiceError).Status
+	// } else {
+	// 	errResp.Name = "InternalServiceError"
+	// 	errResp.Message = "InternalServiceError"
+	// }
 
 	return ctx.Status(status).JSON(dto.ApiResponse[any]{
 		Status: "error",

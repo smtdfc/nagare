@@ -8,7 +8,7 @@ type ServiceError struct {
 	Message string `json:"message"`
 }
 
-func (e *ServiceError) Unwrap() error {
+func (e ServiceError) Unwrap() error {
 	return e.error
 }
 

@@ -22,6 +22,7 @@ func InitRoutes(
 ) *AppRoute {
 	app.Get("/api/v1/health/check", heathController.CheckHealth)
 	app.Get("/api/v1/provider/list", providerController.GetListProvider)
+	app.Get("/api/v1/provider/:id/details", providerController.GetProviderDetails)
 	app.Use("/ws", func(c fiber.Ctx) error {
 		// IsWebSocketUpgrade returns true if the client
 		// requested upgrade to the WebSocket protocol.
