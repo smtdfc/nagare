@@ -56,6 +56,16 @@ func (c *ConfigManager) GetListProviders() ([]*domains.LLMProviderConfigInfo, er
 	return infos, nil
 }
 
+func (c *ConfigManager) CreateLLMProviderConfig(config *domains.LLMProviderConfig) error {
+	mapper := &mappers.LLMProviderMapper{}
+	llmProvider := mapper.ToModel(config)
+	return c.llmProviderRepo.CreateProvider(llmProvider)
+}
+
+func (c *ConfigManager) DeleteLLMProviderConfig(id string) error {
+	return c.llmProviderRepo.DeleteByID(id)
+}
+
 func NewConfigManager(llmProviderRepo *repositories.LLMProviderRepository, kvRepo *repositories.KVRepository) *ConfigManager {
 	return &ConfigManager{
 		llmProviderRepo: llmProviderRepo,
