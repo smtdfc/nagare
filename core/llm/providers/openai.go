@@ -200,10 +200,18 @@ func (o *OpenAICompatibleProviderAdapter) Chat(model string, ctx domains.Context
 		}
 
 		if err := stream.Err(); err != nil {
-			outputChannel <- messages.NewResponseFailed(
-				"400",
-				err.Error(),
-			)
+			llm.LLMLogger.Error("stream error", "error", err)
+			if strings.Contains(err.Error(), "404") {
+				outputChannel <- messages.NewResponseFailed(
+					"404",
+					fmt.Sprintf("Model %s not found", model),
+				)
+			} else {
+				outputChannel <- messages.NewResponseFailed(
+					"400",
+					err.Error(),
+				)
+			}
 		}
 	})()
 
