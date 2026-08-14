@@ -6,6 +6,8 @@ import (
 	"github.com/smtdfc/nagare/core/llm/providers"
 )
 
+var GlobalLLMManager *llm_manager.LLMManger
+
 func GetLLMProvider() (domains.LLMProviderAdapter, error) {
 	generalConfig, err := GlobalConfigMgr.GetGeneralConfig()
 	if err != nil {
