@@ -13,7 +13,7 @@ import { toast } from '#/components/ui/toast'
 import type { GeneralSettings, ProviderInfo } from '#/dto/api'
 import { ProviderService } from '#/services/provider'
 import { SettingsService } from '#/services/settings'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 
 export const Route = createFileRoute('/settings/general')({
@@ -24,6 +24,7 @@ export const Route = createFileRoute('/settings/general')({
 })
 
 function RouteComponent() {
+  const router = useRouter()
   const [currentConf, setCurrentConf] = useState<Partial<GeneralSettings>>()
   const [isLoading, setIsLoading] = useState(true)
   const [providers, setProviders] = useState<ProviderInfo[]>([])
@@ -76,7 +77,10 @@ function RouteComponent() {
         })
       })
   }
-  const handleCancel = () => {}
+  const handleCancel = () => {
+    router.history.back()
+  }
+
   return (
     <div className="container mx-auto py-8 px-6 max-w-6xl">
       <div className="flex items-center justify-between mb-6">

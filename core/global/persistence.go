@@ -6,3 +6,4 @@ var GlobalLlmRepository *repositories.LLMProviderRepository
 var GlobalKVRepository *repositories.KVRepository
 var GlobalSessionRepository *repositories.SessionRepository
 var GlobalMessageRepository *repositories.MessageRepository
+var GlobalPluginRepository *repositories.PluginRepository

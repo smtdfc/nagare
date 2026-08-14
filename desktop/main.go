@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"fmt"
 
 	"log"
 
@@ -30,7 +31,7 @@ func init() {
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("No .env file. Skipping")
+		fmt.Println("No .env file. Skipping")
 	}
 	// Create a new Wails application by providing the necessary options.
 	// Variables 'Name' and 'Description' are for application metadata.

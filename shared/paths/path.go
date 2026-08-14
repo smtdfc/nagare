@@ -13,6 +13,7 @@ var ConfigFile = ""
 var ServerBinFile = "/usr/bin/nagare"
 var LogDir = ""
 var PluginLogDir = ""
+var PluginDir = ""
 var DatabaseDir = ""
 
 func EnsureConfigWithDefaults() error {
@@ -46,6 +47,13 @@ func EnsureConfigWithDefaults() error {
 		}
 	}
 
+	if _, err := os.Stat(PluginDir); os.IsNotExist(err) {
+		err := os.MkdirAll(PluginDir, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -59,7 +67,7 @@ func init() {
 	DatabaseDir = filepath.Join(DataDir, "databases")
 	LogDir = filepath.Join(DataDir, "logs")
 	PluginLogDir = filepath.Join(LogDir, "plugins")
-
+	PluginDir = filepath.Join(DataDir, "plugins")
 	dirs := []string{
 		DataDir,
 		filepath.Join(DataDir, "databases"),

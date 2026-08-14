@@ -108,3 +108,17 @@ type FetchModelRequest struct {
 type FetchModelResponse struct {
 	Models []string `json:"models"`
 }
+
+type PluginInfo struct {
+	ID         string `json:"id"`
+	PluginID   string `json:"plugin_id"`
+	Name       string `json:"name"`
+	Active     bool   `json:"active"`
+	ApiVersion string `json:"api_version"`
+	Author     string `json:"author"`
+	Version    string `json:"version"`
+}
+
+type GetAllPluginsResponse struct {
+	Plugins []PluginInfo `json:"plugins"`
+}

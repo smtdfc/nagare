@@ -7,6 +7,7 @@ import (
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/persistence/database"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
+	"github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/core/tool"
 )
@@ -22,10 +23,12 @@ func Init() error {
 	GlobalKVRepository = repositories.NewKVRepository()
 	GlobalSessionRepository = repositories.NewSessionRepository()
 	GlobalMessageRepository = repositories.NewMessageRepository()
+	GlobalPluginRepository = repositories.NewPluginRepository()
 	GlobalConfigMgr = config.NewConfigManager(GlobalLlmRepository, GlobalKVRepository)
 	GlobalSessionMgr = session.NewSessionManager(GlobalSessionRepository, GlobalMessageRepository)
 	GlobalAgentPool = agent.NewAgentPool(AGENT_POOL_SIZE).Seed(AGENT_POOL_SIZE)
 	GlobalToolMgr = tool.NewToolManager()
 	GlobalLLMManager = llm_manager.NewLLMManger()
+	GlobalPluginMgr = plugin.NewPluginManager(GlobalPluginRepository)
 	return nil
 }

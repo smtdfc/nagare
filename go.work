@@ -3,6 +3,7 @@ go 1.26.5
 use (
 	./core
 	./desktop
+	./plugin/client
 	./scripts
 	./server
 	./shared

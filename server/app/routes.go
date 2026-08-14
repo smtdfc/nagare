@@ -19,6 +19,7 @@ func InitRoutes(
 	heathController *controllers.HealthController,
 	providerController *controllers.ProviderController,
 	settingsController *controllers.SettingsController,
+	pluginController *controllers.PluginController,
 	chatHandler *handlers.ChatHandler,
 ) *AppRoute {
 	app.Get("/api/v1/health/check", heathController.CheckHealth)
@@ -30,7 +31,7 @@ func InitRoutes(
 	app.Post("/api/v1/provider/fetch-model", providerController.FetchModel)
 	app.Get("/api/v1/settings/general", settingsController.GetGeneralSettings)
 	app.Post("/api/v1/settings/general/save", settingsController.SaveGeneralSettings)
-
+	app.Get("/api/v1/plugin/list", pluginController.GetAll)
 	app.Use("/ws", func(c fiber.Ctx) error {
 		// IsWebSocketUpgrade returns true if the client
 		// requested upgrade to the WebSocket protocol.
