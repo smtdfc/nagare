@@ -16,6 +16,7 @@ func (c *ExecuteContext) ExecuteToolCalls(toolCall *domains.ToolCall) *domains.T
 	result := domains.NewToolResult(toolCall.CallID)
 	resultJson, err := c.ToolMgr.CallTool(c, toolCall.Name, toolCall.Args)
 	if err != nil {
+
 		return result.Failed(err.Error())
 	}
 

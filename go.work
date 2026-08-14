@@ -1,8 +1,8 @@
 go 1.26.5
 
 use (
-	./app
 	./core
+	./desktop
 	./scripts
 	./server
 	./shared

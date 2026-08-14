@@ -46,6 +46,7 @@ func (a *Agent) Reset() {
 
 func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 	if a.LLMProvider == nil || a.State == nil {
+		AgentLogger.Error("Agent initialization failed. Please check the configuration settings")
 		return nil, custom_errors.NewAgentError("Agent initialization failed. Please check the configuration settings")
 	}
 
@@ -60,6 +61,7 @@ func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 		for {
 			llmProviderOutput, err := a.LLMProvider.Chat(a.Model, ectx, a.State.GetHistory(), a.ToolMgr.GetListTool())
 			if err != nil {
+				AgentLogger.Error("LLM Provider Error", "error", err)
 				msg := messages.NewAgentResponse(messages.AGENT_RESPONSE_FAILED)
 				msg.Content = fmt.Sprintf("LLM Provider Error: %s", err.Error())
 				output <- msg
@@ -73,6 +75,10 @@ func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 			var toolCallCount = 0
 			for chunk := range llmProviderOutput {
 				switch message := chunk.(type) {
+				case *messages.ResponseFailed:
+					output <- chunk
+					output <- messages.NewAgentResponse(messages.AGENT_RESPONSE_FAILED)
+					return
 				case *messages.Text:
 					text.WriteString(message.Content)
 					isFlushText = true

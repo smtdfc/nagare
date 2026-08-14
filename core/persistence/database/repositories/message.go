@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 
+	"github.com/smtdfc/nagare/core/persistence"
 	"github.com/smtdfc/nagare/core/persistence/database"
 	"github.com/smtdfc/nagare/core/persistence/database/models"
 	"gorm.io/gorm"
@@ -19,6 +20,7 @@ func (r *MessageRepository) GetMessageBySessionID(ctx context.Context, id string
 		Order("created_at ASC").
 		Find(ctx)
 	if err != nil {
+		persistence.PersistenceLogger.Error("Failed to get messages by session ID", "error", err)
 		return nil, err
 	}
 
@@ -34,6 +36,7 @@ func (r *MessageRepository) SaveMessages(ctx context.Context, messages []*models
 
 	err := r.db.WithContext(ctx).CreateInBatches(messages, batchSize).Error
 	if err != nil {
+		persistence.PersistenceLogger.Error("Failed to save messages", "error", err)
 		return err
 	}
 

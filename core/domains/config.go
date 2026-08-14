@@ -1,24 +1,26 @@
 package domains
 
-type ProviderCompatible string
-
-const (
-	OPEN_AI ProviderCompatible = "OpenAI"
-)
-
-type ProviderConfig struct {
-	ID              string             `json:"id"`
-	Compatible      ProviderCompatible `json:"compatible"`
-	Name            string             `json:"name"`
-	BaseURL         string             `json:"base_url"`
-	APIKey          string             `json:"api_key"`
-	IsEnable        bool               `json:"is_enable"`
-	Model           string             `json:"model"`
-	AvailableModels []string           `json:"available_models"`
+type GeneralConfig struct {
+	CurrentModel    string `json:"current_model"`
+	CurrentProvider string `json:"current_provider"`
 }
 
-type Config struct {
-	CurrentProvider string                     `json:"current_provider"`
-	CurrentModel    string                     `json:"current_model"`
-	Providers       map[string]*ProviderConfig `json:"providers"`
+type LLMProviderConfig struct {
+	ID              string
+	Compatible      string
+	Name            string
+	BaseURL         string
+	APIKey          string
+	IsEnable        bool
+	ModelName       string
+	AvailableModels []string
+}
+
+type LLMProviderConfigInfo struct {
+	ID              string
+	Compatible      string
+	Name            string
+	BaseURL         string
+	IsEnable        bool
+	AvailableModels []string
 }

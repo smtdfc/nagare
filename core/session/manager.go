@@ -32,6 +32,7 @@ func (m *SessionManager) SaveSession(sessionID string, list messages.ListMessage
 		return mapper.ToModel(t, sessionID)
 	})
 	if err != nil {
+		SessionLogger.With("SessionID", sessionID).Error("failed to map messages", "error", err)
 		return err
 	}
 
@@ -56,9 +57,9 @@ func (m *SessionManager) GetMessagesBySessionID(id string) ([]messages.Message, 
 	})
 }
 
-func NewSessionManager() *SessionManager {
+func NewSessionManager(sessionRepo *repositories.SessionRepository, messageRepo *repositories.MessageRepository) *SessionManager {
 	return &SessionManager{
-		sessionRepo: repositories.NewSessionRepository(),
-		messageRepo: repositories.NewMessageRepository(),
+		sessionRepo: sessionRepo,
+		messageRepo: messageRepo,
 	}
 }

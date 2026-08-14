@@ -1,9 +1,11 @@
 package providers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
@@ -11,6 +13,7 @@ import (
 	"github.com/openai/openai-go/v3/responses"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/domains"
+	"github.com/smtdfc/nagare/core/llm"
 	"github.com/smtdfc/nagare/shared/messages"
 )
 
@@ -118,12 +121,14 @@ func (o *OpenAICompatibleProviderAdapter) Chat(model string, ctx domains.Context
 	inputs := responses.ResponseInputParam{}
 	listTool, err := o.TransformToolDeclarations(tools)
 	if err != nil {
+		llm.LLMLogger.Error("TransformToolDeclarations error", "error", err)
 		return nil, err
 	}
 
 	for _, msg := range listMessage {
 		input, err := o.TransformToProviderMessage(msg)
 		if err != nil {
+			llm.LLMLogger.Error("TransformToProviderMessage error", "error", err)
 			return nil, err
 		}
 		inputs = append(inputs, input)
@@ -200,14 +205,37 @@ func (o *OpenAICompatibleProviderAdapter) Chat(model string, ctx domains.Context
 		}
 
 		if err := stream.Err(); err != nil {
-			outputChannel <- messages.NewResponseFailed(
-				"400",
-				err.Error(),
-			)
+			llm.LLMLogger.Error("stream error", "error", err)
+			if strings.Contains(err.Error(), "404") {
+				outputChannel <- messages.NewResponseFailed(
+					"404",
+					fmt.Sprintf("Model %s not found", model),
+				)
+			} else {
+				outputChannel <- messages.NewResponseFailed(
+					"400",
+					err.Error(),
+				)
+			}
 		}
 	})()
 
 	return outputChannel, nil
+}
+
+func (o *OpenAICompatibleProviderAdapter) ListModel(ctx context.Context) ([]string, error) {
+	resp, err := o.Client.Models.List(ctx)
+	if err != nil {
+		llm.LLMLogger.Error("list models error", "error", err)
+		return nil, custom_errors.NewLLMProviderError("Failed to get list model")
+	}
+	data := resp.Data
+
+	result := make([]string, 0, len(data))
+	for _, model := range data {
+		result = append(result, model.ID)
+	}
+	return result, nil
 }
 
 func NewOpenAICompatibleProviderAdapter(baseURL, APIKey string, Models []string) *OpenAICompatibleProviderAdapter {
