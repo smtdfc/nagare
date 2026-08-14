@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 
+	"github.com/smtdfc/nagare/core/persistence"
 	"github.com/smtdfc/nagare/core/persistence/database"
 	"github.com/smtdfc/nagare/core/persistence/database/models"
 	"gorm.io/gorm"
@@ -16,6 +17,7 @@ func (r *SessionRepository) Create(ctx context.Context) (*models.Session, error)
 	session := &models.Session{}
 	err := gorm.G[models.Session](r.db).Create(ctx, session)
 	if err != nil {
+		persistence.PersistenceLogger.Error("Failed to create session", "error", err)
 		return nil, err
 	}
 

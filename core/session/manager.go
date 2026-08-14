@@ -32,6 +32,7 @@ func (m *SessionManager) SaveSession(sessionID string, list messages.ListMessage
 		return mapper.ToModel(t, sessionID)
 	})
 	if err != nil {
+		SessionLogger.With("SessionID", sessionID).Error("failed to map messages", "error", err)
 		return err
 	}
 

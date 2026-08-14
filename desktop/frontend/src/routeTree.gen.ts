@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsGeneralRouteImport } from './routes/settings/general'
 import { Route as SettingsLlmProviderNewRouteImport } from './routes/settings/llm-provider/new'
 import { Route as SettingsLlmProviderOverviewRouteImport } from './routes/settings/llm-provider/overview'
 import { Route as SettingsLlmProviderEditIdRouteImport } from './routes/settings/llm-provider/edit/$id'
@@ -17,6 +18,11 @@ import { Route as SettingsLlmProviderEditIdRouteImport } from './routes/settings
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsGeneralRoute = SettingsGeneralRouteImport.update({
+  id: '/settings/general',
+  path: '/settings/general',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsLlmProviderNewRoute = SettingsLlmProviderNewRouteImport.update({
@@ -39,12 +45,14 @@ const SettingsLlmProviderEditIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/settings/general': typeof SettingsGeneralRoute
   '/settings/llm-provider/new': typeof SettingsLlmProviderNewRoute
   '/settings/llm-provider/overview': typeof SettingsLlmProviderOverviewRoute
   '/settings/llm-provider/edit/$id': typeof SettingsLlmProviderEditIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/settings/general': typeof SettingsGeneralRoute
   '/settings/llm-provider/new': typeof SettingsLlmProviderNewRoute
   '/settings/llm-provider/overview': typeof SettingsLlmProviderOverviewRoute
   '/settings/llm-provider/edit/$id': typeof SettingsLlmProviderEditIdRoute
@@ -52,6 +60,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/settings/general': typeof SettingsGeneralRoute
   '/settings/llm-provider/new': typeof SettingsLlmProviderNewRoute
   '/settings/llm-provider/overview': typeof SettingsLlmProviderOverviewRoute
   '/settings/llm-provider/edit/$id': typeof SettingsLlmProviderEditIdRoute
@@ -60,18 +69,21 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/settings/general'
     | '/settings/llm-provider/new'
     | '/settings/llm-provider/overview'
     | '/settings/llm-provider/edit/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/settings/general'
     | '/settings/llm-provider/new'
     | '/settings/llm-provider/overview'
     | '/settings/llm-provider/edit/$id'
   id:
     | '__root__'
     | '/'
+    | '/settings/general'
     | '/settings/llm-provider/new'
     | '/settings/llm-provider/overview'
     | '/settings/llm-provider/edit/$id'
@@ -79,6 +91,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SettingsGeneralRoute: typeof SettingsGeneralRoute
   SettingsLlmProviderNewRoute: typeof SettingsLlmProviderNewRoute
   SettingsLlmProviderOverviewRoute: typeof SettingsLlmProviderOverviewRoute
   SettingsLlmProviderEditIdRoute: typeof SettingsLlmProviderEditIdRoute
@@ -91,6 +104,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/general': {
+      id: '/settings/general'
+      path: '/settings/general'
+      fullPath: '/settings/general'
+      preLoaderRoute: typeof SettingsGeneralRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings/llm-provider/new': {
@@ -119,6 +139,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SettingsGeneralRoute: SettingsGeneralRoute,
   SettingsLlmProviderNewRoute: SettingsLlmProviderNewRoute,
   SettingsLlmProviderOverviewRoute: SettingsLlmProviderOverviewRoute,
   SettingsLlmProviderEditIdRoute: SettingsLlmProviderEditIdRoute,

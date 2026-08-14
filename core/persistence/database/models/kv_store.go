@@ -8,8 +8,8 @@ import (
 
 type KV struct {
 	gorm.Model
-	Target string `gorm:"type:text;"`
-	Key    string `gorm:"type:text;"`
+	Target string `gorm:"type:text;uniqueIndex:idx_target_key"`
+	Key    string `gorm:"type:text;uniqueIndex:idx_target_key"`
 	Value  string `gorm:"type:text;"`
 }
 

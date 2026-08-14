@@ -1,8 +1,22 @@
-import type { Text, AgentResponse, ResponseStarted, ResponseCompleted, ResponseFailed, ToolCall, ToolCallResult } from "@/dto/messages"
+import type {
+  Text,
+  AgentResponse,
+  ResponseStarted,
+  ResponseCompleted,
+  ResponseFailed,
+  ToolCall,
+  ToolCallResult,
+} from '@/dto/messages'
 
-export { };
-
+export {}
 
 declare global {
-    type Message = Text | AgentResponse | ResponseStarted | ResponseCompleted | ResponseFailed | ToolCall | ToolCallResult;
+  type Message =
+    | Text
+    | AgentResponse
+    | ResponseStarted
+    | ResponseCompleted
+    | ResponseFailed
+    | ToolCall
+    | ToolCallResult
 }

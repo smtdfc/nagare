@@ -30,11 +30,12 @@ type Provider struct {
 }
 
 type ProviderInfo struct {
-	ID         string `json:"id"`
-	Compatible string `json:"compatible"`
-	Name       string `json:"name"`
-	BaseURL    string `json:"base_url"`
-	IsEnable   bool   `json:"is_enable"`
+	ID              string   `json:"id"`
+	Compatible      string   `json:"compatible"`
+	Name            string   `json:"name"`
+	BaseURL         string   `json:"base_url"`
+	IsEnable        bool     `json:"is_enable"`
+	AvailableModels []string `json:"available_models"`
 }
 
 type GetListProviderResponse struct {
@@ -58,4 +59,52 @@ type UpdateProviderRequest struct {
 	IsEnable        bool     `json:"is_enable"`
 	AvailableModels []string `json:"available_models"`
 	ModelName       string   `json:"model_name"`
+}
+
+type UpdateProviderResponse struct {
+}
+
+type CreateProviderRequest struct {
+	Compatible      string   `json:"compatible"`
+	Name            string   `json:"name"`
+	BaseURL         string   `json:"base_url"`
+	APIKey          string   `json:"api_key"`
+	IsEnable        bool     `json:"is_enable"`
+	AvailableModels []string `json:"available_models"`
+}
+
+type CreateProviderResponse struct {
+}
+
+type DeleteProviderRequest struct {
+	ID string `json:"id"`
+}
+
+type DeleteProviderResponse struct {
+}
+
+type GeneralSettings struct {
+	CurrentProvider string `json:"current_provider"`
+	CurrentModel    string `json:"current_model"`
+}
+
+type GetGeneralSettingsResponse struct {
+	Settings *GeneralSettings `json:"settings"`
+}
+
+type SaveGeneralSettingsRequest struct {
+	Settings *GeneralSettings `json:"settings"`
+}
+
+type SaveGeneralSettingsResponse struct {
+}
+
+type FetchModelRequest struct {
+	Compatible string `json:"compatible"`
+	BaseURL    string `json:"base_url"`
+	APIKey     string `json:"api_key"`
+}
+
+type FetchModelResponse struct {
+	Models []string `json:"models"`
 }

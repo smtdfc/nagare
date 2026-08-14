@@ -1,12 +1,13 @@
 import { DataTable } from '#/components/data-table.tsx'
 import { Button } from '#/components/ui/button.tsx'
 import { Spinner } from '#/components/ui/spinner.tsx'
-import type { Provider } from '#/dto/api.ts'
+import type { Provider, ProviderInfo } from '#/dto/api.ts'
 import { ProviderService } from '#/services/provider.ts'
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { createColumns } from '#/components/columns/provider-columns.tsx'
+import { toast } from '#/components/ui/toast'
 
 export const Route = createFileRoute('/settings/llm-provider/overview')({
   component: RouteComponent,
@@ -17,8 +18,9 @@ export const Route = createFileRoute('/settings/llm-provider/overview')({
 
 function RouteComponent() {
   const navigate = useNavigate()
+
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [providers, setProviders] = useState<Provider[]>([])
+  const [providers, setProviders] = useState<ProviderInfo[]>([])
   const router = useRouter()
   useEffect(() => {
     ;(async () => {
@@ -41,7 +43,21 @@ function RouteComponent() {
           params: { id: provider.id },
         })
       },
-      (provider) => {},
+      async (provider) => {
+        try {
+          await ProviderService.deleteProvider(provider.id)
+          setProviders((prevProviders) => {
+            const filtered = prevProviders.filter((p) => p.id !== provider.id)
+            return filtered
+          })
+        } catch (err) {
+          toast.add({
+            title: 'Error',
+            description: 'Failed to delete provider',
+            type: 'error',
+          })
+        }
+      },
     )
   }, [])
 
@@ -56,7 +72,11 @@ function RouteComponent() {
         </div>
         <Button
           className="flex items-center gap-2 "
-          onClick={() => navigate('/settings/llm-provider/new')}
+          onClick={() =>
+            router.navigate({
+              to: '/settings/llm-provider/new',
+            })
+          }
         >
           <Plus className="size-4" />
           Add Provider

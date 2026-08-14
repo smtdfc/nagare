@@ -19,11 +19,12 @@ func (s *ProviderService) GetListProvider() (*dto.GetListProviderResponse, error
 
 	providers, err := helpers.Map(providerInfos, func(v *domains.LLMProviderConfigInfo) (dto.ProviderInfo, error) {
 		return dto.ProviderInfo{
-			ID:         v.ID,
-			Compatible: string(v.Compatible),
-			Name:       v.Name,
-			BaseURL:    v.BaseURL,
-			IsEnable:   v.IsEnable,
+			ID:              v.ID,
+			Compatible:      string(v.Compatible),
+			Name:            v.Name,
+			BaseURL:         v.BaseURL,
+			IsEnable:        v.IsEnable,
+			AvailableModels: v.AvailableModels,
 		}, nil
 	})
 
@@ -60,13 +61,7 @@ func (s *ProviderService) GetProviderDetails(id string) (*dto.GetProviderByIDRes
 	return resp, nil
 }
 
-func (s *ProviderService) UpdateProvider(id string, data dto.UpdateProviderRequest) error {
-	if id != data.ID {
-		return custom_errors.NewServiceError(
-			"ID mismatch",
-			400,
-		)
-	}
+func (s *ProviderService) UpdateProvider(data dto.UpdateProviderRequest) (*dto.UpdateProviderResponse, error) {
 
 	config := &domains.LLMProviderConfig{
 		ID:              data.ID,
@@ -76,10 +71,51 @@ func (s *ProviderService) UpdateProvider(id string, data dto.UpdateProviderReque
 		APIKey:          data.APIKey,
 		IsEnable:        data.IsEnable,
 		ModelName:       data.ModelName,
-		AvailableModels: []string{},
+		AvailableModels: data.AvailableModels,
 	}
 
-	return global.GlobalConfigMgr.SaveLLMProviderConfig(config)
+	err := global.GlobalConfigMgr.SaveLLMProviderConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (s *ProviderService) CreateProvider(data dto.CreateProviderRequest) (*dto.CreateProviderResponse, error) {
+	config := &domains.LLMProviderConfig{
+		ID:              "",
+		Compatible:      data.Compatible,
+		Name:            data.Name,
+		BaseURL:         data.BaseURL,
+		APIKey:          data.APIKey,
+		IsEnable:        data.IsEnable,
+		ModelName:       "",
+		AvailableModels: data.AvailableModels,
+	}
+
+	err := global.GlobalConfigMgr.CreateLLMProviderConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.CreateProviderResponse{}, nil
+}
+
+func (s *ProviderService) DeleteProvider(id dto.DeleteProviderRequest) (*dto.DeleteProviderResponse, error) {
+	err := global.GlobalConfigMgr.DeleteLLMProviderConfig(id.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.DeleteProviderResponse{}, nil
+}
+
+func (s *ProviderService) FetchModel(data dto.FetchModelRequest) (*dto.FetchModelResponse, error) {
+	models, err := global.GlobalLLMManager.GetAvailableModels(data.Compatible, data.BaseURL, data.APIKey)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.FetchModelResponse{Models: models}, nil
 }
 
 // @Injectable

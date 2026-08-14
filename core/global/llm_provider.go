@@ -3,6 +3,7 @@ package global
 import (
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/domains"
+	llm_manager "github.com/smtdfc/nagare/core/llm/manager"
 	"github.com/smtdfc/nagare/core/llm/providers"
 )
 

@@ -3,7 +3,6 @@ package mappers
 import (
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/persistence/database/models"
 )
@@ -26,17 +25,17 @@ func (m *LLMProviderMapper) ToConfig(model *models.LLMProvider) *domains.LLMProv
 
 func (m *LLMProviderMapper) ToInfo(model *models.LLMProvider) *domains.LLMProviderConfigInfo {
 	return &domains.LLMProviderConfigInfo{
-		ID:         model.ID.String(),
-		Compatible: model.Compatible,
-		Name:       model.Name,
-		BaseURL:    model.BaseURL,
-		IsEnable:   model.IsEnable,
+		ID:              model.ID.String(),
+		Compatible:      model.Compatible,
+		Name:            model.Name,
+		BaseURL:         model.BaseURL,
+		IsEnable:        model.IsEnable,
+		AvailableModels: strings.Split(model.AvailableModels, ","),
 	}
 }
 
 func (m *LLMProviderMapper) ToModel(config *domains.LLMProviderConfig) *models.LLMProvider {
 	return &models.LLMProvider{
-		ID:              uuid.MustParse(config.ID),
 		Compatible:      config.Compatible,
 		Name:            config.Name,
 		BaseURL:         config.BaseURL,

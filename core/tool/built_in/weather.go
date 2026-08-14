@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/smtdfc/nagare/core/domains"
+	tool_logger "github.com/smtdfc/nagare/core/tool/logger"
 	"github.com/smtdfc/nagare/core/tool/tool_declaration"
 )
 
@@ -34,12 +35,14 @@ func callWeatherAPI(lat, lon float64) (*weatherResponse, error) {
 
 	resp, err := client.Get(url)
 	if err != nil {
+		tool_logger.ToolLogger.Error("Failed to call weather API", "error", err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	var data weatherResponse
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		tool_logger.ToolLogger.Error("Failed to decode weather API response", "error", err)
 		return nil, err
 	}
 

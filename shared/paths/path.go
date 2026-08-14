@@ -32,6 +32,20 @@ func EnsureConfigWithDefaults() error {
 		}
 	}
 
+	if _, err := os.Stat(LogDir); os.IsNotExist(err) {
+		err := os.MkdirAll(LogDir, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
+	if _, err := os.Stat(PluginLogDir); os.IsNotExist(err) {
+		err := os.MkdirAll(PluginLogDir, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -43,6 +57,9 @@ func init() {
 
 	DataDir = filepath.Join(home, ".nagare")
 	DatabaseDir = filepath.Join(DataDir, "databases")
+	LogDir = filepath.Join(DataDir, "logs")
+	PluginLogDir = filepath.Join(LogDir, "plugins")
+
 	dirs := []string{
 		DataDir,
 		filepath.Join(DataDir, "databases"),

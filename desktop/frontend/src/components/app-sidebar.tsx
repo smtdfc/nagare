@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import * as React from "react"
+import * as React from 'react'
 
-import { NavMain } from "@/components/nav-main"
+import { NavMain } from '@/components/nav-main'
 import {
   Sidebar,
   SidebarContent,
@@ -10,76 +10,79 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { Settings2Icon, LifeBuoyIcon, SendIcon, FrameIcon, PieChartIcon, MapIcon, TerminalIcon, MessageCircle, WorkflowIcon, Plug2Icon } from "lucide-react"
+} from '@/components/ui/sidebar'
+import {
+  Settings2Icon,
+  LifeBuoyIcon,
+  SendIcon,
+  FrameIcon,
+  PieChartIcon,
+  MapIcon,
+  TerminalIcon,
+  MessageCircle,
+  WorkflowIcon,
+  Plug2Icon,
+} from 'lucide-react'
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: 'shadcn',
+    email: 'm@example.com',
+    avatar: '/avatars/shadcn.jpg',
   },
   navMain: [
     {
-      title: "Chat",
-      url: "/",
-      icon: (
-        <MessageCircle />
-      ),
+      title: 'Chat',
+      url: '/',
+      icon: <MessageCircle />,
       items: [],
     },
     {
-      title: "Workflows",
-      url: "#",
-      icon: (
-        <WorkflowIcon />
-      ),
+      title: 'Workflows',
+      url: '#',
+      icon: <WorkflowIcon />,
       items: [
         {
-          title: "Manage",
-          url: "#",
+          title: 'Manage',
+          url: '#',
         },
         {
-          title: "Logs",
-          url: "#",
+          title: 'Logs',
+          url: '#',
         },
       ],
     },
     {
-      title: "Plugins",
-      url: "#",
-      icon: (
-        <Plug2Icon />
-      ),
+      title: 'Plugins',
+      url: '#',
+      icon: <Plug2Icon />,
       items: [
         {
-          title: "Manage",
-          url: "#",
+          title: 'Manage',
+          url: '#',
         },
         {
-          title: "Logs",
-          url: "#",
+          title: 'Logs',
+          url: '#',
         },
       ],
     },
     {
-      title: "Settings",
-      url: "#",
-      icon: (
-        <Settings2Icon />
-      ),
+      title: 'Settings',
+      url: '#',
+      icon: <Settings2Icon />,
       items: [
         {
-          title: "General",
-          url: "/settings/general",
+          title: 'General',
+          url: '/settings/general',
         },
         {
-          title: "LLM Provider",
-          url: "/settings/llm-provider/overview",
+          title: 'LLM Provider',
+          url: '/settings/llm-provider/overview',
         },
         {
-          title: "Limits",
-          url: "#",
+          title: 'Limits',
+          url: '#',
         },
       ],
     },
@@ -109,5 +112,3 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </Sidebar>
   )
 }
-
-

@@ -6,6 +6,7 @@ import (
 	"github.com/invopop/jsonschema"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/domains"
+	tool_logger "github.com/smtdfc/nagare/core/tool/logger"
 )
 
 type ToolCallback[I any, O any] func(ctx domains.Context, args I) (O, error)
@@ -30,6 +31,7 @@ func (t *ToolDeclaration[I, O]) GetArgs() string {
 
 	data, err := json.Marshal(schema)
 	if err != nil {
+		tool_logger.ToolLogger.Error("Failed to marshal tool schema", "error", err)
 		return "{}"
 	}
 
@@ -44,6 +46,7 @@ func (t *ToolDeclaration[I, O]) Execute(ctx domains.Context, argsJson string) (s
 	var args I
 	err := json.Unmarshal([]byte(argsJson), &args)
 	if err != nil {
+		tool_logger.ToolLogger.Error("Failed to unmarshal tool arguments", "error", err)
 		return "{}", custom_errors.NewToolError("Tool validation failed: One or more arguments provided to the tool are incorrect or improperly formatted.", t.Name)
 	}
 
@@ -54,6 +57,7 @@ func (t *ToolDeclaration[I, O]) Execute(ctx domains.Context, argsJson string) (s
 
 	resultJson, err := json.Marshal(&result)
 	if err != nil {
+		tool_logger.ToolLogger.Error("Failed to marshal tool result", "error", err)
 		return "{}", custom_errors.NewToolError("Tool processing error: An unexpected error occurred while processing the tool's output.", t.Name)
 	}
 

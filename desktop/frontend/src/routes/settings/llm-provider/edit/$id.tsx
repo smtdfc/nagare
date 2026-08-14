@@ -35,7 +35,33 @@ function RouteComponent() {
     fetchProvider()
   }, [id])
 
-  const handleSubmit = (provider: Provider) => {}
+  const handleSubmit = (provider: Provider) => {
+    ProviderService.updateProvider({
+      id: provider.id,
+      compatible: provider.compatible,
+      name: provider.name,
+      base_url: provider.base_url,
+      is_enable: provider.is_enable,
+      available_models: provider.available_models,
+      api_key: provider.api_key,
+      model_name: '',
+    })
+      .then(() => {
+        toast.add({
+          type: 'success',
+          description: 'Provider updated successfully',
+          priority: 'high',
+        })
+        router.history.back()
+      })
+      .catch((e) => {
+        toast.add({
+          type: 'error',
+          description: getErrorMessage(e),
+          priority: 'high',
+        })
+      })
+  }
 
   return (
     <div className="container mx-auto py-8 px-6 max-w-6xl">
@@ -46,7 +72,7 @@ function RouteComponent() {
       </div>
       {currentProvider ? (
         <LLMProviderEditForm
-          provider={currentProvider}
+          currentProvider={currentProvider}
           onSubmit={handleSubmit}
           onCancel={() => router.history.back()}
         />

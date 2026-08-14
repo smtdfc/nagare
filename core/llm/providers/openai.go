@@ -1,9 +1,11 @@
 package providers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
@@ -11,6 +13,7 @@ import (
 	"github.com/openai/openai-go/v3/responses"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/domains"
+	"github.com/smtdfc/nagare/core/llm"
 	"github.com/smtdfc/nagare/shared/messages"
 )
 
@@ -118,12 +121,14 @@ func (o *OpenAICompatibleProviderAdapter) Chat(model string, ctx domains.Context
 	inputs := responses.ResponseInputParam{}
 	listTool, err := o.TransformToolDeclarations(tools)
 	if err != nil {
+		llm.LLMLogger.Error("TransformToolDeclarations error", "error", err)
 		return nil, err
 	}
 
 	for _, msg := range listMessage {
 		input, err := o.TransformToProviderMessage(msg)
 		if err != nil {
+			llm.LLMLogger.Error("TransformToProviderMessage error", "error", err)
 			return nil, err
 		}
 		inputs = append(inputs, input)

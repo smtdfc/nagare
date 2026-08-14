@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/smtdfc/nagare/core/global"
-
 	"github.com/smtdfc/nagare/server/ws"
 	"github.com/smtdfc/nagare/shared/dto"
 	"github.com/smtdfc/nagare/shared/messages"

@@ -39,6 +39,20 @@ export interface CheckHealthResponse {
     status: string;
 }
 
+// From dto/api.go
+export interface CreateProviderRequest {
+    compatible: string;
+    name: string;
+    base_url: string;
+    api_key: string;
+    is_enable: boolean;
+    available_models: string[];
+}
+
+// From dto/api.go
+export interface CreateProviderResponse {
+}
+
 // From dto/ws.go
 /**
  * Event: WS_CREATE_SESSION_FAILED
@@ -53,6 +67,38 @@ export interface CreateSessionFailed {
  */
 export interface CreateSessionSuccess {
     id: string;
+}
+
+// From dto/api.go
+export interface DeleteProviderRequest {
+    id: string;
+}
+
+// From dto/api.go
+export interface DeleteProviderResponse {
+}
+
+// From dto/api.go
+export interface FetchModelRequest {
+    compatible: string;
+    base_url: string;
+    api_key: string;
+}
+
+// From dto/api.go
+export interface FetchModelResponse {
+    models: string[];
+}
+
+// From dto/api.go
+export interface GeneralSettings {
+    current_provider: string;
+    current_model: string;
+}
+
+// From dto/api.go
+export interface GetGeneralSettingsResponse {
+    settings: GeneralSettings | null;
 }
 
 // From dto/api.go
@@ -107,6 +153,16 @@ export interface ProviderInfo {
     name: string;
     base_url: string;
     is_enable: boolean;
+    available_models: string[];
+}
+
+// From dto/api.go
+export interface SaveGeneralSettingsRequest {
+    settings: GeneralSettings | null;
+}
+
+// From dto/api.go
+export interface SaveGeneralSettingsResponse {
 }
 
 // From dto/api.go
@@ -119,6 +175,10 @@ export interface UpdateProviderRequest {
     is_enable: boolean;
     available_models: string[];
     model_name: string;
+}
+
+// From dto/api.go
+export interface UpdateProviderResponse {
 }
 
 // From dto/ws.go

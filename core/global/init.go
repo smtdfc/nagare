@@ -3,6 +3,8 @@ package global
 import (
 	"github.com/smtdfc/nagare/core/agent"
 	"github.com/smtdfc/nagare/core/config"
+	llm_manager "github.com/smtdfc/nagare/core/llm/manager"
+	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/persistence/database"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"github.com/smtdfc/nagare/core/session"
@@ -10,6 +12,7 @@ import (
 )
 
 func Init() error {
+	logger.Logger.Info("Global init")
 	_, err := database.InitDatabase()
 	if err != nil {
 		panic(err)
@@ -23,5 +26,6 @@ func Init() error {
 	GlobalSessionMgr = session.NewSessionManager(GlobalSessionRepository, GlobalMessageRepository)
 	GlobalAgentPool = agent.NewAgentPool(AGENT_POOL_SIZE).Seed(AGENT_POOL_SIZE)
 	GlobalToolMgr = tool.NewToolManager()
+	GlobalLLMManager = llm_manager.NewLLMManger()
 	return nil
 }

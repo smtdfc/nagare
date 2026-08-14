@@ -12,17 +12,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select'
+import { ProviderService } from '#/services/provider'
+import { toast } from './ui/toast'
 
 type LLMProviderEditForm = {
-  provider: Provider
+  currentProvider: Provider
   onSubmit: (provider: Provider) => void
   onCancel: () => void
 }
 export default function LLMProviderEditForm({
-  provider,
+  currentProvider,
   onSubmit,
   onCancel,
 }: LLMProviderEditForm) {
+  const [provider, setProvider] = useState<Provider>(currentProvider)
   const [models, setModels] = useState<string[]>(provider.available_models)
   const [newModelInput, setNewModelInput] = useState('')
 
@@ -47,6 +50,29 @@ export default function LLMProviderEditForm({
     onSubmit({ ...provider, available_models: models })
   }
 
+  const handleFetchModel = async () => {
+    try {
+      const models = await ProviderService.fetchModel({
+        compatible: provider.compatible,
+        base_url: provider.base_url,
+        api_key: provider.api_key,
+      })
+      setProvider({ ...provider, available_models: models ?? [] })
+      setModels(models ?? [])
+      toast.add({
+        title: 'Success',
+        description: 'Models fetched successfully',
+        type: 'success',
+      })
+    } catch (e) {
+      toast.add({
+        title: 'Error',
+        description: 'Failed to fetch models',
+        type: 'error',
+      })
+    }
+  }
+
   const compatibles = [{ label: 'OpenAI Compatible', value: 'OpenAI' }]
 
   return (
@@ -61,14 +87,23 @@ export default function LLMProviderEditForm({
                   id="provider-name"
                   placeholder="OpenAI"
                   required
-                  value={provider.name}
+                  defaultValue={provider.name}
+                  onChange={(e) =>
+                    setProvider({ ...provider, name: e.target.value })
+                  }
                 />
               </Field>
               <Field>
                 <FieldLabel htmlFor="comp-base-url">Compatible:</FieldLabel>
-                <Select items={compatibles} value={provider.compatible}>
+                <Select
+                  items={compatibles}
+                  defaultValue={provider.compatible}
+                  onValueChange={(value) =>
+                    setProvider({ ...provider, compatible: value! })
+                  }
+                >
                   <SelectTrigger className="w-45">
-                    <SelectValue placeholder="Theme" />
+                    <SelectValue placeholder="Compatible" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -87,7 +122,10 @@ export default function LLMProviderEditForm({
                   id="provider-base-url"
                   placeholder="https://example.com/openai/v1"
                   required
-                  value={provider.base_url}
+                  defaultValue={provider.base_url}
+                  onChange={(e) =>
+                    setProvider({ ...provider, base_url: e.target.value })
+                  }
                 />
               </Field>
               <Field>
@@ -97,7 +135,10 @@ export default function LLMProviderEditForm({
                   placeholder="Your API Key"
                   className="resize-none"
                   rows={3}
-                  value={provider.api_key}
+                  defaultValue={provider.api_key}
+                  onChange={(e) =>
+                    setProvider({ ...provider, api_key: e.target.value })
+                  }
                 />
               </Field>
 
@@ -107,7 +148,7 @@ export default function LLMProviderEditForm({
                   {models.map((model, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <Input
-                        value={model}
+                        defaultValue={model}
                         onChange={(e) =>
                           handleUpdateModel(e.target.value, index)
                         }
@@ -126,7 +167,7 @@ export default function LLMProviderEditForm({
 
                   <div className="flex items-center gap-2 pt-2">
                     <Input
-                      value={newModelInput}
+                      defaultValue={newModelInput}
                       onChange={(e) => setNewModelInput(e.target.value)}
                       placeholder="Model name"
                       onKeyDown={(e) => {
@@ -142,6 +183,13 @@ export default function LLMProviderEditForm({
                       onClick={handleAddModel}
                     >
                       Add
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={handleFetchModel}
+                    >
+                      Fetch
                     </Button>
                   </div>
                 </div>

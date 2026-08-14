@@ -18,11 +18,19 @@ func InitRoutes(
 	app *fiber.App,
 	heathController *controllers.HealthController,
 	providerController *controllers.ProviderController,
+	settingsController *controllers.SettingsController,
 	chatHandler *handlers.ChatHandler,
 ) *AppRoute {
 	app.Get("/api/v1/health/check", heathController.CheckHealth)
 	app.Get("/api/v1/provider/list", providerController.GetListProvider)
 	app.Get("/api/v1/provider/:id/details", providerController.GetProviderDetails)
+	app.Post("/api/v1/provider/create", providerController.CreateProvider)
+	app.Post("/api/v1/provider/update", providerController.UpdateProvider)
+	app.Post("/api/v1/provider/delete", providerController.DeleteProvider)
+	app.Post("/api/v1/provider/fetch-model", providerController.FetchModel)
+	app.Get("/api/v1/settings/general", settingsController.GetGeneralSettings)
+	app.Post("/api/v1/settings/general/save", settingsController.SaveGeneralSettings)
+
 	app.Use("/ws", func(c fiber.Ctx) error {
 		// IsWebSocketUpgrade returns true if the client
 		// requested upgrade to the WebSocket protocol.
@@ -32,7 +40,6 @@ func InitRoutes(
 		}
 		return fiber.ErrUpgradeRequired
 	})
-
 	app.Get("/ws/chat", websocket.New(func(c *websocket.Conn) {
 		// websocket.Conn bindings https://pkg.go.dev/github.com/fasthttp/websocket?tab=doc#pkg-index
 		instance := ws.NewWsInstance(c)
