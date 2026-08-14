@@ -26,8 +26,6 @@ func (a *AgentState) GetHistory() messages.ListMessage {
 }
 
 func (a *AgentState) CommitMessage() error {
-	// Save db here
-
 	a.Messages = append(a.Messages, a.PendingMessages...)
 	a.PendingMessages = messages.ListMessage{}
 	return nil

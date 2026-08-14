@@ -39,7 +39,7 @@ func (c *ConfigManager) GetLLMProviderConfigByID(id string) (*domains.LLMProvide
 func (c *ConfigManager) SaveLLMProviderConfig(config *domains.LLMProviderConfig) error {
 	mapper := &mappers.LLMProviderMapper{}
 	llmProvider := mapper.ToModel(config)
-	return c.llmProviderRepo.Save(llmProvider)
+	return c.llmProviderRepo.UpdateByID(config.ID, llmProvider)
 }
 
 func (c *ConfigManager) GetListProviders() ([]*domains.LLMProviderConfigInfo, error) {
