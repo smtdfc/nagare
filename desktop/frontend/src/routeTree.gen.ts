@@ -8,16 +8,34 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as SettingsGeneralRouteImport } from './routes/settings/general'
-import { Route as SettingsLlmProviderNewRouteImport } from './routes/settings/llm-provider/new'
-import { Route as SettingsLlmProviderOverviewRouteImport } from './routes/settings/llm-provider/overview'
-import { Route as SettingsLlmProviderEditIdRouteImport } from './routes/settings/llm-provider/edit/$id'
+import { Route as rootRouteImport } from './../../../ui/main/src/routes/__root'
+import { Route as IndexRouteImport } from './../../../ui/main/src/routes/index'
+import { Route as PluginAddRouteImport } from './../../../ui/main/src/routes/plugin/add'
+import { Route as PluginHelloRouteImport } from './../../../ui/main/src/routes/plugin/hello'
+import { Route as PluginOverviewRouteImport } from './../../../ui/main/src/routes/plugin/overview'
+import { Route as SettingsGeneralRouteImport } from './../../../ui/main/src/routes/settings/general'
+import { Route as SettingsLlmProviderNewRouteImport } from './../../../ui/main/src/routes/settings/llm-provider/new'
+import { Route as SettingsLlmProviderOverviewRouteImport } from './../../../ui/main/src/routes/settings/llm-provider/overview'
+import { Route as SettingsLlmProviderEditIdRouteImport } from './../../../ui/main/src/routes/settings/llm-provider/edit/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PluginAddRoute = PluginAddRouteImport.update({
+  id: '/plugin/add',
+  path: '/plugin/add',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PluginHelloRoute = PluginHelloRouteImport.update({
+  id: '/plugin/hello',
+  path: '/plugin/hello',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PluginOverviewRoute = PluginOverviewRouteImport.update({
+  id: '/plugin/overview',
+  path: '/plugin/overview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsGeneralRoute = SettingsGeneralRouteImport.update({
@@ -45,6 +63,9 @@ const SettingsLlmProviderEditIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/plugin/add': typeof PluginAddRoute
+  '/plugin/hello': typeof PluginHelloRoute
+  '/plugin/overview': typeof PluginOverviewRoute
   '/settings/general': typeof SettingsGeneralRoute
   '/settings/llm-provider/new': typeof SettingsLlmProviderNewRoute
   '/settings/llm-provider/overview': typeof SettingsLlmProviderOverviewRoute
@@ -52,6 +73,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/plugin/add': typeof PluginAddRoute
+  '/plugin/hello': typeof PluginHelloRoute
+  '/plugin/overview': typeof PluginOverviewRoute
   '/settings/general': typeof SettingsGeneralRoute
   '/settings/llm-provider/new': typeof SettingsLlmProviderNewRoute
   '/settings/llm-provider/overview': typeof SettingsLlmProviderOverviewRoute
@@ -60,6 +84,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/plugin/add': typeof PluginAddRoute
+  '/plugin/hello': typeof PluginHelloRoute
+  '/plugin/overview': typeof PluginOverviewRoute
   '/settings/general': typeof SettingsGeneralRoute
   '/settings/llm-provider/new': typeof SettingsLlmProviderNewRoute
   '/settings/llm-provider/overview': typeof SettingsLlmProviderOverviewRoute
@@ -69,6 +96,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/plugin/add'
+    | '/plugin/hello'
+    | '/plugin/overview'
     | '/settings/general'
     | '/settings/llm-provider/new'
     | '/settings/llm-provider/overview'
@@ -76,6 +106,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/plugin/add'
+    | '/plugin/hello'
+    | '/plugin/overview'
     | '/settings/general'
     | '/settings/llm-provider/new'
     | '/settings/llm-provider/overview'
@@ -83,6 +116,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/plugin/add'
+    | '/plugin/hello'
+    | '/plugin/overview'
     | '/settings/general'
     | '/settings/llm-provider/new'
     | '/settings/llm-provider/overview'
@@ -91,6 +127,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PluginAddRoute: typeof PluginAddRoute
+  PluginHelloRoute: typeof PluginHelloRoute
+  PluginOverviewRoute: typeof PluginOverviewRoute
   SettingsGeneralRoute: typeof SettingsGeneralRoute
   SettingsLlmProviderNewRoute: typeof SettingsLlmProviderNewRoute
   SettingsLlmProviderOverviewRoute: typeof SettingsLlmProviderOverviewRoute
@@ -104,6 +143,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plugin/add': {
+      id: '/plugin/add'
+      path: '/plugin/add'
+      fullPath: '/plugin/add'
+      preLoaderRoute: typeof PluginAddRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plugin/hello': {
+      id: '/plugin/hello'
+      path: '/plugin/hello'
+      fullPath: '/plugin/hello'
+      preLoaderRoute: typeof PluginHelloRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plugin/overview': {
+      id: '/plugin/overview'
+      path: '/plugin/overview'
+      fullPath: '/plugin/overview'
+      preLoaderRoute: typeof PluginOverviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings/general': {
@@ -139,6 +199,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PluginAddRoute: PluginAddRoute,
+  PluginHelloRoute: PluginHelloRoute,
+  PluginOverviewRoute: PluginOverviewRoute,
   SettingsGeneralRoute: SettingsGeneralRoute,
   SettingsLlmProviderNewRoute: SettingsLlmProviderNewRoute,
   SettingsLlmProviderOverviewRoute: SettingsLlmProviderOverviewRoute,

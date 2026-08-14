@@ -26,7 +26,7 @@ func InitDatabase() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	err = db.AutoMigrate(&models.Session{}, &models.Message{}, &models.KV{}, &models.LLMProvider{})
+	err = db.AutoMigrate(&models.Session{}, &models.Message{}, &models.KV{}, &models.LLMProvider{}, &models.Plugin{})
 	if err != nil {
 		persistence.PersistenceLogger.Error("Failed to migrate database", "error", err)
 		return nil, err

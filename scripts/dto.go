@@ -41,8 +41,8 @@ func GenerateTS(pkg, outputPath string) error {
 
 func main() {
 	var entries = map[string]string{
-		"github.com/smtdfc/nagare/shared/dto":      "./desktop/frontend/src/dto/api.ts",
-		"github.com/smtdfc/nagare/shared/messages": "./desktop/frontend/src/dto/messages.ts",
+		"github.com/smtdfc/nagare/shared/dto":      "./ui/packages/dto/src/api.ts",
+		"github.com/smtdfc/nagare/shared/messages": "./ui/packages/dto/src/messages.ts",
 	}
 
 	for entry, output := range entries {
