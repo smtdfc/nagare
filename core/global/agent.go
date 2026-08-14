@@ -36,7 +36,7 @@ func FetchReadyAgent(state *agent.AgentState) (*agent.Agent, error) {
 		return nil, errors.New("LLM provider not configured. Please configure it first.")
 	}
 
-	currentProviderConfig, err := GlobalConfigMgr.GetLLMProviderConfigByID(generalConfig.CurrentModel)
+	currentProviderConfig, err := GlobalConfigMgr.GetLLMProviderConfigByID(generalConfig.CurrentProvider)
 	if err != nil {
 		return nil, err
 	}
