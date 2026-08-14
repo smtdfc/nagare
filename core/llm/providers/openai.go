@@ -218,6 +218,21 @@ func (o *OpenAICompatibleProviderAdapter) Chat(model string, ctx domains.Context
 	return outputChannel, nil
 }
 
+func (o *OpenAICompatibleProviderAdapter) ListModel(ctx context.Context) ([]string, error) {
+	resp, err := o.Client.Models.List(ctx)
+	if err != nil {
+		llm.LLMLogger.Error("list models error", "error", err)
+		return nil, custom_errors.NewLLMProviderError("Failed to get list model")
+	}
+	data := resp.Data
+
+	result := make([]string, 0, len(data))
+	for _, model := range data {
+		result = append(result, model.ID)
+	}
+	return result, nil
+}
+
 func NewOpenAICompatibleProviderAdapter(baseURL, APIKey string, Models []string) *OpenAICompatibleProviderAdapter {
 	client := openai.NewClient(option.WithAPIKey(APIKey), option.WithBaseURL(baseURL))
 	return &OpenAICompatibleProviderAdapter{
