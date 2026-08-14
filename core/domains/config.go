@@ -17,9 +17,10 @@ type LLMProviderConfig struct {
 }
 
 type LLMProviderConfigInfo struct {
-	ID         string
-	Compatible string
-	Name       string
-	BaseURL    string
-	IsEnable   bool
+	ID              string
+	Compatible      string
+	Name            string
+	BaseURL         string
+	IsEnable        bool
+	AvailableModels []string
 }
