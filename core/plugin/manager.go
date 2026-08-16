@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -202,6 +203,8 @@ func (p *PluginManager) GetAllPlugins() ([]*domains.PluginInfo, error) {
 }
 
 func (p *PluginManager) SpawnPluginProcess(plugin *models.Plugin) error {
+	binDir := filepath.Dir(plugin.Bin)
+	pidFile := filepath.Join(binDir, ".pid")
 	cmd := exec.Command(plugin.Bin)
 	if err := cmd.Start(); err != nil {
 		PluginLogger.Error("failed to spawn plugin process", "error", err)
@@ -209,11 +212,15 @@ func (p *PluginManager) SpawnPluginProcess(plugin *models.Plugin) error {
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	if err := os.WriteFile(pidFile, []byte(strconv.Itoa(cmd.Process.Pid)), 0644); err != nil {
+		PluginLogger.Error("failed to write pid file", "error", err)
+	}
 
 	go func() {
 		if err := cmd.Wait(); err != nil {
 			PluginLogger.Error("plugin process exited", "error", err)
 		}
+		os.Remove(pidFile)
 	}()
 
 	return nil
