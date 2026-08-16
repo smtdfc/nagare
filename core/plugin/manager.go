@@ -61,6 +61,10 @@ func Unzip(src string, dest string) error {
 		fileInArchive.Close()
 		dstFile.Close()
 
+		if err := os.Chmod(filePath, file.Mode()); err != nil {
+			return err
+		}
+
 		if err != nil {
 			return err
 		}
