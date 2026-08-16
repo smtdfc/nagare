@@ -30,5 +30,11 @@ func Init() error {
 	GlobalToolMgr = tool.NewToolManager()
 	GlobalLLMManager = llm_manager.NewLLMManger()
 	GlobalPluginMgr = plugin.NewPluginManager(GlobalPluginRepository)
+
+	err = GlobalPluginMgr.Start()
+	if err != nil {
+		logger.Logger.Error("Failed to start plugins", "error", err)
+	}
+
 	return nil
 }

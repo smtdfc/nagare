@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 
+	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/persistence/database/mappers"
 	"github.com/smtdfc/nagare/core/persistence/database/models"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
@@ -19,7 +20,8 @@ func (m *SessionManager) CreateSession() (string, error) {
 	ctx := context.Background()
 	session, err := m.sessionRepo.Create(ctx)
 	if err != nil {
-		return "", err
+		SessionLogger.Error("failed to create session", "error", err)
+		return "", custom_errors.NewSessionError("failed to create session")
 	}
 
 	return session.ID.String(), nil
@@ -33,12 +35,13 @@ func (m *SessionManager) SaveSession(sessionID string, list messages.ListMessage
 	})
 	if err != nil {
 		SessionLogger.With("SessionID", sessionID).Error("failed to map messages", "error", err)
-		return err
+		return custom_errors.NewSessionError("failed save session")
 	}
 
 	err = m.messageRepo.SaveMessages(ctx, models)
 	if err != nil {
-		return err
+		SessionLogger.With("SessionID", sessionID).Error("failed save session", "error", err)
+		return custom_errors.NewSessionError("failed save session")
 	}
 
 	return nil
@@ -49,7 +52,8 @@ func (m *SessionManager) GetMessagesBySessionID(id string) ([]messages.Message, 
 	mapper := &mappers.MessageMapper{}
 	list, err := m.messageRepo.GetMessageBySessionID(ctx, id)
 	if err != nil {
-		return nil, err
+		SessionLogger.With("SessionID", id).Error("failed to get messages", "error", err)
+		return nil, custom_errors.NewSessionError("failed to get messages")
 	}
 
 	return helpers.Map(list, func(t models.Message) (messages.Message, error) {

@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/smtdfc/nagare/core/global"
+	"github.com/smtdfc/nagare/server/custom_errors"
 	"github.com/smtdfc/nagare/shared/dto"
 )
 
@@ -11,7 +12,7 @@ type PluginService struct {
 func (s *PluginService) GetAllPlugin() (*dto.GetAllPluginsResponse, error) {
 	plugins, err := global.GlobalPluginMgr.GetAllPlugins()
 	if err != nil {
-		return nil, err
+		return nil, custom_errors.NewServiceError(err.Error(), 400)
 	}
 
 	pluginInfos := make([]dto.PluginInfo, 0, len(plugins))
@@ -27,6 +28,14 @@ func (s *PluginService) GetAllPlugin() (*dto.GetAllPluginsResponse, error) {
 		})
 	}
 	return &dto.GetAllPluginsResponse{Plugins: pluginInfos}, nil
+}
+
+func (s *PluginService) InstallLocalPlugin(req *dto.InstallLocalPluginRequest) (*dto.InstallLocalPluginResponse, error) {
+	err := global.GlobalPluginMgr.RegisterPlugin(req.Path)
+	if err != nil {
+		return nil, custom_errors.NewServiceError(err.Error(), 400)
+	}
+	return &dto.InstallLocalPluginResponse{}, nil
 }
 
 // @Injectable

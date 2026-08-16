@@ -8,12 +8,13 @@ type PluginBin struct {
 }
 
 type PluginMetadata struct {
-	ID         string      `json:"id"`
-	Name       string      `json:"name"`
-	Version    string      `json:"version"`
-	ApiVersion string      `json:"api_version"`
-	Author     string      `json:"author"`
-	Bins       []PluginBin `json:"bins"`
+	ID            string      `json:"id"`
+	Name          string      `json:"name"`
+	Version       string      `json:"version"`
+	ApiVersion    string      `json:"api_version"`
+	Author        string      `json:"author"`
+	Architectures []string    `json:"architectures"`
+	Bins          []PluginBin `json:"bins"`
 }
 
 func (m *PluginMetadata) SupportsArchitecture(arch string) bool {

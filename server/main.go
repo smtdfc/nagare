@@ -1,6 +1,8 @@
 //go:build !dix
 // +build !dix
 
+//
+//go:generate dix wire
 package main
 
 import (

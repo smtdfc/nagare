@@ -122,3 +122,10 @@ type PluginInfo struct {
 type GetAllPluginsResponse struct {
 	Plugins []PluginInfo `json:"plugins"`
 }
+
+type InstallLocalPluginRequest struct {
+	Path string `json:"path"`
+}
+
+type InstallLocalPluginResponse struct {
+}

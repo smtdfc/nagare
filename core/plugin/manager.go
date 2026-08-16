@@ -1,13 +1,18 @@
 package plugin
 
 import (
+	"archive/zip"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
+
+	"github.com/google/uuid"
 
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/domains"
@@ -17,6 +22,51 @@ import (
 	"github.com/smtdfc/nagare/shared/paths"
 	nagare_plugin "github.com/smtdfc/nagare/shared/plugin"
 )
+
+func Unzip(src string, dest string) error {
+	reader, err := zip.OpenReader(src)
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+
+	for _, file := range reader.File {
+		filePath := filepath.Join(dest, file.Name)
+		if !strings.HasPrefix(filePath, filepath.Clean(dest)+string(filepath.Separator)) {
+			continue
+		}
+
+		if file.FileInfo().IsDir() {
+			os.MkdirAll(filePath, os.ModePerm)
+			continue
+		}
+
+		if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
+			return err
+		}
+
+		dstFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
+		if err != nil {
+			return err
+		}
+
+		fileInArchive, err := file.Open()
+		if err != nil {
+			dstFile.Close()
+			return err
+		}
+
+		_, err = io.Copy(dstFile, fileInArchive)
+
+		fileInArchive.Close()
+		dstFile.Close()
+
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 type PluginManager struct {
 	pluginRepo *repositories.PluginRepository
@@ -47,7 +97,8 @@ func (p *PluginManager) copyPlugin(pluginPath, pluginDirPath string) error {
 
 	srcFile, err := os.Open(pluginPath)
 	if err != nil {
-		return err
+		PluginLogger.Error("failed to open plugin file", "error", err)
+		return custom_errors.NewPluginError("failed to open plugin file")
 	}
 	defer srcFile.Close()
 
@@ -56,11 +107,13 @@ func (p *PluginManager) copyPlugin(pluginPath, pluginDirPath string) error {
 
 	dstFile, err := os.Create(destFilePath)
 	if err != nil {
-		return err
+		PluginLogger.Error("failed to create destination file", "error", err)
+		return custom_errors.NewPluginError("failed to create destination file")
 	}
 	defer dstFile.Close()
 	if _, err := io.Copy(dstFile, srcFile); err != nil {
-		return err
+		PluginLogger.Error("failed to copy plugin file", "error", err)
+		return custom_errors.NewPluginError("failed to copy plugin file")
 	}
 
 	return dstFile.Sync()
@@ -71,12 +124,21 @@ func (p *PluginManager) RegisterPlugin(pluginPath string) error {
 		return custom_errors.NewPluginError("plugin path not found")
 	}
 
-	pluginMetatadaFile := path.Join(pluginPath, "metadata.json")
-	if _, err := os.Stat(pluginMetatadaFile); os.IsNotExist(err) {
+	pluginUUID := uuid.New().String()
+	pluginTempDir := path.Join(paths.TempDir, pluginUUID)
+	err := Unzip(pluginPath, pluginTempDir)
+	if err != nil {
+		PluginLogger.Error("failed to extract plugin", "error", err)
+		return custom_errors.NewPluginError("failed to extract plugin. Please check the file format and try again")
+	}
+	defer os.RemoveAll(pluginTempDir) // Dọn dẹp temp sau khi dùng xong
+
+	pluginMetadataFile := path.Join(pluginTempDir, "metadata.json")
+	if _, err := os.Stat(pluginMetadataFile); os.IsNotExist(err) {
 		return custom_errors.NewPluginError("plugin metadata file not found")
 	}
 
-	metadata, err := p.ReadMetadata(pluginMetatadaFile)
+	metadata, err := p.ReadMetadata(pluginMetadataFile)
 	if err != nil {
 		return err
 	}
@@ -89,9 +151,15 @@ func (p *PluginManager) RegisterPlugin(pluginPath string) error {
 
 	pluginDirName := p.GetPluginDirName(metadata)
 	pluginDirPath := path.Join(paths.PluginDir, pluginDirName)
-	if err := p.copyPlugin(pluginPath, pluginDirPath); err != nil {
+	if err := os.MkdirAll(pluginDirPath, 0755); err != nil {
 		return err
 	}
+
+	if err := Unzip(pluginPath, pluginDirPath); err != nil {
+		PluginLogger.Error("failed to extract plugin to destination", "error", err)
+		return custom_errors.NewPluginError("failed to extract plugin to destination")
+	}
+
 	binFile, err := metadata.GetBinForArchitecture(runtime.GOARCH)
 	if err != nil {
 		return err
@@ -127,6 +195,40 @@ func (p *PluginManager) GetAllPlugins() ([]*domains.PluginInfo, error) {
 		pluginInfos = append(pluginInfos, mapper.ToDomain(&plugin))
 	}
 	return pluginInfos, nil
+}
+
+func (p *PluginManager) SpawnPluginProcess(plugin *models.Plugin) error {
+	cmd := exec.Command(plugin.Bin)
+	if err := cmd.Start(); err != nil {
+		PluginLogger.Error("failed to spawn plugin process", "error", err)
+		return custom_errors.NewPluginError("failed to spawn plugin process")
+	}
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	go func() {
+		if err := cmd.Wait(); err != nil {
+			PluginLogger.Error("plugin process exited", "error", err)
+		}
+	}()
+
+	return nil
+}
+
+func (p *PluginManager) Start() error {
+	plugins, err := p.pluginRepo.GetAllActivePlugins()
+	if err != nil {
+		PluginLogger.Error("failed to get active plugins", "error", err)
+		return custom_errors.NewPluginError("failed to start plugins")
+	}
+
+	for _, plugin := range plugins {
+		if err := p.SpawnPluginProcess(&plugin); err != nil {
+			PluginLogger.Error("failed to spawn plugin process", "error", err)
+			return custom_errors.NewPluginError("failed to start plugins")
+		}
+	}
+	return nil
 }
 
 func NewPluginManager(pluginRepo *repositories.PluginRepository) *PluginManager {

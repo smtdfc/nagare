@@ -3,6 +3,8 @@ go 1.26.5
 use (
 	./core
 	./desktop
+	./plugin/builder
+	./plugin/builtins/example
 	./plugin/client
 	./scripts
 	./server

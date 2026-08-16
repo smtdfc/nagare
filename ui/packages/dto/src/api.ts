@@ -121,6 +121,15 @@ export interface GetProviderByIDResponse {
     provider: Provider;
 }
 
+// From dto/api.go
+export interface InstallLocalPluginRequest {
+    path: string;
+}
+
+// From dto/api.go
+export interface InstallLocalPluginResponse {
+}
+
 // From dto/ws.go
 /**
  * Event: WS_INVOKE_AGENT

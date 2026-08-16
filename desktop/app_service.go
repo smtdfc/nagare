@@ -14,6 +14,8 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
+var isServerRunning = false
+
 type AppService struct {
 	id      string
 	ctx     context.Context
@@ -27,6 +29,8 @@ func NewApp() *AppService {
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *AppService) ServiceStartup(ctx context.Context, options application.ServiceOptions) error {
+	// app := application.Get()
+
 	a.id = uuid.New().String()
 	a.ctx = ctx
 	keypair, err := security.GetKeyPair()
@@ -54,6 +58,7 @@ func (a *AppService) ServiceStartup(ctx context.Context, options application.Ser
 			err := helpers.TryStartServer("9832", a.keypair.PublicKeyPEM, debugMode)
 			if err != nil {
 				fmt.Printf("Server runtime error: %v\n", err)
+
 			}
 		}()
 	}
@@ -76,13 +81,28 @@ func (a *AppService) ServiceStartup(ctx context.Context, options application.Ser
 
 	if !serverReady {
 		fmt.Println("Error: Server failed to start after multiple attempts.")
-
-		application.Get().Quit()
+		// app.Dialog.Warning().
+		// 	SetTitle("Error").
+		// 	SetMessage(fmt.Sprintf("Server runtime error: %v\n", err)).
+		// 	Show()
+		// application.Get().Quit()
 		return nil
 	}
-
+	isServerRunning = true
 	return nil
 }
+
+func (a *AppService) ShowErrorDialog(title, message string) {
+	application.Get().Dialog.Error().
+		SetTitle(title).
+		SetMessage(message).
+		Show()
+}
+
+func (a *AppService) IsServerRunning() bool {
+	return isServerRunning
+}
+
 func (a *AppService) GetWebsocketConnect() (string, error) {
 	return helpers.GetWebsocketConnect("9832")
 }
@@ -103,4 +123,18 @@ func (a *AppService) GenerateToken() (string, error) {
 
 	jsonString := string(json)
 	return helpers.GenerateToken(a.keypair.PrivateKeyPEM, jsonString)
+}
+
+func (a *AppService) OpenPluginSelectDialog() string {
+	path, err := application.Get().Dialog.OpenFile().
+		SetTitle("Select PLugin file").
+		AddFilter("Nagare Plugin", "*.nagare_plugin").
+		AddFilter("All Files", "*.*").
+		PromptForSingleSelection()
+
+	if err != nil || path == "" {
+		return ""
+	}
+
+	return path
 }

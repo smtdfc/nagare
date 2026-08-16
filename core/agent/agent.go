@@ -57,6 +57,9 @@ func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 
 	go func() {
 		defer close(output)
+		defer AgentLogger.Info("Agent Invoke completed", "model", a.Model)
+		AgentLogger.Info("Agent Invoke", "model", a.Model)
+
 		output <- messages.NewAgentResponse(messages.AGENT_RESPONSE_STARTED)
 		for {
 			llmProviderOutput, err := a.LLMProvider.Chat(a.Model, ectx, a.State.GetHistory(), a.ToolMgr.GetListTool())
@@ -101,6 +104,7 @@ func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
 				}
 			}
 
+			AgentLogger.Info("Agent tool call count", "model", a.Model, "toolCallCount", toolCallCount)
 			if toolCallCount == 0 {
 				break
 			}

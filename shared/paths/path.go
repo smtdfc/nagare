@@ -15,6 +15,7 @@ var LogDir = ""
 var PluginLogDir = ""
 var PluginDir = ""
 var DatabaseDir = ""
+var TempDir = ""
 
 func EnsureConfigWithDefaults() error {
 	if _, err := os.Stat(DataDir); os.IsNotExist(err) {
@@ -54,6 +55,13 @@ func EnsureConfigWithDefaults() error {
 		}
 	}
 
+	if _, err := os.Stat(TempDir); os.IsNotExist(err) {
+		err := os.MkdirAll(TempDir, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -68,6 +76,8 @@ func init() {
 	LogDir = filepath.Join(DataDir, "logs")
 	PluginLogDir = filepath.Join(LogDir, "plugins")
 	PluginDir = filepath.Join(DataDir, "plugins")
+	TempDir = filepath.Join(DataDir, "temp")
+
 	dirs := []string{
 		DataDir,
 		filepath.Join(DataDir, "databases"),

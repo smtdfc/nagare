@@ -32,6 +32,7 @@ func InitRoutes(
 	app.Get("/api/v1/settings/general", settingsController.GetGeneralSettings)
 	app.Post("/api/v1/settings/general/save", settingsController.SaveGeneralSettings)
 	app.Get("/api/v1/plugin/list", pluginController.GetAll)
+	app.Post("/api/v1/plugin/install-local", pluginController.InstallLocalPlugin)
 	app.Use("/ws", func(c fiber.Ctx) error {
 		// IsWebSocketUpgrade returns true if the client
 		// requested upgrade to the WebSocket protocol.

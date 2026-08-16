@@ -14,7 +14,7 @@ type ProviderService struct{}
 func (s *ProviderService) GetListProvider() (*dto.GetListProviderResponse, error) {
 	providerInfos, err := global.GlobalConfigMgr.GetListProviders()
 	if err != nil {
-		return nil, err
+		return nil, custom_errors.NewServiceError(err.Error(), 400)
 	}
 
 	providers, err := helpers.Map(providerInfos, func(v *domains.LLMProviderConfigInfo) (dto.ProviderInfo, error) {
@@ -29,7 +29,7 @@ func (s *ProviderService) GetListProvider() (*dto.GetListProviderResponse, error
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, custom_errors.NewServiceError(err.Error(), 400)
 	}
 
 	resp := &dto.GetListProviderResponse{
@@ -76,7 +76,7 @@ func (s *ProviderService) UpdateProvider(data dto.UpdateProviderRequest) (*dto.U
 
 	err := global.GlobalConfigMgr.SaveLLMProviderConfig(config)
 	if err != nil {
-		return nil, err
+		return nil, custom_errors.NewServiceError(err.Error(), 400)
 	}
 
 	return nil, nil
@@ -96,7 +96,7 @@ func (s *ProviderService) CreateProvider(data dto.CreateProviderRequest) (*dto.C
 
 	err := global.GlobalConfigMgr.CreateLLMProviderConfig(config)
 	if err != nil {
-		return nil, err
+		return nil, custom_errors.NewServiceError(err.Error(), 400)
 	}
 
 	return &dto.CreateProviderResponse{}, nil
@@ -105,7 +105,7 @@ func (s *ProviderService) CreateProvider(data dto.CreateProviderRequest) (*dto.C
 func (s *ProviderService) DeleteProvider(id dto.DeleteProviderRequest) (*dto.DeleteProviderResponse, error) {
 	err := global.GlobalConfigMgr.DeleteLLMProviderConfig(id.ID)
 	if err != nil {
-		return nil, err
+		return nil, custom_errors.NewServiceError(err.Error(), 400)
 	}
 	return &dto.DeleteProviderResponse{}, nil
 }
@@ -113,7 +113,7 @@ func (s *ProviderService) DeleteProvider(id dto.DeleteProviderRequest) (*dto.Del
 func (s *ProviderService) FetchModel(data dto.FetchModelRequest) (*dto.FetchModelResponse, error) {
 	models, err := global.GlobalLLMManager.GetAvailableModels(data.Compatible, data.BaseURL, data.APIKey)
 	if err != nil {
-		return nil, err
+		return nil, custom_errors.NewServiceError(err.Error(), 400)
 	}
 	return &dto.FetchModelResponse{Models: models}, nil
 }

@@ -16,3 +16,15 @@ export function GetRestApiConnect(): $CancellablePromise<string> {
 export function GetWebsocketConnect(): $CancellablePromise<string> {
     return $Call.ByID(2641974317);
 }
+
+export function IsServerRunning(): $CancellablePromise<boolean> {
+    return $Call.ByID(288755184);
+}
+
+export function OpenPluginSelectDialog(): $CancellablePromise<string> {
+    return $Call.ByID(3627948889);
+}
+
+export function ShowErrorDialog(title: string, message: string): $CancellablePromise<void> {
+    return $Call.ByID(1717369371, title, message);
+}

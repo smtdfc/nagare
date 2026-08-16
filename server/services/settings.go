@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/global"
+	"github.com/smtdfc/nagare/server/custom_errors"
 	"github.com/smtdfc/nagare/shared/dto"
 )
 
@@ -12,7 +13,7 @@ type SettingsService struct {
 func (s *SettingsService) GetGeneralSettings() (*dto.GetGeneralSettingsResponse, error) {
 	settings, err := global.GlobalConfigMgr.GetGeneralConfig()
 	if err != nil {
-		return nil, err
+		return nil, custom_errors.NewServiceError(err.Error(), 400)
 	}
 	return &dto.GetGeneralSettingsResponse{
 		Settings: &dto.GeneralSettings{
@@ -29,7 +30,7 @@ func (s *SettingsService) SaveGeneralSettings(request *dto.SaveGeneralSettingsRe
 	}
 	err := global.GlobalConfigMgr.SaveGeneralConfig(&settings)
 	if err != nil {
-		return nil, err
+		return nil, custom_errors.NewServiceError(err.Error(), 400)
 	}
 	return &dto.SaveGeneralSettingsResponse{}, nil
 }
