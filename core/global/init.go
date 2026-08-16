@@ -10,6 +10,7 @@ import (
 	"github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/core/tool"
+	"github.com/smtdfc/nagare/shared/helpers"
 )
 
 func Init() error {
@@ -31,9 +32,11 @@ func Init() error {
 	GlobalLLMManager = llm_manager.NewLLMManger()
 	GlobalPluginMgr = plugin.NewPluginManager(GlobalPluginRepository)
 
-	err = GlobalPluginMgr.Start()
-	if err != nil {
-		logger.Logger.Error("Failed to start plugins", "error", err)
+	if !helpers.IsRunWithRemoteServer() {
+		err = GlobalPluginMgr.Start()
+		if err != nil {
+			logger.Logger.Error("Failed to start plugins", "error", err)
+		}
 	}
 
 	return nil

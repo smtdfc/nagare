@@ -1,20 +1,18 @@
-import {
-  GenerateToken,
-  GetRestApiConnect,
-} from "@nagare-agent/service-bindings";
+import { GetRestApiConnect, GetToken } from "@nagare-agent/service-bindings";
 import type { Axios } from "axios";
 import axios from "axios";
-import { waitForWails } from "./wails";
 
 let token: string | null = null;
 let instance: Axios;
 
-export async function getAxiosInstance(): Promise<Axios> {
-  if (instance) return instance;
+export async function getAxiosInstance(
+  forceGetLatestToken = false,
+): Promise<Axios> {
+  if (instance && !forceGetLatestToken) return instance;
 
-  if (token === null) {
-    await waitForWails(10, 2000);
-    token = await GenerateToken();
+  if (token === null || forceGetLatestToken) {
+    token = await GetToken();
+    console.log("token", token);
   }
 
   instance = axios.create({

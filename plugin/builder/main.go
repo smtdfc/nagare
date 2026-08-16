@@ -13,7 +13,7 @@ import (
 	"github.com/smtdfc/nagare/shared/plugin"
 )
 
-// Helper function to actually copy files (avoiding symlinks which break when packed)
+// Helper function to actually copy files and preserve file permissions (executable bits)
 func copyFile(src, dst string) error {
 	in, err := os.Open(src)
 	if err != nil {
@@ -21,7 +21,12 @@ func copyFile(src, dst string) error {
 	}
 	defer in.Close()
 
-	out, err := os.Create(dst)
+	info, err := in.Stat()
+	if err != nil {
+		return err
+	}
+
+	out, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, info.Mode())
 	if err != nil {
 		return err
 	}
@@ -30,6 +35,11 @@ func copyFile(src, dst string) error {
 	if _, err = io.Copy(out, in); err != nil {
 		return err
 	}
+
+	if err := os.Chmod(dst, info.Mode()); err != nil {
+		return err
+	}
+
 	return out.Sync()
 }
 

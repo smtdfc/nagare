@@ -2,25 +2,22 @@ package app
 
 import (
 	"flag"
-	"strings"
 
 	"github.com/smtdfc/nagare/server/config"
+	"github.com/smtdfc/nagare/shared/helpers"
 )
 
 type CliInjectedConfiguration struct {
-	Port      string
-	PublicKey string
+	Port string
 }
 
 // @Injectable
 func NewCliInjectedConfiguration() *CliInjectedConfiguration {
 	port := flag.String("port", "3000", "Port")
-	pubKey := flag.String("pubkey", "", "RSA Public Key base64")
 
 	flag.Parse()
 	return &CliInjectedConfiguration{
-		Port:      *port,
-		PublicKey: strings.ReplaceAll(*pubKey, "\n", " "),
+		Port: *port,
 	}
 }
 
@@ -28,7 +25,7 @@ func NewCliInjectedConfiguration() *CliInjectedConfiguration {
 func NewConfig(cliInjected *CliInjectedConfiguration) *config.ServerConfig {
 	defaultConfig := &config.ServerConfig{
 		Port:      cliInjected.Port,
-		PublicKey: cliInjected.PublicKey,
+		PublicKey: helpers.GetServerPublicKey(),
 	}
 	return defaultConfig
 }

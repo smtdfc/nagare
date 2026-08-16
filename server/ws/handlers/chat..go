@@ -18,6 +18,13 @@ var (
 )
 
 func (h *ChatHandler) CreateSession(i *ws.WsInstance) {
+	if i.Auth == nil {
+		ws.SendMessage(i, dto.WS_CREATE_SESSION_FAILED, dto.CreateSessionFailed{
+			Cause: "Unauthorized",
+		})
+		return
+	}
+
 	sessionID, err := global.GlobalSessionMgr.CreateSession()
 	if err != nil {
 		ws.SendMessage(i, dto.WS_CREATE_SESSION_FAILED, dto.CreateSessionFailed{
@@ -32,6 +39,14 @@ func (h *ChatHandler) CreateSession(i *ws.WsInstance) {
 }
 
 func (h *ChatHandler) InvokeAgent(i *ws.WsInstance, message *dto.WsMessage[any]) {
+	if i.Auth == nil {
+		ws.SendMessage(i, dto.WS_INVOKE_AGENT_FAILED, dto.InvokeAgentFailed{
+			ID:    "",
+			Cause: "Unauthorized",
+		})
+		return
+	}
+
 	pendingMutex.Lock()
 	if pendingResponses[i.ID] {
 		pendingMutex.Unlock()

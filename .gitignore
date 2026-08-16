@@ -1,5 +1,4 @@
 .dix
-build
 vendors
 node_modules
 .DS_Store

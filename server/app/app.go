@@ -21,8 +21,21 @@ func NewFiberApp(config *config.ServerConfig) *fiber.App {
 		},
 	})
 
+	app.Use(func(c fiber.Ctx) error {
+		if c.Method() == fiber.MethodOptions {
+			c.Set("Access-Control-Allow-Origin", c.Get("Origin"))
+			c.Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+			c.Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Nagare-Secure")
+			c.Set("Access-Control-Allow-Credentials", "true")
+			return c.SendStatus(fiber.StatusNoContent)
+		}
+		return c.Next()
+	})
+
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"},
+		AllowOriginsFunc: func(origin string) bool {
+			return true
+		},
 		AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Nagare-Secure"},
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 	}))

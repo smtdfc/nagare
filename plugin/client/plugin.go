@@ -13,10 +13,10 @@ import (
 	"github.com/smtdfc/nagare/shared/paths"
 )
 
-func GetPort() (string, error) {
+func GetServerAddress() (string, error) {
 	args := os.Args[1:]
 	if len(args) == 0 {
-		return "", errors.New("no port specified")
+		return "", errors.New("no address specified")
 	}
 	return args[0], nil
 }
@@ -32,6 +32,7 @@ func (p *PluginClient) CheckServerHealth() error {
 	p.Logger.Info("Checking server health", "serverAddr", p.serverAddr)
 	_, err := p.httpClient.R().Get(fmt.Sprintf("%s/api/v1/health/check", p.serverAddr))
 	if err != nil {
+		p.Logger.Error("Server health check failed", "serverAddr", p.serverAddr, "error", err)
 		return err
 	}
 
@@ -45,12 +46,12 @@ func (p *PluginClient) Handshake() error {
 
 func (p *PluginClient) Start() error {
 	p.Logger.Info("Starting plugin", "name", p.name)
-	port, err := GetPort()
+	serverAddr, err := GetServerAddress()
 	if err != nil {
+		p.Logger.Error("Failed to get address", "error", err)
 		return err
 	}
 
-	serverAddr := "http://localhost:" + port
 	p.serverAddr = serverAddr
 	if err := p.CheckServerHealth(); err != nil {
 		return err

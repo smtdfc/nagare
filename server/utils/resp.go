@@ -1,10 +1,17 @@
 package utils
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v3"
 	"github.com/smtdfc/nagare/server/custom_errors"
 	"github.com/smtdfc/nagare/shared/dto"
 )
+
+func IsAuth(ctx fiber.Ctx) bool {
+	auth := ctx.Locals("auth")
+	return auth != nil
+}
 
 func SuccessResponse[T any](data *T, status int, ctx fiber.Ctx) error {
 	return ctx.Status(status).JSON(dto.ApiResponse[*T]{
@@ -27,6 +34,7 @@ func ErrorResponse(err error, ctx fiber.Ctx) error {
 		status = e.Status
 
 	default:
+		fmt.Println(err)
 		errResp.Name = "InternalServiceError"
 		errResp.Message = "InternalServiceError"
 	}

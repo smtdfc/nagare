@@ -13,6 +13,7 @@ import { initChatWebsocketConnection } from "#/lib/websocket.ts";
 import { ChatService } from "#/services/chat.ts";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { AuthService } from "#/services/auth";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -105,7 +106,7 @@ function Home() {
     const setupChat = async () => {
       try {
         await initChatWebsocketConnection();
-
+        await AuthService.websocketAuth();
         if (!isMounted) return;
         setStatus(Status.IDLE);
         let mustNewMessage = false;

@@ -5,12 +5,20 @@
 // @ts-ignore: Unused imports
 import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
-export function GenerateToken(): $CancellablePromise<string> {
-    return $Call.ByID(4216714378);
+export function ClearToken(): $CancellablePromise<void> {
+    return $Call.ByID(2906583408);
+}
+
+export function GetHost(): $CancellablePromise<string> {
+    return $Call.ByID(2167222352);
 }
 
 export function GetRestApiConnect(): $CancellablePromise<string> {
     return $Call.ByID(2824722994);
+}
+
+export function GetToken(): $CancellablePromise<string> {
+    return $Call.ByID(3150796115);
 }
 
 export function GetWebsocketConnect(): $CancellablePromise<string> {
@@ -23,6 +31,10 @@ export function IsServerRunning(): $CancellablePromise<boolean> {
 
 export function OpenPluginSelectDialog(): $CancellablePromise<string> {
     return $Call.ByID(3627948889);
+}
+
+export function SaveToken(token: string): $CancellablePromise<void> {
+    return $Call.ByID(1204991788, token);
 }
 
 export function ShowErrorDialog(title: string, message: string): $CancellablePromise<void> {

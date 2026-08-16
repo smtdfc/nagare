@@ -1,5 +1,10 @@
 package dto
 
+type Profile struct {
+	ID   string `json:"id"`
+	Role string `json:"role"`
+}
+
 type ApiError struct {
 	Name    string            `json:"name"`
 	Message string            `json:"message"`
@@ -128,4 +133,8 @@ type InstallLocalPluginRequest struct {
 }
 
 type InstallLocalPluginResponse struct {
+}
+
+type GetProfileResponse struct {
+	Profile *Profile `json:"profile"`
 }

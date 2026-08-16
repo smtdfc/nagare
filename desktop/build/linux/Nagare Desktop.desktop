@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Nagare Desktop
+Exec=Nagare Desktop
+Icon=Nagare Desktop
+Categories=Development;
+Terminal=false
+Keywords=wails
+Version=1.0
+StartupNotify=false

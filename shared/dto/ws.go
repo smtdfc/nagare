@@ -11,6 +11,9 @@ const (
 	WS_INVOKE_AGENT           WsEvent = "WS_INVOKE_AGENT"
 	WS_INVOKE_AGENT_FAILED    WsEvent = "WS_INVOKE_AGENT_FAILED"
 	WS_AGENT_RESPONSE         WsEvent = "WS_AGENT_RESPONSE"
+	WS_AUTH_REQUEST           WsEvent = "WS_AUTH_REQUEST"
+	WS_AUTH_SUCCESS           WsEvent = "WS_AUTH_SUCCESS"
+	WS_AUTH_FAILED            WsEvent = "WS_AUTH_FAILED"
 )
 
 type WsMessage[T any] struct {
@@ -46,4 +49,18 @@ type AgentOuput struct {
 	ID        string           `json:"id" mapstructure:"id"`
 	SessionID string           `json:"session_id" mapstructure:"session_id"`
 	Message   messages.Message `json:"message" mapstructure:"message"`
+}
+
+// Event: WS_AUTH
+type AuthRequest struct {
+	Token string `json:"token" mapstructure:"token"`
+}
+
+// Event: WS_AUTH_SUCCESS
+type WsAuthSuccess struct {
+}
+
+// Event: WS_AUTH_FAILED
+type WsAuthFailed struct {
+	Cause string `json:"cause" mapstructure:"cause"`
 }

@@ -29,6 +29,15 @@ export interface ApiResponse<T extends any> {
 // From dto/auth.go
 export interface AuthPayload {
     id: string;
+    role: string;
+}
+
+// From dto/ws.go
+/**
+ * Event: WS_AUTH
+ */
+export interface AuthRequest {
+    token: string;
 }
 
 // From dto/api.go
@@ -112,6 +121,11 @@ export interface GetListProviderResponse {
 }
 
 // From dto/api.go
+export interface GetProfileResponse {
+    profile: Profile | null;
+}
+
+// From dto/api.go
 export interface GetProviderByIDRequest {
     id: string;
 }
@@ -175,6 +189,12 @@ export interface PluginInfo {
 }
 
 // From dto/api.go
+export interface Profile {
+    id: string;
+    role: string;
+}
+
+// From dto/api.go
 export interface Provider {
     id: string;
     compatible: string;
@@ -221,8 +241,27 @@ export interface UpdateProviderResponse {
 }
 
 // From dto/ws.go
+/**
+ * Event: WS_AUTH_FAILED
+ */
+export interface WsAuthFailed {
+    id: string;
+    cause: string;
+}
+
+// From dto/ws.go
+/**
+ * Event: WS_AUTH_SUCCESS
+ */
+export interface WsAuthSuccess {
+}
+
+// From dto/ws.go
 export enum WsEvent {
     WS_AGENT_RESPONSE = "WS_AGENT_RESPONSE",
+    WS_AUTH_FAILED = "WS_AUTH_FAILED",
+    WS_AUTH_REQUEST = "WS_AUTH_REQUEST",
+    WS_AUTH_SUCCESS = "WS_AUTH_SUCCESS",
     WS_CREATE_SESSION = "WS_CREATE_SESSION",
     WS_CREATE_SESSION_FAILED = "WS_CREATE_SESSION_FAILED",
     WS_CREATE_SESSION_SUCCESS = "WS_CREATE_SESSION_SUCCESS",

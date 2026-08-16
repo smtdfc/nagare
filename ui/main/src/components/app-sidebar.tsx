@@ -1,94 +1,85 @@
-'use client'
-
-import * as React from 'react'
-
-import { NavMain } from '@/components/nav-main'
+import * as React from "react";
+import { NavMain } from "@/components/nav-main";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar'
+} from "@/components/ui/sidebar";
 import {
   Settings2Icon,
-  LifeBuoyIcon,
-  SendIcon,
-  FrameIcon,
-  PieChartIcon,
-  MapIcon,
   TerminalIcon,
   MessageCircle,
   WorkflowIcon,
   Plug2Icon,
-} from 'lucide-react'
+} from "lucide-react";
+import { NavUser } from "./nav-user";
+import { useAuth } from "#/hooks/use-auth";
 
 const data = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
-  },
   navMain: [
     {
-      title: 'Chat',
-      url: '/',
+      title: "Chat",
+      url: "/",
       icon: <MessageCircle />,
       items: [],
     },
     {
-      title: 'Workflows',
-      url: '#',
+      title: "Workflows",
+      url: "#",
       icon: <WorkflowIcon />,
       items: [
         {
-          title: 'Manage',
-          url: '#',
+          title: "Manage",
+          url: "#",
         },
         {
-          title: 'Logs',
-          url: '#',
+          title: "Logs",
+          url: "#",
         },
       ],
     },
     {
-      title: 'Plugins',
-      url: '#',
+      title: "Plugins",
+      url: "#",
       icon: <Plug2Icon />,
       items: [
         {
-          title: 'Manage',
-          url: '/plugin/overview',
+          title: "Manage",
+          url: "/plugin/overview",
         },
         {
-          title: 'Logs',
-          url: '#',
+          title: "Logs",
+          url: "#",
         },
       ],
     },
     {
-      title: 'Settings',
-      url: '#',
+      title: "Settings",
+      url: "#",
       icon: <Settings2Icon />,
       items: [
         {
-          title: 'General',
-          url: '/settings/general',
+          title: "General",
+          url: "/settings/general",
         },
         {
-          title: 'LLM Provider',
-          url: '/settings/llm-provider/overview',
+          title: "LLM Provider",
+          url: "/settings/llm-provider/overview",
         },
         {
-          title: 'Limits',
-          url: '#',
+          title: "Limits",
+          url: "#",
         },
       ],
     },
   ],
-}
+};
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const auth = useAuth((s) => s.auth);
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -109,6 +100,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
+
+      <SidebarFooter>
+        {auth && (
+          <NavUser
+            user={{
+              name: auth.id,
+              avatar: "avatar",
+            }}
+          />
+        )}
+      </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

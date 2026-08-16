@@ -6,12 +6,14 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/smtdfc/nagare/shared/dto"
 )
 
 type RSAKeys struct {
@@ -87,23 +89,24 @@ func GenerateToken(privateKeyPEM string, payload string) (string, error) {
 	return tokenString, nil
 }
 
-func VerifyToken(publicKeyPEM string, tokenString string) (string, error) {
+func VerifyToken(publicKeyPEM string, tokenString string) (*dto.AuthPayload, error) {
+	var authPayload dto.AuthPayload
 	block, _ := pem.Decode([]byte(publicKeyPEM))
 	if block == nil {
-		return "", errors.New("invalid public key PEM")
+		return nil, errors.New("invalid public key PEM")
 	}
 
 	pubKeyInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
 		pubKeyInterface, err = x509.ParsePKCS1PublicKey(block.Bytes)
 		if err != nil {
-			return "", errors.New("failed to parse public key")
+			return nil, errors.New("failed to parse public key")
 		}
 	}
 
 	pubKey, ok := pubKeyInterface.(*rsa.PublicKey)
 	if !ok {
-		return "", errors.New("not an RSA public key")
+		return nil, errors.New("not an RSA public key")
 	}
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -114,18 +117,22 @@ func VerifyToken(publicKeyPEM string, tokenString string) (string, error) {
 	})
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		payload, ok := claims["data"].(string)
 		if !ok {
-			return "", errors.New("payload is not a valid string")
+			return nil, errors.New("payload is not a valid string")
 		}
-		return payload, nil
+
+		if err := json.Unmarshal([]byte(payload), &authPayload); err != nil {
+			return nil, err
+		}
+		return &authPayload, nil
 	}
 
-	return "", errors.New("invalid token")
+	return nil, errors.New("invalid token")
 }
 
 func GenerateRSAKeyPair(bits int) (*RSAKeys, error) {

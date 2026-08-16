@@ -4,15 +4,20 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 )
 
-func CheckServerRun(port string) (bool, error) {
+func CheckServerRun() (bool, error) {
 	client := &http.Client{
 		Timeout: 20 * time.Second,
 	}
 
-	url := fmt.Sprintf("http://localhost:%s/api/v1/health/check", port)
+	serverHost, err := ResolveServerHost()
+	if err != nil {
+		return false, err
+	}
+	url := fmt.Sprintf("%s/api/v1/health/check", serverHost)
 
 	resp, err := client.Get(url)
 	if err != nil {
@@ -32,12 +37,54 @@ func CheckServerRun(port string) (bool, error) {
 	return false, fmt.Errorf("server error: %d", resp.StatusCode)
 }
 
-func GetWebsocketConnect(port string) (string, error) {
-	url := fmt.Sprintf("http://localhost:%s/ws/chat", port)
+func GetWebsocketConnect() (string, error) {
+	serverHost, err := ResolveServerHost()
+	if err != nil {
+		return "", err
+	}
+	url := fmt.Sprintf("%s/ws/chat", serverHost)
 	return url, nil
 }
 
-func GetRestApiConnect(port string) (string, error) {
-	url := fmt.Sprintf("http://localhost:%s/api/v1", port)
+func GetRestApiConnect() (string, error) {
+	serverHost, err := ResolveServerHost()
+	if err != nil {
+		return "", err
+	}
+	url := fmt.Sprintf("%s/api/v1", serverHost)
 	return url, nil
+}
+
+func GetServerPort() (string, error) {
+	osPort := os.Getenv("NAGARE_SERVER_PORT")
+	if osPort != "" {
+		return osPort, nil
+	}
+
+	return "9832", nil
+}
+
+func IsRunWithRemoteServer() bool {
+	osPort := os.Getenv("NAGARE_SERVER_HOST")
+	return osPort != ""
+}
+
+func GetServerRemoteUrl() string {
+	osHost := os.Getenv("NAGARE_SERVER_HOST")
+	return osHost
+}
+
+func ResolveServerHost() (string, error) {
+	if IsRunWithRemoteServer() {
+		return GetServerRemoteUrl(), nil
+	}
+	port, err := GetServerPort()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("http://localhost:%s", port), nil
+}
+
+func GetServerPublicKey() string {
+	return os.Getenv("NAGARE_PUBLIC_KEY")
 }

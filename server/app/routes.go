@@ -5,7 +5,9 @@ import (
 
 	"github.com/gofiber/contrib/v3/websocket"
 	"github.com/gofiber/fiber/v3"
+	"github.com/smtdfc/nagare/server/config"
 	"github.com/smtdfc/nagare/server/controllers"
+	"github.com/smtdfc/nagare/server/middwares"
 	"github.com/smtdfc/nagare/server/ws"
 	"github.com/smtdfc/nagare/server/ws/handlers"
 	"github.com/smtdfc/nagare/shared/dto"
@@ -17,18 +19,22 @@ type AppRoute struct{}
 func InitRoutes(
 	app *fiber.App,
 	heathController *controllers.HealthController,
+	authController *controllers.AuthController,
 	providerController *controllers.ProviderController,
 	settingsController *controllers.SettingsController,
 	pluginController *controllers.PluginController,
 	chatHandler *handlers.ChatHandler,
+	authHanlder *handlers.AuthHandler,
+	config *config.ServerConfig,
 ) *AppRoute {
 	app.Get("/api/v1/health/check", heathController.CheckHealth)
-	app.Get("/api/v1/provider/list", providerController.GetListProvider)
-	app.Get("/api/v1/provider/:id/details", providerController.GetProviderDetails)
-	app.Post("/api/v1/provider/create", providerController.CreateProvider)
-	app.Post("/api/v1/provider/update", providerController.UpdateProvider)
-	app.Post("/api/v1/provider/delete", providerController.DeleteProvider)
-	app.Post("/api/v1/provider/fetch-model", providerController.FetchModel)
+	app.Get("/api/v1/auth/me", middwares.AuthMiddleware(config.PublicKey), authController.Me)
+	app.Get("/api/v1/provider/list", middwares.AuthMiddleware(config.PublicKey), providerController.GetListProvider)
+	app.Get("/api/v1/provider/:id/details", middwares.AuthMiddleware(config.PublicKey), providerController.GetProviderDetails)
+	app.Post("/api/v1/provider/create", middwares.AuthMiddleware(config.PublicKey), providerController.CreateProvider)
+	app.Post("/api/v1/provider/update", middwares.AuthMiddleware(config.PublicKey), providerController.UpdateProvider)
+	app.Post("/api/v1/provider/delete", middwares.AuthMiddleware(config.PublicKey), providerController.DeleteProvider)
+	app.Post("/api/v1/provider/fetch-model", middwares.AuthMiddleware(config.PublicKey), providerController.FetchModel)
 	app.Get("/api/v1/settings/general", settingsController.GetGeneralSettings)
 	app.Post("/api/v1/settings/general/save", settingsController.SaveGeneralSettings)
 	app.Get("/api/v1/plugin/list", pluginController.GetAll)
@@ -42,7 +48,9 @@ func InitRoutes(
 		}
 		return fiber.ErrUpgradeRequired
 	})
+
 	app.Get("/ws/chat", websocket.New(func(c *websocket.Conn) {
+
 		// websocket.Conn bindings https://pkg.go.dev/github.com/fasthttp/websocket?tab=doc#pkg-index
 		instance := ws.NewWsInstance(c)
 		for {
@@ -57,6 +65,8 @@ func InitRoutes(
 				chatHandler.CreateSession(instance)
 			case dto.WS_INVOKE_AGENT:
 				chatHandler.InvokeAgent(instance, wsMsg)
+			case dto.WS_AUTH_REQUEST:
+				authHanlder.Auth(instance, wsMsg)
 			}
 		}
 	}))

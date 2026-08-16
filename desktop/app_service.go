@@ -2,14 +2,11 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/desktop/security"
-	"github.com/smtdfc/nagare/shared/dto"
 	"github.com/smtdfc/nagare/shared/helpers"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -33,35 +30,35 @@ func (a *AppService) ServiceStartup(ctx context.Context, options application.Ser
 
 	a.id = uuid.New().String()
 	a.ctx = ctx
-	keypair, err := security.GetKeyPair()
-	if err != nil {
-		return nil
-	}
-	a.keypair = keypair
+	// keypair, err := security.GetKeyPair()
+	// if err != nil {
+	// 	return nil
+	// }
+	// a.keypair = keypair
 
-	isStart, err := helpers.CheckServerRun("9832")
+	isStart, err := helpers.CheckServerRun()
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	if !isStart {
-		mode := os.Getenv("NAGARE_MODE")
-		debugMode := false
-		if mode == "debug" {
-			debugMode = true
-		}
+	// if !isStart {
+	// 	mode := os.Getenv("NAGARE_MODE")
+	// 	debugMode := false
+	// 	if mode == "debug" {
+	// 		debugMode = true
+	// 	}
 
-		fmt.Printf("Server mode: %s\n", mode)
-		fmt.Println("Trying start server")
+	// 	fmt.Printf("Server mode: %s\n", mode)
+	// 	fmt.Println("Trying start server")
 
-		go func() {
-			err := helpers.TryStartServer("9832", a.keypair.PublicKeyPEM, debugMode)
-			if err != nil {
-				fmt.Printf("Server runtime error: %v\n", err)
+	// 	go func() {
+	// 		err := helpers.TryStartServer(a.keypair.PublicKeyPEM, debugMode)
+	// 		if err != nil {
+	// 			fmt.Printf("Server runtime error: %v\n", err)
 
-			}
-		}()
-	}
+	// 		}
+	// 	}()
+	// }
 
 	var serverReady bool
 	for i := 1; i <= 5; i++ {
@@ -71,7 +68,7 @@ func (a *AppService) ServiceStartup(ctx context.Context, options application.Ser
 			time.Sleep(3 * time.Second)
 		}
 
-		running, checkErr := helpers.CheckServerRun("9832")
+		running, checkErr := helpers.CheckServerRun()
 		if checkErr == nil && running {
 			serverReady = true
 			fmt.Println("Server is up and running!")
@@ -104,25 +101,23 @@ func (a *AppService) IsServerRunning() bool {
 }
 
 func (a *AppService) GetWebsocketConnect() (string, error) {
-	return helpers.GetWebsocketConnect("9832")
+	return helpers.GetWebsocketConnect()
 }
 
 func (a *AppService) GetRestApiConnect() (string, error) {
-	return helpers.GetRestApiConnect("9832")
+	return helpers.GetRestApiConnect()
 }
 
-func (a *AppService) GenerateToken() (string, error) {
-	authPayload := dto.AuthPayload{
-		ID: a.id,
-	}
+func (a *AppService) GetToken() (string, error) {
+	return security.GetToken()
+}
 
-	json, err := json.Marshal(&authPayload)
-	if err != nil {
-		return "", err
-	}
+func (a *AppService) SaveToken(token string) error {
+	return security.SaveToken(token)
+}
 
-	jsonString := string(json)
-	return helpers.GenerateToken(a.keypair.PrivateKeyPEM, jsonString)
+func (a *AppService) GetHost() (string, error) {
+	return helpers.ResolveServerHost()
 }
 
 func (a *AppService) OpenPluginSelectDialog() string {
@@ -137,4 +132,8 @@ func (a *AppService) OpenPluginSelectDialog() string {
 	}
 
 	return path
+}
+
+func (a *AppService) ClearToken() error {
+	return security.ClearToken()
 }

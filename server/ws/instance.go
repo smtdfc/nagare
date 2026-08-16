@@ -13,6 +13,7 @@ import (
 type WsInstance struct {
 	conn *websocket.Conn
 	ID   string
+	Auth *dto.AuthPayload
 }
 
 func SendMessage[T any](i *WsInstance, event dto.WsEvent, payload T) error {
@@ -62,5 +63,6 @@ func NewWsInstance(c *websocket.Conn) *WsInstance {
 	return &WsInstance{
 		conn: c,
 		ID:   uuid.New().String(),
+		Auth: nil,
 	}
 }
