@@ -40,6 +40,15 @@ func (r *PluginRepository) GetAllPlugins() ([]models.Plugin, error) {
 	return plugins, nil
 }
 
+func (r *PluginRepository) DeletePluginByID(id string) error {
+	result := r.db.Delete(&models.Plugin{}, id)
+	if result.Error != nil {
+		persistence.PersistenceLogger.Error("failed to delete plugin", "error", result.Error)
+		return result.Error
+	}
+	return nil
+}
+
 func NewPluginRepository() *PluginRepository {
 	db, _ := database.GetDatabase()
 	return &PluginRepository{db: db}
