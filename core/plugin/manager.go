@@ -220,7 +220,6 @@ func (p *PluginManager) SpawnPluginProcess(plugin *models.Plugin) error {
 		if err := cmd.Wait(); err != nil {
 			PluginLogger.Error("plugin process exited", "error", err)
 		}
-		os.Remove(pidFile)
 	}()
 
 	return nil
@@ -234,8 +233,9 @@ func (p *PluginManager) Start() error {
 	}
 
 	for _, plugin := range plugins {
+		PluginLogger.Info("Starting plugin", "plugin", plugin.PluginID)
 		if err := p.SpawnPluginProcess(&plugin); err != nil {
-			PluginLogger.Error("failed to spawn plugin process", "error", err)
+			PluginLogger.Error("failed to spawn plugin process", "error", err, "plugin", plugin.PluginID)
 			return custom_errors.NewPluginError("failed to start plugins")
 		}
 	}
