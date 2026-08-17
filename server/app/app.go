@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/smtdfc/nagare/core/global"
 	"github.com/smtdfc/nagare/server/config"
 	"github.com/smtdfc/nagare/server/utils"
 )
@@ -60,6 +61,11 @@ func (a *App) StartServer() *AppError {
 	<-quit
 
 	log.Println("Shutting down server...")
+	err := global.GlobalPluginMgr.Stop()
+	if err != nil {
+		log.Fatalf("Plugin manager stop failed: %v", err)
+	}
+
 	if err := a.fiberApp.Shutdown(); err != nil {
 		log.Fatalf("Server shutdown failed: %v", err)
 	}
