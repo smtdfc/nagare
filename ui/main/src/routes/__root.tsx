@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/sidebar";
 import { DynamicBreadcrumbs } from "@/components/dynamic-breadcrumbs.tsx";
 import { useEffect, useState } from "react";
-import { isAuth } from "#/lib/auth";
 import { AuthForm } from "#/components/auth-form";
 import { AuthService } from "#/services/auth";
 import { toast } from "#/components/ui/toast";
