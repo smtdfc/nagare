@@ -10,6 +10,9 @@ import { useEffect, useMemo, useState } from "react";
 
 export const Route = createFileRoute("/plugin/overview")({
   component: RouteComponent,
+  staticData: {
+    breadcrumb: "Plugin Overview",
+  },
 });
 
 function RouteComponent() {

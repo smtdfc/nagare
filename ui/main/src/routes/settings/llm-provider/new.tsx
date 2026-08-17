@@ -8,6 +8,9 @@ import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/settings/llm-provider/new")({
   component: RouteComponent,
+  staticData: {
+    breadcrumb: "New LLM Provider",
+  },
 });
 
 function RouteComponent() {

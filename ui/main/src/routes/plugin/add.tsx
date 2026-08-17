@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -26,6 +25,9 @@ import { PluginService } from "#/services/plugin";
 
 export const Route = createFileRoute("/plugin/add")({
   component: RouteComponent,
+  staticData: {
+    breadcrumb: "Install Plugin",
+  },
 });
 
 function RouteComponent() {
