@@ -242,6 +242,60 @@ func (p *PluginManager) Start() error {
 	return nil
 }
 
+func (p *PluginManager) Stop() error {
+	plugins, err := p.pluginRepo.GetAllActivePlugins()
+	if err != nil {
+		PluginLogger.Error("failed to get active plugins", "error", err)
+		return custom_errors.NewPluginError("failed to stop plugins")
+	}
+
+	for _, plugin := range plugins {
+		PluginLogger.Info("Stopping plugin", "plugin", plugin.PluginID)
+		if err := p.StopPluginProcess(&plugin); err != nil {
+			PluginLogger.Error("failed to stop plugin process", "error", err, "plugin", plugin.PluginID)
+			return custom_errors.NewPluginError("failed to stop plugins")
+		}
+	}
+	return nil
+}
+
+func (p *PluginManager) StopPluginProcess(plugin *models.Plugin) error {
+	binDir := filepath.Dir(plugin.Bin)
+	pidFile := filepath.Join(binDir, ".pid")
+	if _, err := os.Stat(pidFile); os.IsNotExist(err) {
+		return nil
+	} else if err != nil {
+		PluginLogger.Error("failed to stat pid file", "error", err)
+		return custom_errors.NewPluginError("failed to stop plugin process")
+	}
+
+	pidBytes, err := os.ReadFile(pidFile)
+	if err != nil {
+		PluginLogger.Error("failed to read pid file", "error", err)
+		return custom_errors.NewPluginError("failed to stop plugin process")
+	}
+
+	pidStr := strings.TrimSpace(string(pidBytes))
+	if pidStr != "" {
+		pid, err := strconv.Atoi(pidStr)
+		if err == nil && pid > 0 {
+			process, err := os.FindProcess(pid)
+			if err == nil {
+				if err := process.Kill(); err != nil {
+					PluginLogger.Warn("failed to kill process (might be already dead)", "error", err)
+				}
+			}
+		}
+	}
+
+	if err := os.Remove(pidFile); err != nil {
+		PluginLogger.Error("failed to remove pid file", "error", err)
+		return custom_errors.NewPluginError("failed to stop plugin process")
+	}
+
+	return nil
+}
+
 func NewPluginManager(pluginRepo *repositories.PluginRepository) *PluginManager {
 	return &PluginManager{
 		pluginRepo: pluginRepo,
