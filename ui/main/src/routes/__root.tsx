@@ -1,6 +1,10 @@
 import { Outlet, createRootRoute } from "@tanstack/react-router";
 import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { DynamicBreadcrumbs } from "@/components/dynamic-breadcrumbs.tsx";
 import { useEffect, useState } from "react";
 import { isAuth } from "#/lib/auth";
@@ -10,6 +14,7 @@ import { toast } from "#/components/ui/toast";
 import { SaveToken } from "@nagare-agent/service-bindings";
 import { useAuth } from "#/hooks/use-auth";
 import { Spinner } from "#/components/ui/spinner";
+import { Separator } from "@base-ui/react";
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -23,6 +28,11 @@ function RootLayout() {
         <SidebarInset className="relative h-screen w-full overflow-hidden flex flex-col">
           <header className="flex h-16 shrink-0 items-center gap-2">
             <div className="flex items-center gap-2 px-4">
+              <SidebarTrigger className="-ml-1" />
+              <Separator
+                orientation="vertical"
+                className="mr-2 data-[orientation=vertical]:h-4"
+              />
               <DynamicBreadcrumbs />
             </div>
           </header>
