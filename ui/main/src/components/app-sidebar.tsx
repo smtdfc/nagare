@@ -52,6 +52,10 @@ const data = {
           url: "/plugin/overview",
         },
         {
+          title: "Install",
+          url: "/plugin/add",
+        },
+        {
           title: "Logs",
           url: "#",
         },
