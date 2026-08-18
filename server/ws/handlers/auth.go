@@ -17,7 +17,6 @@ func (h *AuthHandler) Auth(i *ws.WsInstance, message *dto.WsMessage[any]) {
 	payload, err := ws.GetPayload[dto.AuthRequestEvent](message)
 	if err != nil {
 		ws.SendMessage(i, dto.WS_AUTH_FAILED, dto.WsAuthFailedEvent{
-
 			Cause: "payload error: ",
 		})
 	}
