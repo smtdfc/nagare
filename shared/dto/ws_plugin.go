@@ -1,0 +1,11 @@
+package dto
+
+const (
+	WS_PLUGIN_REGISTER         WsEvent = "WS_PLUGIN_REGISTER"
+	WS_PLUGIN_REGISTER_SUCCESS WsEvent = "WS_PLUGIN_REGISTER_SUCCESS"
+	WS_PLUGIN_REGISTER_FAIL    WsEvent = "WS_PLUGIN_REGISTER_FAIL"
+)
+
+// Event: WS_PLUGIN_REGISTER
+type WsPluginRegisterEvent struct {
+}
