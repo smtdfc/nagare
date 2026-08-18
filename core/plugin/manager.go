@@ -24,6 +24,23 @@ import (
 	nagare_plugin "github.com/smtdfc/nagare/shared/plugin"
 )
 
+var ConnectCodes = map[string]bool{}
+
+func GenerateConnectCode() string {
+	code := uuid.New().String()
+	ConnectCodes[code] = false
+	return code
+}
+
+func HasConnectCode(code string) bool {
+	_, ok := ConnectCodes[code]
+	return ok
+}
+
+func MarkConnectCodeUsed(code string) {
+	ConnectCodes[code] = true
+}
+
 func Unzip(src string, dest string) error {
 	reader, err := zip.OpenReader(src)
 	if err != nil {
@@ -136,7 +153,7 @@ func (p *PluginManager) RegisterPlugin(pluginPath string) error {
 		PluginLogger.Error("failed to extract plugin", "error", err)
 		return custom_errors.NewPluginError("failed to extract plugin. Please check the file format and try again")
 	}
-	defer os.RemoveAll(pluginTempDir) // Dọn dẹp temp sau khi dùng xong
+	defer os.RemoveAll(pluginTempDir)
 
 	pluginMetadataFile := path.Join(pluginTempDir, "metadata.json")
 	if _, err := os.Stat(pluginMetadataFile); os.IsNotExist(err) {
@@ -185,6 +202,12 @@ func (p *PluginManager) RegisterPlugin(pluginPath string) error {
 	}
 
 	PluginLogger.Info("plugin installed", "plugin_dir", pluginDirPath)
+
+	err = p.SpawnPluginProcess(plugin)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -205,7 +228,11 @@ func (p *PluginManager) GetAllPlugins() ([]*domains.PluginInfo, error) {
 func (p *PluginManager) SpawnPluginProcess(plugin *models.Plugin) error {
 	binDir := filepath.Dir(plugin.Bin)
 	pidFile := filepath.Join(binDir, ".pid")
+	connectCode := GenerateConnectCode()
 	cmd := exec.Command(plugin.Bin)
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, "NAGARE_PLUGIN_CONNECT_CODE="+connectCode)
+
 	if err := cmd.Start(); err != nil {
 		PluginLogger.Error("failed to spawn plugin process", "error", err)
 		return custom_errors.NewPluginError("failed to spawn plugin process")
@@ -294,6 +321,10 @@ func (p *PluginManager) StopPluginProcess(plugin *models.Plugin) error {
 	}
 
 	return nil
+}
+
+func (p *PluginManager) HasConnectCode(connectCode string) bool {
+	return HasConnectCode(connectCode)
 }
 
 func NewPluginManager(pluginRepo *repositories.PluginRepository) *PluginManager {

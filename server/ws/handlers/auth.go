@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/smtdfc/nagare/server/config"
-	"github.com/smtdfc/nagare/server/ws"
 	"github.com/smtdfc/nagare/shared/dto"
 	"github.com/smtdfc/nagare/shared/helpers"
+	"github.com/smtdfc/nagare/shared/ws"
 )
 
 type AuthHandler struct {
@@ -14,10 +14,9 @@ type AuthHandler struct {
 }
 
 func (h *AuthHandler) Auth(i *ws.WsInstance, message *dto.WsMessage[any]) {
-	payload, err := ws.GetPayload[dto.AuthRequest](message)
+	payload, err := ws.GetPayload[dto.AuthRequestEvent](message)
 	if err != nil {
-		ws.SendMessage(i, dto.WS_AUTH_FAILED, dto.WsAuthFailed{
-
+		ws.SendMessage(i, dto.WS_AUTH_FAILED, dto.WsAuthFailedEvent{
 			Cause: "payload error: ",
 		})
 	}
@@ -26,7 +25,7 @@ func (h *AuthHandler) Auth(i *ws.WsInstance, message *dto.WsMessage[any]) {
 	authPayload, err := helpers.VerifyToken(h.conf.PublicKey, token)
 	if err != nil {
 		fmt.Println("err", err)
-		ws.SendMessage(i, dto.WS_AUTH_FAILED, dto.WsAuthFailed{
+		ws.SendMessage(i, dto.WS_AUTH_FAILED, dto.WsAuthFailedEvent{
 
 			Cause: "unauthorized",
 		})
@@ -34,7 +33,7 @@ func (h *AuthHandler) Auth(i *ws.WsInstance, message *dto.WsMessage[any]) {
 
 	i.Auth = authPayload
 
-	ws.SendMessage(i, dto.WS_AUTH_SUCCESS, dto.WsAuthSuccess{})
+	ws.SendMessage(i, dto.WS_AUTH_SUCCESS, dto.WsAuthSuccessEvent{})
 }
 
 // @Injectable

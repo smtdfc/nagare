@@ -1,16 +1,17 @@
 package app
 
 import (
-	"log"
+	"net/http"
 
 	"github.com/gofiber/contrib/v3/websocket"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/smtdfc/nagare/server/config"
 	"github.com/smtdfc/nagare/server/controllers"
 	"github.com/smtdfc/nagare/server/middwares"
-	"github.com/smtdfc/nagare/server/ws"
 	"github.com/smtdfc/nagare/server/ws/handlers"
 	"github.com/smtdfc/nagare/shared/dto"
+	"github.com/smtdfc/nagare/shared/ws"
 )
 
 type AppRoute struct{}
@@ -25,6 +26,7 @@ func InitRoutes(
 	pluginController *controllers.PluginController,
 	chatHandler *handlers.ChatHandler,
 	authHanlder *handlers.AuthHandler,
+	pluginHandler *handlers.PluginHandler,
 	config *config.ServerConfig,
 ) *AppRoute {
 	app.Get("/api/v1/health/check", heathController.CheckHealth)
@@ -49,17 +51,8 @@ func InitRoutes(
 		return fiber.ErrUpgradeRequired
 	})
 
-	app.Get("/ws/chat", websocket.New(func(c *websocket.Conn) {
-
-		// websocket.Conn bindings https://pkg.go.dev/github.com/fasthttp/websocket?tab=doc#pkg-index
-		instance := ws.NewWsInstance(c)
-		for {
-			wsMsg, err := ws.ReadMessage[any](instance)
-			if err != nil {
-				log.Println("read err:", err)
-				break
-			}
-
+	app.Get("/ws/chat", adaptor.HTTPHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := ws.WsHandler(w, r, func(instance *ws.WsInstance, wsMsg *dto.WsMessage[any]) error {
 			switch wsMsg.Event {
 			case dto.WS_CREATE_SESSION:
 				chatHandler.CreateSession(instance)
@@ -68,7 +61,27 @@ func InitRoutes(
 			case dto.WS_AUTH_REQUEST:
 				authHanlder.Auth(instance, wsMsg)
 			}
+			return nil
+		})
+
+		if err != nil {
+			println("WebSocket error:", err.Error())
 		}
 	}))
+
+	app.Get("/ws/plugin", adaptor.HTTPHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := ws.WsHandler(w, r, func(instance *ws.WsInstance, wsMsg *dto.WsMessage[any]) error {
+			switch wsMsg.Event {
+			case dto.WS_PLUGIN_REGISTER:
+
+			}
+			return nil
+		})
+
+		if err != nil {
+			println("WebSocket error:", err.Error())
+		}
+	}))
+
 	return &AppRoute{}
 }

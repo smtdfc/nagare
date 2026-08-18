@@ -1,7 +1,6 @@
 package client
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -9,16 +8,19 @@ import (
 	"time"
 
 	"github.com/imroc/req/v3"
+	"github.com/smtdfc/nagare/shared/dto"
 	"github.com/smtdfc/nagare/shared/helpers"
 	"github.com/smtdfc/nagare/shared/paths"
+	"github.com/smtdfc/nagare/shared/ws"
 )
 
-func GetServerAddress() (string, error) {
-	args := os.Args[1:]
-	if len(args) == 0 {
-		return "", errors.New("no address specified")
+func GetServerConnectCodeAddress() (string, error) {
+	addr, isExist := os.LookupEnv("NAGARE_PLUGIN_CONNECT_CODE")
+	if !isExist {
+		return "", fmt.Errorf("NAGARE_PLUGIN_CONNECT_CODE not set")
 	}
-	return args[0], nil
+
+	return addr, nil
 }
 
 type PluginClient struct {
@@ -26,6 +28,7 @@ type PluginClient struct {
 	serverAddr string
 	name       string
 	httpClient *req.Client
+	ws         *ws.WsInstance
 }
 
 func (p *PluginClient) CheckServerHealth() error {
@@ -46,9 +49,21 @@ func (p *PluginClient) Handshake() error {
 
 func (p *PluginClient) Start() error {
 	p.Logger.Info("Starting plugin", "name", p.name)
-	serverAddr, err := GetServerAddress()
+	serverAddr, err := helpers.GetRestApiConnect()
 	if err != nil {
 		p.Logger.Error("Failed to get address", "error", err)
+		return err
+	}
+
+	wsAddr, err := helpers.GetPluginWebsocketConnect()
+	if err != nil {
+		p.Logger.Error("Failed to get websocket address", "error", err)
+		return err
+	}
+
+	connectCode, err := GetServerConnectCodeAddress()
+	if err != nil {
+		p.Logger.Error("Failed to get connect code", "error", err)
 		return err
 	}
 
@@ -57,10 +72,36 @@ func (p *PluginClient) Start() error {
 		return err
 	}
 
+	c, err := ws.Dial(wsAddr)
+	if err != nil {
+		p.Logger.Error("Failed to connect to server", "error", err)
+		panic("Failed to connect to server: " + err.Error())
+	}
+
+	p.ws = c
+	defer p.ws.Close()
+
+	err = ws.SendMessage(c, dto.WS_PLUGIN_REGISTER, dto.PluginRegisterEvent{
+		Code: connectCode,
+	})
+	if err != nil {
+		p.Logger.Error("Failed to register plugin", "error", err)
+		return err
+	}
+
+	for {
+		msg, err := p.ws.ReadMessage()
+		if err != nil {
+			p.Logger.Error("Failed to read message", "error", err)
+			break
+		}
+		p.Logger.Error("Received message from server", "event", msg.Event)
+	}
 	return nil
 }
 
 func NewPluginClient(name string) *PluginClient {
+
 	logDir := path.Join(paths.LogDir, "plugins", name)
 	if err := os.MkdirAll(logDir, 0755); err != nil {
 		panic("Failed to create log directory: " + err.Error())

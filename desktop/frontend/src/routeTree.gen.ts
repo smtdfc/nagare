@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './../../../ui/main/src/routes/__root'
 import { Route as IndexRouteImport } from './../../../ui/main/src/routes/index'
 import { Route as PluginAddRouteImport } from './../../../ui/main/src/routes/plugin/add'
-import { Route as PluginHelloRouteImport } from './../../../ui/main/src/routes/plugin/hello'
 import { Route as PluginOverviewRouteImport } from './../../../ui/main/src/routes/plugin/overview'
 import { Route as SettingsGeneralRouteImport } from './../../../ui/main/src/routes/settings/general'
 import { Route as SettingsLlmProviderNewRouteImport } from './../../../ui/main/src/routes/settings/llm-provider/new'
@@ -26,11 +25,6 @@ const IndexRoute = IndexRouteImport.update({
 const PluginAddRoute = PluginAddRouteImport.update({
   id: '/plugin/add',
   path: '/plugin/add',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PluginHelloRoute = PluginHelloRouteImport.update({
-  id: '/plugin/hello',
-  path: '/plugin/hello',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PluginOverviewRoute = PluginOverviewRouteImport.update({
@@ -64,7 +58,6 @@ const SettingsLlmProviderEditIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/plugin/add': typeof PluginAddRoute
-  '/plugin/hello': typeof PluginHelloRoute
   '/plugin/overview': typeof PluginOverviewRoute
   '/settings/general': typeof SettingsGeneralRoute
   '/settings/llm-provider/new': typeof SettingsLlmProviderNewRoute
@@ -74,7 +67,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/plugin/add': typeof PluginAddRoute
-  '/plugin/hello': typeof PluginHelloRoute
   '/plugin/overview': typeof PluginOverviewRoute
   '/settings/general': typeof SettingsGeneralRoute
   '/settings/llm-provider/new': typeof SettingsLlmProviderNewRoute
@@ -85,7 +77,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/plugin/add': typeof PluginAddRoute
-  '/plugin/hello': typeof PluginHelloRoute
   '/plugin/overview': typeof PluginOverviewRoute
   '/settings/general': typeof SettingsGeneralRoute
   '/settings/llm-provider/new': typeof SettingsLlmProviderNewRoute
@@ -97,7 +88,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/plugin/add'
-    | '/plugin/hello'
     | '/plugin/overview'
     | '/settings/general'
     | '/settings/llm-provider/new'
@@ -107,7 +97,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/plugin/add'
-    | '/plugin/hello'
     | '/plugin/overview'
     | '/settings/general'
     | '/settings/llm-provider/new'
@@ -117,7 +106,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/plugin/add'
-    | '/plugin/hello'
     | '/plugin/overview'
     | '/settings/general'
     | '/settings/llm-provider/new'
@@ -128,7 +116,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PluginAddRoute: typeof PluginAddRoute
-  PluginHelloRoute: typeof PluginHelloRoute
   PluginOverviewRoute: typeof PluginOverviewRoute
   SettingsGeneralRoute: typeof SettingsGeneralRoute
   SettingsLlmProviderNewRoute: typeof SettingsLlmProviderNewRoute
@@ -150,13 +137,6 @@ declare module '@tanstack/react-router' {
       path: '/plugin/add'
       fullPath: '/plugin/add'
       preLoaderRoute: typeof PluginAddRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/plugin/hello': {
-      id: '/plugin/hello'
-      path: '/plugin/hello'
-      fullPath: '/plugin/hello'
-      preLoaderRoute: typeof PluginHelloRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/plugin/overview': {
@@ -200,7 +180,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PluginAddRoute: PluginAddRoute,
-  PluginHelloRoute: PluginHelloRoute,
   PluginOverviewRoute: PluginOverviewRoute,
   SettingsGeneralRoute: SettingsGeneralRoute,
   SettingsLlmProviderNewRoute: SettingsLlmProviderNewRoute,
