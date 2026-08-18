@@ -13,11 +13,11 @@ func CheckServerRun() (bool, error) {
 		Timeout: 20 * time.Second,
 	}
 
-	serverHost, err := ResolveServerHost()
+	serverHost, err := GetRestApiConnect()
 	if err != nil {
 		return false, err
 	}
-	url := fmt.Sprintf("%s/api/v1/health/check", serverHost)
+	url := fmt.Sprintf("%s/health/check", serverHost)
 
 	resp, err := client.Get(url)
 	if err != nil {
@@ -42,7 +42,16 @@ func GetWebsocketConnect() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	url := fmt.Sprintf("%s/ws/chat", serverHost)
+	url := fmt.Sprintf("ws://%s/ws/chat", serverHost)
+	return url, nil
+}
+
+func GetPluginWebsocketConnect() (string, error) {
+	serverHost, err := ResolveServerHost()
+	if err != nil {
+		return "", err
+	}
+	url := fmt.Sprintf("ws://%s/ws/plugin", serverHost)
 	return url, nil
 }
 
@@ -51,7 +60,7 @@ func GetRestApiConnect() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	url := fmt.Sprintf("%s/api/v1", serverHost)
+	url := fmt.Sprintf("http://%s/api/v1", serverHost)
 	return url, nil
 }
 
@@ -82,7 +91,7 @@ func ResolveServerHost() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("http://localhost:%s", port), nil
+	return fmt.Sprintf("localhost:%s", port), nil
 }
 
 func GetServerPublicKey() string {
