@@ -26,6 +26,7 @@ func InitRoutes(
 	pluginController *controllers.PluginController,
 	chatHandler *handlers.ChatHandler,
 	authHanlder *handlers.AuthHandler,
+	pluginHandler *handlers.PluginHandler,
 	config *config.ServerConfig,
 ) *AppRoute {
 	app.Get("/api/v1/health/check", heathController.CheckHealth)
@@ -68,38 +69,19 @@ func InitRoutes(
 		}
 	}))
 
-	// app.Get("/ws/chat", websocket.New(func(c *websocket.Conn) {
-	// 	instance := ws.NewWsInstance(c)
-	// 	for {
-	// 		wsMsg, err := ws.ReadMessage[any](instance)
-	// 		if err != nil {
-	// 			log.Println("read err:", err)
-	// 			break
-	// 		}
+	app.Get("/ws/plugin", adaptor.HTTPHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := ws.WsHandler(w, r, func(instance *ws.WsInstance, wsMsg *dto.WsMessage[any]) error {
+			switch wsMsg.Event {
+			case dto.WS_PLUGIN_REGISTER:
 
-	// 		switch wsMsg.Event {
-	// 		case dto.WS_CREATE_SESSION:
-	// 			chatHandler.CreateSession(instance)
-	// 		case dto.WS_INVOKE_AGENT:
-	// 			chatHandler.InvokeAgent(instance, wsMsg)
-	// 		case dto.WS_AUTH_REQUEST:
-	// 			authHanlder.Auth(instance, wsMsg)
-	// 		}
-	// 	}
-	// }))
+			}
+			return nil
+		})
 
-	// app.Get("/ws/plugin", websocket.New(func(c *websocket.Conn) {
-	// 	instance := ws.NewWsInstance(c)
-	// 	for {
-	// 		wsMsg, err := ws.ReadMessage[any](instance)
-	// 		if err != nil {
-	// 			log.Println("read err:", err)
-	// 			break
-	// 		}
+		if err != nil {
+			println("WebSocket error:", err.Error())
+		}
+	}))
 
-	// 		switch wsMsg.Event {
-	// 		}
-	// 	}
-	// }))
 	return &AppRoute{}
 }
