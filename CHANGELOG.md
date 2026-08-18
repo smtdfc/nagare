@@ -1,3 +1,18 @@
+# [1.2.0](https://github.com/smtdfc/nagare/compare/v1.1.0...v1.2.0) (2026-08-18)
+
+
+### Features
+
+* **core:** implement plugin connection code management(Triển khai ([e76ec56](https://github.com/smtdfc/nagare/commit/e76ec56016ce241dbdbba9cabd0210c970bf8375))
+* **plugin:** establish bidirectional websocket communication with ([87cb078](https://github.com/smtdfc/nagare/commit/87cb078ff7248c21b9a5231dfe8481b0620afa65))
+* **server:** add plugin handler for websocket connections ([b4f2f92](https://github.com/smtdfc/nagare/commit/b4f2f92a4de4088bd8419fec77b6dc5a99574f5f))
+* **server:** implement routing for plugin connections ([ce6ac7d](https://github.com/smtdfc/nagare/commit/ce6ac7d96b1500418d8fe4c48b5c7270cfdd6d96))
+* **server:** integrate new websocket handler ([91119d2](https://github.com/smtdfc/nagare/commit/91119d2770139198613487271b77783c166c0ba4))
+* **shared:** add DTOs for plugin registration events ([05ac1f5](https://github.com/smtdfc/nagare/commit/05ac1f5c66ee658f02be3d51ef7b15206e800887))
+* **shared:** add GetPluginWebsocketConnect helper ([87d462d](https://github.com/smtdfc/nagare/commit/87d462d2b9ecc72b12ddddabc44d5649671c79f8))
+* **shared:** add websocket helpers ([99333da](https://github.com/smtdfc/nagare/commit/99333dac1f1aad43a304859c9a6b72fc908e61f0))
+* **shared:** extend AuthPayload with target property ([222c92b](https://github.com/smtdfc/nagare/commit/222c92bb4e14c00f056d05c20a5b7d6da2a9e6bd))
+
 # [1.1.0](https://github.com/smtdfc/nagare/compare/v1.0.2...v1.1.0) (2026-08-17)
 
 
