@@ -4,6 +4,7 @@ go 1.26.5
 
 require (
 	github.com/andybalholm/brotli v1.2.2 // indirect
+	github.com/coder/websocket v1.8.15 // indirect
 	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/icholy/digest v1.2.0 // indirect
 	github.com/imroc/req/v3 v3.61.0 // indirect
