@@ -105,7 +105,8 @@ export class WebSocketHelper {
 
   public send<T>(eventName: string, data: T): void {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify({ event: eventName, payload: data }));
+      const message = JSON.stringify({ event: eventName, payload: data });
+      this.ws.send(message);
     } else {
       console.warn("WebSocket is not open. Cannot send message.");
     }

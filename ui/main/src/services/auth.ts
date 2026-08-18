@@ -5,7 +5,7 @@ import {
   WsEvent,
   type ApiResponse,
   type GetProfileResponse,
-  type WsAuthSuccess,
+  type WsAuthSuccessEvent,
 } from "@nagare-agent/dto";
 import { ClearToken, GetToken } from "@nagare-agent/service-bindings";
 
@@ -34,7 +34,7 @@ export class AuthService {
 
   static async websocketAuth() {
     if (!builtInWs.chat) throw new Error("Websocket is not ready");
-    return await wsRequest<WsAuthSuccess>(
+    return await wsRequest<WsAuthSuccessEvent>(
       builtInWs.chat,
       WsEvent.WS_AUTH_REQUEST,
       WsEvent.WS_AUTH_SUCCESS,

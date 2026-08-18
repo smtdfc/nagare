@@ -1,9 +1,9 @@
 import { WsEvent } from "@nagare-agent/dto";
 import type {
-  AgentOuput,
-  CreateSessionSuccess,
-  InvokeAgent,
-  InvokeAgentFailed,
+  AgentOuputEvent,
+  CreateSessionSuccessEvent,
+  InvokeAgentEvent,
+  InvokeAgentFailedEvent,
 } from "@nagare-agent/dto";
 import { wsRequest, builtInWs } from "#/lib/websocket.ts";
 
@@ -11,11 +11,11 @@ export class ChatService {
   static listenMessage(
     cb: (isSuccess: boolean, data?: Message, err?: string) => void,
   ) {
-    const onSuccess = (d: AgentOuput) => {
+    const onSuccess = (d: AgentOuputEvent) => {
       cb(false, d.message as Message, undefined);
     };
 
-    const onFailed = (d: InvokeAgentFailed) => {
+    const onFailed = (d: InvokeAgentFailedEvent) => {
       cb(true, undefined, d.cause);
     };
 
@@ -29,7 +29,7 @@ export class ChatService {
   }
 
   static async sendMessage(id: string, message: string) {
-    builtInWs.chat!.send<InvokeAgent>(WsEvent.WS_INVOKE_AGENT, {
+    builtInWs.chat!.send<InvokeAgentEvent>(WsEvent.WS_INVOKE_AGENT, {
       id: Date.now().toString(32),
       session_id: id,
       text: message,
@@ -39,7 +39,7 @@ export class ChatService {
   static async createChatSession() {
     if (!builtInWs.chat) throw new Error("Websocket is not ready");
     return (
-      await wsRequest<CreateSessionSuccess>(
+      await wsRequest<CreateSessionSuccessEvent>(
         builtInWs.chat,
         WsEvent.WS_CREATE_SESSION,
         WsEvent.WS_CREATE_SESSION_SUCCESS,
