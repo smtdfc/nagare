@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"io"
 	"log/slog"
 	"os"
 	"path"
@@ -23,7 +24,8 @@ func init() {
 		panic("Failed to open log file: " + err.Error())
 	}
 
-	jsonHandler := slog.NewJSONHandler(file, &slog.HandlerOptions{
+	multiWriter := io.MultiWriter(os.Stdout, file)
+	jsonHandler := slog.NewJSONHandler(multiWriter, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	})
 	logger := slog.New(jsonHandler)
