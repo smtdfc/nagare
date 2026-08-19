@@ -2,8 +2,9 @@ package client
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"path"
@@ -19,15 +20,6 @@ import (
 
 type EventHandler func(msg *dto.WsMessage[any])
 
-func GetServerConnectCodeAddress() (string, error) {
-	addr, isExist := os.LookupEnv("NAGARE_PLUGIN_CONNECT_CODE")
-	if !isExist {
-		return "", fmt.Errorf("NAGARE_PLUGIN_CONNECT_CODE not set")
-	}
-
-	return addr, nil
-}
-
 type PluginClient struct {
 	Logger     *slog.Logger
 	serverAddr string
@@ -41,7 +33,7 @@ type PluginClient struct {
 
 func (p *PluginClient) CheckServerHealth() error {
 	p.Logger.Info("Checking server health", "serverAddr", p.serverAddr)
-	_, err := p.httpClient.R().Get(fmt.Sprintf("%s/api/v1/health/check", p.serverAddr))
+	_, err := p.httpClient.R().Get(fmt.Sprintf("%s/health/check", p.serverAddr))
 	if err != nil {
 		p.Logger.Error("Server health check failed", "serverAddr", p.serverAddr, "error", err)
 		return err
@@ -76,7 +68,7 @@ func (p *PluginClient) dispatchEvent(msg *dto.WsMessage[any]) {
 	}
 }
 
-func (p *PluginClient) Start() error {
+func (p *PluginClient) Start(ctx context.Context, onReady func(context.Context) error) error {
 	p.Logger.Info("Starting plugin", "name", p.name)
 	serverAddr, err := helpers.GetRestApiConnect()
 	if err != nil {
@@ -87,12 +79,6 @@ func (p *PluginClient) Start() error {
 	wsAddr, err := helpers.GetPluginWebsocketConnect()
 	if err != nil {
 		p.Logger.Error("Failed to get websocket address", "error", err)
-		return err
-	}
-
-	connectCode, err := GetServerConnectCodeAddress()
-	if err != nil {
-		p.Logger.Error("Failed to get connect code", "error", err)
 		return err
 	}
 
@@ -110,25 +96,75 @@ func (p *PluginClient) Start() error {
 	p.ws = c
 	defer p.ws.Close()
 
-	err = ws.SendMessage(c, dto.WS_PLUGIN_REGISTER, dto.PluginRegisterEvent{
-		Code: connectCode,
-	})
-	if err != nil {
-		p.Logger.Error("Failed to register plugin", "error", err)
-		return err
+	type readResult struct {
+		msg *dto.WsMessage[any]
+		err error
+	}
+	msgChan := make(chan readResult)
+
+	go func() {
+		for {
+			msg, err := p.ws.ReadMessage()
+			msgChan <- readResult{msg: msg, err: err}
+			if err != nil {
+				break
+			}
+		}
+	}()
+
+	if onReady != nil {
+		go func() {
+			if err := onReady(ctx); err != nil {
+				p.Logger.Error("onReady callback failed", "error", err)
+			}
+		}()
 	}
 
 	for {
-		msg, err := p.ws.ReadMessage()
-		if err != nil {
-			p.Logger.Error("Failed to read message / connection dropped", "error", err)
-			break
+		select {
+		case <-ctx.Done():
+			p.Logger.Info("Context cancelled, stopping plugin client...", "reason", ctx.Err())
+			return ctx.Err()
+
+		case res := <-msgChan:
+			if res.err != nil {
+				p.Logger.Error("Failed to read message / connection dropped", "error", res.err)
+				return res.err
+			}
+
+			p.Logger.Info("Received message from server", "event", res.msg.Event)
+			p.dispatchEvent(res.msg)
 		}
-
-		p.Logger.Info("Received message from server", "event", msg.Event)
-
-		p.dispatchEvent(msg)
 	}
+}
+
+func (p *PluginClient) Register() error {
+	connectCode, err := GetServerConnectCodeAddress()
+	if err != nil {
+		p.Logger.Error("Failed to get connect code", "error", err)
+		return err
+	}
+
+	_, werr, err := WsRequest[dto.PluginRegisterSuccessEvent, dto.PluginRegisterFailedEvent](
+		p,
+		dto.WS_PLUGIN_REGISTER,
+		dto.WS_PLUGIN_REGISTER_SUCCESS,
+		dto.WS_PLUGIN_REGISTER_FAILED,
+		&dto.PluginRegisterEvent{
+			Code: connectCode,
+		},
+		200000,
+	)
+
+	if werr != nil {
+		return errors.New(werr.Cause)
+	}
+
+	if err != nil {
+		return err
+
+	}
+
 	return nil
 }
 
@@ -144,95 +180,16 @@ func NewPluginClient(name string) *PluginClient {
 		panic("Failed to open log file: " + err.Error())
 	}
 
-	jsonHandler := slog.NewJSONHandler(file, &slog.HandlerOptions{
+	multiWriter := io.MultiWriter(os.Stdout, file)
+	jsonHandler := slog.NewJSONHandler(multiWriter, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	})
 	logger := slog.New(jsonHandler)
 
 	return &PluginClient{
-		Logger:     logger,
+		Logger:     logger.With("plugin", name),
 		name:       name,
 		httpClient: req.C().SetCommonHeader("Accept", "application/json").SetCommonHeader("X-nagare-plugin", name),
 		handlers:   make(map[dto.WsEvent][]EventHandler),
-	}
-}
-
-func WsRequest[TResponse any, TError any](
-	p *PluginClient,
-	sendEvent dto.WsEvent,
-	successEvent dto.WsEvent,
-	failureEvent dto.WsEvent,
-	payload any,
-	timeoutMs time.Duration,
-) (*TResponse, *TError, error) {
-	if timeoutMs == 0 {
-		timeoutMs = 10 * time.Second
-	}
-
-	respChan := make(chan *TResponse, 1)
-	errChan := make(chan *TError, 1)
-
-	var successHandler EventHandler
-	successHandler = func(msg *dto.WsMessage[any]) {
-		p.Off(successEvent)
-		p.Off(failureEvent)
-
-		var target TResponse
-		bytesData, err := json.Marshal(msg.Payload)
-		if err != nil {
-			p.Logger.Error("Failed to marshal ws response data", "error", err)
-			return
-		}
-		if err := json.Unmarshal(bytesData, &target); err != nil {
-			p.Logger.Error("Failed to unmarshal ws response data", "error", err)
-			return
-		}
-
-		respChan <- &target
-	}
-
-	var failureHandler EventHandler
-	failureHandler = func(msg *dto.WsMessage[any]) {
-		p.Off(successEvent)
-		p.Off(failureEvent)
-
-		var target TError
-		bytesData, err := json.Marshal(msg.Payload)
-		if err != nil {
-			p.Logger.Error("Failed to marshal ws error data", "error", err)
-			return
-		}
-		if err := json.Unmarshal(bytesData, &target); err != nil {
-			p.Logger.Error("Failed to unmarshal ws error data", "error", err)
-			return
-		}
-
-		errChan <- &target
-	}
-
-	p.On(successEvent, successHandler)
-	p.On(failureEvent, failureHandler)
-
-	err := ws.SendMessage(p.ws, sendEvent, payload)
-	if err != nil {
-		p.Off(successEvent)
-		p.Off(failureEvent)
-		return nil, nil, fmt.Errorf("failed to send ws request: %w", err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutMs)
-	defer cancel()
-
-	select {
-	case <-ctx.Done():
-		p.Off(successEvent)
-		p.Off(failureEvent)
-		return nil, nil, fmt.Errorf("websocket request timeout for event: %v", sendEvent)
-
-	case res := <-respChan:
-		return res, nil, nil
-
-	case terr := <-errChan:
-		return nil, terr, nil
 	}
 }
