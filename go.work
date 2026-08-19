@@ -1,4 +1,4 @@
-go 1.26.5
+go 1.26.6
 
 use (
 	./cli
@@ -6,6 +6,7 @@ use (
 	./desktop
 	./plugin/builder
 	./plugin/builtins/example
+	./plugin/builtins/telegram
 	./plugin/client
 	./scripts
 	./server
