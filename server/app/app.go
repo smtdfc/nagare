@@ -17,7 +17,7 @@ import (
 // @Injectable
 func NewFiberApp(config *config.ServerConfig) *fiber.App {
 	app := fiber.New(fiber.Config{
-
+		ReduceMemoryUsage: config.ReduceMemoryUsage,
 		ErrorHandler: func(c fiber.Ctx, err error) error {
 			return utils.ErrorResponse(err, c)
 		},
@@ -52,7 +52,9 @@ type App struct {
 
 func (a *App) StartServer() *AppError {
 	go func() {
-		if err := a.fiberApp.Listen(fmt.Sprintf("127.0.0.1:%s", a.config.Port), fiber.ListenConfig{DisableStartupMessage: true}); err != nil {
+		if err := a.fiberApp.Listen(fmt.Sprintf("127.0.0.1:%s", a.config.Port), fiber.ListenConfig{
+			DisableStartupMessage: true,
+		}); err != nil {
 			log.Printf("Server error: %v", err)
 		}
 	}()
