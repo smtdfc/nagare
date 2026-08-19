@@ -65,14 +65,12 @@ func WsRequest[TResponse any, TError any](
 
 	p.On(successEvent, successHandler)
 	p.On(failureEvent, failureHandler)
-
 	err := ws.SendMessage(p.ws, sendEvent, payload)
 	if err != nil {
 		p.Off(successEvent)
 		p.Off(failureEvent)
 		return nil, nil, fmt.Errorf("failed to send ws request: %w", err)
 	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), timeoutMs)
 	defer cancel()
 

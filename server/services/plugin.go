@@ -38,6 +38,14 @@ func (s *PluginService) InstallLocalPlugin(req *dto.InstallLocalPluginRequest) (
 	return &dto.InstallLocalPluginResponse{}, nil
 }
 
+func (s *PluginService) RemovePlugin(req *dto.RemovePluginRequest) (*dto.RemovePluginResponse, error) {
+	err := global.GlobalPluginMgr.RemovePlugin(req.ID)
+	if err != nil {
+		return nil, custom_errors.NewServiceError(err.Error(), 400)
+	}
+	return &dto.RemovePluginResponse{}, nil
+}
+
 // @Injectable
 func NewPluginService() *PluginService {
 	return &PluginService{}

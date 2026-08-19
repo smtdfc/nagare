@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -134,7 +133,7 @@ func (p *PluginManager) RegisterPlugin(pluginPath string) error {
 	}
 
 	pluginUUID := uuid.New().String()
-	pluginTempDir := path.Join(paths.TempDir, pluginUUID)
+	pluginTempDir := filepath.Join(paths.TempDir, pluginUUID)
 	err := Unzip(pluginPath, pluginTempDir)
 	if err != nil {
 		PluginLogger.Error("failed to extract plugin", "error", err)
@@ -142,7 +141,7 @@ func (p *PluginManager) RegisterPlugin(pluginPath string) error {
 	}
 	defer os.RemoveAll(pluginTempDir)
 
-	pluginMetadataFile := path.Join(pluginTempDir, "metadata.json")
+	pluginMetadataFile := filepath.Join(pluginTempDir, "metadata.json")
 	if _, err := os.Stat(pluginMetadataFile); os.IsNotExist(err) {
 		return custom_errors.NewPluginError("plugin metadata file not found")
 	}
@@ -159,7 +158,7 @@ func (p *PluginManager) RegisterPlugin(pluginPath string) error {
 	}
 
 	pluginDirName := p.GetPluginDirName(metadata)
-	pluginDirPath := path.Join(paths.PluginDir, pluginDirName)
+	pluginDirPath := filepath.Join(paths.PluginDir, pluginDirName)
 	if err := os.MkdirAll(pluginDirPath, 0755); err != nil {
 		return err
 	}
@@ -180,7 +179,7 @@ func (p *PluginManager) RegisterPlugin(pluginPath string) error {
 		Version:    metadata.Version,
 		ApiVersion: metadata.ApiVersion,
 		Author:     metadata.Author,
-		Bin:        path.Join(pluginDirPath, binFile.Path),
+		Bin:        filepath.Join(pluginDirPath, binFile.Path),
 	}
 
 	err = p.pluginRepo.CreatePlugin(plugin)
@@ -260,6 +259,7 @@ func (p *PluginManager) Start() error {
 }
 
 func (p *PluginManager) Stop() error {
+	mapper := &mappers.PluginMapper{}
 	plugins, err := p.pluginRepo.GetAllActivePlugins()
 	if err != nil {
 		PluginLogger.Error("failed to get active plugins", "error", err)
@@ -268,7 +268,7 @@ func (p *PluginManager) Stop() error {
 
 	for _, plugin := range plugins {
 		PluginLogger.Info("Stopping plugin", "plugin", plugin.PluginID)
-		if err := p.StopPluginProcess(&plugin); err != nil {
+		if err := p.StopPluginProcess(mapper.ToDomain(&plugin)); err != nil {
 			PluginLogger.Error("failed to stop plugin process", "error", err, "plugin", plugin.PluginID)
 			return custom_errors.NewPluginError("failed to stop plugins")
 		}
@@ -276,7 +276,7 @@ func (p *PluginManager) Stop() error {
 	return nil
 }
 
-func (p *PluginManager) StopPluginProcess(plugin *models.Plugin) error {
+func (p *PluginManager) StopPluginProcess(plugin *domains.PluginInfo) error {
 	binDir := filepath.Dir(plugin.Bin)
 	pidFile := filepath.Join(binDir, ".pid")
 	if _, err := os.Stat(pidFile); os.IsNotExist(err) {
@@ -319,6 +319,36 @@ func (p *PluginManager) HasConnectCode(connectCode string) bool {
 
 func (p *PluginManager) GetPluginByConnectCode(connectCode string) *domains.PluginInfo {
 	return p.connectCodeMgr.GetPluginFromCode(connectCode)
+}
+
+func (p *PluginManager) RemovePlugin(pluginID string) error {
+	mapper := &mappers.PluginMapper{}
+	plugin, err := p.pluginRepo.GetPluginByID(pluginID)
+	if err != nil {
+		return custom_errors.NewPluginError("Failed to remove plugin")
+	}
+
+	pluginInfo := mapper.ToDomain(plugin)
+	PluginLogger.Info("Try stop plugin", "plugin", pluginInfo.PluginID)
+	p.StopPluginProcess(pluginInfo)
+
+	err = p.pluginRepo.DeletePluginByID(plugin.ID.String())
+	if err != nil {
+		return custom_errors.NewPluginError("Failed to remove plugin")
+	}
+
+	pluginDirName := p.GetPluginDirName(&nagare_plugin.PluginMetadata{
+		ID:      pluginInfo.PluginID,
+		Version: pluginInfo.Version,
+	})
+	pluginDirPath := filepath.Join(paths.PluginDir, pluginDirName)
+	err = os.RemoveAll(pluginDirPath)
+	if err != nil {
+		PluginLogger.Error("Failed to remove plugin data", "plugin", pluginInfo.PluginID, "error", err)
+		return custom_errors.NewPluginError("Failed to remove plugin")
+	}
+
+	return nil
 }
 
 func NewPluginManager(pluginRepo *repositories.PluginRepository, connectCodeMgr *ConnectCodeManager) *PluginManager {

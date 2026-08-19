@@ -7,7 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"os"
-	"path"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -153,7 +153,7 @@ func (p *PluginClient) Register() error {
 		&dto.PluginRegisterEvent{
 			Code: connectCode,
 		},
-		200000,
+		2*time.Minute,
 	)
 
 	if werr != nil {
@@ -169,13 +169,13 @@ func (p *PluginClient) Register() error {
 }
 
 func NewPluginClient(name string) *PluginClient {
-	logDir := path.Join(paths.LogDir, "plugins", name)
+	logDir := filepath.Join(paths.LogDir, "plugins", name)
 	if err := os.MkdirAll(logDir, 0755); err != nil {
 		panic("Failed to create log directory: " + err.Error())
 	}
 
 	timestamp := time.Now().Format("2006-01-02T15:04:05")
-	file, err := os.OpenFile(path.Join(logDir, timestamp+".log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	file, err := os.OpenFile(filepath.Join(logDir, timestamp+".log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		panic("Failed to open log file: " + err.Error())
 	}

@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 
 	"github.com/smtdfc/nagare/shared/plugin"
@@ -122,7 +121,7 @@ func main() {
 		panic(err)
 	}
 
-	metadataFile := path.Join(cwd, "metadata.json")
+	metadataFile := filepath.Join(cwd, "metadata.json")
 	metadataContent, err := os.ReadFile(metadataFile)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to read metadata.json: %v", err))
@@ -134,14 +133,14 @@ func main() {
 		panic(err)
 	}
 
-	buildDir := path.Join(cwd, "build")
+	buildDir := filepath.Join(cwd, "build")
 	os.RemoveAll(buildDir)
 
 	if err := os.MkdirAll(buildDir, 0755); err != nil {
 		panic(err)
 	}
 
-	binsDir := path.Join(buildDir, "bins")
+	binsDir := filepath.Join(buildDir, "bins")
 	if err := os.MkdirAll(binsDir, 0755); err != nil {
 		panic(err)
 	}
@@ -153,8 +152,8 @@ func main() {
 		fmt.Println("Building for architecture:", arch)
 
 		binFileName := fmt.Sprintf("%s_%s", metadata.ID, arch)
-		binFullPath := path.Join(binsDir, binFileName)
-		binRelPath := path.Join("bins", binFileName)
+		binFullPath := filepath.Join(binsDir, binFileName)
+		binRelPath := filepath.Join("bins", binFileName)
 
 		cmd := exec.Command("go", "build", "-v", "-x", "-o", binFullPath, ".")
 		cmd.Env = append(os.Environ(), "GOOS="+currentOS, "GOARCH="+arch)
@@ -173,15 +172,15 @@ func main() {
 
 	metadata.Bins = bins
 
-	pkgDir := path.Join(buildDir, "pkg")
-	pkgBinsDir := path.Join(pkgDir, "bins")
+	pkgDir := filepath.Join(buildDir, "pkg")
+	pkgBinsDir := filepath.Join(pkgDir, "bins")
 	if err := os.MkdirAll(pkgBinsDir, 0755); err != nil {
 		panic(err)
 	}
 
 	for _, bin := range bins {
-		srcFile := path.Join(cwd, "build", bin.Path)
-		dstFile := path.Join(pkgDir, bin.Path)
+		srcFile := filepath.Join(cwd, "build", bin.Path)
+		dstFile := filepath.Join(pkgDir, bin.Path)
 		if err := copyFile(srcFile, dstFile); err != nil {
 			panic(fmt.Sprintf("Failed to copy binary: %v", err))
 		}
@@ -192,12 +191,12 @@ func main() {
 		panic(err)
 	}
 
-	pkgMetadataPath := path.Join(pkgDir, "metadata.json")
+	pkgMetadataPath := filepath.Join(pkgDir, "metadata.json")
 	if err := os.WriteFile(pkgMetadataPath, updatedMetadataJSON, 0644); err != nil {
 		panic(err)
 	}
 
-	outputPluginFile := path.Join(cwd, fmt.Sprintf("%s.nagare_plugin", metadata.ID))
+	outputPluginFile := filepath.Join(cwd, fmt.Sprintf("%s.nagare_plugin", metadata.ID))
 	fmt.Println("Packaging plugin into:", outputPluginFile)
 
 	if err := zipDirectory(pkgDir, outputPluginFile); err != nil {

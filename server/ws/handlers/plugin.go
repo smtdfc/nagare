@@ -103,7 +103,7 @@ func (h *PluginHandler) Register(i *ws.WsInstance, message *dto.WsMessage[any]) 
 	}
 
 	h.pluginConnRegistry.Register(pluginInfo.ID, i, pluginInfo)
-	ws.SendMessage(i, dto.WS_AUTH_SUCCESS, dto.PluginRegisterSuccessEvent{})
+	ws.SendMessage(i, dto.WS_PLUGIN_REGISTER_SUCCESS, dto.PluginRegisterSuccessEvent{})
 }
 
 // @Injectable

@@ -30,6 +30,7 @@ export interface ApiResponse<T extends any> {
 export interface AuthPayload {
     id: string;
     role: string;
+    Target: string;
 }
 
 // From dto/ws_chat.go
@@ -188,6 +189,29 @@ export interface PluginInfo {
     version: string;
 }
 
+// From dto/ws_plugin.go
+/**
+ * Event: WS_PLUGIN_REGISTER
+ */
+export interface PluginRegisterEvent {
+    code: string;
+}
+
+// From dto/ws_plugin.go
+/**
+ * Event: WS_PLUGIN_REGISTER_FAILED
+ */
+export interface PluginRegisterFailedEvent {
+    cause: string;
+}
+
+// From dto/ws_plugin.go
+/**
+ * Event: WS_PLUGIN_REGISTER_SUCCESS
+ */
+export interface PluginRegisterSuccessEvent {
+}
+
 // From dto/api.go
 export interface Profile {
     id: string;
@@ -213,6 +237,15 @@ export interface ProviderInfo {
     base_url: string;
     is_enable: boolean;
     available_models: string[];
+}
+
+// From dto/api.go
+export interface RemovePluginRequest {
+    id: string;
+}
+
+// From dto/api.go
+export interface RemovePluginResponse {
 }
 
 // From dto/api.go
@@ -267,7 +300,7 @@ export enum WsEvent {
     WS_INVOKE_AGENT = "WS_INVOKE_AGENT",
     WS_INVOKE_AGENT_FAILED = "WS_INVOKE_AGENT_FAILED",
     WS_PLUGIN_REGISTER = "WS_PLUGIN_REGISTER",
-    WS_PLUGIN_REGISTER_FAIL = "WS_PLUGIN_REGISTER_FAIL",
+    WS_PLUGIN_REGISTER_FAILED = "WS_PLUGIN_REGISTER_FAIL",
     WS_PLUGIN_REGISTER_SUCCESS = "WS_PLUGIN_REGISTER_SUCCESS"
 }
 
@@ -275,12 +308,5 @@ export enum WsEvent {
 export interface WsMessage<T extends any> {
     event: WsEvent;
     payload: T;
-}
-
-// From dto/ws_plugin.go
-/**
- * Event: WS_PLUGIN_REGISTER
- */
-export interface WsPluginRegisterEvent {
 }
 

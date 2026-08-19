@@ -17,6 +17,7 @@ import (
 // @Injectable
 func NewFiberApp(config *config.ServerConfig) *fiber.App {
 	app := fiber.New(fiber.Config{
+
 		ErrorHandler: func(c fiber.Ctx, err error) error {
 			return utils.ErrorResponse(err, c)
 		},

@@ -1,6 +1,9 @@
 package repositories
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/smtdfc/nagare/core/persistence"
 	"github.com/smtdfc/nagare/core/persistence/database"
 	"github.com/smtdfc/nagare/core/persistence/database/models"
@@ -47,6 +50,20 @@ func (r *PluginRepository) DeletePluginByID(id string) error {
 		return result.Error
 	}
 	return nil
+}
+
+func (r *PluginRepository) GetPluginByID(id string) (*models.Plugin, error) {
+	var plugin models.Plugin
+	result := r.db.First(&plugin, "id = ?", id)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			persistence.PersistenceLogger.Warn("plugin not found", "id", id)
+			return nil, fmt.Errorf("plugin with id %s not found: %w", id, result.Error)
+		}
+		persistence.PersistenceLogger.Error("failed to get plugin by id", "error", result.Error, "id", id)
+		return nil, result.Error
+	}
+	return &plugin, nil
 }
 
 func NewPluginRepository() *PluginRepository {
