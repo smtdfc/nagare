@@ -74,7 +74,7 @@ func (a *App) StartServer() *AppError {
 }
 
 // @Injectable
-func NewApp(fiberApp *fiber.App, config *config.ServerConfig, _ *AppRoute) *App {
+func NewApp(fiberApp *fiber.App, config *config.ServerConfig) *App {
 	return &App{
 		fiberApp: fiberApp,
 		config:   config,
