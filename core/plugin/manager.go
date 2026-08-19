@@ -347,7 +347,7 @@ func (p *PluginManager) RemovePlugin(pluginID string) error {
 		PluginLogger.Error("Failed to remove plugin data", "plugin", pluginInfo.PluginID, "error", err)
 		return custom_errors.NewPluginError("Failed to remove plugin")
 	}
-
+	PluginLogger.Info("Removed plugin", "plugin", pluginInfo.PluginID)
 	return nil
 }
 
