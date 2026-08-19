@@ -2,7 +2,7 @@ package tool
 
 import (
 	"github.com/smtdfc/nagare/core/domains"
-	"github.com/smtdfc/nagare/core/tool/built_in"
+	"github.com/smtdfc/nagare/core/tool/builtins"
 )
 
 var ToolRegistry = map[string]domains.Tool{}
@@ -13,5 +13,5 @@ func RegisterTool(tool domains.Tool) {
 }
 
 func init() {
-	RegisterTool(built_in.WeatherTool)
+	RegisterTool(builtins.WeatherTool)
 }
