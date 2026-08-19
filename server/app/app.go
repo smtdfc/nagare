@@ -52,7 +52,7 @@ type App struct {
 
 func (a *App) StartServer() *AppError {
 	go func() {
-		if err := a.fiberApp.Listen(fmt.Sprintf("127.0.0.1:%s", a.config.Port)); err != nil {
+		if err := a.fiberApp.Listen(fmt.Sprintf("127.0.0.1:%s", a.config.Port), fiber.ListenConfig{DisableStartupMessage: true}); err != nil {
 			log.Printf("Server error: %v", err)
 		}
 	}()
