@@ -10,10 +10,12 @@ import (
 var UserHomeDir = ""
 var DataDir = ""
 var ConfigFile = ""
+var ConfigDir = ""
 var ServerBinFile = "/usr/bin/nagare"
 var LogDir = ""
 var PluginLogDir = ""
 var PluginDir = ""
+var PluginConfigDir = ""
 var DatabaseDir = ""
 var TempDir = ""
 
@@ -25,6 +27,12 @@ func EnsureConfigWithDefaults() error {
 		}
 	}
 
+	if _, err := os.Stat(ConfigDir); os.IsNotExist(err) {
+		err := os.MkdirAll(ConfigDir, 0755)
+		if err != nil {
+			return err
+		}
+	}
 	if _, err := os.Stat(ConfigFile); os.IsNotExist(err) {
 		defaultConfig := []byte(`{}`)
 
@@ -62,6 +70,12 @@ func EnsureConfigWithDefaults() error {
 		}
 	}
 
+	if _, err := os.Stat(PluginConfigDir); os.IsNotExist(err) {
+		err := os.MkdirAll(PluginConfigDir, 0755)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -72,12 +86,13 @@ func init() {
 	}
 
 	DataDir = filepath.Join(home, ".nagare")
+	ConfigDir = filepath.Join(DataDir, "configs")
 	DatabaseDir = filepath.Join(DataDir, "databases")
 	LogDir = filepath.Join(DataDir, "logs")
 	PluginLogDir = filepath.Join(LogDir, "plugins")
 	PluginDir = filepath.Join(DataDir, "plugins")
 	TempDir = filepath.Join(DataDir, "temp")
-
+	PluginConfigDir = filepath.Join(ConfigDir, "plugin")
 	dirs := []string{
 		DataDir,
 		filepath.Join(DataDir, "databases"),
