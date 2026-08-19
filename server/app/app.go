@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -45,14 +46,39 @@ func NewFiberApp(config *config.ServerConfig) *fiber.App {
 	return app
 }
 
+func PrintBanner(port string) {
+	fmt.Println(`
+	$$\   $$\
+	$$$\  $$ |
+	$$$$\ $$ | $$$$$$\   $$$$$$\   $$$$$$\   $$$$$$\   $$$$$$\
+	$$ $$\$$ | \____$$\ $$  __$$\  \____$$\ $$  __$$\ $$  __$$\
+	$$ \$$$$ | $$$$$$$ |$$ /  $$ | $$$$$$$ |$$ |  \__|$$$$$$$$ |
+	$$ |\$$$ |$$  __$$ |$$ |  $$ |$$  __$$ |$$ |      $$   ____|
+	$$ | \$$ |\$$$$$$$ |\$$$$$$$ |\$$$$$$$ |$$ |      \$$$$$$$\
+	\__|  \__| \_______| \____$$ | \_______|\__|       \_______|
+                    $$\   $$ |
+                    \$$$$$$  |
+                     \______/
+    `)
+	fmt.Printf("\t\t==================================================\n")
+	fmt.Printf("\t\t🚀 Nagare Server is running on port: %s\n", port)
+	fmt.Printf("\t\t📍 Local URL: http://127.0.0.1:%s\n", port)
+	fmt.Printf("\t\t🕒 Startup Time: %s\n", time.Now().Format("2006-01-02 15:04:05"))
+	fmt.Printf("\t\t==================================================\n")
+}
+
 type App struct {
 	fiberApp *fiber.App
 	config   *config.ServerConfig
 }
 
 func (a *App) StartServer() *AppError {
+	// Truyền port vào PrintBanner để hiển thị thông tin trực quan hơn
+	PrintBanner(a.config.Port)
+
 	go func() {
-		if err := a.fiberApp.Listen(fmt.Sprintf("127.0.0.1:%s", a.config.Port), fiber.ListenConfig{
+		addr := fmt.Sprintf("127.0.0.1:%s", a.config.Port)
+		if err := a.fiberApp.Listen(addr, fiber.ListenConfig{
 			DisableStartupMessage: true,
 		}); err != nil {
 			log.Printf("Server error: %v", err)
