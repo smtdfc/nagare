@@ -14,6 +14,7 @@ import { SaveToken } from "@nagare-agent/service-bindings";
 import { useAuth } from "#/hooks/use-auth";
 import { Spinner } from "#/components/ui/spinner";
 import { Separator } from "@base-ui/react";
+import { getErrorMessage } from "#/lib/error";
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -52,10 +53,10 @@ function AuthLayout() {
       const profile = await AuthService.profile();
       if (!profile) throw new Error("Unauthorized");
       setAuthState(profile);
-    } catch (e) {
+    } catch (err) {
       toast.add({
         title: "Error",
-        description: e instanceof Error ? e.message : String(e),
+        description: getErrorMessage(err),
         type: "error",
       });
     }

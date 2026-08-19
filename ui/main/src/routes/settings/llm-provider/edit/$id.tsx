@@ -1,10 +1,10 @@
 import LLMProviderEditForm from "#/components/llm-provider-edit-form.tsx";
 import { toast } from "#/components/ui/toast.tsx";
 import type { Provider } from "@nagare-agent/dto";
-import { getErrorMessage } from "#/lib/error.ts";
 import { ProviderService } from "#/services/provider.ts";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { getErrorMessage } from "#/lib/error";
 
 export const Route = createFileRoute("/settings/llm-provider/edit/$id")({
   component: RouteComponent,
