@@ -80,7 +80,7 @@ func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	chatID := update.Message.Chat.ID
 
 	queueMu.Lock()
-	if activeSenders[userID] {
+	if isActive, ok := activeSenders[userID]; ok && isActive {
 		queueMu.Unlock()
 		plugin.Logger.Debug("Rejected message because previous task is running", "user_id", userID, "sender", userName, "text", text)
 		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
@@ -95,12 +95,6 @@ func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	activeSenders[userID] = true
 	queueMu.Unlock()
-
-	defer func() {
-		queueMu.Lock()
-		delete(activeSenders, userID)
-		queueMu.Unlock()
-	}()
 
 	plugin.Logger.Debug("Received message", "user_id", userID, "sender", userName, "text", text)
 
