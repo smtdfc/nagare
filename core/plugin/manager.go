@@ -220,20 +220,21 @@ func (p *PluginManager) SpawnPluginProcess(plugin *domains.PluginInfo) error {
 	cmd := exec.Command(plugin.Bin)
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, "NAGARE_PLUGIN_CONNECT_CODE="+connectCode)
-
-	if err := cmd.Start(); err != nil {
-		PluginLogger.Error("failed to spawn plugin process", "error", err)
-		return custom_errors.NewPluginError("failed to spawn plugin process")
-	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
+	if err := cmd.Start(); err != nil {
+		PluginLogger.Error("failed to spawn plugin process", "error", err, "plugin", plugin.PluginID)
+		return custom_errors.NewPluginError("failed to spawn plugin process")
+	}
+
 	if err := os.WriteFile(pidFile, []byte(strconv.Itoa(cmd.Process.Pid)), 0644); err != nil {
-		PluginLogger.Error("failed to write pid file", "error", err)
+		PluginLogger.Error("failed to write pid file", "error", err, "plugin", plugin.PluginID)
 	}
 
 	go func() {
 		if err := cmd.Wait(); err != nil {
-			PluginLogger.Error("plugin process exited", "error", err)
+			PluginLogger.Error("plugin process exited", "error", err, "plugin", plugin.PluginID)
 		}
 	}()
 
