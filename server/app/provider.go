@@ -8,6 +8,6 @@ type AppError struct {
 
 // @Injectable
 // @Root
-func StartApp(app *App, _ *AppRoute, _ taskers.PluginTasker) *AppError {
+func StartApp(app *App, _ *AppRoute, _ *taskers.PluginTasker) *AppError {
 	return app.StartServer()
 }
