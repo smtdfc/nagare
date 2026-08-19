@@ -86,11 +86,11 @@ func (m *SessionManager) GetOrCreateSession(sessionID string) ([]messages.Messag
 	return m.GetMessagesBySessionID(targetSessionID)
 }
 
-func (m *SessionManager) GetOrCreateSessionByUserID(telegramUserID string) (string, error) {
+func (m *SessionManager) GetOrCreateSessionByUserID(telegramUserID string) ([]messages.Message, error) {
 	ctx := context.Background()
 	session, err := m.sessionRepo.FindByUserID(telegramUserID)
 	if err == nil && session != nil {
-		return session.ID.String(), nil
+		return m.GetMessagesBySessionID(session.ID.String())
 	}
 
 	newSession := &models.Session{
@@ -100,10 +100,10 @@ func (m *SessionManager) GetOrCreateSessionByUserID(telegramUserID string) (stri
 	_, err = m.sessionRepo.CreateWithModel(ctx, newSession)
 	if err != nil {
 		SessionLogger.Error("failed to create session for user", "user_id", telegramUserID, "error", err)
-		return "", custom_errors.NewSessionError("failed to create session")
+		return nil, custom_errors.NewSessionError("failed to create session")
 	}
 
-	return newSession.ID.String(), nil
+	return messages.EMPTY_LIST, nil
 }
 
 func NewSessionManager(sessionRepo *repositories.SessionRepository, messageRepo *repositories.MessageRepository) *SessionManager {
