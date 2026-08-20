@@ -7,11 +7,11 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -24,22 +24,7 @@ import (
 	nagare_plugin "github.com/smtdfc/nagare/shared/plugin"
 )
 
-var ConnectCodes = map[string]bool{}
-
-func GenerateConnectCode() string {
-	code := uuid.New().String()
-	ConnectCodes[code] = false
-	return code
-}
-
-func HasConnectCode(code string) bool {
-	_, ok := ConnectCodes[code]
-	return ok
-}
-
-func MarkConnectCodeUsed(code string) {
-	ConnectCodes[code] = true
-}
+const CONNECT_CODE_TTL = 30 * time.Minute
 
 func Unzip(src string, dest string) error {
 	reader, err := zip.OpenReader(src)
@@ -91,7 +76,8 @@ func Unzip(src string, dest string) error {
 }
 
 type PluginManager struct {
-	pluginRepo *repositories.PluginRepository
+	connectCodeMgr *ConnectCodeManager
+	pluginRepo     *repositories.PluginRepository
 }
 
 func (p *PluginManager) ReadMetadata(pluginMetadataPath string) (*nagare_plugin.PluginMetadata, error) {
@@ -147,7 +133,7 @@ func (p *PluginManager) RegisterPlugin(pluginPath string) error {
 	}
 
 	pluginUUID := uuid.New().String()
-	pluginTempDir := path.Join(paths.TempDir, pluginUUID)
+	pluginTempDir := filepath.Join(paths.TempDir, pluginUUID)
 	err := Unzip(pluginPath, pluginTempDir)
 	if err != nil {
 		PluginLogger.Error("failed to extract plugin", "error", err)
@@ -155,7 +141,7 @@ func (p *PluginManager) RegisterPlugin(pluginPath string) error {
 	}
 	defer os.RemoveAll(pluginTempDir)
 
-	pluginMetadataFile := path.Join(pluginTempDir, "metadata.json")
+	pluginMetadataFile := filepath.Join(pluginTempDir, "metadata.json")
 	if _, err := os.Stat(pluginMetadataFile); os.IsNotExist(err) {
 		return custom_errors.NewPluginError("plugin metadata file not found")
 	}
@@ -172,7 +158,7 @@ func (p *PluginManager) RegisterPlugin(pluginPath string) error {
 	}
 
 	pluginDirName := p.GetPluginDirName(metadata)
-	pluginDirPath := path.Join(paths.PluginDir, pluginDirName)
+	pluginDirPath := filepath.Join(paths.PluginDir, pluginDirName)
 	if err := os.MkdirAll(pluginDirPath, 0755); err != nil {
 		return err
 	}
@@ -186,14 +172,14 @@ func (p *PluginManager) RegisterPlugin(pluginPath string) error {
 	if err != nil {
 		return err
 	}
-
+	mapper := &mappers.PluginMapper{}
 	plugin := &models.Plugin{
 		PluginID:   metadata.ID,
 		Name:       metadata.Name,
 		Version:    metadata.Version,
 		ApiVersion: metadata.ApiVersion,
 		Author:     metadata.Author,
-		Bin:        path.Join(pluginDirPath, binFile.Path),
+		Bin:        filepath.Join(pluginDirPath, binFile.Path),
 	}
 
 	err = p.pluginRepo.CreatePlugin(plugin)
@@ -203,7 +189,7 @@ func (p *PluginManager) RegisterPlugin(pluginPath string) error {
 
 	PluginLogger.Info("plugin installed", "plugin_dir", pluginDirPath)
 
-	err = p.SpawnPluginProcess(plugin)
+	err = p.SpawnPluginProcess(mapper.ToDomain(plugin))
 	if err != nil {
 		return err
 	}
@@ -225,27 +211,29 @@ func (p *PluginManager) GetAllPlugins() ([]*domains.PluginInfo, error) {
 	return pluginInfos, nil
 }
 
-func (p *PluginManager) SpawnPluginProcess(plugin *models.Plugin) error {
+func (p *PluginManager) SpawnPluginProcess(plugin *domains.PluginInfo) error {
+
 	binDir := filepath.Dir(plugin.Bin)
 	pidFile := filepath.Join(binDir, ".pid")
-	connectCode := GenerateConnectCode()
+	connectCode := p.connectCodeMgr.GenerateConnectCode(plugin, CONNECT_CODE_TTL)
 	cmd := exec.Command(plugin.Bin)
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, "NAGARE_PLUGIN_CONNECT_CODE="+connectCode)
-
-	if err := cmd.Start(); err != nil {
-		PluginLogger.Error("failed to spawn plugin process", "error", err)
-		return custom_errors.NewPluginError("failed to spawn plugin process")
-	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
+	if err := cmd.Start(); err != nil {
+		PluginLogger.Error("failed to spawn plugin process", "error", err, "plugin", plugin.PluginID)
+		return custom_errors.NewPluginError("failed to spawn plugin process")
+	}
+
 	if err := os.WriteFile(pidFile, []byte(strconv.Itoa(cmd.Process.Pid)), 0644); err != nil {
-		PluginLogger.Error("failed to write pid file", "error", err)
+		PluginLogger.Error("failed to write pid file", "error", err, "plugin", plugin.PluginID)
 	}
 
 	go func() {
 		if err := cmd.Wait(); err != nil {
-			PluginLogger.Error("plugin process exited", "error", err)
+			PluginLogger.Error("plugin process exited", "error", err, "plugin", plugin.PluginID)
 		}
 	}()
 
@@ -253,6 +241,7 @@ func (p *PluginManager) SpawnPluginProcess(plugin *models.Plugin) error {
 }
 
 func (p *PluginManager) Start() error {
+	mapper := &mappers.PluginMapper{}
 	plugins, err := p.pluginRepo.GetAllActivePlugins()
 	if err != nil {
 		PluginLogger.Error("failed to get active plugins", "error", err)
@@ -261,7 +250,7 @@ func (p *PluginManager) Start() error {
 
 	for _, plugin := range plugins {
 		PluginLogger.Info("Starting plugin", "plugin", plugin.PluginID)
-		if err := p.SpawnPluginProcess(&plugin); err != nil {
+		if err := p.SpawnPluginProcess(mapper.ToDomain(&plugin)); err != nil {
 			PluginLogger.Error("failed to spawn plugin process", "error", err, "plugin", plugin.PluginID)
 			return custom_errors.NewPluginError("failed to start plugins")
 		}
@@ -270,6 +259,7 @@ func (p *PluginManager) Start() error {
 }
 
 func (p *PluginManager) Stop() error {
+	mapper := &mappers.PluginMapper{}
 	plugins, err := p.pluginRepo.GetAllActivePlugins()
 	if err != nil {
 		PluginLogger.Error("failed to get active plugins", "error", err)
@@ -278,7 +268,7 @@ func (p *PluginManager) Stop() error {
 
 	for _, plugin := range plugins {
 		PluginLogger.Info("Stopping plugin", "plugin", plugin.PluginID)
-		if err := p.StopPluginProcess(&plugin); err != nil {
+		if err := p.StopPluginProcess(mapper.ToDomain(&plugin)); err != nil {
 			PluginLogger.Error("failed to stop plugin process", "error", err, "plugin", plugin.PluginID)
 			return custom_errors.NewPluginError("failed to stop plugins")
 		}
@@ -286,7 +276,7 @@ func (p *PluginManager) Stop() error {
 	return nil
 }
 
-func (p *PluginManager) StopPluginProcess(plugin *models.Plugin) error {
+func (p *PluginManager) StopPluginProcess(plugin *domains.PluginInfo) error {
 	binDir := filepath.Dir(plugin.Bin)
 	pidFile := filepath.Join(binDir, ".pid")
 	if _, err := os.Stat(pidFile); os.IsNotExist(err) {
@@ -324,11 +314,46 @@ func (p *PluginManager) StopPluginProcess(plugin *models.Plugin) error {
 }
 
 func (p *PluginManager) HasConnectCode(connectCode string) bool {
-	return HasConnectCode(connectCode)
+	return p.connectCodeMgr.HasConnectCode(connectCode)
 }
 
-func NewPluginManager(pluginRepo *repositories.PluginRepository) *PluginManager {
+func (p *PluginManager) GetPluginByConnectCode(connectCode string) *domains.PluginInfo {
+	return p.connectCodeMgr.GetPluginFromCode(connectCode)
+}
+
+func (p *PluginManager) RemovePlugin(pluginID string) error {
+	mapper := &mappers.PluginMapper{}
+	plugin, err := p.pluginRepo.GetPluginByID(pluginID)
+	if err != nil {
+		return custom_errors.NewPluginError("Failed to remove plugin")
+	}
+
+	pluginInfo := mapper.ToDomain(plugin)
+	PluginLogger.Info("Try stop plugin", "plugin", pluginInfo.PluginID)
+	p.StopPluginProcess(pluginInfo)
+
+	err = p.pluginRepo.DeletePluginByID(plugin.ID.String())
+	if err != nil {
+		return custom_errors.NewPluginError("Failed to remove plugin")
+	}
+
+	pluginDirName := p.GetPluginDirName(&nagare_plugin.PluginMetadata{
+		ID:      pluginInfo.PluginID,
+		Version: pluginInfo.Version,
+	})
+	pluginDirPath := filepath.Join(paths.PluginDir, pluginDirName)
+	err = os.RemoveAll(pluginDirPath)
+	if err != nil {
+		PluginLogger.Error("Failed to remove plugin data", "plugin", pluginInfo.PluginID, "error", err)
+		return custom_errors.NewPluginError("Failed to remove plugin")
+	}
+	PluginLogger.Info("Removed plugin", "plugin", pluginInfo.PluginID)
+	return nil
+}
+
+func NewPluginManager(pluginRepo *repositories.PluginRepository, connectCodeMgr *ConnectCodeManager) *PluginManager {
 	return &PluginManager{
-		pluginRepo: pluginRepo,
+		pluginRepo:     pluginRepo,
+		connectCodeMgr: connectCodeMgr,
 	}
 }

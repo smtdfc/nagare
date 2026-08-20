@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"fmt"
-
 	"github.com/smtdfc/nagare/server/config"
 	"github.com/smtdfc/nagare/shared/dto"
 	"github.com/smtdfc/nagare/shared/helpers"
@@ -24,9 +22,7 @@ func (h *AuthHandler) Auth(i *ws.WsInstance, message *dto.WsMessage[any]) {
 	token := payload.Token
 	authPayload, err := helpers.VerifyToken(h.conf.PublicKey, token)
 	if err != nil {
-		fmt.Println("err", err)
 		ws.SendMessage(i, dto.WS_AUTH_FAILED, dto.WsAuthFailedEvent{
-
 			Cause: "unauthorized",
 		})
 	}

@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "#/components/ui/toast";
 import { OpenPluginSelectDialog } from "@nagare-agent/service-bindings";
 import { PluginService } from "#/services/plugin";
+import { getErrorMessage } from "#/lib/error";
 
 export const Route = createFileRoute("/plugin/add")({
   component: RouteComponent,
@@ -66,7 +67,7 @@ function RouteComponent() {
     } catch (err) {
       toast.add({
         title: "Error",
-        description: "Failed to open file dialog",
+        description: getErrorMessage(err),
         type: "error",
       });
     }
@@ -86,7 +87,7 @@ function RouteComponent() {
     } catch (err) {
       toast.add({
         title: "Error",
-        description: err instanceof Error ? err.message : String(err),
+        description: getErrorMessage(err),
         type: "error",
       });
       setUploadStatus("error");

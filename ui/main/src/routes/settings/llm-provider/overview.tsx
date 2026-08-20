@@ -12,6 +12,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { createColumns } from "#/components/columns/provider-columns.tsx";
 import { toast } from "#/components/ui/toast";
+import { getErrorMessage } from "#/lib/error";
 
 export const Route = createFileRoute("/settings/llm-provider/overview")({
   component: RouteComponent,
@@ -32,7 +33,11 @@ function RouteComponent() {
         const data = await ProviderService.getListProvider();
         setProviders(data.providers || []);
       } catch (err) {
-        console.error("Failed to load providers:", err);
+        toast.add({
+          title: "Error",
+          description: getErrorMessage(err),
+          type: "error",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -57,7 +62,7 @@ function RouteComponent() {
         } catch (err) {
           toast.add({
             title: "Error",
-            description: "Failed to delete provider",
+            description: getErrorMessage(err),
             type: "error",
           });
         }

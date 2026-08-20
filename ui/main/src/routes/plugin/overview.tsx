@@ -7,6 +7,8 @@ import { PluginService } from "#/services/plugin";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "#/components/ui/toast";
+import { getErrorMessage } from "#/lib/error";
 
 export const Route = createFileRoute("/plugin/overview")({
   component: RouteComponent,
@@ -25,7 +27,11 @@ function RouteComponent() {
         const data = await PluginService.getAllPlugin();
         setPlugins(data || []);
       } catch (err) {
-        console.error("Failed to load providers:", err);
+        toast.add({
+          title: "Error",
+          description: getErrorMessage(err),
+          type: "error",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -35,7 +41,20 @@ function RouteComponent() {
   const columns = useMemo(() => {
     return createColumns(
       (plugin) => {},
-      async (plugin) => {},
+      async (plugin) => {
+        try {
+          await PluginService.removePlugin({ id: plugin.id });
+          setPlugins((prev) => prev.filter((p) => p.id != plugin.id));
+        } catch (err) {
+          toast.add({
+            title: "Error",
+            description: getErrorMessage(err),
+            type: "error",
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      },
     );
   }, []);
 

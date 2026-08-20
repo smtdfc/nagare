@@ -14,6 +14,7 @@ import { ChatService } from "#/services/chat.ts";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { AuthService } from "#/services/auth";
+import { getErrorMessage } from "#/lib/error";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -93,8 +94,12 @@ function Home() {
       }
 
       await ChatService.sendMessage(id!, userMsgContent);
-    } catch (e) {
-      console.log(e);
+    } catch (err) {
+      toast.add({
+        title: "Error",
+        description: getErrorMessage(err),
+        type: "error",
+      });
       setStatus(Status.IDLE);
     }
   };

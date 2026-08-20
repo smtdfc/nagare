@@ -29,18 +29,21 @@ func InitRoutes(
 	pluginHandler *handlers.PluginHandler,
 	config *config.ServerConfig,
 ) *AppRoute {
+	authMidleware := middwares.AuthMiddleware(config.PublicKey)
 	app.Get("/api/v1/health/check", heathController.CheckHealth)
-	app.Get("/api/v1/auth/me", middwares.AuthMiddleware(config.PublicKey), authController.Me)
-	app.Get("/api/v1/provider/list", middwares.AuthMiddleware(config.PublicKey), providerController.GetListProvider)
-	app.Get("/api/v1/provider/:id/details", middwares.AuthMiddleware(config.PublicKey), providerController.GetProviderDetails)
-	app.Post("/api/v1/provider/create", middwares.AuthMiddleware(config.PublicKey), providerController.CreateProvider)
-	app.Post("/api/v1/provider/update", middwares.AuthMiddleware(config.PublicKey), providerController.UpdateProvider)
-	app.Post("/api/v1/provider/delete", middwares.AuthMiddleware(config.PublicKey), providerController.DeleteProvider)
-	app.Post("/api/v1/provider/fetch-model", middwares.AuthMiddleware(config.PublicKey), providerController.FetchModel)
-	app.Get("/api/v1/settings/general", settingsController.GetGeneralSettings)
-	app.Post("/api/v1/settings/general/save", settingsController.SaveGeneralSettings)
-	app.Get("/api/v1/plugin/list", pluginController.GetAll)
-	app.Post("/api/v1/plugin/install-local", pluginController.InstallLocalPlugin)
+	app.Get("/api/v1/auth/me", authMidleware, authController.Me)
+	app.Get("/api/v1/provider/list", authMidleware, providerController.GetListProvider)
+	app.Get("/api/v1/provider/:id/details", authMidleware, providerController.GetProviderDetails)
+	app.Post("/api/v1/provider/create", authMidleware, providerController.CreateProvider)
+	app.Post("/api/v1/provider/update", authMidleware, providerController.UpdateProvider)
+	app.Post("/api/v1/provider/delete", authMidleware, providerController.DeleteProvider)
+	app.Post("/api/v1/provider/fetch-model", authMidleware, providerController.FetchModel)
+	app.Get("/api/v1/settings/general", authMidleware, settingsController.GetGeneralSettings)
+	app.Post("/api/v1/settings/general/save", authMidleware, settingsController.SaveGeneralSettings)
+	app.Get("/api/v1/plugin/list", authMidleware, pluginController.GetAll)
+	app.Post("/api/v1/plugin/install-local", authMidleware, pluginController.InstallLocalPlugin)
+	app.Post("/api/v1/plugin/remove", authMidleware, pluginController.RemovePlugin)
+
 	app.Use("/ws", func(c fiber.Ctx) error {
 		// IsWebSocketUpgrade returns true if the client
 		// requested upgrade to the WebSocket protocol.
@@ -73,7 +76,10 @@ func InitRoutes(
 		err := ws.WsHandler(w, r, func(instance *ws.WsInstance, wsMsg *dto.WsMessage[any]) error {
 			switch wsMsg.Event {
 			case dto.WS_PLUGIN_REGISTER:
+				pluginHandler.Register(instance, wsMsg)
 
+			case dto.WS_PLUGIN_INVOKE_AGENT:
+				pluginHandler.InvokeAgent(instance, wsMsg)
 			}
 			return nil
 		})

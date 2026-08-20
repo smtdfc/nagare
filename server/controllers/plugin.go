@@ -31,6 +31,18 @@ func (c *PluginController) InstallLocalPlugin(ctx fiber.Ctx) error {
 	return utils.SuccessResponse(data, 200, ctx)
 }
 
+func (c *PluginController) RemovePlugin(ctx fiber.Ctx) error {
+	var req dto.RemovePluginRequest
+	if err := ctx.Bind().JSON(&req); err != nil {
+		return err
+	}
+	data, err := c.pluginService.RemovePlugin(&req)
+	if err != nil {
+		return err
+	}
+	return utils.SuccessResponse(data, 200, ctx)
+}
+
 // @Injectable
 func NewPluginController(pluginService *services.PluginService) *PluginController {
 	return &PluginController{pluginService: pluginService}

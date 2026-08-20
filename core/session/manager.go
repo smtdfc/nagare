@@ -61,6 +61,51 @@ func (m *SessionManager) GetMessagesBySessionID(id string) ([]messages.Message, 
 	})
 }
 
+func (m *SessionManager) GetOrCreateSession(sessionID string) ([]messages.Message, error) {
+	var targetSessionID string
+
+	if sessionID == "" {
+		newID, err := m.CreateSession()
+		if err != nil {
+			return nil, err
+		}
+		targetSessionID = newID
+	} else {
+		session, err := m.sessionRepo.FindByID(sessionID)
+		if err != nil || session == nil {
+			newID, err := m.CreateSession()
+			if err != nil {
+				return nil, err
+			}
+			targetSessionID = newID
+		} else {
+			targetSessionID = session.ID.String()
+		}
+	}
+
+	return m.GetMessagesBySessionID(targetSessionID)
+}
+func (m *SessionManager) GetOrCreateSessionByUserID(userID string) (string, []messages.Message, error) {
+	ctx := context.Background()
+	session, err := m.sessionRepo.FindByUserID(userID)
+	if err == nil && session != nil {
+		msgs, err := m.GetMessagesBySessionID(session.ID.String())
+		return session.ID.String(), msgs, err
+	}
+
+	newSession := &models.Session{
+		UserID: userID,
+	}
+
+	createdSession, err := m.sessionRepo.CreateWithModel(ctx, newSession)
+	if err != nil {
+		SessionLogger.Error("failed to create session for user", "user_id", userID, "error", err)
+		return "", nil, custom_errors.NewSessionError("failed to create session")
+	}
+
+	return createdSession.ID.String(), messages.EMPTY_LIST, nil
+}
+
 func NewSessionManager(sessionRepo *repositories.SessionRepository, messageRepo *repositories.MessageRepository) *SessionManager {
 	return &SessionManager{
 		sessionRepo: sessionRepo,

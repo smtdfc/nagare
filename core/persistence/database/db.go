@@ -1,7 +1,7 @@
 package database
 
 import (
-	"path"
+	"path/filepath"
 
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/persistence"
@@ -20,7 +20,7 @@ func InitDatabase() (*gorm.DB, error) {
 	}
 
 	var err error
-	db, err = gorm.Open(sqlite.Open(path.Join(paths.DatabaseDir, "nagare.db")), &gorm.Config{})
+	db, err = gorm.Open(sqlite.Open(filepath.Join(paths.DatabaseDir, "nagare.db")), &gorm.Config{})
 	if err != nil {
 		persistence.PersistenceLogger.Error("Failed to init database", "error", err)
 		return nil, err

@@ -9,7 +9,9 @@ import (
 
 type Session struct {
 	gorm.Model
-	ID        uuid.UUID `gorm:"type:char(36);primaryKey;"`
+	ID     uuid.UUID `gorm:"type:char(36);primaryKey;"`
+	UserID string    `gorm:"index;"`
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

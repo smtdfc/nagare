@@ -15,6 +15,7 @@ import { ProviderService } from "#/services/provider";
 import { SettingsService } from "#/services/settings";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { getErrorMessage } from "#/lib/error";
 
 export const Route = createFileRoute("/settings/general")({
   component: RouteComponent,
@@ -42,7 +43,11 @@ function RouteComponent() {
         );
         setModels(currentProvider?.available_models || []);
       } catch (err) {
-        console.error("Failed to load:", err);
+        toast.add({
+          title: "Error",
+          description: getErrorMessage(err),
+          type: "error",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -72,7 +77,7 @@ function RouteComponent() {
       .catch((err) => {
         toast.add({
           title: "Error",
-          description: "Failed to save settings",
+          description: getErrorMessage(err),
           type: "error",
         });
       });

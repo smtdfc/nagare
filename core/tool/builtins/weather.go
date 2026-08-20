@@ -1,4 +1,4 @@
-package built_in
+package builtins
 
 import (
 	"encoding/json"
@@ -31,7 +31,7 @@ func callWeatherAPI(lat, lon float64) (*weatherResponse, error) {
 		lat, lon,
 	)
 
-	client := &http.Client{Timeout: 5 * time.Second}
+	client := &http.Client{Timeout: 5 * time.Minute}
 
 	resp, err := client.Get(url)
 	if err != nil {

@@ -13,3 +13,11 @@ dist-ssr
 .vinxi
 __unconfig*
 todos.json
+desktop/build/android/.gradle/9.2.1/fileChanges/last-build.bin
+desktop/build/android/.gradle/9.2.1/fileHashes/fileHashes.bin
+desktop/build/android/.gradle/9.2.1/fileHashes/fileHashes.lock
+desktop/build/android/.gradle/9.2.1/gc.properties
+desktop/build/android/.gradle/buildOutputCleanup/buildOutputCleanup.lock
+desktop/build/android/.gradle/buildOutputCleanup/cache.properties
+desktop/build/android/.gradle/vcs-1/gc.properties
+desktop/build/android/build/reports/problems/problems-report.html

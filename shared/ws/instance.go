@@ -2,7 +2,9 @@ package ws
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -22,6 +24,10 @@ func (i *WsInstance) GetConn() *websocket.Conn {
 func (i *WsInstance) ReadMessage() (*dto.WsMessage[any], error) {
 	_, payload, err := i.conn.ReadMessage()
 	if err != nil {
+		if errors.Is(err, io.EOF) || websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+			return nil, io.EOF
+		}
+
 		return nil, err
 	}
 

@@ -138,3 +138,10 @@ type InstallLocalPluginResponse struct {
 type GetProfileResponse struct {
 	Profile *Profile `json:"profile"`
 }
+
+type RemovePluginRequest struct {
+	ID string `json:"id"`
+}
+
+type RemovePluginResponse struct {
+}

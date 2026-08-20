@@ -2,6 +2,7 @@ import type {
   ApiResponse,
   GetAllPluginsResponse,
   InstallLocalPluginRequest,
+  RemovePluginRequest,
 } from "@nagare-agent/dto";
 import { getAxiosInstance } from "#/lib/axios";
 import { handleError } from "#/lib/error";
@@ -23,6 +24,15 @@ export class PluginService {
     try {
       const instance = await getAxiosInstance();
       await instance.post("/plugin/install-local", data);
+    } catch (e: unknown) {
+      handleError(e);
+    }
+  }
+
+  static async removePlugin(data: RemovePluginRequest) {
+    try {
+      const instance = await getAxiosInstance();
+      await instance.post("/plugin/remove", data);
     } catch (e: unknown) {
       handleError(e);
     }

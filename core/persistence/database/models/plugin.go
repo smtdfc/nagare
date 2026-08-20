@@ -11,7 +11,7 @@ type Plugin struct {
 	gorm.Model
 	ID uuid.UUID `gorm:"type:char(36);primaryKey;"`
 
-	PluginID   string `gorm:"unique"`
+	PluginID   string
 	Name       string
 	Active     bool   `gorm:"default:true"`
 	ApiVersion string `gorm:"default:v1"`
