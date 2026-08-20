@@ -56,9 +56,9 @@ func PrintBanner(port string) {
 	$$ |\$$$ |$$  __$$ |$$ |  $$ |$$  __$$ |$$ |      $$   ____|
 	$$ | \$$ |\$$$$$$$ |\$$$$$$$ |\$$$$$$$ |$$ |      \$$$$$$$\
 	\__|  \__| \_______| \____$$ | \_______|\__|       \_______|
-                    $$\   $$ |
-                    \$$$$$$  |
-                     \______/
+	                    $$\   $$ |
+	                    \$$$$$$  |
+	                     \______/
     `)
 	fmt.Printf("\t\t==================================================\n")
 	fmt.Printf("\t\t🚀 Nagare Server is running on port: %s\n", port)
@@ -73,7 +73,6 @@ type App struct {
 }
 
 func (a *App) StartServer() *AppError {
-	// Truyền port vào PrintBanner để hiển thị thông tin trực quan hơn
 	PrintBanner(a.config.Port)
 
 	go func() {

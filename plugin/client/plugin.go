@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"os"
@@ -28,44 +27,7 @@ type PluginClient struct {
 	ws         *ws.WsInstance
 
 	mu       sync.RWMutex
-	handlers map[dto.WsEvent][]EventHandler
-}
-
-func (p *PluginClient) CheckServerHealth() error {
-	p.Logger.Info("Checking server health", "serverAddr", p.serverAddr)
-	_, err := p.httpClient.R().Get(fmt.Sprintf("%s/health/check", p.serverAddr))
-	if err != nil {
-		p.Logger.Error("Server health check failed", "serverAddr", p.serverAddr, "error", err)
-		return err
-	}
-
-	p.Logger.Info("Server health check passed", "serverAddr", p.serverAddr)
-	return nil
-}
-
-func (p *PluginClient) On(event dto.WsEvent, handler EventHandler) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	p.handlers[event] = append(p.handlers[event], handler)
-	p.Logger.Debug("Registered event listener", "event", event)
-}
-
-func (p *PluginClient) Off(event dto.WsEvent) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	delete(p.handlers, event)
-	p.Logger.Debug("Removed all event listeners for", "event", event)
-}
-
-func (p *PluginClient) dispatchEvent(msg *dto.WsMessage[any]) {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	if handlers, exists := p.handlers[msg.Event]; exists {
-		for _, handler := range handlers {
-			go handler(msg)
-		}
-	}
+	handlers map[dto.WsEvent]map[string]EventHandler
 }
 
 func (p *PluginClient) Start(ctx context.Context, onReady func(context.Context) error) error {
@@ -128,11 +90,20 @@ func (p *PluginClient) Start(ctx context.Context, onReady func(context.Context) 
 
 		case res := <-msgChan:
 			if res.err != nil {
-				p.Logger.Error("Failed to read message / connection dropped", "error", res.err)
-				return res.err
-			}
+				if errors.Is(res.err, io.EOF) {
+					p.Logger.Info("Stream session ended gracefully by server.")
+					continue
+				}
 
-			p.Logger.Info("Received message from server", "event", res.msg.Event)
+				p.Logger.Error("Failed to read message / connection dropped", "error", res.err)
+				p.mu.Lock()
+				if p.ws != nil {
+					p.ws.Close()
+					p.ws = nil
+				}
+				p.mu.Unlock()
+				return nil
+			}
 			p.dispatchEvent(res.msg)
 		}
 	}
@@ -190,6 +161,6 @@ func NewPluginClient(name string) *PluginClient {
 		Logger:     logger.With("plugin", name),
 		name:       name,
 		httpClient: req.C().SetCommonHeader("Accept", "application/json").SetCommonHeader("X-nagare-plugin", name),
-		handlers:   make(map[dto.WsEvent][]EventHandler),
+		handlers:   make(map[dto.WsEvent]map[string]EventHandler),
 	}
 }

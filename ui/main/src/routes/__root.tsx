@@ -73,7 +73,7 @@ function AuthLayout() {
 export function RootComponent() {
   const auth = useAuth((s) => s.auth);
   const setAuthState = useAuth((s) => s.setAuthState);
-  const [isLoading, setIsLoading] = useState(true); // Thêm trạng thái kiểm tra
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {

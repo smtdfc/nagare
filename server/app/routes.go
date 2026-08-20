@@ -77,6 +77,9 @@ func InitRoutes(
 			switch wsMsg.Event {
 			case dto.WS_PLUGIN_REGISTER:
 				pluginHandler.Register(instance, wsMsg)
+
+			case dto.WS_PLUGIN_INVOKE_AGENT:
+				pluginHandler.InvokeAgent(instance, wsMsg)
 			}
 			return nil
 		})

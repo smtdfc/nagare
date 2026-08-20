@@ -81,7 +81,6 @@ func (h *ChatHandler) InvokeAgent(i *ws.WsInstance, message *dto.WsMessage[any])
 
 	history, err := global.GlobalSessionMgr.GetMessagesBySessionID(sessionID)
 	if err != nil {
-		fmt.Println(err.Error())
 		ws.SendMessage(i, dto.WS_INVOKE_AGENT_FAILED, dto.InvokeAgentFailedEvent{
 			ID:    id,
 			Cause: fmt.Sprintf("Failed to fetch messages for session ID: %s", sessionID),
