@@ -25,6 +25,7 @@ func (m *ToolManager) CallTool(ctx domains.Context, name string, args string) (s
 	return tool.Execute(ctx, args)
 }
 
+// @Injectable
 func NewToolManager() *ToolManager {
 	return &ToolManager{}
 }

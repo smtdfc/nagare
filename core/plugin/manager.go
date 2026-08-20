@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"archive/zip"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -18,8 +17,8 @@ import (
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/domains"
 	"github.com/smtdfc/nagare/core/persistence/database/mappers"
-	"github.com/smtdfc/nagare/core/persistence/database/models"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
+	"github.com/smtdfc/nagare/shared/helpers"
 	"github.com/smtdfc/nagare/shared/paths"
 	nagare_plugin "github.com/smtdfc/nagare/shared/plugin"
 )
@@ -81,13 +80,14 @@ type PluginManager struct {
 }
 
 func (p *PluginManager) ReadMetadata(pluginMetadataPath string) (*nagare_plugin.PluginMetadata, error) {
-	metadata := &nagare_plugin.PluginMetadata{}
 	raw, err := os.ReadFile(pluginMetadataPath)
 	if err != nil {
 		PluginLogger.Error("failed to read plugin metadata", "error", err)
 		return nil, custom_errors.NewPluginError("failed to read plugin metadata")
 	}
-	if err := json.Unmarshal(raw, metadata); err != nil {
+
+	metadata, err := helpers.FromJson[nagare_plugin.PluginMetadata](raw)
+	if err != nil {
 		PluginLogger.Error("failed to unmarshal plugin metadata", "error", err)
 		return nil, custom_errors.NewPluginError("failed to unmarshal plugin metadata")
 	}
@@ -128,6 +128,7 @@ func (p *PluginManager) copyPlugin(pluginPath, pluginDirPath string) error {
 }
 
 func (p *PluginManager) RegisterPlugin(pluginPath string) error {
+	mapper := &mappers.PluginMapper{}
 	if _, err := os.Stat(pluginPath); os.IsNotExist(err) {
 		return custom_errors.NewPluginError("plugin path not found")
 	}
@@ -172,24 +173,25 @@ func (p *PluginManager) RegisterPlugin(pluginPath string) error {
 	if err != nil {
 		return err
 	}
-	mapper := &mappers.PluginMapper{}
-	plugin := &models.Plugin{
+
+	pluginInfo := &domains.PluginInfo{
 		PluginID:   metadata.ID,
 		Name:       metadata.Name,
 		Version:    metadata.Version,
 		ApiVersion: metadata.ApiVersion,
 		Author:     metadata.Author,
 		Bin:        filepath.Join(pluginDirPath, binFile.Path),
+		Features:   metadata.Features,
 	}
 
-	err = p.pluginRepo.CreatePlugin(plugin)
+	err = p.pluginRepo.CreatePlugin(mapper.ToModel(pluginInfo))
 	if err != nil {
 		return custom_errors.NewPluginError("failed to create plugin")
 	}
 
 	PluginLogger.Info("plugin installed", "plugin_dir", pluginDirPath)
 
-	err = p.SpawnPluginProcess(mapper.ToDomain(plugin))
+	err = p.SpawnPluginProcess(pluginInfo)
 	if err != nil {
 		return err
 	}
@@ -212,7 +214,6 @@ func (p *PluginManager) GetAllPlugins() ([]*domains.PluginInfo, error) {
 }
 
 func (p *PluginManager) SpawnPluginProcess(plugin *domains.PluginInfo) error {
-
 	binDir := filepath.Dir(plugin.Bin)
 	pidFile := filepath.Join(binDir, ".pid")
 	connectCode := p.connectCodeMgr.GenerateConnectCode(plugin, CONNECT_CODE_TTL)
@@ -351,6 +352,7 @@ func (p *PluginManager) RemovePlugin(pluginID string) error {
 	return nil
 }
 
+// @Injectable
 func NewPluginManager(pluginRepo *repositories.PluginRepository, connectCodeMgr *ConnectCodeManager) *PluginManager {
 	return &PluginManager{
 		pluginRepo:     pluginRepo,

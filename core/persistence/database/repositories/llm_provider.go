@@ -65,6 +65,7 @@ func (r *LLMProviderRepository) DeleteByID(id string) error {
 	return nil
 }
 
+// @Injectable
 func NewLLMProviderRepository() *LLMProviderRepository {
 	db, _ := database.GetDatabase()
 	return &LLMProviderRepository{db: db}

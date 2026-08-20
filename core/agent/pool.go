@@ -21,6 +21,7 @@ func (a *AgentPool) Seed(size int) *AgentPool {
 	return a
 }
 
+// @Injectable
 func NewAgentPool(size int) *AgentPool {
 	return &AgentPool{
 		Pool: make(chan *Agent, size),

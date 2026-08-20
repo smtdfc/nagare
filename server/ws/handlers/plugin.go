@@ -9,6 +9,7 @@ import (
 	"github.com/smtdfc/nagare/core/global"
 	"github.com/smtdfc/nagare/shared/dto"
 	"github.com/smtdfc/nagare/shared/messages"
+	"github.com/smtdfc/nagare/shared/plugin"
 	"github.com/smtdfc/nagare/shared/ws"
 )
 
@@ -99,9 +100,9 @@ func (h *PluginHandler) Register(i *ws.WsInstance, message *dto.WsMessage[any]) 
 		return
 	}
 	pluginInfo := global.GlobalPluginMgr.GetPluginByConnectCode(payload.Code)
-	i.Auth = &dto.AuthPayload{
-		ID:     pluginInfo.ID,
-		Target: "plugin",
+	i.Auth = &plugin.PluginAuthPayload{
+		ID:       pluginInfo.ID,
+		Features: pluginInfo.Features,
 	}
 
 	h.pluginConnRegistry.Register(pluginInfo.ID, i, pluginInfo)
@@ -109,7 +110,7 @@ func (h *PluginHandler) Register(i *ws.WsInstance, message *dto.WsMessage[any]) 
 }
 
 func (h *PluginHandler) InvokeAgent(i *ws.WsInstance, message *dto.WsMessage[any]) {
-	if i.Auth == nil || i.Auth.Target != "plugin" {
+	if i.Auth == nil || i.Auth.GetKind() != "plugin" {
 		ws.SendMessage(i, dto.WS_INVOKE_AGENT_FAILED, dto.PluginInvokeAgentFailedEvent{
 			ID:    "",
 			Cause: "unauthorized",
@@ -129,10 +130,20 @@ func (h *PluginHandler) InvokeAgent(i *ws.WsInstance, message *dto.WsMessage[any
 	}
 
 	id := payload.ID
-	userID := fmt.Sprintf("user:plugin:%s:%s", i.Auth.ID, payload.SessionID)
+	userID := fmt.Sprintf("user:plugin:%s:%s", i.Auth.GetID(), payload.SessionID)
 	text := payload.Text
 
-	sessionID, history, err := global.GlobalSessionMgr.GetOrCreateSessionByUserID(userID)
+	sessionID, err := global.GlobalSessionMgr.GetOrCreateSessionByUserID(userID)
+	if err != nil {
+		ws.SendMessage(i, dto.WS_INVOKE_AGENT_FAILED, dto.PluginInvokeAgentFailedEvent{
+			ID:    id,
+			Cause: fmt.Sprintf("Failed to fetch messages for session ID: %s", sessionID),
+		})
+
+		return
+	}
+
+	history, err := global.GlobalSessionMgr.GetMessagesBySessionID(sessionID)
 	if err != nil {
 		ws.SendMessage(i, dto.WS_INVOKE_AGENT_FAILED, dto.PluginInvokeAgentFailedEvent{
 			ID:    id,
@@ -198,6 +209,52 @@ func (h *PluginHandler) InvokeAgent(i *ws.WsInstance, message *dto.WsMessage[any
 	}
 
 	global.PutAgentIntoPool(agent)
+}
+
+func (h *PluginHandler) ResetChatSession(i *ws.WsInstance, message *dto.WsMessage[any]) {
+	if i.Auth == nil || i.Auth.GetKind() != "plugin" {
+		ws.SendMessage(i, dto.WS_PLUGIN_RESET_CHAT_SESSION_FAILED, dto.PluginResetChatSessionFailedEvent{
+			ID:    "",
+			Cause: "unauthorized",
+		})
+
+		return
+	}
+
+	payload, err := ws.GetPayload[dto.PluginResetChatSessionEvent](message)
+	if err != nil {
+		ws.SendMessage(i, dto.WS_PLUGIN_RESET_CHAT_SESSION_FAILED, dto.PluginResetChatSessionFailedEvent{
+			ID:    "",
+			Cause: "Invalid payload",
+		})
+
+		return
+	}
+
+	id := payload.ID
+	userID := fmt.Sprintf("user:plugin:%s:%s", i.Auth.GetID(), payload.SessionID)
+
+	sessionID, err := global.GlobalSessionMgr.GetOrCreateSessionByUserID(userID)
+	if err != nil {
+		ws.SendMessage(i, dto.WS_PLUGIN_RESET_CHAT_SESSION_FAILED, dto.PluginResetChatSessionFailedEvent{
+			ID:    id,
+			Cause: fmt.Sprintf("Failed to find session ID: %s", sessionID),
+		})
+
+		return
+	}
+
+	err = global.GlobalSessionMgr.ResetSessionByID(sessionID)
+	if err != nil {
+		ws.SendMessage(i, dto.WS_PLUGIN_RESET_CHAT_SESSION_FAILED, dto.PluginResetChatSessionFailedEvent{
+			ID:    id,
+			Cause: fmt.Sprintf("Failed to reset session ID: %s", sessionID),
+		})
+
+		return
+	}
+
+	ws.SendMessage(i, dto.WS_PLUGIN_RESET_CHAT_SESSION_SUCCESS, dto.PluginResetChatSessionSuccessEvent{})
 }
 
 // @Injectable

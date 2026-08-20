@@ -13,6 +13,9 @@ import (
 	"github.com/smtdfc/nagare/shared/helpers"
 )
 
+type Global struct {
+}
+
 func Init() error {
 	logger.Logger.Info("Global init")
 	_, err := database.InitDatabase()

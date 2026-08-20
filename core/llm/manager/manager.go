@@ -31,6 +31,7 @@ func (l *LLMManger) GetAvailableModels(compatable string, baseURL string, apiKey
 	}
 }
 
+// @Injectable
 func NewLLMManger() *LLMManger {
 	return &LLMManger{}
 }

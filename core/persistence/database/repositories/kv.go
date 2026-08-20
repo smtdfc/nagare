@@ -38,6 +38,7 @@ func (r *KVRepository) Save(kv []models.KV) error {
 	return err
 }
 
+// @Injectable
 func NewKVRepository() *KVRepository {
 	db, _ := database.GetDatabase()
 	return &KVRepository{db: db}

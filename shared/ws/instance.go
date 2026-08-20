@@ -8,13 +8,15 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	shared_domains "github.com/smtdfc/nagare/shared/domains"
 	"github.com/smtdfc/nagare/shared/dto"
+	"github.com/smtdfc/nagare/shared/helpers"
 )
 
 type WsInstance struct {
 	ID   string
 	conn *websocket.Conn
-	Auth *dto.AuthPayload
+	Auth shared_domains.AuthPayload
 }
 
 func (i *WsInstance) GetConn() *websocket.Conn {
@@ -35,12 +37,12 @@ func (i *WsInstance) ReadMessage() (*dto.WsMessage[any], error) {
 		return nil, fmt.Errorf("received empty payload")
 	}
 
-	var wsMsg dto.WsMessage[any]
-	if err := json.Unmarshal(payload, &wsMsg); err != nil {
+	wsMsg, err := helpers.FromJson[dto.WsMessage[any]](payload)
+	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal JSON: %w (Raw: %s)", err, string(payload))
 	}
 
-	return &wsMsg, nil
+	return wsMsg, nil
 }
 
 func SendMessage[T any](i *WsInstance, event dto.WsEvent, payload T) error {

@@ -80,6 +80,9 @@ func InitRoutes(
 
 			case dto.WS_PLUGIN_INVOKE_AGENT:
 				pluginHandler.InvokeAgent(instance, wsMsg)
+
+			case dto.WS_PLUGIN_RESET_CHAT_SESSION:
+				pluginHandler.ResetChatSession(instance, wsMsg)
 			}
 			return nil
 		})

@@ -65,6 +65,7 @@ func (m *ConnectCodeManager) GetPluginFromCode(code string) *domains.PluginInfo 
 	return entry.plugin
 }
 
+// @Injectable
 func NewConnectCodeManager() *ConnectCodeManager {
 	manager := &ConnectCodeManager{
 		codes: make(map[string]pluginCodeEntry),

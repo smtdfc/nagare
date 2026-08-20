@@ -1,5 +1,9 @@
 package domains
 
+import (
+	"github.com/smtdfc/nagare/shared/plugin"
+)
+
 type PluginInfo struct {
 	ID         string
 	PluginID   string
@@ -9,4 +13,5 @@ type PluginInfo struct {
 	Author     string
 	Version    string
 	Bin        string
+	Features   plugin.ListPluginFeature
 }

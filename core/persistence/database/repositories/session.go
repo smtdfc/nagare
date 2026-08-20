@@ -60,6 +60,7 @@ func (r *SessionRepository) FindByUserID(id string) (*models.Session, error) {
 	return &session, nil
 }
 
+// @Injectable
 func NewSessionRepository() *SessionRepository {
 	db, _ := database.GetDatabase()
 	return &SessionRepository{

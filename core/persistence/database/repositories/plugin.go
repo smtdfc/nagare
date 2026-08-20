@@ -66,6 +66,7 @@ func (r *PluginRepository) GetPluginByID(id string) (*models.Plugin, error) {
 	return &plugin, nil
 }
 
+// @Injectable
 func NewPluginRepository() *PluginRepository {
 	db, _ := database.GetDatabase()
 	return &PluginRepository{db: db}

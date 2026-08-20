@@ -18,6 +18,7 @@ type Plugin struct {
 	Author     string `gorm:"default:unknown"`
 	Version    string `gorm:"default:v1"`
 	Bin        string `gorm:"default:unknown"`
+	Features   string `gorm:"default:basic"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }

@@ -14,12 +14,14 @@ import (
 	"github.com/smtdfc/nagare/shared/dto"
 	"github.com/smtdfc/nagare/shared/helpers"
 	"github.com/smtdfc/nagare/shared/paths"
+	"github.com/smtdfc/nagare/shared/plugin"
 	"github.com/smtdfc/nagare/shared/ws"
 )
 
 type EventHandler func(msg *dto.WsMessage[any])
 
 type PluginClient struct {
+	Metadata   *plugin.PluginMetadata
 	Logger     *slog.Logger
 	serverAddr string
 	name       string

@@ -2,8 +2,10 @@ package client
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/shared/dto"
@@ -95,4 +97,28 @@ func (p *PluginClient) InvokeAgent(text string, sessionID string) (<-chan messag
 
 	fmt.Println(err)
 	return output, nil
+}
+
+func (p *PluginClient) ResetChatSession(sessionID string) error {
+	_, werr, err := WsRequest[dto.PluginResetChatSessionSuccessEvent, dto.PluginResetChatSessionFailedEvent](
+		p,
+		dto.WS_PLUGIN_RESET_CHAT_SESSION,
+		dto.WS_PLUGIN_RESET_CHAT_SESSION_SUCCESS,
+		dto.WS_PLUGIN_RESET_CHAT_SESSION_FAILED,
+		&dto.PluginResetChatSessionEvent{
+			ID:        sessionID,
+			SessionID: sessionID,
+		},
+		10*time.Minute,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if werr != nil {
+		return errors.New(werr.Cause)
+	}
+
+	return nil
 }

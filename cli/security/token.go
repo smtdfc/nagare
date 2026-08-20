@@ -8,9 +8,11 @@ import (
 )
 
 func GenerateAuthToken(id string) (string, error) {
-	authPayload := dto.AuthPayload{
-		ID:   id,
-		Role: "user",
+	authPayload := dto.JwtAuthPayload{
+		ID:     id,
+		Role:   "user",
+		Kind:   "user",
+		Scopes: []string{"basic"},
 	}
 
 	json, err := json.Marshal(&authPayload)

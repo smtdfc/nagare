@@ -12,7 +12,7 @@ type AuthController struct {
 }
 
 func (c *AuthController) Me(ctx fiber.Ctx) error {
-	authPayload := ctx.Locals("auth").(*dto.AuthPayload)
+	authPayload := ctx.Locals("auth").(*dto.JwtAuthPayload)
 	if authPayload == nil {
 		return utils.ErrorResponse(custom_errors.NewServiceError("Unauthorized", 401), ctx)
 	}

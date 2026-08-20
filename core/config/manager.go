@@ -86,6 +86,7 @@ func (c *ConfigManager) DeleteLLMProviderConfig(id string) error {
 	return nil
 }
 
+// @Injectable
 func NewConfigManager(llmProviderRepo *repositories.LLMProviderRepository, kvRepo *repositories.KVRepository) *ConfigManager {
 	return &ConfigManager{
 		llmProviderRepo: llmProviderRepo,

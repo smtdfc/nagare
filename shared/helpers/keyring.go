@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	shared_domains "github.com/smtdfc/nagare/shared/domains"
 	"github.com/smtdfc/nagare/shared/dto"
 )
 
@@ -89,8 +90,8 @@ func GenerateToken(privateKeyPEM string, payload string) (string, error) {
 	return tokenString, nil
 }
 
-func VerifyToken(publicKeyPEM string, tokenString string) (*dto.AuthPayload, error) {
-	var authPayload dto.AuthPayload
+func VerifyToken(publicKeyPEM string, tokenString string) (shared_domains.AuthPayload, error) {
+	var authPayload dto.JwtAuthPayload
 	block, _ := pem.Decode([]byte(publicKeyPEM))
 	if block == nil {
 		return nil, errors.New("invalid public key PEM")

@@ -26,7 +26,6 @@ func PutAgentIntoPool(agent *agent.Agent) {
 }
 
 func FetchReadyAgent(state *agent.AgentState) (*agent.Agent, error) {
-
 	generalConfig, err := GlobalConfigMgr.GetGeneralConfig()
 	if err != nil {
 		return nil, err

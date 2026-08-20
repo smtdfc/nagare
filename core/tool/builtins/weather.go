@@ -52,7 +52,7 @@ func callWeatherAPI(lat, lon float64) (*weatherResponse, error) {
 var WeatherTool = tool_declaration.Declare(
 	"get_weather",
 	"Get weather information by coordinates.",
-	func(ctx domains.Context, args WeatherArgs) (any, error) {
+	func(ctx domains.Context, args *WeatherArgs) (any, error) {
 
 		data, err := callWeatherAPI(args.Lat, args.Lon)
 		if err != nil {

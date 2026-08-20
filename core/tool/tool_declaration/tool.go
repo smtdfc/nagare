@@ -7,9 +7,10 @@ import (
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/domains"
 	tool_logger "github.com/smtdfc/nagare/core/tool/logger"
+	"github.com/smtdfc/nagare/shared/helpers"
 )
 
-type ToolCallback[I any, O any] func(ctx domains.Context, args I) (O, error)
+type ToolCallback[I any, O any] func(ctx domains.Context, args *I) (O, error)
 
 type ToolDeclaration[I any, O any] struct {
 	Name        string
@@ -43,8 +44,7 @@ func (t *ToolDeclaration[I, O]) GetDescription() string {
 }
 
 func (t *ToolDeclaration[I, O]) Execute(ctx domains.Context, argsJson string) (string, error) {
-	var args I
-	err := json.Unmarshal([]byte(argsJson), &args)
+	args, err := helpers.FromJson[I](argsJson)
 	if err != nil {
 		tool_logger.ToolLogger.Error("Failed to unmarshal tool arguments", "error", err)
 		return "{}", custom_errors.NewToolError("Tool validation failed: One or more arguments provided to the tool are incorrect or improperly formatted.", t.Name)
@@ -55,7 +55,7 @@ func (t *ToolDeclaration[I, O]) Execute(ctx domains.Context, argsJson string) (s
 		return "{}", err
 	}
 
-	resultJson, err := json.Marshal(&result)
+	resultJson, err := helpers.MapObjectToJson(&result)
 	if err != nil {
 		tool_logger.ToolLogger.Error("Failed to marshal tool result", "error", err)
 		return "{}", custom_errors.NewToolError("Tool processing error: An unexpected error occurred while processing the tool's output.", t.Name)

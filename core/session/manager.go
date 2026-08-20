@@ -85,12 +85,12 @@ func (m *SessionManager) GetOrCreateSession(sessionID string) ([]messages.Messag
 
 	return m.GetMessagesBySessionID(targetSessionID)
 }
-func (m *SessionManager) GetOrCreateSessionByUserID(userID string) (string, []messages.Message, error) {
+
+func (m *SessionManager) GetOrCreateSessionByUserID(userID string) (string, error) {
 	ctx := context.Background()
 	session, err := m.sessionRepo.FindByUserID(userID)
 	if err == nil && session != nil {
-		msgs, err := m.GetMessagesBySessionID(session.ID.String())
-		return session.ID.String(), msgs, err
+		return session.ID.String(), err
 	}
 
 	newSession := &models.Session{
@@ -100,12 +100,24 @@ func (m *SessionManager) GetOrCreateSessionByUserID(userID string) (string, []me
 	createdSession, err := m.sessionRepo.CreateWithModel(ctx, newSession)
 	if err != nil {
 		SessionLogger.Error("failed to create session for user", "user_id", userID, "error", err)
-		return "", nil, custom_errors.NewSessionError("failed to create session")
+		return "", custom_errors.NewSessionError("failed to create session")
 	}
 
-	return createdSession.ID.String(), messages.EMPTY_LIST, nil
+	return createdSession.ID.String(), nil
 }
 
+func (m *SessionManager) ResetSessionByID(sessionID string) error {
+	ctx := context.Background()
+	err := m.messageRepo.DeleteMessagesBySessionID(ctx, sessionID)
+	if err != nil {
+		SessionLogger.Error("failed to reset session", "session_id", sessionID, "error", err)
+		return custom_errors.NewSessionError("failed to reset session")
+	}
+
+	return nil
+}
+
+// @Injectable
 func NewSessionManager(sessionRepo *repositories.SessionRepository, messageRepo *repositories.MessageRepository) *SessionManager {
 	return &SessionManager{
 		sessionRepo: sessionRepo,
