@@ -1,3 +1,31 @@
+# [1.3.0](https://github.com/smtdfc/nagare/compare/v1.2.0...v1.3.0) (2026-08-20)
+
+
+### Bug Fixes
+
+* **core/plugin:** fix plugin stdout/stderr streams not displaying ([4fe1755](https://github.com/smtdfc/nagare/commit/4fe1755c19013a7576742437f07070af16410b39))
+* **core/session:** fix incorrect return type ([ba51804](https://github.com/smtdfc/nagare/commit/ba51804a9bde4b02cb80db4a9e70815e7b7d004f))
+* **core:** fix missing condition in database query ([03895f2](https://github.com/smtdfc/nagare/commit/03895f23d72df2f9084ac8b0ec62227c87583691))
+* **core:** remove unique constraint for soft-deleted plugins ([d16769c](https://github.com/smtdfc/nagare/commit/d16769c41372a18159c5dc07ce396846118db6a5))
+* **server/app:** resolve missing dependency injection provider ([6ce1ae5](https://github.com/smtdfc/nagare/commit/6ce1ae58c18c664087cb800198fc626dba46f2df))
+* **ui/main:** improve error toast display behavior ([1589cd3](https://github.com/smtdfc/nagare/commit/1589cd3541745e6c6eb6a0c5b6c2e7614daabeec))
+
+
+### Features
+
+* **core/logger:** add multi-writer support to logger ([06477f0](https://github.com/smtdfc/nagare/commit/06477f08d69c8de1cb3ebb630c3c89231158cf0d))
+* **core/session:** implement GetOrCreateSessionByUserID method ([0675a82](https://github.com/smtdfc/nagare/commit/0675a8276f99b217b83f9d0c6a794b19d0b47ea9))
+* enable plugin removal functionality ([5252b64](https://github.com/smtdfc/nagare/commit/5252b647feb443868d8f8a1e16f38e3b59ebab38))
+* **plugin/client:** add context support to control and cancel plugin ([29e572a](https://github.com/smtdfc/nagare/commit/29e572ae7b90bbb23dae4c5496b86fb88c7cf770))
+* **plugin/client:** add websocket event listener and unlistener helpers ([5b9b674](https://github.com/smtdfc/nagare/commit/5b9b6740e5ba8c657027017d9d49d4b870fb67bd))
+* **plugin:** implement agent invocation over websocket and telegram ([4f3c3a6](https://github.com/smtdfc/nagare/commit/4f3c3a65a25020cfc45e8c80897c84ecdc6d0eab))
+* **plugin:** introduce Nagare Telegram plugin ([c13484f](https://github.com/smtdfc/nagare/commit/c13484f3435c28b1ced938e60c3deb3dccdcc14a))
+* **server:** add plugin event bus for internal messaging ([3243bc5](https://github.com/smtdfc/nagare/commit/3243bc5431c6536a347e5ffb8b0d46a121ed4cfd))
+* **server:** add startup banner ([3f72770](https://github.com/smtdfc/nagare/commit/3f727702807d3dc363cfa5bbdd9c409915b9a1fd))
+* **server:** introduce experimental ReduceMemoryUsage configuration ([d6bfb6a](https://github.com/smtdfc/nagare/commit/d6bfb6af3db0e796d169161dd3f0d76b12a5f120))
+* **shared/bus:** implement core event bus ([0881a58](https://github.com/smtdfc/nagare/commit/0881a58cf9936563e0a829c8f7b85ae9db6efc46))
+* **shared/paths:** add plugin configuration directory path ([61caefc](https://github.com/smtdfc/nagare/commit/61caefc5f18b65ee023d36592d0370b0a5494349))
+
 # [1.2.0](https://github.com/smtdfc/nagare/compare/v1.1.0...v1.2.0) (2026-08-18)
 
 
