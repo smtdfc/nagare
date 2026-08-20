@@ -1,6 +1,6 @@
 import { WsEvent } from "@nagare-agent/dto";
 import type {
-  AgentOuputEvent,
+  AgentOutputEvent,
   CreateSessionSuccessEvent,
   InvokeAgentEvent,
   InvokeAgentFailedEvent,
@@ -11,7 +11,7 @@ export class ChatService {
   static listenMessage(
     cb: (isSuccess: boolean, data?: Message, err?: string) => void,
   ) {
-    const onSuccess = (d: AgentOuputEvent) => {
+    const onSuccess = (d: AgentOutputEvent) => {
       cb(false, d.message as Message, undefined);
     };
 

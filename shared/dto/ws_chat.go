@@ -38,7 +38,7 @@ type InvokeAgentFailedEvent struct {
 }
 
 // Event: WS_AGENT_RESPONSE
-type AgentOuputEvent struct {
+type AgentOutputEvent struct {
 	ID        string           `json:"id" mapstructure:"id"`
 	SessionID string           `json:"session_id" mapstructure:"session_id"`
 	Message   messages.Message `json:"message" mapstructure:"message"`

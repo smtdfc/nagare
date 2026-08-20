@@ -4,33 +4,33 @@
 /**
  * Event: WS_AGENT_RESPONSE
  */
-export interface AgentOuputEvent {
-    id: string;
-    session_id: string;
-    // interface type, falling back to unknown
-    // this is likely an enum in an external package "github.com/smtdfc/nagare/shared/messages.Message"
-    message: unknown;
+export interface AgentOutputEvent {
+  id: string;
+  session_id: string;
+  // interface type, falling back to unknown
+  // this is likely an enum in an external package "github.com/smtdfc/nagare/shared/messages.Message"
+  message: unknown;
 }
 
 // From dto/api.go
 export interface ApiError {
-    name: string;
-    message: string;
-    details?: Record<string, string> | null;
+  name: string;
+  message: string;
+  details?: Record<string, string> | null;
 }
 
 // From dto/api.go
 export interface ApiResponse<T extends any> {
-    data?: T;
-    status: string;
-    error?: ApiError | null;
+  data?: T;
+  status: string;
+  error?: ApiError | null;
 }
 
 // From dto/auth.go
 export interface AuthPayload {
-    id: string;
-    role: string;
-    Target: string;
+  id: string;
+  role: string;
+  Target: string;
 }
 
 // From dto/ws_chat.go
@@ -38,37 +38,36 @@ export interface AuthPayload {
  * Event: WS_AUTH
  */
 export interface AuthRequestEvent {
-    token: string;
+  token: string;
 }
 
 // From dto/api.go
 export interface CheckHealthResponse {
-    cpu: number;
-    memory: number;
-    uptime: number;
-    status: string;
+  cpu: number;
+  memory: number;
+  uptime: number;
+  status: string;
 }
 
 // From dto/api.go
 export interface CreateProviderRequest {
-    compatible: string;
-    name: string;
-    base_url: string;
-    api_key: string;
-    is_enable: boolean;
-    available_models: string[];
+  compatible: string;
+  name: string;
+  base_url: string;
+  api_key: string;
+  is_enable: boolean;
+  available_models: string[];
 }
 
 // From dto/api.go
-export interface CreateProviderResponse {
-}
+export interface CreateProviderResponse {}
 
 // From dto/ws_chat.go
 /**
  * Event: WS_CREATE_SESSION_FAILED
  */
 export interface CreateSessionFailedEvent {
-    cause: string;
+  cause: string;
 }
 
 // From dto/ws_chat.go
@@ -76,83 +75,81 @@ export interface CreateSessionFailedEvent {
  * Event: WS_CREATE_SESSION_SUCCESS
  */
 export interface CreateSessionSuccessEvent {
-    id: string;
+  id: string;
 }
 
 // From dto/api.go
 export interface DeleteProviderRequest {
-    id: string;
+  id: string;
 }
 
 // From dto/api.go
-export interface DeleteProviderResponse {
-}
+export interface DeleteProviderResponse {}
 
 // From dto/api.go
 export interface FetchModelRequest {
-    compatible: string;
-    base_url: string;
-    api_key: string;
+  compatible: string;
+  base_url: string;
+  api_key: string;
 }
 
 // From dto/api.go
 export interface FetchModelResponse {
-    models: string[];
+  models: string[];
 }
 
 // From dto/api.go
 export interface GeneralSettings {
-    current_provider: string;
-    current_model: string;
+  current_provider: string;
+  current_model: string;
 }
 
 // From dto/api.go
 export interface GetAllPluginsResponse {
-    plugins: PluginInfo[];
+  plugins: PluginInfo[];
 }
 
 // From dto/api.go
 export interface GetGeneralSettingsResponse {
-    settings: GeneralSettings | null;
+  settings: GeneralSettings | null;
 }
 
 // From dto/api.go
 export interface GetListProviderResponse {
-    providers: ProviderInfo[];
+  providers: ProviderInfo[];
 }
 
 // From dto/api.go
 export interface GetProfileResponse {
-    profile: Profile | null;
+  profile: Profile | null;
 }
 
 // From dto/api.go
 export interface GetProviderByIDRequest {
-    id: string;
+  id: string;
 }
 
 // From dto/api.go
 export interface GetProviderByIDResponse {
-    provider: Provider;
+  provider: Provider;
 }
 
 // From dto/api.go
 export interface InstallLocalPluginRequest {
-    path: string;
+  path: string;
 }
 
 // From dto/api.go
-export interface InstallLocalPluginResponse {
-}
+export interface InstallLocalPluginResponse {}
 
 // From dto/ws_chat.go
 /**
  * Event: WS_INVOKE_AGENT
  */
 export interface InvokeAgentEvent {
-    id: string;
-    session_id: string;
-    text: string;
+  id: string;
+  session_id: string;
+  text: string;
 }
 
 // From dto/ws_chat.go
@@ -160,33 +157,33 @@ export interface InvokeAgentEvent {
  * Event: WS_INVOKE_AGENT_FAILED
  */
 export interface InvokeAgentFailedEvent {
-    id: string;
-    cause: string;
+  id: string;
+  cause: string;
 }
 
 // From dto/plugin.go
 export interface PluginHandshakeRequest {
-    id: string;
-    name: string;
-    version: string;
-    api_version: string;
+  id: string;
+  name: string;
+  version: string;
+  api_version: string;
 }
 
 // From dto/plugin.go
 export interface PluginHandshakeResponse {
-    accepted: boolean;
-    message: string;
+  accepted: boolean;
+  message: string;
 }
 
 // From dto/api.go
 export interface PluginInfo {
-    id: string;
-    plugin_id: string;
-    name: string;
-    active: boolean;
-    api_version: string;
-    author: string;
-    version: string;
+  id: string;
+  plugin_id: string;
+  name: string;
+  active: boolean;
+  api_version: string;
+  author: string;
+  version: string;
 }
 
 // From dto/ws_plugin.go
@@ -194,7 +191,7 @@ export interface PluginInfo {
  * Event: WS_PLUGIN_REGISTER
  */
 export interface PluginRegisterEvent {
-    code: string;
+  code: string;
 }
 
 // From dto/ws_plugin.go
@@ -202,111 +199,105 @@ export interface PluginRegisterEvent {
  * Event: WS_PLUGIN_REGISTER_FAILED
  */
 export interface PluginRegisterFailedEvent {
-    cause: string;
+  cause: string;
 }
 
 // From dto/ws_plugin.go
 /**
  * Event: WS_PLUGIN_REGISTER_SUCCESS
  */
-export interface PluginRegisterSuccessEvent {
-}
+export interface PluginRegisterSuccessEvent {}
 
 // From dto/api.go
 export interface Profile {
-    id: string;
-    role: string;
+  id: string;
+  role: string;
 }
 
 // From dto/api.go
 export interface Provider {
-    id: string;
-    compatible: string;
-    name: string;
-    base_url: string;
-    is_enable: boolean;
-    available_models: string[];
-    api_key: string;
+  id: string;
+  compatible: string;
+  name: string;
+  base_url: string;
+  is_enable: boolean;
+  available_models: string[];
+  api_key: string;
 }
 
 // From dto/api.go
 export interface ProviderInfo {
-    id: string;
-    compatible: string;
-    name: string;
-    base_url: string;
-    is_enable: boolean;
-    available_models: string[];
+  id: string;
+  compatible: string;
+  name: string;
+  base_url: string;
+  is_enable: boolean;
+  available_models: string[];
 }
 
 // From dto/api.go
 export interface RemovePluginRequest {
-    id: string;
+  id: string;
 }
 
 // From dto/api.go
-export interface RemovePluginResponse {
-}
+export interface RemovePluginResponse {}
 
 // From dto/api.go
 export interface SaveGeneralSettingsRequest {
-    settings: GeneralSettings | null;
+  settings: GeneralSettings | null;
 }
 
 // From dto/api.go
-export interface SaveGeneralSettingsResponse {
-}
+export interface SaveGeneralSettingsResponse {}
 
 // From dto/api.go
 export interface UpdateProviderRequest {
-    id: string;
-    compatible: string;
-    name: string;
-    base_url: string;
-    api_key: string;
-    is_enable: boolean;
-    available_models: string[];
-    model_name: string;
+  id: string;
+  compatible: string;
+  name: string;
+  base_url: string;
+  api_key: string;
+  is_enable: boolean;
+  available_models: string[];
+  model_name: string;
 }
 
 // From dto/api.go
-export interface UpdateProviderResponse {
-}
+export interface UpdateProviderResponse {}
 
 // From dto/ws_chat.go
 /**
  * Event: WS_AUTH_FAILED
  */
 export interface WsAuthFailedEvent {
-    cause: string;
+  cause: string;
 }
 
 // From dto/ws_chat.go
 /**
  * Event: WS_AUTH_SUCCESS
  */
-export interface WsAuthSuccessEvent {
-}
+export interface WsAuthSuccessEvent {}
 
 // From dto/ws.go
 export enum WsEvent {
-    WS_AGENT_RESPONSE = "WS_AGENT_RESPONSE",
-    WS_AUTH_FAILED = "WS_AUTH_FAILED",
-    WS_AUTH_REQUEST = "WS_AUTH_REQUEST",
-    WS_AUTH_SUCCESS = "WS_AUTH_SUCCESS",
-    WS_CREATE_SESSION = "WS_CREATE_SESSION",
-    WS_CREATE_SESSION_FAILED = "WS_CREATE_SESSION_FAILED",
-    WS_CREATE_SESSION_SUCCESS = "WS_CREATE_SESSION_SUCCESS",
-    WS_INVOKE_AGENT = "WS_INVOKE_AGENT",
-    WS_INVOKE_AGENT_FAILED = "WS_INVOKE_AGENT_FAILED",
-    WS_PLUGIN_REGISTER = "WS_PLUGIN_REGISTER",
-    WS_PLUGIN_REGISTER_FAILED = "WS_PLUGIN_REGISTER_FAIL",
-    WS_PLUGIN_REGISTER_SUCCESS = "WS_PLUGIN_REGISTER_SUCCESS"
+  WS_AGENT_RESPONSE = "WS_AGENT_RESPONSE",
+  WS_AUTH_FAILED = "WS_AUTH_FAILED",
+  WS_AUTH_REQUEST = "WS_AUTH_REQUEST",
+  WS_AUTH_SUCCESS = "WS_AUTH_SUCCESS",
+  WS_CREATE_SESSION = "WS_CREATE_SESSION",
+  WS_CREATE_SESSION_FAILED = "WS_CREATE_SESSION_FAILED",
+  WS_CREATE_SESSION_SUCCESS = "WS_CREATE_SESSION_SUCCESS",
+  WS_INVOKE_AGENT = "WS_INVOKE_AGENT",
+  WS_INVOKE_AGENT_FAILED = "WS_INVOKE_AGENT_FAILED",
+  WS_PLUGIN_REGISTER = "WS_PLUGIN_REGISTER",
+  WS_PLUGIN_REGISTER_FAILED = "WS_PLUGIN_REGISTER_FAIL",
+  WS_PLUGIN_REGISTER_SUCCESS = "WS_PLUGIN_REGISTER_SUCCESS",
 }
 
 // From dto/ws.go
 export interface WsMessage<T extends any> {
-    event: WsEvent;
-    payload: T;
+  event: WsEvent;
+  payload: T;
 }
-

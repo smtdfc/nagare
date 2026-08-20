@@ -8,10 +8,10 @@ import (
 	"github.com/smtdfc/nagare/core/llm/providers"
 )
 
-type LLMManger struct {
+type LLMManager struct {
 }
 
-func (l *LLMManger) getOpenAIModels(baseURL string, apiKey string) ([]string, error) {
+func (l *LLMManager) getOpenAIModels(baseURL string, apiKey string) ([]string, error) {
 	openAIAdapter := providers.NewOpenAICompatibleProviderAdapter(baseURL, apiKey, []string{})
 	ctx := context.Background()
 	models, err := openAIAdapter.ListModel(ctx)
@@ -22,7 +22,7 @@ func (l *LLMManger) getOpenAIModels(baseURL string, apiKey string) ([]string, er
 	return models, nil
 }
 
-func (l *LLMManger) GetAvailableModels(compatable string, baseURL string, apiKey string) ([]string, error) {
+func (l *LLMManager) GetAvailableModels(compatable string, baseURL string, apiKey string) ([]string, error) {
 	switch compatable {
 	case "OpenAI":
 		return l.getOpenAIModels(baseURL, apiKey)
@@ -32,6 +32,6 @@ func (l *LLMManger) GetAvailableModels(compatable string, baseURL string, apiKey
 }
 
 // @Injectable
-func NewLLMManger() *LLMManger {
-	return &LLMManger{}
+func NewLLMManager() *LLMManager {
+	return &LLMManager{}
 }

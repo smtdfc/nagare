@@ -32,7 +32,7 @@ func Init() error {
 	GlobalSessionMgr = session.NewSessionManager(GlobalSessionRepository, GlobalMessageRepository)
 	GlobalAgentPool = agent.NewAgentPool(AGENT_POOL_SIZE).Seed(AGENT_POOL_SIZE)
 	GlobalToolMgr = tool.NewToolManager()
-	GlobalLLMManager = llm_manager.NewLLMManger()
+	GlobalLLMManager = llm_manager.NewLLMManager()
 	GlobalConnectCodeMgr = plugin.NewConnectCodeManager()
 	GlobalPluginMgr = plugin.NewPluginManager(GlobalPluginRepository, GlobalConnectCodeMgr)
 

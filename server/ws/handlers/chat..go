@@ -112,7 +112,7 @@ func (h *ChatHandler) InvokeAgent(i *ws.WsInstance, message *dto.WsMessage[any])
 	}
 
 	for chunk := range output {
-		ws.SendMessage(i, dto.WS_AGENT_RESPONSE, dto.AgentOuputEvent{
+		ws.SendMessage(i, dto.WS_AGENT_RESPONSE, dto.AgentOutputEvent{
 			ID:        id,
 			SessionID: sessionID,
 			Message:   chunk,
