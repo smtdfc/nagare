@@ -1,4 +1,4 @@
-package domains
+package config
 
 type GeneralConfig struct {
 	CurrentModel    string `json:"current_model"`
