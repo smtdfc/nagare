@@ -1,0 +1,4 @@
+.dix
+pkg
+*.nagare_plugin
+.env

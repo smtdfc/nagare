@@ -1,0 +1,20 @@
+package message
+
+type MessageKind string
+
+func (m MessageKind) ToString() string {
+	return string(m)
+}
+
+const (
+	RESPONSE_STARTED_MESSAGE   MessageKind = "RESPONSE_STARTED_MESSAGE"
+	RESPONSE_COMPLETED_MESSAGE MessageKind = "RESPONSE_COMPLETED_MESSAGE"
+	RESPONSE_FAILED_MESSAGE    MessageKind = "RESPONSE_FAILED_MESSAGE"
+	TEXT_MESSAGE               MessageKind = "TEXT_MESSAGE"
+	TOOL_CALL_MESSAGE          MessageKind = "TOOL_CALL_MESSAGE"
+	TOOL_RESULT_MESSAGE        MessageKind = "TOOL_RESULT_MESSAGE"
+	REASONING_MESSAGE          MessageKind = "REASONING_MESSAGE"
+	AGENT_STARTED_MESSAGE      MessageKind = "AGENT_STARTED_MESSAGE"
+	AGENT_COMPLETED_MESSAGE    MessageKind = "AGENT_COMPLETED_MESSAGE"
+	AGENT_ERROR_MESSAGE        MessageKind = "AGENT_ERROR_MESSAGE"
+)

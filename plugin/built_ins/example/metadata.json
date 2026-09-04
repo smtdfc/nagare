@@ -1,0 +1,8 @@
+{
+    "id": "nagare.plugins.example",
+    "name": "example-plugin",
+    "author": "smtdfc",
+    "version": "1.0.0",
+    "api_version": "1",
+    "description": "An example plugin for nagare"
+}

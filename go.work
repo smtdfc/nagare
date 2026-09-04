@@ -1,0 +1,13 @@
+go 1.27.0
+
+use (
+	./cli
+	./core
+	./gateway
+	./plugin/builder
+	./plugin/built_ins/example
+	./plugin/client
+	./plugin/metadata
+
+	./shared
+)
