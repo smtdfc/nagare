@@ -1,20 +1,20 @@
 package message
 
-type MessageKind string
+type Kind string
 
-func (m MessageKind) ToString() string {
+func (m Kind) ToString() string {
 	return string(m)
 }
 
 const (
-	RESPONSE_STARTED_MESSAGE   MessageKind = "RESPONSE_STARTED_MESSAGE"
-	RESPONSE_COMPLETED_MESSAGE MessageKind = "RESPONSE_COMPLETED_MESSAGE"
-	RESPONSE_FAILED_MESSAGE    MessageKind = "RESPONSE_FAILED_MESSAGE"
-	TEXT_MESSAGE               MessageKind = "TEXT_MESSAGE"
-	TOOL_CALL_MESSAGE          MessageKind = "TOOL_CALL_MESSAGE"
-	TOOL_RESULT_MESSAGE        MessageKind = "TOOL_RESULT_MESSAGE"
-	REASONING_MESSAGE          MessageKind = "REASONING_MESSAGE"
-	AGENT_STARTED_MESSAGE      MessageKind = "AGENT_STARTED_MESSAGE"
-	AGENT_COMPLETED_MESSAGE    MessageKind = "AGENT_COMPLETED_MESSAGE"
-	AGENT_ERROR_MESSAGE        MessageKind = "AGENT_ERROR_MESSAGE"
+	ResponseStartedMessageKind   Kind = "RESPONSE_STARTED_MESSAGE"
+	ResponseCompletedMessageKind Kind = "RESPONSE_COMPLETED_MESSAGE"
+	ResponseFailedMessageKind    Kind = "RESPONSE_FAILED_MESSAGE"
+	TextMessageKind              Kind = "TEXT_MESSAGE"
+	ToolCallMessageKind          Kind = "TOOL_CALL_MESSAGE"
+	ToolResultMessageKind        Kind = "TOOL_RESULT_MESSAGE"
+	ReasoningMessageKind         Kind = "REASONING_MESSAGE"
+	AgentStartedMessageKind      Kind = "AGENT_STARTED_MESSAGE"
+	AgentCompletedMessageKind    Kind = "AGENT_COMPLETED_MESSAGE"
+	AgentErrorMessageKind        Kind = "AGENT_ERROR_MESSAGE"
 )

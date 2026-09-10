@@ -22,14 +22,14 @@ func (t *ToolManager) GetListTool() tool.ListTool {
 	return list
 }
 
-func (t *ToolManager) Call(ctx context.Context, toolCall *tool.ToolCall) *tool.ToolResult {
+func (t *ToolManager) Call(ctx context.Context, toolCall *tool.ToolCall) *tool.Result {
 	toolResultBuilder := tool.NewToolResultBuilder(toolCall.CallID, toolCall.Name)
-	tool, isExist := t.toolMap[toolCall.Name]
+	calledTool, isExist := t.toolMap[toolCall.Name]
 	if !isExist {
 		return toolResultBuilder.Failure(errors.New("tool doesn't exist")).Build()
 	}
 
-	result, err := tool.Execute(ctx, toolCall.Args)
+	result, err := calledTool.Execute(ctx, toolCall.Args)
 	if err != nil {
 		return toolResultBuilder.Failure(err).Build()
 	}

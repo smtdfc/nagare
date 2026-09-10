@@ -2,7 +2,7 @@ package tool
 
 import "github.com/smtdfc/nagare/shared/message"
 
-type ToolResult struct {
+type Result struct {
 	callID    string
 	name      string
 	IsSuccess bool
@@ -10,7 +10,7 @@ type ToolResult struct {
 	err       error
 }
 
-func (t *ToolResult) ToMessage() *message.ToolResultMessage {
+func (t *Result) ToMessage() *message.ToolResultMessage {
 	Result := t.Result
 	if !t.IsSuccess {
 		Result = t.err.Error()
@@ -23,13 +23,13 @@ func (t *ToolResult) ToMessage() *message.ToolResultMessage {
 	)
 }
 
-type ToolResultBuilder struct {
-	Result *ToolResult
+type ResultBuilder struct {
+	Result *Result
 }
 
-func NewToolResultBuilder(callID, name string) *ToolResultBuilder {
-	return &ToolResultBuilder{
-		Result: &ToolResult{
+func NewToolResultBuilder(callID, name string) *ResultBuilder {
+	return &ResultBuilder{
+		Result: &Result{
 			callID:    callID,
 			name:      name,
 			IsSuccess: true,
@@ -37,14 +37,14 @@ func NewToolResultBuilder(callID, name string) *ToolResultBuilder {
 	}
 }
 
-func (b *ToolResultBuilder) Success(Result string) *ToolResultBuilder {
+func (b *ResultBuilder) Success(Result string) *ResultBuilder {
 	b.Result.IsSuccess = true
 	b.Result.Result = Result
 	b.Result.err = nil
 	return b
 }
 
-func (b *ToolResultBuilder) Failure(err error) *ToolResultBuilder {
+func (b *ResultBuilder) Failure(err error) *ResultBuilder {
 	b.Result.IsSuccess = false
 	b.Result.err = err
 	if err != nil {
@@ -53,11 +53,11 @@ func (b *ToolResultBuilder) Failure(err error) *ToolResultBuilder {
 	return b
 }
 
-func (b *ToolResultBuilder) SetResult(Result string) *ToolResultBuilder {
+func (b *ResultBuilder) SetResult(Result string) *ResultBuilder {
 	b.Result.Result = Result
 	return b
 }
 
-func (b *ToolResultBuilder) Build() *ToolResult {
+func (b *ResultBuilder) Build() *Result {
 	return b.Result
 }

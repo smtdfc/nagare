@@ -12,7 +12,7 @@ type ChatController struct {
 }
 
 func (c *ChatController) SendMessage(ctx fiber.Ctx) error {
-	request, err := utils.ParseBody[*rest.ChatSendMessageRequest](ctx)
+	request, err := utils.ParseBody[*rest.SendChatMessageRequest](ctx)
 	if err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func (c *ChatController) SendMessage(ctx fiber.Ctx) error {
 }
 
 func (c *ChatController) CreateSession(ctx fiber.Ctx) error {
-	request, err := utils.ParseBody[*rest.ChatCreateSessionRequest](ctx)
+	request, err := utils.ParseBody[*rest.CreateChatSessionRequest](ctx)
 	if err != nil {
 		return err
 	}
@@ -39,8 +39,8 @@ func (c *ChatController) CreateSession(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (c *ChatController) GetListSession(ctx fiber.Ctx) error {
-	data, err := c.chatService.GetListSession(ctx)
+func (c *ChatController) ListSessions(ctx fiber.Ctx) error {
+	data, err := c.chatService.ListSessions(ctx)
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func (c *ChatController) GetListSession(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (c *ChatController) GetHistory(ctx fiber.Ctx) error {
+func (c *ChatController) History(ctx fiber.Ctx) error {
 	sessionID := ctx.Query("session")
 
 	data, err := c.chatService.GetHistory(ctx, sessionID)

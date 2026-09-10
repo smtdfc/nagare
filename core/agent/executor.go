@@ -16,13 +16,13 @@ import (
 
 const MAX_AGENT_LOOP_COUNT = 20
 
-type AgentExecutor struct {
-	state   *AgentState
+type Executor struct {
+	state   *State
 	toolMgr *manager.ToolManager
 	logger  *logger.BaseLogger
 }
 
-func (a *AgentExecutor) ExecuteTool(ctx context.Context, toolCall *tool.ToolCall) *tool.ToolResult {
+func (a *Executor) ExecuteTool(ctx context.Context, toolCall *tool.ToolCall) *tool.Result {
 	result := a.toolMgr.Call(ctx, toolCall)
 	if !result.IsSuccess {
 		a.logger.Error("Failed to execute tool", "tool", toolCall.Name, "error", result.Result)
@@ -33,7 +33,7 @@ func (a *AgentExecutor) ExecuteTool(ctx context.Context, toolCall *tool.ToolCall
 	return result
 }
 
-func (a *AgentExecutor) HandleError(message *message.ResponseFailedMessage) error {
+func (a *Executor) HandleError(message *message.ResponseFailedMessage) error {
 	switch message.Code {
 	case "429":
 		return custom_errors.ErrModelQuotaExceed
@@ -42,7 +42,7 @@ func (a *AgentExecutor) HandleError(message *message.ResponseFailedMessage) erro
 	return custom_errors.ErrUnknown
 }
 
-func (a *AgentExecutor) Execute(ctx context.Context, model string, llmAdapter llm_provider.LLMProviderAdapter, output message.MessageWriteOnlyChannel) {
+func (a *Executor) Execute(ctx context.Context, model string, llmAdapter llm_provider.LLMProviderAdapter, output message.WriteOnlyChannel) {
 	defer close(output)
 
 	isError := false
@@ -101,12 +101,12 @@ func (a *AgentExecutor) Execute(ctx context.Context, model string, llmAdapter ll
 		for chunk := range llmOutput {
 			output <- chunk
 			switch chunk.GetKind() {
-			case message.TEXT_MESSAGE:
+			case message.TextMessageKind:
 				_, msg := helpers.SafeCast[*message.TextMessage](chunk)
 				textBuilder.WriteString(msg.Content)
 				isTextItem = true
 
-			case message.TOOL_CALL_MESSAGE:
+			case message.ToolCallMessageKind:
 				flushText()
 				_, msg := helpers.SafeCast[*message.ToolCallMessage](chunk)
 				a.state.AddToolCall(tool.NewToolCall(
@@ -116,7 +116,7 @@ func (a *AgentExecutor) Execute(ctx context.Context, model string, llmAdapter ll
 				))
 				a.state.AppendMessage(chunk)
 
-			case message.RESPONSE_FAILED_MESSAGE:
+			case message.ResponseFailedMessageKind:
 				flushText()
 				_, msg := helpers.SafeCast[*message.ResponseFailedMessage](chunk)
 				a.logger.Error("Agent error", "error", msg.Cause)
@@ -152,8 +152,8 @@ func (a *AgentExecutor) Execute(ctx context.Context, model string, llmAdapter ll
 	a.logger.Info("Agent end loop", "duration", endTime)
 }
 
-func NewAgentExecutor(state *AgentState, toolMgr *manager.ToolManager, logger *logger.BaseLogger) *AgentExecutor {
-	return &AgentExecutor{
+func NewAgentExecutor(state *State, toolMgr *manager.ToolManager, logger *logger.BaseLogger) *Executor {
+	return &Executor{
 		state:   state,
 		toolMgr: toolMgr,
 		logger:  logger.With("module", "agent-executor"),

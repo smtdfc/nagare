@@ -1,27 +1,27 @@
 package websocket
 
 const (
-	CHAT_RECEIVED_MESSAGE_EVENT       WebsocketEvent = "CHAT_RECEIVED_MESSAGE_EVENT"
-	CHAT_LISTEN_MESSAGE_EVENT         WebsocketEvent = "CHAT_LISTEN_MESSAGE_EVENT"
-	CHAT_LISTEN_MESSAGE_SUCCESS_EVENT WebsocketEvent = "CHAT_LISTEN_MESSAGE_SUCCESS_EVENT"
-	CHAT_LISTEN_MESSAGE_FAIL_EVENT    WebsocketEvent = "CHAT_LISTEN_MESSAGE_FAIL_EVENT"
+	ReceivedChatMessageEvent         WebsocketEvent = "CHAT_RECEIVED_MESSAGE_EVENT"
+	RegisterChatListenerEvent        WebsocketEvent = "CHAT_LISTEN_MESSAGE_EVENT"
+	RegisterChatListenerSuccessEvent WebsocketEvent = "CHAT_LISTEN_MESSAGE_SUCCESS_EVENT"
+	RegisterChatListenerFailEvent    WebsocketEvent = "CHAT_LISTEN_MESSAGE_FAIL_EVENT"
 )
 
-type ChatReceivedMessageEvent struct {
+type ReceivedChatMessageEventPayload struct {
 	SessionID string `json:"session_id"`
 	Message   string `json:"message"`
 }
 
-type ChatListenMessageEvent struct {
+type RegisterChatMessageListenerEventPayload struct {
 	ID        string `json:"id"`
 	SessionID string `json:"session_id"`
 }
 
-type ChatListenMessageSuccessEvent struct {
+type RegisterChatListenerSuccessEventEventPayload struct {
 	ID string `json:"id"`
 }
 
-type ChatListenMessageFailEvent struct {
+type RegisterChatListenerFailEventPayload struct {
 	ID    string `json:"id"`
 	Cause string `json:"cause"`
 }

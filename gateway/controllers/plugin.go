@@ -11,8 +11,8 @@ type PluginController struct {
 	pluginService *services.PluginService
 }
 
-func (p *PluginController) GetListPlugin(ctx fiber.Ctx) error {
-	data, err := p.pluginService.GetListPlugin(ctx)
+func (p *PluginController) List(ctx fiber.Ctx) error {
+	data, err := p.pluginService.ListPlugins(ctx)
 	if err != nil {
 		return err
 	}
@@ -20,7 +20,7 @@ func (p *PluginController) GetListPlugin(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (p *PluginController) InstallLocalPlugin(ctx fiber.Ctx) error {
+func (p *PluginController) InstallLocal(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.InstallLocalPluginRequest](ctx)
 	if err != nil {
 		return err

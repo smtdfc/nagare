@@ -13,8 +13,8 @@ type Agent struct {
 	toolMgr    *manager.ToolManager
 	model      string
 	llmAdapter llm_provider.LLMProviderAdapter
-	executor   *AgentExecutor
-	state      *AgentState
+	executor   *Executor
+	state      *State
 	logger     *logger.BaseLogger
 }
 
@@ -35,7 +35,7 @@ func (a *Agent) WithContext(messages message.ListMessage) *Agent {
 	return a
 }
 
-func (a *Agent) Invoke(ctx context.Context, msg message.Message, model string) (message.MessageChannel, error) {
+func (a *Agent) Invoke(ctx context.Context, msg message.Message, model string) (message.Channel, error) {
 	a.logger.Info("Start invoke agent")
 	output := make(chan message.Message)
 	go (func() {

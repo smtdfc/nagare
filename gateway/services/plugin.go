@@ -25,7 +25,7 @@ type PluginService struct {
 	pluginMgr *manager.PluginManager
 }
 
-func (p *PluginService) GetListPlugin(ctx context.Context) (*rest.GetListPluginResponse, error) {
+func (p *PluginService) ListPlugins(ctx context.Context) (*rest.GetListPluginResponse, error) {
 	plugins, err := p.pluginMgr.GetListPlugin(ctx)
 	if err != nil {
 		return nil, err

@@ -77,6 +77,10 @@ func (l *LLMProviderManager) FetchAvailableModels(ctx context.Context, id string
 	}
 
 	adapter, err := l.GetAdapter(l.llmProviderMapper.ToDomain(conf))
+	if adapter == nil {
+		return nil, custom_errors.ErrLLMProviderNotFound
+	}
+	
 	models, err := adapter.GetModels(ctx)
 	if err != nil {
 		return nil, err

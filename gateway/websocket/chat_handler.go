@@ -13,30 +13,39 @@ type ChatHandler struct {
 	sessionMgr *manager.SessionManager
 }
 
-func (c *ChatHandler) OnListenMessage(s *melody.Session, w *WebsocketCoordinator, message *websocket.WebsocketPayload[any]) {
+func (c *ChatHandler) OnListenMessage(s *melody.Session, w *Coordinator, message *websocket.WebsocketPayload[any]) {
 	ctx := context.Background()
-	data, err := GetData[websocket.ChatListenMessageEvent](message)
+	data, err := GetData[websocket.RegisterChatMessageListenerEventPayload](message)
 	if err != nil {
-		SendMessage(s, websocket.CHAT_LISTEN_MESSAGE_FAIL_EVENT, &websocket.ChatListenMessageFailEvent{
+		err := SendMessage(s, websocket.RegisterChatListenerFailEvent, &websocket.RegisterChatListenerFailEventPayload{
 			ID:    "",
 			Cause: "failed to parsing payload",
 		})
+		if err != nil {
+			return
+		}
 	}
 
 	_, err = c.sessionMgr.GetUserSession(ctx, data.SessionID)
 	if err != nil {
-		SendMessage(s, websocket.CHAT_LISTEN_MESSAGE_FAIL_EVENT, &websocket.ChatListenMessageFailEvent{
+		err := SendMessage(s, websocket.RegisterChatListenerFailEvent, &websocket.RegisterChatListenerFailEventPayload{
 			ID:    data.ID,
 			Cause: err.Error(),
 		})
+		if err != nil {
+			return
+		}
 
 		return
 	}
 
 	w.JoinRoom(fmt.Sprintf("session:%s", data.SessionID), s)
-	SendMessage(s, websocket.CHAT_LISTEN_MESSAGE_SUCCESS_EVENT, &websocket.ChatListenMessageSuccessEvent{
+	err = SendMessage(s, websocket.RegisterChatListenerSuccessEvent, &websocket.RegisterChatListenerSuccessEventEventPayload{
 		ID: data.ID,
 	})
+	if err != nil {
+		return
+	}
 }
 
 // @Injectable

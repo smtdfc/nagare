@@ -2,23 +2,23 @@ package plugin
 
 import "strings"
 
-type PluginFeature string
+type Feature string
 
 const (
-	CHAT_FEATURE PluginFeature = "CHAT_FEATURE"
+	ChatFeature Feature = "CHAT_FEATURE"
 )
 
-func (p PluginFeature) ToString() string {
+func (p Feature) ToString() string {
 	return string(p)
 }
 
-func ParseFeatureString(raw string) []PluginFeature {
+func ParseFeatureString(raw string) []Feature {
 	parts := strings.Split(raw, ",")
-	features := []PluginFeature{}
+	var features []Feature
 	for _, p := range parts {
 		switch p {
-		case string(CHAT_FEATURE):
-			features = append(features, CHAT_FEATURE)
+		case string(ChatFeature):
+			features = append(features, ChatFeature)
 		}
 	}
 
@@ -30,7 +30,7 @@ type Plugin struct {
 	PluginID string
 	Name     string
 	Author   string
-	Features []PluginFeature
+	Features []Feature
 	Version  string
 	Bin      string
 	IsActive bool

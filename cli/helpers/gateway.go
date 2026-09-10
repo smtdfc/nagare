@@ -12,9 +12,9 @@ import (
 func TryStartGateway(isDebugMode bool) error {
 	var cmd *exec.Cmd
 	if isDebugMode {
-		wdir, _ := os.Getwd()
+		workingDir, _ := os.Getwd()
 		cmd = exec.Command("dix", "run", ".", "--workspace")
-		cmd.Dir = filepath.Join(wdir, "../gateway")
+		cmd.Dir = filepath.Join(workingDir, "../gateway")
 		cmd.Env = append(os.Environ(), "NAGARE_GATEWAY_MODE=debug")
 	} else {
 		cmd = exec.Command(paths.GatewayBinFile)

@@ -9,8 +9,8 @@ type ToolCallMessage struct {
 	Args   string `json:"args"`
 }
 
-func (t *ToolCallMessage) GetKind() MessageKind {
-	return TOOL_CALL_MESSAGE
+func (t *ToolCallMessage) GetKind() Kind {
+	return ToolCallMessageKind
 }
 
 func NewToolCallMessage(callID string, name string, args string) *ToolCallMessage {
@@ -29,8 +29,8 @@ type ToolResultMessage struct {
 	Result string `json:"result"`
 }
 
-func (t *ToolResultMessage) GetKind() MessageKind {
-	return TOOL_RESULT_MESSAGE
+func (t *ToolResultMessage) GetKind() Kind {
+	return ToolResultMessageKind
 }
 
 func NewToolResultMessage(callID string, name string, result string) *ToolResultMessage {

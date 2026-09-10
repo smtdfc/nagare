@@ -1,11 +1,11 @@
 package rest
 
 const (
-	LLMProviderGetListEndpoint            = "/api/v1/user/llm-providers/list"
-	LLMProviderGetDetailsEndpoint         = "/api/v1/user/llm-providers/details"
-	LLMProviderAddEndpoint                = "/api/v1/user/llm-providers/add"
-	LLMProviderDeleteEndpoint             = "/api/v1/user/llm-providers/delete"
-	LLMProviderGetAvailableModelsEndpoint = "/api/v1/user/llm-providers/available-models"
+	ListLLMProvidersEndpoint      = "/api/v1/user/llm-providers/list"
+	GetLLMProviderDetailsEndpoint = "/api/v1/user/llm-providers/details"
+	AddLLMProviderEndpoint        = "/api/v1/user/llm-providers/add"
+	DeleteLLMProviderEndpoint     = "/api/v1/user/llm-providers/delete"
+	GetLLMProviderModelsEndpoint  = "/api/v1/user/llm-providers/models"
 )
 
 type LLMProvider struct {
@@ -17,15 +17,15 @@ type LLMProvider struct {
 	BaseURL    string   `json:"base_url"`
 }
 
-type LLMProviderGetListResponse struct {
+type GetListLLMProviderResponse struct {
 	Providers []*LLMProvider `json:"providers"`
 }
 
-type LLMProviderGetDetailsResponse struct {
+type GetLLMProviderDetailsResponse struct {
 	Provider *LLMProvider `json:"provider"`
 }
 
-type LLMProviderAddRequest struct {
+type AddLLMProviderRequest struct {
 	Name       string   `json:"name"`
 	Compatible string   `json:"compatible"`
 	ApiKey     string   `json:"api_key"`
@@ -33,18 +33,18 @@ type LLMProviderAddRequest struct {
 	BaseURL    string   `json:"base_url"`
 }
 
-type LLMProviderAddResponse struct {
+type AddLLMProviderResponse struct {
 	Provider *LLMProvider `json:"provider"`
 }
 
-type LLMProviderDeleteRequest struct {
+type DeleteLLMProviderRequest struct {
 	ID string `json:"id"`
 }
 
-type LLMProviderGetAvailableModelsRequest struct {
+type GetLLMProviderModelsRequest struct {
 	ID string `json:"id"`
 }
 
-type LLMProviderGetAvailableModelsResponse struct {
+type GetLLMProviderModelsResponse struct {
 	Models []string `json:"models"`
 }

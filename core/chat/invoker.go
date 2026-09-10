@@ -15,7 +15,7 @@ import (
 )
 
 type AgentInvoker struct {
-	agentPool      *agent.AgentPool
+	agentPool      *agent.Pool
 	sessionMgr     *session_mgr.SessionManager
 	llmProviderMgr *llm_provider_mgr.LLMProviderManager
 	configMgr      *config_mgr.ConfigManager
@@ -26,7 +26,7 @@ type AgentInvoker struct {
 func (a *AgentInvoker) Invoke(
 	sessionID string,
 	text string,
-) (message.MessageReadOnlyChannel, error) {
+) (message.ReadOnlyChannel, error) {
 	output := make(chan message.Message)
 	ctx := context.Background()
 
@@ -85,8 +85,8 @@ func (a *AgentInvoker) Invoke(
 			return
 		}
 
-		agent := a.agentPool.Get().WithContext(history).WithLLMAdapter(adapter)
-		agentOutput, err := agent.Invoke(ctx, message.NewTextMessage(
+		currentAgent := a.agentPool.Get().WithContext(history).WithLLMAdapter(adapter)
+		agentOutput, err := currentAgent.Invoke(ctx, message.NewTextMessage(
 			message.USER,
 			text,
 		), generalConfig.CurrentModel)
@@ -99,15 +99,15 @@ func (a *AgentInvoker) Invoke(
 			output <- msg
 		}
 
-		agent.Reset()
-		a.agentPool.Put(agent)
+		currentAgent.Reset()
+		a.agentPool.Put(currentAgent)
 	}()
 
 	return output, nil
 }
 
 // @Injectable
-func NewAgentInvoker(logger *logger.BaseLogger, agentPool *agent.AgentPool, llmProviderMgr *llm_provider_mgr.LLMProviderManager, sessionMgr *session_mgr.SessionManager, configMgr *config_mgr.ConfigManager) *AgentInvoker {
+func NewAgentInvoker(logger *logger.BaseLogger, agentPool *agent.Pool, llmProviderMgr *llm_provider_mgr.LLMProviderManager, sessionMgr *session_mgr.SessionManager, configMgr *config_mgr.ConfigManager) *AgentInvoker {
 	return &AgentInvoker{
 		agentPool:      agentPool,
 		sessionMgr:     sessionMgr,

@@ -60,15 +60,21 @@ func unpackPlugin(archivePath, destDir string) error {
 
 		rc, err := file.Open()
 		if err != nil {
-			outFile.Close()
+			err := outFile.Close()
+			if err != nil {
+				return err
+			}
 			return err
 		}
 
 		_, err = io.Copy(outFile, rc)
 
-		rc.Close()
-		outFile.Close()
+		err = rc.Close()
+		if err != nil {
+			return err
+		}
 
+		err = outFile.Close()
 		if err != nil {
 			return err
 		}
@@ -84,7 +90,7 @@ func unpackPlugin(archivePath, destDir string) error {
 func loadMetadata(metadataFile string) (*metadata.PluginMetadata, error) {
 	_, err := os.Stat(metadataFile)
 	if errors.Is(err, os.ErrNotExist) {
-		return nil, errors.New("Metadata file not exist")
+		return nil, errors.New("metadata file not exist")
 	}
 
 	metadataContent, err := os.ReadFile(metadataFile)
@@ -192,7 +198,10 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) error {
 	id := uuid.New().String()
 	tempDir := filepath.Join(paths.TempDir, id)
 	metadataFile := filepath.Join(tempDir, "metadata.json")
-	os.MkdirAll(tempDir, 0775)
+	err = os.MkdirAll(tempDir, 0775)
+	if err != nil {
+		return err
+	}
 
 	err = unpackPlugin(
 		pluginPath,
@@ -233,23 +242,23 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) error {
 		return custom_errors.ErrInstallPluginFailed
 	}
 
-	plugin := plugin.Plugin{
+	newPlugin := plugin.Plugin{
 		PluginID: pluginMetadata.ID,
 		Name:     pluginMetadata.Name,
 		Author:   pluginMetadata.Author,
-		Features: []plugin.PluginFeature{},
+		Features: []plugin.Feature{},
 		Version:  pluginMetadata.Version,
 		Bin:      binFile,
 		IsActive: true,
 	}
 
-	_, err = p.pluginRepo.CreateOrUpdate(ctx, p.pluginMapper.ToEntity(&plugin))
+	_, err = p.pluginRepo.CreateOrUpdate(ctx, p.pluginMapper.ToEntity(&newPlugin))
 	if err != nil {
 		p.logger.Error("Install plugin failed", "error", err, "plugin", pluginPath)
 		return custom_errors.ErrInstallPluginFailed
 	}
 
-	return p.StartPlugin(ctx, &plugin)
+	return p.StartPlugin(ctx, &newPlugin)
 }
 
 func (p *PluginManager) StartAllPlugin(ctx context.Context) error {
@@ -259,8 +268,11 @@ func (p *PluginManager) StartAllPlugin(ctx context.Context) error {
 		return custom_errors.ErrStartPluginFailed
 	}
 
-	for _, plugin := range p.pluginMapper.ToDomains(activePlugins) {
-		p.StartPlugin(ctx, plugin)
+	for _, plg := range p.pluginMapper.ToDomains(activePlugins) {
+		err := p.StartPlugin(ctx, plg)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -273,8 +285,11 @@ func (p *PluginManager) StopAllPlugin(ctx context.Context) error {
 		return custom_errors.ErrStartPluginFailed
 	}
 
-	for _, plugin := range p.pluginMapper.ToDomains(activePlugins) {
-		p.StopPlugin(ctx, plugin)
+	for _, plg := range p.pluginMapper.ToDomains(activePlugins) {
+		err := p.StopPlugin(ctx, plg)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

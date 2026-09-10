@@ -7,7 +7,7 @@ import (
 // authCmd represents the auth command
 var authCmd = &cobra.Command{
 	Use:   "auth",
-	Short: "A brief description of your command",
+	Short: "",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

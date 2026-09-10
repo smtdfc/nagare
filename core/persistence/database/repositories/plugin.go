@@ -23,7 +23,7 @@ func (p *PluginRepository) GetAllPlugin(ctx context.Context) ([]*entities.Plugin
 
 	if err != nil {
 		p.logger.Error("Failed to get all plugin", "error", err)
-		return nil, fmt.Errorf("Failed to get all plugin: %w", err)
+		return nil, fmt.Errorf("failed to get all plugin: %w", err)
 	}
 
 	return plugins, nil
@@ -38,7 +38,7 @@ func (p *PluginRepository) GetAllActivePlugin(ctx context.Context) ([]*entities.
 
 	if err != nil {
 		p.logger.Error("Failed to get all active plugin", "error", err)
-		return nil, fmt.Errorf("Failed to get all active plugin: %w", err)
+		return nil, fmt.Errorf("failed to get all active plugin: %w", err)
 	}
 
 	return plugins, nil

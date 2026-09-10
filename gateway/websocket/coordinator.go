@@ -4,22 +4,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
-	"sync/atomic"
 
 	"github.com/olahol/melody"
 	websocket_dtos "github.com/smtdfc/nagare/shared/dtos/websocket"
 	"github.com/smtdfc/nagare/shared/helpers"
 )
 
-var counter atomic.Int64
-
-type WebsocketCoordinator struct {
+type Coordinator struct {
 	mu          sync.RWMutex
 	rooms       map[string]map[*melody.Session]bool
 	chatHandler *ChatHandler
 }
 
-func (w *WebsocketCoordinator) JoinRoom(roomID string, s *melody.Session) {
+func (w *Coordinator) JoinRoom(roomID string, s *melody.Session) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
@@ -29,7 +26,7 @@ func (w *WebsocketCoordinator) JoinRoom(roomID string, s *melody.Session) {
 	w.rooms[roomID][s] = true
 }
 
-func (w *WebsocketCoordinator) LeaveRoom(roomID string, s *melody.Session) {
+func (w *Coordinator) LeaveRoom(roomID string, s *melody.Session) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
@@ -41,7 +38,7 @@ func (w *WebsocketCoordinator) LeaveRoom(roomID string, s *melody.Session) {
 	}
 }
 
-func (w *WebsocketCoordinator) LeaveAllRooms(s *melody.Session) {
+func (w *Coordinator) LeaveAllRooms(s *melody.Session) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
@@ -55,7 +52,7 @@ func (w *WebsocketCoordinator) LeaveAllRooms(s *melody.Session) {
 	}
 }
 
-func BroadcastToRoom[T any](w *WebsocketCoordinator, roomID string, event websocket_dtos.WebsocketEvent, data T, exclude *melody.Session) error {
+func BroadcastToRoom[T any](w *Coordinator, roomID string, event websocket_dtos.WebsocketEvent, data T, exclude *melody.Session) error {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 
@@ -83,18 +80,21 @@ func BroadcastToRoom[T any](w *WebsocketCoordinator, roomID string, event websoc
 
 	return nil
 }
-func (w *WebsocketCoordinator) parseMessage(msg []byte) (*websocket_dtos.WebsocketPayload[any], error) {
+func (w *Coordinator) parseMessage(msg []byte) (*websocket_dtos.WebsocketPayload[any], error) {
 	return helpers.UnmarshalJson[websocket_dtos.WebsocketPayload[any]](string(msg))
 }
 
-func (w *WebsocketCoordinator) HandleMessage(s *melody.Session, msg []byte) {
+func (w *Coordinator) HandleMessage(s *melody.Session, msg []byte) {
 	message, err := w.parseMessage(msg)
 	if err != nil {
-		s.Close()
+		err := s.Close()
+		if err != nil {
+			return
+		}
 	}
 
 	switch message.Event {
-	case websocket_dtos.CHAT_LISTEN_MESSAGE_EVENT:
+	case websocket_dtos.RegisterChatListenerEvent:
 		w.chatHandler.OnListenMessage(s, w, message)
 	}
 }
@@ -138,7 +138,7 @@ func GetData[T any](payload *websocket_dtos.WebsocketPayload[any]) (*T, error) {
 	return &result, nil
 }
 
-func (w *WebsocketCoordinator) HandleDisconnect(s *melody.Session) {
+func (w *Coordinator) HandleDisconnect(s *melody.Session) {
 	w.LeaveAllRooms(s)
 }
 
@@ -146,8 +146,8 @@ func (w *WebsocketCoordinator) HandleDisconnect(s *melody.Session) {
 func NewWebsocketCoordinator(
 	chatHandler *ChatHandler,
 
-) *WebsocketCoordinator {
-	return &WebsocketCoordinator{
+) *Coordinator {
+	return &Coordinator{
 		rooms:       make(map[string]map[*melody.Session]bool),
 		chatHandler: chatHandler,
 	}

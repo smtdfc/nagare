@@ -8,19 +8,24 @@ import (
 )
 
 type CoreSetup struct {
-	agentPool *agent.AgentPool
+	agentPool *agent.Pool
 	pluginMgr *manager.PluginManager
 }
 
-func (c *CoreSetup) Setup() {
+func (c *CoreSetup) Setup() error {
 	ctx := context.Background()
 	c.agentPool.Seed(agent.NAGARE_AGENT_POOL_SIZE)
-	c.pluginMgr.StartAllPlugin(ctx)
+	err := c.pluginMgr.StartAllPlugin(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // @Injectable
 func NewCoreSetup(
-	agentPool *agent.AgentPool,
+	agentPool *agent.Pool,
 	pluginMgr *manager.PluginManager,
 ) *CoreSetup {
 	return &CoreSetup{

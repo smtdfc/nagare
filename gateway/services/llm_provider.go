@@ -24,29 +24,29 @@ type LLMProviderService struct {
 	llmProviderMgr *llm_provider_mgr.LLMProviderManager
 }
 
-func (l *LLMProviderService) GetListProvider(ctx context.Context) (*rest.LLMProviderGetListResponse, error) {
+func (l *LLMProviderService) ListProviders(ctx context.Context) (*rest.GetListLLMProviderResponse, error) {
 	providers, err := l.llmProviderMgr.GetAllProvider(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return &rest.LLMProviderGetListResponse{
+	return &rest.GetListLLMProviderResponse{
 		Providers: helpers.SliceMap(providers, toLLMProviderDTO),
 	}, nil
 }
 
-func (l *LLMProviderService) GetProviderDetails(ctx context.Context, providerID string) (*rest.LLMProviderGetDetailsResponse, error) {
+func (l *LLMProviderService) GetProviderDetails(ctx context.Context, providerID string) (*rest.GetLLMProviderDetailsResponse, error) {
 	provider, err := l.llmProviderMgr.GetProviderByID(ctx, providerID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &rest.LLMProviderGetDetailsResponse{
+	return &rest.GetLLMProviderDetailsResponse{
 		Provider: toLLMProviderDTO(provider),
 	}, nil
 }
 
-func (l *LLMProviderService) AddProvider(ctx context.Context, request *rest.LLMProviderAddRequest) (*rest.LLMProviderAddResponse, error) {
+func (l *LLMProviderService) AddProvider(ctx context.Context, request *rest.AddLLMProviderRequest) (*rest.AddLLMProviderResponse, error) {
 	provider, err := l.llmProviderMgr.AddProvider(
 		ctx,
 		request.Name,
@@ -60,22 +60,22 @@ func (l *LLMProviderService) AddProvider(ctx context.Context, request *rest.LLMP
 		return nil, err
 	}
 
-	return &rest.LLMProviderAddResponse{
+	return &rest.AddLLMProviderResponse{
 		Provider: toLLMProviderDTO(provider),
 	}, nil
 }
 
-func (l *LLMProviderService) DeleteProvider(ctx context.Context, request *rest.LLMProviderDeleteRequest) error {
+func (l *LLMProviderService) DeleteProvider(ctx context.Context, request *rest.DeleteLLMProviderRequest) error {
 	return l.llmProviderMgr.DeleteProvider(ctx, request.ID)
 }
 
-func (l *LLMProviderService) GetAvailableModels(ctx context.Context, request *rest.LLMProviderGetAvailableModelsRequest) (*rest.LLMProviderGetAvailableModelsResponse, error) {
+func (l *LLMProviderService) GetModels(ctx context.Context, request *rest.GetLLMProviderModelsRequest) (*rest.GetLLMProviderModelsResponse, error) {
 	models, err := l.llmProviderMgr.FetchAvailableModels(ctx, request.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &rest.LLMProviderGetAvailableModelsResponse{
+	return &rest.GetLLMProviderModelsResponse{
 		Models: models,
 	}, nil
 }

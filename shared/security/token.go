@@ -38,7 +38,7 @@ func VerifyRSAToken[T any](tokenString string, publicKeyBytes []byte) (*T, error
 		return zero, fmt.Errorf("failed to parse public key: %w", err)
 	}
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}

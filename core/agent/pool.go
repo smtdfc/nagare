@@ -7,22 +7,22 @@ import (
 
 const NAGARE_AGENT_POOL_SIZE = 10
 
-type AgentPool struct {
+type Pool struct {
 	Pool    chan *Agent
 	toolMgr *manager.ToolManager
 	logger  *logger.BaseLogger
 }
 
-func (a *AgentPool) Get() *Agent {
+func (a *Pool) Get() *Agent {
 	return <-a.Pool
 }
 
-func (a *AgentPool) Put(ag *Agent) *AgentPool {
+func (a *Pool) Put(ag *Agent) *Pool {
 	a.Pool <- ag
 	return a
 }
 
-func (a *AgentPool) Seed(size int) *AgentPool {
+func (a *Pool) Seed(size int) *Pool {
 	for _ = range size {
 		a.Put(NewAgent(a.toolMgr, a.logger))
 	}
@@ -31,8 +31,8 @@ func (a *AgentPool) Seed(size int) *AgentPool {
 }
 
 // @Injectable
-func NewAgentPool(toolMgr *manager.ToolManager, logger *logger.BaseLogger) *AgentPool {
-	return &AgentPool{
+func NewAgentPool(toolMgr *manager.ToolManager, logger *logger.BaseLogger) *Pool {
+	return &Pool{
 		Pool:    make(chan *Agent, NAGARE_AGENT_POOL_SIZE),
 		toolMgr: toolMgr,
 		logger:  logger,

@@ -3,10 +3,10 @@ package rest
 import "github.com/smtdfc/nagare/shared/message"
 
 const (
-	ChatSendMessageEndpoint    = "/api/v1/user/chat/send"
-	ChatCreateSessionEndpoint  = "/api/v1/user/chat/session/create"
-	ChatGetListSessionEndpoint = "/api/v1/user/chat/session/list"
-	ChatGetHistoryEndpoint     = "/api/v1/user/chat/history"
+	SendChatMessageEndpoint   = "/api/v1/user/chat/send"
+	CreateChatSessionEndpoint = "/api/v1/user/chat/session/create"
+	ListChatSessionsEndpoint  = "/api/v1/user/chat/session/list"
+	GetChatHistoryEndpoint    = "/api/v1/user/chat/history"
 )
 
 type Session struct {
@@ -14,28 +14,28 @@ type Session struct {
 	Title string `json:"title"`
 }
 
-type ChatSendMessageRequest struct {
+type SendChatMessageRequest struct {
 	SessionID string `json:"session_id"`
 	Text      string `json:"text"`
 }
 
-type ChatCreateSessionRequest struct {
+type CreateChatSessionRequest struct {
 	Title string `json:"title"`
 }
 
-type ChatCreateSessionResponse struct {
+type CreateChatSessionResponse struct {
 	Session *Session `json:"session"`
 }
 
-type ChatGetListSessionResponse struct {
+type ListChatSessionsResponse struct {
 	Sessions []*Session `json:"sessions"`
 }
 
-type ChatGetHistoryRequest struct {
+type GetChatHistoryRequest struct {
 	SessionID string `json:"session_id"`
 }
 
-type ChatGetHistoryResponse struct {
+type GetChatHistoryResponse struct {
 	SessionID string            `json:"session_id"`
 	Messages  []message.Message `json:"messages"`
 }

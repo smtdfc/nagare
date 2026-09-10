@@ -24,7 +24,7 @@ var TempDir = ""
 func init() {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		log.Fatal(fmt.Errorf("Could not determine the user's home directory: %w", err))
+		log.Fatal(fmt.Errorf("could not determine the user's home directory: %w", err))
 	}
 
 	DataDir = filepath.Join(home, ".nagare")

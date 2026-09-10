@@ -19,23 +19,23 @@ func (m *MessageMapper) ToDomain(entity *entities.Message) (message.Message, err
 	}
 
 	switch entity.MessageKind {
-	case string(message.AGENT_STARTED_MESSAGE):
+	case string(message.AgentStartedMessageKind):
 		return helpers.UnmarshalJson[message.AgentStartedMessage](entity.Content)
-	case string(message.AGENT_COMPLETED_MESSAGE):
+	case string(message.AgentCompletedMessageKind):
 		return helpers.UnmarshalJson[message.AgentCompletedMessage](entity.Content)
-	case string(message.REASONING_MESSAGE):
+	case string(message.ReasoningMessageKind):
 		return helpers.UnmarshalJson[message.ReasoningMessage](entity.Content)
-	case string(message.RESPONSE_STARTED_MESSAGE):
+	case string(message.ResponseStartedMessageKind):
 		return helpers.UnmarshalJson[message.ResponseStartedMessage](entity.Content)
-	case string(message.RESPONSE_FAILED_MESSAGE):
+	case string(message.ResponseFailedMessageKind):
 		return helpers.UnmarshalJson[message.ResponseFailedMessage](entity.Content)
-	case string(message.RESPONSE_COMPLETED_MESSAGE):
+	case string(message.ResponseCompletedMessageKind):
 		return helpers.UnmarshalJson[message.ResponseCompletedMessage](entity.Content)
-	case string(message.TEXT_MESSAGE):
+	case string(message.TextMessageKind):
 		return helpers.UnmarshalJson[message.TextMessage](entity.Content)
-	case string(message.TOOL_CALL_MESSAGE):
+	case string(message.ToolCallMessageKind):
 		return helpers.UnmarshalJson[message.ToolCallMessage](entity.Content)
-	case string(message.TOOL_RESULT_MESSAGE):
+	case string(message.ToolResultMessageKind):
 		return helpers.UnmarshalJson[message.ToolResultMessage](entity.Content)
 	default:
 		return nil, fmt.Errorf("failed to covert")

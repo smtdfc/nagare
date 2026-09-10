@@ -95,8 +95,8 @@ func (o *OpenAICompatibleAdapter) TransformToProviderMessage(msg message.Message
 func (o *OpenAICompatibleAdapter) TransformToolDeclarations(tools tool.ListTool) ([]responses.ToolUnionParam, error) {
 	toolParams := make([]responses.ToolUnionParam, len(tools))
 
-	for i, tool := range tools {
-		params, err := helpers.UnmarshalJson[map[string]any](tool.GetArgsSchema())
+	for i, t := range tools {
+		params, err := helpers.UnmarshalJson[map[string]any](t.GetArgsSchema())
 
 		if err != nil {
 			return nil, custom_errors.ErrInvalidToolSchema
@@ -104,8 +104,8 @@ func (o *OpenAICompatibleAdapter) TransformToolDeclarations(tools tool.ListTool)
 
 		toolParams[i] = responses.ToolUnionParam{
 			OfFunction: &responses.FunctionToolParam{
-				Name:        tool.GetName(),
-				Description: openai.String(tool.GetDescription()),
+				Name:        t.GetName(),
+				Description: openai.String(t.GetDescription()),
 				Parameters:  *params,
 			},
 		}
@@ -113,7 +113,7 @@ func (o *OpenAICompatibleAdapter) TransformToolDeclarations(tools tool.ListTool)
 	return toolParams, nil
 }
 
-func (o *OpenAICompatibleAdapter) Send(ctx context.Context, model string, listMessage message.ListMessage, tools tool.ListTool) (message.MessageReadOnlyChannel, error) {
+func (o *OpenAICompatibleAdapter) Send(ctx context.Context, model string, listMessage message.ListMessage, tools tool.ListTool) (message.ReadOnlyChannel, error) {
 	if !slices.Contains(o.Models, model) {
 		return nil, custom_errors.ErrModelNotSupportedByProvider
 	}

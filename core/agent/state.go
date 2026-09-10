@@ -7,7 +7,7 @@ import (
 	"github.com/smtdfc/nagare/shared/message"
 )
 
-type AgentState struct {
+type State struct {
 	mu             sync.RWMutex
 	CurrentMessage message.ListMessage
 	PendingMessage message.ListMessage
@@ -15,7 +15,7 @@ type AgentState struct {
 	LoopCounter    int
 }
 
-func (a *AgentState) GetFullMessage() message.ListMessage {
+func (a *State) GetFullMessage() message.ListMessage {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
@@ -25,21 +25,21 @@ func (a *AgentState) GetFullMessage() message.ListMessage {
 	return messages
 }
 
-func (a *AgentState) SetMessages(messages message.ListMessage) {
+func (a *State) SetMessages(messages message.ListMessage) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
 	a.CurrentMessage = messages
 }
 
-func (a *AgentState) AppendMessage(msg message.Message) {
+func (a *State) AppendMessage(msg message.Message) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
 	a.PendingMessage = append(a.PendingMessage, msg)
 }
 
-func (a *AgentState) CommitMessage() {
+func (a *State) CommitMessage() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
@@ -47,7 +47,7 @@ func (a *AgentState) CommitMessage() {
 	a.PendingMessage = a.PendingMessage[:0]
 }
 
-func (a *AgentState) Reset() {
+func (a *State) Reset() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
@@ -57,40 +57,40 @@ func (a *AgentState) Reset() {
 	a.LoopCounter = 0
 }
 
-func (a *AgentState) AddToolCall(toolCall *tool.ToolCall) {
+func (a *State) AddToolCall(toolCall *tool.ToolCall) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
 	a.ToolCalls = append(a.ToolCalls, toolCall)
 }
 
-func (a *AgentState) ResetToolCall() {
+func (a *State) ResetToolCall() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
 	a.ToolCalls = a.ToolCalls[:0]
 }
 
-func (a *AgentState) IsToolCall() bool {
+func (a *State) IsToolCall() bool {
 	return len(a.ToolCalls) > 0
 }
 
-func (a *AgentState) IncreaseLoopCounter() {
+func (a *State) IncreaseLoopCounter() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
 	a.LoopCounter++
 }
 
-func (a *AgentState) GetLoopCounter() int {
+func (a *State) GetLoopCounter() int {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
 	return a.LoopCounter
 }
 
-func NewAgentState() *AgentState {
-	return &AgentState{
+func NewAgentState() *State {
+	return &State{
 		CurrentMessage: message.ListMessage{},
 		PendingMessage: message.ListMessage{},
 		ToolCalls:      tool.ListToolCall{},

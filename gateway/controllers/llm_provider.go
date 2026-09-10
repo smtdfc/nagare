@@ -11,8 +11,8 @@ type LLMProviderController struct {
 	llmProviderService *services.LLMProviderService
 }
 
-func (l *LLMProviderController) GetListProvider(ctx fiber.Ctx) error {
-	data, err := l.llmProviderService.GetListProvider(ctx)
+func (l *LLMProviderController) List(ctx fiber.Ctx) error {
+	data, err := l.llmProviderService.ListProviders(ctx)
 	if err != nil {
 		return err
 	}
@@ -20,7 +20,7 @@ func (l *LLMProviderController) GetListProvider(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (l *LLMProviderController) GetProviderDetails(ctx fiber.Ctx) error {
+func (l *LLMProviderController) Details(ctx fiber.Ctx) error {
 	providerID := ctx.Query("provider")
 	data, err := l.llmProviderService.GetProviderDetails(ctx, providerID)
 	if err != nil {
@@ -30,8 +30,8 @@ func (l *LLMProviderController) GetProviderDetails(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (l *LLMProviderController) AddProvider(ctx fiber.Ctx) error {
-	request, err := utils.ParseBody[*rest.LLMProviderAddRequest](ctx)
+func (l *LLMProviderController) Add(ctx fiber.Ctx) error {
+	request, err := utils.ParseBody[*rest.AddLLMProviderRequest](ctx)
 	if err != nil {
 		return err
 	}
@@ -44,8 +44,8 @@ func (l *LLMProviderController) AddProvider(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (l *LLMProviderController) DeleteProvider(ctx fiber.Ctx) error {
-	request, err := utils.ParseBody[*rest.LLMProviderDeleteRequest](ctx)
+func (l *LLMProviderController) Delete(ctx fiber.Ctx) error {
+	request, err := utils.ParseBody[*rest.DeleteLLMProviderRequest](ctx)
 	if err != nil {
 		return err
 	}
@@ -58,13 +58,13 @@ func (l *LLMProviderController) DeleteProvider(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, struct{}{}, 200)
 }
 
-func (l *LLMProviderController) GetAvailableModels(ctx fiber.Ctx) error {
-	request, err := utils.ParseBody[*rest.LLMProviderGetAvailableModelsRequest](ctx)
+func (l *LLMProviderController) GetModels(ctx fiber.Ctx) error {
+	request, err := utils.ParseBody[*rest.GetLLMProviderModelsRequest](ctx)
 	if err != nil {
 		return err
 	}
 
-	data, err := l.llmProviderService.GetAvailableModels(ctx, request)
+	data, err := l.llmProviderService.GetModels(ctx, request)
 	if err != nil {
 		return err
 	}

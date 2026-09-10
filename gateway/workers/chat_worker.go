@@ -17,7 +17,7 @@ import (
 type ChatWorker struct {
 	mu           sync.RWMutex
 	bus          *event_bus.EventBus[event.ChatEventPayload]
-	ws           *websocket.WebsocketCoordinator
+	ws           *websocket.Coordinator
 	sessionMgr   *manager.SessionManager
 	agentInvoker *chat.AgentInvoker
 }
@@ -30,22 +30,25 @@ func (c *ChatWorker) HandleChat(payload *event.ChatSendMessageEvent) {
 
 	for chunk := range output {
 		chunkJson, _ := helpers.MarshalJson(chunk)
-		websocket.BroadcastToRoom(
+		err := websocket.BroadcastToRoom(
 			c.ws,
 			fmt.Sprintf("session:%s", payload.SessionID),
-			websocket_dtos.CHAT_RECEIVED_MESSAGE_EVENT,
-			&websocket_dtos.ChatReceivedMessageEvent{
+			websocket_dtos.ReceivedChatMessageEvent,
+			&websocket_dtos.ReceivedChatMessageEventPayload{
 				SessionID: payload.SessionID,
 				Message:   chunkJson,
 			},
 			nil,
 		)
+		if err != nil {
+			return
+		}
 	}
 }
 
 func (c *ChatWorker) Handle(evt event.ChatEventPayload) {
 	switch evt.GetEventType() {
-	case event.CHAT_SEND_EVENT:
+	case event.ChatSendEvent:
 		payload := evt.(*event.ChatSendMessageEvent)
 		c.HandleChat(payload)
 	}
@@ -53,16 +56,16 @@ func (c *ChatWorker) Handle(evt event.ChatEventPayload) {
 
 func (c *ChatWorker) Start() {
 	go func() {
-		ch, unsubscribe := c.bus.Subscribe(string(event.CHAT_TOPIC))
+		ch, unsubscribe := c.bus.Subscribe(string(event.ChatTopic))
 		defer unsubscribe()
-		for event := range ch {
-			go c.Handle(event)
+		for chatEventPayload := range ch {
+			go c.Handle(chatEventPayload)
 		}
 	}()
 }
 
 // @Injectable
-func NewChatWorker(busSys *event.AppEventBusSystem, ws *websocket.WebsocketCoordinator, sessionMgr *manager.SessionManager, agentInvoker *chat.AgentInvoker) *ChatWorker {
+func NewChatWorker(busSys *event.AppEventBusSystem, ws *websocket.Coordinator, sessionMgr *manager.SessionManager, agentInvoker *chat.AgentInvoker) *ChatWorker {
 	return &ChatWorker{
 		bus:          busSys.ChatEventBus,
 		mu:           sync.RWMutex{},

@@ -12,15 +12,14 @@ type App struct {
 	melody        *melody.Melody
 	config        *AppConfig
 	busSystem     *event.AppEventBusSystem
-	wsCoordinator *websocket.WebsocketCoordinator
+	wsCoordinator *websocket.Coordinator
 }
 
 // @Injectable
 func NewApp(
-
 	config *AppConfig,
 	busSys *event.AppEventBusSystem,
-	wsCoordinator *websocket.WebsocketCoordinator,
+	wsCoordinator *websocket.Coordinator,
 ) *App {
 
 	return &App{

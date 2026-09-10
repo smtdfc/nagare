@@ -1,10 +1,10 @@
 package message
 
 type Message interface {
-	GetKind() MessageKind
+	GetKind() Kind
 }
 type ListMessage []Message
 
-type MessageReadOnlyChannel <-chan Message
-type MessageWriteOnlyChannel chan<- Message
-type MessageChannel chan Message
+type ReadOnlyChannel <-chan Message
+type WriteOnlyChannel chan<- Message
+type Channel chan Message

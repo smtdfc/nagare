@@ -14,23 +14,19 @@ func ErrorHandler(c fiber.Ctx, err error) error {
 	code := fiber.StatusInternalServerError
 	message := "Internal Server Error"
 	errorResp := rest.InternalErr
-	var fiberErr *fiber.Error
-	var apiErr *rest.ApiError
-	var nagareCoreErr *core_errors.NagareCoreError
-	var gatewayErr *custom_errors.GatewayError
-	if errors.As(err, &fiberErr) {
+	if fiberErr, ok := errors.AsType[*fiber.Error](err); ok {
 		code = fiberErr.Code
 		message = fiberErr.Message
 		errorResp = rest.NewApiError("ERROR", message, code)
-	} else if errors.As(err, &apiErr) {
+	} else if apiErr, ok := errors.AsType[*rest.ApiError](err); ok {
 		errorResp = apiErr
-	} else if errors.As(err, &nagareCoreErr) {
+	} else if nagareCoreErr, ok := errors.AsType[*core_errors.NagareCoreError](err); ok {
 		errorResp = rest.NewApiError(
 			nagareCoreErr.Code,
 			nagareCoreErr.Details,
 			400,
 		)
-	} else if errors.As(err, &gatewayErr) {
+	} else if gatewayErr, ok := errors.AsType[*custom_errors.GatewayError](err); ok {
 		errorResp = rest.NewApiError(
 			gatewayErr.Code,
 			gatewayErr.Details,

@@ -26,22 +26,22 @@ func SetupRoutes(
 	settingsController *controllers.SettingsController,
 	pluginController *controllers.PluginController,
 ) *AppRoutes {
-	app.fiberApp.Post(rest.ChatSendMessageEndpoint, chatController.SendMessage)
-	app.fiberApp.Post(rest.ChatCreateSessionEndpoint, chatController.CreateSession)
-	app.fiberApp.Get(rest.ChatGetListSessionEndpoint, chatController.GetListSession)
-	app.fiberApp.Get(rest.ChatGetHistoryEndpoint, chatController.GetHistory)
+	app.fiberApp.Post(rest.SendChatMessageEndpoint, chatController.SendMessage)
+	app.fiberApp.Post(rest.CreateChatSessionEndpoint, chatController.CreateSession)
+	app.fiberApp.Get(rest.ListChatSessionsEndpoint, chatController.ListSessions)
+	app.fiberApp.Get(rest.GetChatHistoryEndpoint, chatController.History)
 
-	app.fiberApp.Get(rest.LLMProviderGetListEndpoint, llmProviderController.GetListProvider)
-	app.fiberApp.Get(rest.LLMProviderGetDetailsEndpoint, llmProviderController.GetProviderDetails)
-	app.fiberApp.Post(rest.LLMProviderAddEndpoint, llmProviderController.AddProvider)
-	app.fiberApp.Post(rest.LLMProviderDeleteEndpoint, llmProviderController.DeleteProvider)
-	app.fiberApp.Post(rest.LLMProviderGetAvailableModelsEndpoint, llmProviderController.GetAvailableModels)
+	app.fiberApp.Get(rest.ListLLMProvidersEndpoint, llmProviderController.List)
+	app.fiberApp.Get(rest.GetLLMProviderDetailsEndpoint, llmProviderController.Details)
+	app.fiberApp.Post(rest.AddLLMProviderEndpoint, llmProviderController.Add)
+	app.fiberApp.Post(rest.DeleteLLMProviderEndpoint, llmProviderController.Delete)
+	app.fiberApp.Post(rest.GetLLMProviderModelsEndpoint, llmProviderController.GetModels)
 
 	app.fiberApp.Get(rest.GetGeneralSettings, settingsController.GetGeneralConfig)
 	app.fiberApp.Post(rest.SetGeneralSettings, settingsController.SetGeneralConfig)
 
-	app.fiberApp.Get(rest.GetListPluginEndpoint, pluginController.GetListPlugin)
-	app.fiberApp.Post(rest.InstallLocalPluginEndpoint, pluginController.InstallLocalPlugin)
+	app.fiberApp.Get(rest.GetListPluginEndpoint, pluginController.List)
+	app.fiberApp.Post(rest.InstallLocalPluginEndpoint, pluginController.InstallLocal)
 
 	if app.config.DebugMode {
 		app.fiberApp.Get("/metrics", monitor.New(monitor.Config{Title: "Nagare Gateway Metrics Page"}))
@@ -59,7 +59,10 @@ func SetupRoutes(
 	})
 
 	app.fiberApp.Get("/ws", adaptor.HTTPHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		app.melody.HandleRequest(w, r)
+		err := app.melody.HandleRequest(w, r)
+		if err != nil {
+			return
+		}
 	}))
 
 	app.melody.HandleMessage(app.wsCoordinator.HandleMessage)
