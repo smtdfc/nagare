@@ -15,31 +15,37 @@ const (
 )
 
 type HandshakeEventPayload struct {
+	// Deprecated: use RequestID instead
 	ID          string `json:"id"`
 	PluginID    string `json:"PluginID"`
 	ConnectCode string `json:"connectCode"`
 }
 
 type HandshakeSuccessEventPayload struct {
+	// Deprecated: use RequestID instead
 	ID string `json:"id"`
 }
 
 type HandshakeFailedEventPayload struct {
+	// Deprecated: use RequestID instead
 	ID    string `json:"id"`
 	Cause string `json:"cause"`
 }
 
 type CreatePluginChatSessionEventPayload struct {
+	// Deprecated: use RequestID instead
 	ID    string `json:"id"`
 	Title string `json:"title"`
 }
 
 type CreatePluginChatSessionSuccessEventPayload struct {
+	// Deprecated: use RequestID instead
 	ID      string        `json:"id"`
 	Session *rest.Session `json:"session"`
 }
 
 type CreatePluginChatSessionErrorEventPayload struct {
+	// Deprecated: use RequestID instead
 	ID    string `json:"id"`
 	Cause string `json:"cause"`
 }
