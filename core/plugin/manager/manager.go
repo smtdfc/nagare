@@ -30,15 +30,26 @@ func unpackPlugin(archivePath, destDir string) error {
 	}
 	defer reader.Close()
 
-	if err := os.MkdirAll(destDir, 0775); err != nil {
+	absDestDir, err := filepath.Abs(destDir)
+	if err != nil {
+		return fmt.Errorf("failed to resolve destination directory: %w", err)
+	}
+	absDestDir = filepath.Clean(absDestDir)
+	if err := os.MkdirAll(absDestDir, 0775); err != nil {
 		return fmt.Errorf("failed to create destination directory: %w", err)
 	}
 
 	for _, file := range reader.File {
-		cleanDestDir := filepath.Clean(destDir)
-		fpath := filepath.Join(cleanDestDir, file.Name)
+		if filepath.IsAbs(file.Name) {
+			return fmt.Errorf("illegal absolute file path detected in archive: %s", file.Name)
+		}
 
-		if !strings.HasPrefix(fpath, cleanDestDir+string(filepath.Separator)) && fpath != cleanDestDir {
+		fpath := filepath.Clean(filepath.Join(absDestDir, file.Name))
+		rel, err := filepath.Rel(absDestDir, fpath)
+		if err != nil {
+			return fmt.Errorf("failed to validate archive path %q: %w", file.Name, err)
+		}
+		if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 			return fmt.Errorf("illegal file path detected in archive: %s", file.Name)
 		}
 
