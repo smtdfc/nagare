@@ -6,8 +6,8 @@ type ResponseStartedMessage struct {
 	ID string `json:"id"`
 }
 
-func (t *ResponseStartedMessage) GetKind() Kind {
-	return ResponseStartedMessageKind
+func (t *ResponseStartedMessage) GetMessageType() MessageType {
+	return ResponseStartedMessageType
 }
 
 func NewResponseStartedMessage() *ResponseStartedMessage {
@@ -20,8 +20,8 @@ type ResponseCompletedMessage struct {
 	ID string `json:"id"`
 }
 
-func (t *ResponseCompletedMessage) GetKind() Kind {
-	return ResponseCompletedMessageKind
+func (t *ResponseCompletedMessage) GetMessageType() MessageType {
+	return ResponseCompletedMessageType
 }
 
 func NewResponseCompletedMessage() *ResponseCompletedMessage {
@@ -36,8 +36,8 @@ type ResponseFailedMessage struct {
 	Cause string `json:"cause"`
 }
 
-func (t *ResponseFailedMessage) GetKind() Kind {
-	return ResponseFailedMessageKind
+func (t *ResponseFailedMessage) GetMessageType() MessageType {
+	return ResponseFailedMessageType
 }
 
 func NewResponseFailedMessage(code string, cause string) *ResponseFailedMessage {

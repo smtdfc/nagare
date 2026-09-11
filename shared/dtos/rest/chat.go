@@ -15,7 +15,7 @@ type Session struct {
 }
 
 type SendChatMessageRequest struct {
-	SessionID string `json:"session_id"`
+	SessionID string `json:"sessionID"`
 	Text      string `json:"text"`
 }
 
@@ -32,10 +32,10 @@ type ListChatSessionsResponse struct {
 }
 
 type GetChatHistoryRequest struct {
-	SessionID string `json:"session_id"`
+	SessionID string `json:"sessionID"`
 }
 
 type GetChatHistoryResponse struct {
-	SessionID string            `json:"session_id"`
+	SessionID string            `json:"sessionID"`
 	Messages  []message.Message `json:"messages"`
 }

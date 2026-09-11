@@ -6,8 +6,8 @@ type AgentStartedMessage struct {
 	ID string `json:"id"`
 }
 
-func (t *AgentStartedMessage) GetKind() Kind {
-	return AgentStartedMessageKind
+func (t *AgentStartedMessage) GetMessageType() MessageType {
+	return AgentStartedMessageType
 }
 
 func NewAgentStartedMessage() *AgentStartedMessage {
@@ -23,8 +23,8 @@ type AgentCompletedMessage struct {
 	Duration float64 `json:"duration"`
 }
 
-func (t *AgentCompletedMessage) GetKind() Kind {
-	return AgentCompletedMessageKind
+func (t *AgentCompletedMessage) GetMessageType() MessageType {
+	return AgentCompletedMessageType
 }
 
 func NewAgentCompletedMessage(isSuccess bool, isCancel bool, duration float64) *AgentCompletedMessage {
@@ -42,8 +42,8 @@ type AgentErrorMessage struct {
 	Error string `json:"error"`
 }
 
-func (t *AgentErrorMessage) GetKind() Kind {
-	return AgentErrorMessageKind
+func (t *AgentErrorMessage) GetMessageType() MessageType {
+	return AgentErrorMessageType
 }
 
 func NewAgentErrorMessage(err string, code string) *AgentErrorMessage {

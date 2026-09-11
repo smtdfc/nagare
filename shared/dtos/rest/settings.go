@@ -6,14 +6,14 @@ const (
 )
 
 type GeneralSettings struct {
-	CurrentModel    string `json:"current_model"`
-	CurrentProvider string `json:"current_provider"`
+	CurrentModel    string `json:"currentModel"`
+	CurrentProvider string `json:"currentProvider"`
 }
 
 type GetGeneralSettingsResponse struct {
-	GeneralSettings *GeneralSettings `json:"general_settings"`
+	GeneralSettings *GeneralSettings `json:"generalSettings"`
 }
 
 type SetGeneralSettingsRequest struct {
-	GeneralSettings *GeneralSettings `json:"general_settings"`
+	GeneralSettings *GeneralSettings `json:"generalSettings"`
 }

@@ -1,7 +1,7 @@
 package websocket
 
-type WebsocketEvent string
-type WebsocketPayload[T any] struct {
-	Event WebsocketEvent `json:"event"`
-	Data  T              `json:"data"`
+type Event string
+type Payload[T any] struct {
+	Event Event `json:"event"`
+	Data  T     `json:"data"`
 }

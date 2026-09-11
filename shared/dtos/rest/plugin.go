@@ -2,12 +2,12 @@ package rest
 
 type Plugin struct {
 	ID       string   `json:"id"`
-	PluginID string   `json:"plugin_id"`
+	PluginID string   `json:"pluginID"`
 	Name     string   `json:"name"`
 	Author   string   `json:"author"`
 	Features []string `json:"features"`
 	Version  string   `json:"version"`
-	IsActive bool     `json:"is_active"`
+	IsActive bool     `json:"isActive"`
 }
 
 const (

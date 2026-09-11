@@ -12,9 +12,9 @@ type LLMProvider struct {
 	ID         string   `json:"id"`
 	Name       string   `json:"name"`
 	Compatible string   `json:"compatible"`
-	ApiKey     string   `json:"api_key"`
+	ApiKey     string   `json:"apiKey"`
 	Models     []string `json:"models"`
-	BaseURL    string   `json:"base_url"`
+	BaseURL    string   `json:"baseUrl"`
 }
 
 type GetListLLMProviderResponse struct {
@@ -28,9 +28,9 @@ type GetLLMProviderDetailsResponse struct {
 type AddLLMProviderRequest struct {
 	Name       string   `json:"name"`
 	Compatible string   `json:"compatible"`
-	ApiKey     string   `json:"api_key"`
+	ApiKey     string   `json:"apiKey"`
 	Models     []string `json:"models"`
-	BaseURL    string   `json:"base_url"`
+	BaseURL    string   `json:"baseUrl"`
 }
 
 type AddLLMProviderResponse struct {

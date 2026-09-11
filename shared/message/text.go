@@ -8,8 +8,8 @@ type TextMessage struct {
 	Content string `json:"content"`
 }
 
-func (t *TextMessage) GetKind() Kind {
-	return TextMessageKind
+func (t *TextMessage) GetMessageType() MessageType {
+	return TextMessageType
 }
 
 func NewTextMessage(role Role, content string) *TextMessage {

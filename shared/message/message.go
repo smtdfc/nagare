@@ -1,7 +1,7 @@
 package message
 
 type Message interface {
-	GetKind() Kind
+	GetMessageType() MessageType
 }
 type ListMessage []Message
 
