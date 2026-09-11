@@ -19,7 +19,7 @@ type LLMProviderManager struct {
 }
 
 func (l *LLMProviderManager) GetAllProvider(ctx context.Context) ([]*llm_provider.LLMProviderConfig, error) {
-	providers, err := l.llmProviderRepo.GetAllProvider(ctx)
+	providers, err := l.llmProviderRepo.FindAll(ctx)
 	if err != nil {
 		return nil, custom_errors.ErrGetAllLLMProviderFailed
 	}
@@ -28,7 +28,7 @@ func (l *LLMProviderManager) GetAllProvider(ctx context.Context) ([]*llm_provide
 }
 
 func (l *LLMProviderManager) GetProviderByID(ctx context.Context, id string) (*llm_provider.LLMProviderConfig, error) {
-	provider, err := l.llmProviderRepo.GetProviderByID(ctx, id)
+	provider, err := l.llmProviderRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, custom_errors.ErrGetLLMProviderFailed
 	}
@@ -49,7 +49,7 @@ func (l *LLMProviderManager) AddProvider(ctx context.Context, name, baseURL, com
 		BaseURL:    baseURL,
 	}
 
-	provider, err := l.llmProviderRepo.AddProvider(ctx, l.llmProviderMapper.ToEntity(conf))
+	provider, err := l.llmProviderRepo.Add(ctx, l.llmProviderMapper.ToEntity(conf))
 	if err != nil {
 		return nil, custom_errors.ErrAddLLMProviderFailed
 	}
@@ -58,7 +58,7 @@ func (l *LLMProviderManager) AddProvider(ctx context.Context, name, baseURL, com
 }
 
 func (l *LLMProviderManager) DeleteProvider(ctx context.Context, id string) error {
-	err := l.llmProviderRepo.DeleteProviderByID(ctx, id)
+	err := l.llmProviderRepo.DeleteByID(ctx, id)
 	if err != nil {
 		return custom_errors.ErrDeleteLLMProviderFailed
 	}
@@ -67,7 +67,7 @@ func (l *LLMProviderManager) DeleteProvider(ctx context.Context, id string) erro
 }
 
 func (l *LLMProviderManager) FetchAvailableModels(ctx context.Context, id string) ([]string, error) {
-	conf, err := l.llmProviderRepo.GetProviderByID(ctx, id)
+	conf, err := l.llmProviderRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -77,10 +77,14 @@ func (l *LLMProviderManager) FetchAvailableModels(ctx context.Context, id string
 	}
 
 	adapter, err := l.GetAdapter(l.llmProviderMapper.ToDomain(conf))
-	if adapter == nil {
-		return nil, custom_errors.ErrLLMProviderNotFound
+	if err != nil {
+		return nil, err
 	}
-	
+
+	if adapter == nil {
+		return nil, custom_errors.ErrLLMProviderNotSupported
+	}
+
 	models, err := adapter.GetModels(ctx)
 	if err != nil {
 		return nil, err
@@ -99,7 +103,7 @@ func (l *LLMProviderManager) GetAdapter(provider *llm_provider.LLMProviderConfig
 			l.adapterLogger.Clone(),
 		), nil
 	}
-	return nil, custom_errors.ErrProviderNotSupported
+	return nil, custom_errors.ErrLLMProviderNotSupported
 }
 
 // @Injectable

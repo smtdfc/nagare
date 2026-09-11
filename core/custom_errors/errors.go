@@ -18,7 +18,7 @@ var (
 	ErrGetLLMProviderFailed           = NewNagareCoreError("GET_LLM_PROVIDER_FAILED", "Failed to get LLM provider")
 	ErrAddLLMProviderFailed           = NewNagareCoreError("ADD_LLM_PROVIDER_FAILED", "Failed to add LLM provider")
 	ErrDeleteLLMProviderFailed        = NewNagareCoreError("DELETE_LLM_PROVIDER_FAILED", "Failed to delete LLM provider")
-	ErrProviderNotSupported           = NewNagareCoreError("PROVIDER_NOT_SUPPORTED", "LLM provider is not supported")
+	ErrLLMProviderNotSupported        = NewNagareCoreError("LLM_PROVIDER_NOT_SUPPORTED", "LLM provider is not supported")
 	ErrLLMProviderNotFound            = NewNagareCoreError("LLM_PROVIDER_NOT_FOUND", "LLM provider not found")
 	ErrCurrentProviderNotSetup        = NewNagareCoreError("CURRENT_PROVIDER_NOT_SETUP", "Current LLM provider is not set up")
 	ErrCurrentModelNotSetup           = NewNagareCoreError("CURRENT_MODEL_NOT_SETUP", "Current LLM model is not set up")

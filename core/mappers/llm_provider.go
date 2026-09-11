@@ -3,8 +3,6 @@ package mappers
 import (
 	"strings"
 
-	"github.com/google/uuid"
-
 	"github.com/smtdfc/nagare/core/llm_provider"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/shared/helpers"
@@ -15,7 +13,7 @@ type LLMProviderMapper struct {
 
 func (l *LLMProviderMapper) ToDomain(entity *entities.LLMProvider) *llm_provider.LLMProviderConfig {
 	return &llm_provider.LLMProviderConfig{
-		ID:         entity.ID.String(),
+		ID:         entity.ID,
 		Name:       entity.Name,
 		Compatible: llm_provider.GetCompatibleFromString(entity.Compatible),
 		ApiKey:     entity.ApiKey,
@@ -25,13 +23,9 @@ func (l *LLMProviderMapper) ToDomain(entity *entities.LLMProvider) *llm_provider
 }
 
 func (l *LLMProviderMapper) ToEntity(domain *llm_provider.LLMProviderConfig) *entities.LLMProvider {
-	var providerID uuid.UUID
-	if parsedID, err := uuid.Parse(domain.ID); err == nil {
-		providerID = parsedID
-	}
 
 	return &entities.LLMProvider{
-		ID:         providerID,
+		ID:         domain.ID,
 		Name:       domain.Name,
 		Compatible: domain.Compatible.ToString(),
 		ApiKey:     domain.ApiKey,

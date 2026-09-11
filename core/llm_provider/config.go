@@ -1,5 +1,7 @@
 package llm_provider
 
+import "github.com/google/uuid"
+
 type LLMProviderCompatible string
 
 const (
@@ -21,7 +23,7 @@ func GetCompatibleFromString(s string) LLMProviderCompatible {
 }
 
 type LLMProviderConfig struct {
-	ID         string
+	ID         uuid.UUID
 	Name       string
 	Compatible LLMProviderCompatible
 	ApiKey     string

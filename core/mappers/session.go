@@ -1,8 +1,6 @@
 package mappers
 
 import (
-	"github.com/google/uuid"
-
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/shared/helpers"
@@ -20,9 +18,9 @@ func (s *SessionMapper) ToDomain(entity *entities.Session) *session.SessionInfo 
 		return nil
 	}
 	return &session.SessionInfo{
-		ID:        entity.ID.String(),
+		ID:        entity.ID,
 		Title:     entity.Title,
-		OwnerID:   entity.OwnerID.String(),
+		OwnerID:   entity.OwnerID,
 		OwnerType: session.GetOwnerType(entity.OwnerType),
 		IsArchive: entity.IsArchive,
 		ChannelID: entity.ChannelID,
@@ -30,17 +28,10 @@ func (s *SessionMapper) ToDomain(entity *entities.Session) *session.SessionInfo 
 }
 
 func (s *SessionMapper) ToEntity(domain *session.SessionInfo) *entities.Session {
-	if domain == nil {
-		return nil
-	}
-
-	id, _ := uuid.Parse(domain.ID)
-	ownerID, _ := uuid.Parse(domain.OwnerID)
-
 	return &entities.Session{
-		ID:        id,
+		ID:        domain.ID,
 		Title:     domain.Title,
-		OwnerID:   ownerID,
+		OwnerID:   domain.OwnerID,
 		OwnerType: string(domain.OwnerType),
 		IsArchive: domain.IsArchive,
 		ChannelID: domain.ChannelID,

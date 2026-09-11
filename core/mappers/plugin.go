@@ -1,7 +1,6 @@
 package mappers
 
 import (
-	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/shared/helpers"
@@ -11,7 +10,7 @@ type PluginMapper struct{}
 
 func (p *PluginMapper) ToDomain(entity *entities.Plugin) *plugin.Plugin {
 	return &plugin.Plugin{
-		ID:       entity.ID.String(),
+		ID:       entity.ID,
 		PluginID: entity.PluginID,
 		Name:     entity.Name,
 		Author:   entity.Author,
@@ -23,14 +22,8 @@ func (p *PluginMapper) ToDomain(entity *entities.Plugin) *plugin.Plugin {
 }
 
 func (p *PluginMapper) ToEntity(domain *plugin.Plugin) *entities.Plugin {
-	var id uuid.UUID
-	id, err := uuid.Parse(domain.ID)
-	if err != nil {
-		id = uuid.Nil
-	}
-
 	return &entities.Plugin{
-		ID:       id,
+		ID:       domain.ID,
 		PluginID: domain.PluginID,
 		Name:     domain.Name,
 		Author:   domain.Author,
