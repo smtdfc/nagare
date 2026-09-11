@@ -11,8 +11,8 @@ http:
     data: |-
       {
         "generalSettings":{
-          "currentModel":"7db1b141-f44a-4cd1-afb5-3ec513dd7784",
-          "currentProvider":"7db1b141-f44a-4cd1-afb5-3ec513dd7784"
+          "currentModel":"openai/gpt-oss-20b",
+          "currentProvider":"9c1d2fdd-5773-44f0-a6b8-a746e717cd97"
         }
       }
   auth: inherit
