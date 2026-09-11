@@ -6,3 +6,6 @@ variables:
   - name: NAGARE_WEBSOCKET
     value: http://127.0.0.1:9832/ws
     description: ""
+  - secret: true
+    name: GROG_API_KEY
+    description: ""

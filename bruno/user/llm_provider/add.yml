@@ -10,7 +10,13 @@ http:
     type: json
     data: |-
       {
-        
+        "name":"Groq",
+        "compatible":"OpenAI",
+        "apiKey":"{{GROG_API_KEY}}",
+        "models":[
+          "openai/gpt-oss-20b"
+        ],
+        "baseUrl":"https://api.groq.com/openai/v1"
       }
   auth: inherit
 

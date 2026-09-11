@@ -5,13 +5,11 @@ info:
 
 http:
   method: GET
-  url: "{{NAGARE_REST_API}}/user/llm-providers/details"
-  body:
-    type: json
-    data: |-
-      {
-        "id":"e4ef50ec-3ef8-4756-bee3-2b5e77e3b8bd"
-      }
+  url: "{{NAGARE_REST_API}}/user/llm-providers/details?provider=9c1d2fdd-5773-44f0-a6b8-a746e717cd97"
+  params:
+    - name: provider
+      value: 9c1d2fdd-5773-44f0-a6b8-a746e717cd97
+      type: query
   auth: inherit
 
 settings:
