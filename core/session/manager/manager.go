@@ -3,6 +3,7 @@ package manager
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/mappers"
@@ -10,8 +11,6 @@ import (
 	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/shared/message"
 )
-
-const DefaultUserID = "00000000-0000-0000-0000-000000000000"
 
 type SessionManager struct {
 	logger        *logger.BaseLogger
@@ -24,7 +23,7 @@ type SessionManager struct {
 func (s *SessionManager) CreateUserSession(ctx context.Context, title string) (*session.SessionInfo, error) {
 	sessionInfo := &session.SessionInfo{
 		Title:     title,
-		OwnerID:   DefaultUserID,
+		OwnerID:   uuid.Nil,
 		OwnerType: session.USER,
 		IsArchive: false,
 	}
