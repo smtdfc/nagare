@@ -100,13 +100,13 @@ func (a *Executor) Execute(ctx context.Context, model string, llmAdapter llm_pro
 
 		for chunk := range llmOutput {
 			output <- chunk
-			switch chunk.GetKind() {
-			case message.TextMessageKind:
+			switch chunk.GetMessageType() {
+			case message.TextMessageType:
 				_, msg := helpers.SafeCast[*message.TextMessage](chunk)
 				textBuilder.WriteString(msg.Content)
 				isTextItem = true
 
-			case message.ToolCallMessageKind:
+			case message.ToolCallMessageType:
 				flushText()
 				_, msg := helpers.SafeCast[*message.ToolCallMessage](chunk)
 				a.state.AddToolCall(tool.NewToolCall(
@@ -116,7 +116,7 @@ func (a *Executor) Execute(ctx context.Context, model string, llmAdapter llm_pro
 				))
 				a.state.AppendMessage(chunk)
 
-			case message.ResponseFailedMessageKind:
+			case message.ResponseFailedMessageType:
 				flushText()
 				_, msg := helpers.SafeCast[*message.ResponseFailedMessage](chunk)
 				a.logger.Error("Agent error", "error", msg.Cause)

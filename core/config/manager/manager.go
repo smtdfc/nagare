@@ -19,7 +19,7 @@ type ConfigManager struct {
 func (c *ConfigManager) GetGeneralConfig(ctx context.Context) (*config.GeneralConfig, error) {
 	var conf config.GeneralConfig
 
-	kvs, err := c.kvRepo.GetByScope(ctx, GeneralConfigScopeName)
+	kvs, err := c.kvRepo.FindByScope(ctx, GeneralConfigScopeName)
 	if err != nil {
 		return nil, custom_errors.ErrGetGeneralConfigFailed
 	}
