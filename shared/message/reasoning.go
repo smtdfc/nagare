@@ -3,17 +3,19 @@ package message
 import "github.com/smtdfc/nagare/shared/helpers"
 
 type ReasoningMessage struct {
-	ID      string `json:"id"`
-	Content string `json:"content"`
+	ID      string      `json:"id"`
+	Type    MessageType `json:"type"`
+	Content string      `json:"content"`
 }
 
 func (t *ReasoningMessage) GetMessageType() MessageType {
-	return ReasoningMessageType
+	return t.Type
 }
 
 func NewReasoningMessage(content string) *ReasoningMessage {
 	return &ReasoningMessage{
 		ID:      helpers.GenerateUUID(),
+		Type:    ReasoningMessageType,
 		Content: content,
 	}
 }
