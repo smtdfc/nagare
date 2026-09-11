@@ -15,7 +15,7 @@ type MessageRepository struct {
 	logger *logger.BaseLogger
 }
 
-func (m *MessageRepository) GetListMessageBySessionID(ctx context.Context, sessionID string) ([]*entities.Message, error) {
+func (m *MessageRepository) FindBySessionID(ctx context.Context, sessionID string) ([]*entities.Message, error) {
 	var messages []*entities.Message
 
 	err := m.db.WithContext(ctx).

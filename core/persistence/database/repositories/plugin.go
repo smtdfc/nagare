@@ -15,7 +15,7 @@ type PluginRepository struct {
 	logger *logger.BaseLogger
 }
 
-func (p *PluginRepository) GetAllPlugin(ctx context.Context) ([]*entities.Plugin, error) {
+func (p *PluginRepository) FindAll(ctx context.Context) ([]*entities.Plugin, error) {
 	var plugins []*entities.Plugin
 
 	err := p.db.WithContext(ctx).
@@ -29,7 +29,7 @@ func (p *PluginRepository) GetAllPlugin(ctx context.Context) ([]*entities.Plugin
 	return plugins, nil
 }
 
-func (p *PluginRepository) GetAllActivePlugin(ctx context.Context) ([]*entities.Plugin, error) {
+func (p *PluginRepository) FindActive(ctx context.Context) ([]*entities.Plugin, error) {
 	var plugins []*entities.Plugin
 
 	err := p.db.WithContext(ctx).

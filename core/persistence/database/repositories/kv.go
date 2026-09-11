@@ -42,7 +42,7 @@ func (r *KVRepository) Upsert(ctx context.Context, kvs []*entities.KV) error {
 	return err
 }
 
-func (r *KVRepository) GetByScope(ctx context.Context, scope string) ([]*entities.KV, error) {
+func (r *KVRepository) FindByScope(ctx context.Context, scope string) ([]*entities.KV, error) {
 	if scope == "" {
 		return nil, errors.New("scope cannot be empty")
 	}

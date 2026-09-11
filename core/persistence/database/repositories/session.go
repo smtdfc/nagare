@@ -17,7 +17,7 @@ type SessionRepository struct {
 	logger *logger.BaseLogger
 }
 
-func (s *SessionRepository) GetSessionByID(ctx context.Context, id string) (*entities.Session, error) {
+func (s *SessionRepository) FindByID(ctx context.Context, id string) (*entities.Session, error) {
 	var session entities.Session
 	err := s.db.WithContext(ctx).
 		Where("id = ? AND owner_type = ?", id).
@@ -35,7 +35,7 @@ func (s *SessionRepository) GetSessionByID(ctx context.Context, id string) (*ent
 	return &session, nil
 }
 
-func (s *SessionRepository) GetListSessionByOwnerType(ctx context.Context, ownerType string) ([]*entities.Session, error) {
+func (s *SessionRepository) FindByOwnerType(ctx context.Context, ownerType string) ([]*entities.Session, error) {
 	var sessions []*entities.Session
 
 	err := s.db.WithContext(ctx).
@@ -50,7 +50,7 @@ func (s *SessionRepository) GetListSessionByOwnerType(ctx context.Context, owner
 	return sessions, nil
 }
 
-func (s *SessionRepository) GetListSessionByOwnerID(ctx context.Context, ownerType string, ownerID string) ([]*entities.Session, error) {
+func (s *SessionRepository) FindByOwnerID(ctx context.Context, ownerType string, ownerID string) ([]*entities.Session, error) {
 	var sessions []*entities.Session
 
 	err := s.db.WithContext(ctx).
@@ -65,7 +65,7 @@ func (s *SessionRepository) GetListSessionByOwnerID(ctx context.Context, ownerTy
 	return sessions, nil
 }
 
-func (s *SessionRepository) GetListSessionByChannelID(ctx context.Context, ownerType string, ownerID string, channelID string) ([]*entities.Session, error) {
+func (s *SessionRepository) FindByChannelID(ctx context.Context, ownerType string, ownerID string, channelID string) ([]*entities.Session, error) {
 	var sessions []*entities.Session
 	err := s.db.WithContext(ctx).
 		Where("owner_type = ? AND owner_id = ? AND channel_id = ?", ownerType, ownerID, channelID).
@@ -79,7 +79,7 @@ func (s *SessionRepository) GetListSessionByChannelID(ctx context.Context, owner
 	return sessions, nil
 }
 
-func (s *SessionRepository) CreateSession(ctx context.Context, session *entities.Session) (*entities.Session, error) {
+func (s *SessionRepository) Create(ctx context.Context, session *entities.Session) (*entities.Session, error) {
 	if session.ID == uuid.Nil {
 		session.ID = uuid.New()
 	}
@@ -93,7 +93,7 @@ func (s *SessionRepository) CreateSession(ctx context.Context, session *entities
 	return session, nil
 }
 
-func (s *SessionRepository) UpdateSession(ctx context.Context, session *entities.Session) error {
+func (s *SessionRepository) Update(ctx context.Context, session *entities.Session) error {
 	err := s.db.WithContext(ctx).Save(session).Error
 	if err != nil {
 		s.logger.Error("failed to update session", "id", session.ID, "error", err)
@@ -103,7 +103,7 @@ func (s *SessionRepository) UpdateSession(ctx context.Context, session *entities
 	return nil
 }
 
-func (s *SessionRepository) DeleteSession(ctx context.Context, id string) error {
+func (s *SessionRepository) Delete(ctx context.Context, id string) error {
 	result := s.db.WithContext(ctx).Where("id = ?", id).Delete(&entities.Session{})
 	if result.Error != nil {
 		s.logger.Error("failed to delete session", "id", id, "error", result.Error)
@@ -117,7 +117,7 @@ func (s *SessionRepository) DeleteSession(ctx context.Context, id string) error 
 	return nil
 }
 
-func (s *SessionRepository) GetUserSession(ctx context.Context, sessionId string) (*entities.Session, error) {
+func (s *SessionRepository) FindUserSession(ctx context.Context, sessionId string) (*entities.Session, error) {
 	var session entities.Session
 	err := s.db.WithContext(ctx).
 		Where("owner_type = ? AND id = ?", "user", sessionId).
@@ -135,7 +135,7 @@ func (s *SessionRepository) GetUserSession(ctx context.Context, sessionId string
 	return &session, nil
 }
 
-func (s *SessionRepository) GetUserSessionWithMessages(ctx context.Context, sessionId string) (*entities.Session, error) {
+func (s *SessionRepository) FindUserSessionWithMessages(ctx context.Context, sessionId string) (*entities.Session, error) {
 	var session entities.Session
 
 	err := s.db.WithContext(ctx).
