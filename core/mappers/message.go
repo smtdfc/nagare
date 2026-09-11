@@ -64,6 +64,28 @@ func (m *MessageMapper) ToEntity(domain message.Message, sessionID string) (*ent
 	}, nil
 }
 
+func (m *MessageMapper) ToEntities(domains []message.Message, sessionID string) ([]*entities.Message, error) {
+	if domains == nil {
+		return nil, nil
+	}
+
+	messageEntities := make([]*entities.Message, 0, len(domains))
+	for _, d := range domains {
+		if d == nil {
+			continue
+		}
+
+		messageEntity, err := m.ToEntity(d, sessionID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to map domain to entity: %w", err)
+		}
+
+		messageEntities = append(messageEntities, messageEntity)
+	}
+
+	return messageEntities, nil
+}
+
 func (m *MessageMapper) ToDomains(entities []*entities.Message) ([]message.Message, error) {
 	if entities == nil {
 		return nil, nil

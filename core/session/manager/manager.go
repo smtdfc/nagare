@@ -79,6 +79,32 @@ func (s *SessionManager) GetUserChatHistory(ctx context.Context, sessionID strin
 	return domains, nil
 }
 
+func (s *SessionManager) SaveHistory(ctx context.Context, sessionID string, pendingMessage message.ListMessage) error {
+	chatSession, err := s.sessionRepo.FindUserSessionWithMessages(ctx, sessionID)
+	if err != nil {
+		s.logger.Error("failed to save chat history", "session_id", sessionID, "err", err)
+		return custom_errors.ErrSaveUserSessionFailed
+	}
+
+	if chatSession == nil {
+		return custom_errors.ErrSessionNotFound
+	}
+
+	entities, err := s.messageMapper.ToEntities(pendingMessage, sessionID)
+	if err != nil {
+		s.logger.Error("failed to save chat history", "session_id", sessionID, "err", err)
+		return custom_errors.ErrSaveUserSessionFailed
+	}
+
+	err = s.messageRepo.CreateBatch(ctx, entities, 200)
+	if err != nil {
+		s.logger.Error("failed to save chat history", "session_id", sessionID, "err", err)
+		return custom_errors.ErrSaveUserSessionFailed
+	}
+
+	return nil
+}
+
 // @Injectable
 func NewSessionManager(
 	logger *logger.BaseLogger,

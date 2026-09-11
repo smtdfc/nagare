@@ -99,8 +99,20 @@ func (a *AgentInvoker) Invoke(
 			output <- msg
 		}
 
-		currentAgent.Reset()
-		a.agentPool.Put(currentAgent)
+		defer func() {
+			currentAgent.Reset()
+			a.agentPool.Put(currentAgent)
+		}()
+
+		currentState := currentAgent.DumpState()
+		err = a.sessionMgr.SaveHistory(ctx, sessionID, currentState.PendingMessage)
+		if err != nil {
+			code, details := extractErrorDetails(err)
+			output <- message.NewAgentErrorMessage(details, code)
+
+			return
+		}
+
 	}()
 
 	return output, nil

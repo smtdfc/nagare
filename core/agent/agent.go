@@ -45,6 +45,10 @@ func (a *Agent) Invoke(ctx context.Context, msg message.Message, model string) (
 	return output, nil
 }
 
+func (a *Agent) DumpState() *State {
+	return a.state
+}
+
 func NewAgent(toolMgr *manager.ToolManager, logger *logger.BaseLogger) *Agent {
 	state := NewAgentState()
 	return &Agent{

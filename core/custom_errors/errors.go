@@ -10,6 +10,7 @@ var (
 	ErrMarshalToolResultFailed        = NewNagareCoreError("MARSHAL_TOOL_RESULT_FAILED", "Failed to marshal tool result")
 	ErrCreateUserSessionFailed        = NewNagareCoreError("CREATE_SESSION_FAILED", "Failed to create user session")
 	ErrGetUserSessionFailed           = NewNagareCoreError("GET_SESSION_FAILED", "Failed to get user session")
+	ErrSaveUserSessionFailed          = NewNagareCoreError("SAVE_SESSION_FAILED", "Failed to save user session")
 	ErrSessionNotFound                = NewNagareCoreError("SESSION_NOT_FOUND", "Session not found")
 	ErrGetChatHistoryFailed           = NewNagareCoreError("GET_CHAT_HISTORY_FAILED", "Failed to get chat history")
 	ErrGetGeneralConfigFailed         = NewNagareCoreError("GET_GENERAL_CONFIG_FAILED", "Failed to get general config")
