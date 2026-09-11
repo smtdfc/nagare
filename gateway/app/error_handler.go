@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	core_errors "github.com/smtdfc/nagare/core/custom_errors"
-	"github.com/smtdfc/nagare/gateway/custom_errors"
+	"github.com/smtdfc/nagare/gateway/common/custom_errors"
 	"github.com/smtdfc/nagare/gateway/utils"
 	"github.com/smtdfc/nagare/shared/dtos/rest"
 )

@@ -10,18 +10,18 @@ type Event[T any] struct {
 	Payload T
 }
 
-type EventBus[T any] struct {
+type BaseEventBus[T any] struct {
 	mu          sync.RWMutex
 	subscribers map[string][]chan T
 }
 
-func NewEventBus[T any]() *EventBus[T] {
-	return &EventBus[T]{
+func NewBaseEventBus[T any]() *BaseEventBus[T] {
+	return &BaseEventBus[T]{
 		subscribers: make(map[string][]chan T),
 	}
 }
 
-func (b *EventBus[T]) Subscribe(topic string) (<-chan T, func()) {
+func (b *BaseEventBus[T]) Subscribe(topic string) (<-chan T, func()) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -45,7 +45,7 @@ func (b *EventBus[T]) Subscribe(topic string) (<-chan T, func()) {
 	return ch, unsub
 }
 
-func (b *EventBus[T]) Publish(ctx context.Context, topic string, payload T) {
+func (b *BaseEventBus[T]) Publish(ctx context.Context, topic string, payload T) {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 

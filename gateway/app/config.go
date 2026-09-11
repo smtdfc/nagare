@@ -5,15 +5,15 @@ import (
 	"os"
 )
 
-type AppConfig struct {
+type Config struct {
 	Port      string
 	DebugMode bool
 	PublicKey string
 }
 
 // @Injectable
-func ResolveConfig() (*AppConfig, error) {
-	conf := &AppConfig{
+func ResolveConfig() (*Config, error) {
+	conf := &Config{
 		Port: "9832",
 	}
 

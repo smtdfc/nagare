@@ -1,4 +1,4 @@
-package services
+package plugin
 
 import (
 	"context"
@@ -21,11 +21,11 @@ func toPluginDTO(domain *plugin.Plugin) *rest.Plugin {
 	}
 }
 
-type PluginService struct {
+type Service struct {
 	pluginMgr *manager.PluginManager
 }
 
-func (p *PluginService) ListPlugins(ctx context.Context) (*rest.GetListPluginResponse, error) {
+func (p *Service) ListPlugins(ctx context.Context) (*rest.GetListPluginResponse, error) {
 	plugins, err := p.pluginMgr.GetListPlugin(ctx)
 	if err != nil {
 		return nil, err
@@ -36,15 +36,15 @@ func (p *PluginService) ListPlugins(ctx context.Context) (*rest.GetListPluginRes
 	}, nil
 }
 
-func (p *PluginService) InstallLocalPlugin(ctx context.Context, request *rest.InstallLocalPluginRequest) error {
+func (p *Service) InstallLocalPlugin(ctx context.Context, request *rest.InstallLocalPluginRequest) error {
 	return p.pluginMgr.Install(ctx, request.Path)
 }
 
 // @Injectable
 func NewPluginService(
 	pluginMgr *manager.PluginManager,
-) *PluginService {
-	return &PluginService{
+) *Service {
+	return &Service{
 		pluginMgr: pluginMgr,
 	}
 }

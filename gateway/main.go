@@ -20,9 +20,14 @@ func main() {
 		}
 	}()
 
-	_, err := generated.Root()
+	stats, err := generated.Root()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Gateway exited with error: %v\n", err)
+		os.Exit(1)
+	}
+
+	if stats.Error != nil {
+		fmt.Fprintf(os.Stderr, "Gateway exited with error: %v\n", stats.Error)
 		os.Exit(1)
 	}
 }

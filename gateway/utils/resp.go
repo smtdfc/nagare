@@ -4,7 +4,7 @@ import (
 	"bytes"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/smtdfc/nagare/gateway/custom_errors"
+	"github.com/smtdfc/nagare/gateway/common/custom_errors"
 	"github.com/smtdfc/nagare/shared/dtos/rest"
 )
 

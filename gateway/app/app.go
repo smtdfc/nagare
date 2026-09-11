@@ -3,22 +3,19 @@ package app
 import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/olahol/melody"
-	"github.com/smtdfc/nagare/gateway/event"
-	"github.com/smtdfc/nagare/gateway/websocket"
+	"github.com/smtdfc/nagare/gateway/common/websocket"
 )
 
 type App struct {
 	fiberApp      *fiber.App
 	melody        *melody.Melody
-	config        *AppConfig
-	busSystem     *event.AppEventBusSystem
+	config        *Config
 	wsCoordinator *websocket.Coordinator
 }
 
 // @Injectable
 func NewApp(
-	config *AppConfig,
-	busSys *event.AppEventBusSystem,
+	config *Config,
 	wsCoordinator *websocket.Coordinator,
 ) *App {
 
@@ -28,7 +25,6 @@ func NewApp(
 		}),
 		melody:        melody.New(),
 		config:        config,
-		busSystem:     busSys,
 		wsCoordinator: wsCoordinator,
 	}
 }

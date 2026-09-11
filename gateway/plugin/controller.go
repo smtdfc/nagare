@@ -1,17 +1,16 @@
-package controllers
+package plugin
 
 import (
 	"github.com/gofiber/fiber/v3"
-	"github.com/smtdfc/nagare/gateway/services"
 	"github.com/smtdfc/nagare/gateway/utils"
 	"github.com/smtdfc/nagare/shared/dtos/rest"
 )
 
-type PluginController struct {
-	pluginService *services.PluginService
+type Controller struct {
+	pluginService *Service
 }
 
-func (p *PluginController) List(ctx fiber.Ctx) error {
+func (p *Controller) List(ctx fiber.Ctx) error {
 	data, err := p.pluginService.ListPlugins(ctx)
 	if err != nil {
 		return err
@@ -20,7 +19,7 @@ func (p *PluginController) List(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (p *PluginController) InstallLocal(ctx fiber.Ctx) error {
+func (p *Controller) InstallLocal(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.InstallLocalPluginRequest](ctx)
 	if err != nil {
 		return err
@@ -35,8 +34,8 @@ func (p *PluginController) InstallLocal(ctx fiber.Ctx) error {
 }
 
 // @Injectable
-func NewPluginController(pluginService *services.PluginService) *PluginController {
-	return &PluginController{
+func NewPluginController(pluginService *Service) *Controller {
+	return &Controller{
 		pluginService: pluginService,
 	}
 }

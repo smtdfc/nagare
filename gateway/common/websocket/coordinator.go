@@ -10,10 +10,12 @@ import (
 	"github.com/smtdfc/nagare/shared/helpers"
 )
 
+type EventHandler func(s *melody.Session, w *Coordinator, payload *websocket_dtos.Payload[any])
+
 type Coordinator struct {
-	mu          sync.RWMutex
-	rooms       map[string]map[*melody.Session]bool
-	chatHandler *ChatHandler
+	mu       sync.RWMutex
+	rooms    map[string]map[*melody.Session]bool
+	handlers map[websocket_dtos.Event]EventHandler // Đổi từ 1 handler đơn lẻ sang map các event
 }
 
 func (w *Coordinator) JoinRoom(roomID string, s *melody.Session) {
@@ -80,6 +82,7 @@ func BroadcastToRoom[T any](w *Coordinator, roomID string, event websocket_dtos.
 
 	return nil
 }
+
 func (w *Coordinator) parseMessage(msg []byte) (*websocket_dtos.Payload[any], error) {
 	return helpers.UnmarshalJson[websocket_dtos.Payload[any]](string(msg))
 }
@@ -87,15 +90,16 @@ func (w *Coordinator) parseMessage(msg []byte) (*websocket_dtos.Payload[any], er
 func (w *Coordinator) HandleMessage(s *melody.Session, msg []byte) {
 	message, err := w.parseMessage(msg)
 	if err != nil {
-		err := s.Close()
-		if err != nil {
-			return
-		}
+		_ = s.Close()
+		return
 	}
 
-	switch message.Event {
-	case websocket_dtos.RegisterChatListenerEvent:
-		w.chatHandler.OnListenMessage(s, w, message)
+	w.mu.RLock()
+	handler, exists := w.handlers[message.Event]
+	w.mu.RUnlock()
+
+	if exists && handler != nil {
+		handler(s, w, message)
 	}
 }
 
@@ -142,13 +146,16 @@ func (w *Coordinator) HandleDisconnect(s *melody.Session) {
 	w.LeaveAllRooms(s)
 }
 
-// @Injectable
-func NewWebsocketCoordinator(
-	chatHandler *ChatHandler,
+func (w *Coordinator) On(event websocket_dtos.Event, handler EventHandler) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.handlers[event] = handler
+}
 
-) *Coordinator {
+// @Injectable
+func NewWebsocketCoordinator() *Coordinator {
 	return &Coordinator{
-		rooms:       make(map[string]map[*melody.Session]bool),
-		chatHandler: chatHandler,
+		rooms:    make(map[string]map[*melody.Session]bool),
+		handlers: make(map[websocket_dtos.Event]EventHandler),
 	}
 }
