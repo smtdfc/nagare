@@ -54,7 +54,7 @@ func (w *Coordinator) LeaveAllRooms(s *melody.Session) {
 	}
 }
 
-func BroadcastToRoom[T any](w *Coordinator, roomID string, event websocket_dtos.Event, data T, exclude *melody.Session) error {
+func BroadcastToRoom[T any](w *Coordinator, roomID string, event websocket_dtos.Event, data T, requestID string, exclude *melody.Session) error {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 
@@ -64,8 +64,9 @@ func BroadcastToRoom[T any](w *Coordinator, roomID string, event websocket_dtos.
 	}
 
 	raw, err := helpers.MarshalJson(&websocket_dtos.Payload[T]{
-		Event: event,
-		Data:  data,
+		Event:     event,
+		Data:      data,
+		RequestID: requestID,
 	})
 	if err != nil {
 		return err
@@ -103,14 +104,15 @@ func (w *Coordinator) HandleMessage(s *melody.Session, msg []byte) {
 	}
 }
 
-func SendMessage[T any](s *melody.Session, event websocket_dtos.Event, data T) error {
+func SendMessage[T any](s *melody.Session, event websocket_dtos.Event, data T, requestID string) error {
 	if s == nil {
 		return fmt.Errorf("websocket session is nil")
 	}
 
 	raw, err := helpers.MarshalJson(&websocket_dtos.Payload[T]{
-		Event: event,
-		Data:  data,
+		Event:     event,
+		Data:      data,
+		RequestID: requestID,
 	})
 
 	if err != nil {

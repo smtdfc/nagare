@@ -36,6 +36,7 @@ func (c *Worker) HandleChat(payload *SendMessageEvent) {
 				SessionID: payload.SessionID,
 				Message:   chunkJson,
 			},
+			payload.RequestID,
 			nil,
 		)
 		if err != nil {

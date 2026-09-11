@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/core/session/manager"
 	"github.com/smtdfc/nagare/shared/dtos/rest"
@@ -32,6 +33,7 @@ func (c *Service) SendMessage(ctx context.Context, request *rest.SendChatMessage
 	}
 
 	c.chatEventBus.Publish(ctx, string(Topic), &SendMessageEvent{
+		RequestID: uuid.New().String(),
 		SessionID: request.SessionID,
 		Text:      request.Text,
 	})

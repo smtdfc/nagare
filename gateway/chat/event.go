@@ -14,6 +14,7 @@ type EventPayload interface {
 }
 
 type SendMessageEvent struct {
+	RequestID string
 	SessionID string
 	Text      string
 }

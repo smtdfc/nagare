@@ -21,7 +21,7 @@ func (c *WebsocketHandler) OnListenMessage(s *melody.Session, w *websocket2.Coor
 		err := websocket2.SendMessage(s, websocket.RegisterChatListenerFailEvent, &websocket.RegisterChatListenerFailEventPayload{
 			ID:    "",
 			Cause: "failed to parsing payload",
-		})
+		}, message.RequestID)
 		if err != nil {
 			return
 		}
@@ -32,7 +32,7 @@ func (c *WebsocketHandler) OnListenMessage(s *melody.Session, w *websocket2.Coor
 		err := websocket2.SendMessage(s, websocket.RegisterChatListenerFailEvent, &websocket.RegisterChatListenerFailEventPayload{
 			ID:    data.ID,
 			Cause: err.Error(),
-		})
+		}, message.RequestID)
 		if err != nil {
 			return
 		}
@@ -43,7 +43,7 @@ func (c *WebsocketHandler) OnListenMessage(s *melody.Session, w *websocket2.Coor
 	w.JoinRoom(fmt.Sprintf("session:%s", data.SessionID), s)
 	err = websocket2.SendMessage(s, websocket.RegisterChatListenerSuccessEvent, &websocket.RegisterChatListenerSuccessEventEventPayload{
 		ID: data.ID,
-	})
+	}, message.RequestID)
 	if err != nil {
 		return
 	}
