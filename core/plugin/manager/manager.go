@@ -110,6 +110,7 @@ type PluginManager struct {
 	pluginRepo   *repositories.PluginRepository
 	pluginMapper *mappers.PluginMapper
 	connectCodes map[string]string
+	hostPort     string
 	logger       *logger.BaseLogger
 }
 
@@ -168,7 +169,11 @@ func (p *PluginManager) StartPlugin(ctx context.Context, plugin *plugin.Plugin) 
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
-	cmd.Env = append(os.Environ(), fmt.Sprintf("NAGARE_PLUGIN_CONNECT_CODE=%s", connectCode))
+	cmd.Env = append(
+		os.Environ(),
+		fmt.Sprintf("NAGARE_PLUGIN_CONNECT_CODE=%s", connectCode),
+		fmt.Sprintf("NAGARE_PLUGIN_HOST_PORT=%s", p.hostPort),
+	)
 
 	err := cmd.Start()
 	if err != nil {
@@ -277,6 +282,10 @@ func (p *PluginManager) StartAllPlugin(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (p *PluginManager) SetPluginHostPort(port string) {
+	p.hostPort = port
 }
 
 func (p *PluginManager) StopAllPlugin(ctx context.Context) error {
