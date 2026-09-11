@@ -11,7 +11,7 @@ import (
 
 func toLLMProviderDTO(domain *llm_provider.LLMProviderConfig) *rest.LLMProvider {
 	return &rest.LLMProvider{
-		ID:         domain.ID,
+		ID:         domain.ID.String(),
 		Name:       domain.Name,
 		Compatible: domain.Compatible.ToString(),
 		ApiKey:     domain.ApiKey,

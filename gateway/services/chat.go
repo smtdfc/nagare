@@ -15,8 +15,9 @@ func toSessionDTO(s *session.SessionInfo) *rest.Session {
 	if s == nil {
 		return nil
 	}
+
 	return &rest.Session{
-		ID:    s.ID,
+		ID:    s.ID.String(),
 		Title: s.Title,
 	}
 }
