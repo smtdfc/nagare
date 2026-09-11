@@ -1,7 +1,8 @@
 package main
 
-import "fmt"
+import "github.com/smtdfc/nagare/plugin/client"
 
 func main() {
-	fmt.Print("hello")
+	pluginClient := client.NewPlugin()
+	pluginClient.Start()
 }
