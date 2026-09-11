@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/smtdfc/nagare/core/logger"
@@ -42,6 +43,25 @@ func (p *PluginRepository) FindActive(ctx context.Context) ([]*entities.Plugin, 
 	}
 
 	return plugins, nil
+}
+
+func (p *PluginRepository) FindByPluginId(ctx context.Context, pluginId string) (*entities.Plugin, error) {
+	var plugin entities.Plugin
+
+	err := p.db.WithContext(ctx).
+		Where("plugin_id = ?", pluginId).
+		First(&plugin).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		p.logger.Error("Failed to get  plugin", "error", err, "pluginId", pluginId)
+		return nil, fmt.Errorf("failed to get plugin: %w", err)
+	}
+
+	return &plugin, nil
 }
 
 func (p *PluginRepository) CreateOrUpdate(ctx context.Context, plugin *entities.Plugin) (*entities.Plugin, error) {

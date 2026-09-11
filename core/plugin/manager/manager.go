@@ -184,6 +184,7 @@ func (p *PluginManager) StartPlugin(ctx context.Context, plugin *plugin.Plugin) 
 
 	return nil
 }
+
 func (p *PluginManager) Install(ctx context.Context, pluginPath string) error {
 	_, err := os.Stat(pluginPath)
 	if err != nil {
@@ -290,6 +291,28 @@ func (p *PluginManager) StopAllPlugin(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (p *PluginManager) ValidConnect(cxt context.Context, pluginID string, connectCode string) error {
+	pluginEntity, err := p.pluginRepo.FindByPluginId(cxt, pluginID)
+	if err != nil {
+		return custom_errors.ErrCheckPluginConnectionFailed
+	}
+
+	if pluginEntity == nil {
+		return custom_errors.ErrPluginNotFound
+	}
+
+	code, ok := p.connectCodes[pluginID]
+	if !ok {
+		return custom_errors.ErrPluginConnectionInvalid
+	}
+
+	if code != connectCode {
+		return custom_errors.ErrPluginConnectionInvalid
 	}
 
 	return nil

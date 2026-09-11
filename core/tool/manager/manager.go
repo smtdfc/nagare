@@ -3,28 +3,46 @@ package manager
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/tool"
+	"github.com/smtdfc/nagare/core/tool/registry"
 )
 
 type ToolManager struct {
-	toolMap map[string]tool.Tool
-	logger  *logger.BaseLogger
+	mu         sync.RWMutex
+	cachedList tool.ListTool
+	logger     *logger.BaseLogger
 }
 
 func (t *ToolManager) GetListTool() tool.ListTool {
-	list := make(tool.ListTool, 0, len(t.toolMap))
-	for _, item := range t.toolMap {
+	t.mu.RLock()
+	if t.cachedList != nil {
+		t.mu.RUnlock()
+		return t.cachedList
+	}
+	t.mu.RUnlock()
+
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if t.cachedList != nil {
+		return t.cachedList
+	}
+
+	list := make(tool.ListTool, 0, len(registry.Registry))
+	for _, item := range registry.Registry {
 		list = append(list, item)
 	}
 
-	return list
+	t.cachedList = list
+	return t.cachedList
 }
 
 func (t *ToolManager) Call(ctx context.Context, toolCall *tool.ToolCall) *tool.Result {
 	toolResultBuilder := tool.NewToolResultBuilder(toolCall.CallID, toolCall.Name)
-	calledTool, isExist := t.toolMap[toolCall.Name]
+	calledTool, isExist := registry.Registry[toolCall.Name]
 	if !isExist {
 		return toolResultBuilder.Failure(errors.New("tool doesn't exist")).Build()
 	}
@@ -40,7 +58,6 @@ func (t *ToolManager) Call(ctx context.Context, toolCall *tool.ToolCall) *tool.R
 // @Injectable
 func NewToolManager(logger *logger.BaseLogger) *ToolManager {
 	return &ToolManager{
-		toolMap: map[string]tool.Tool{},
-		logger:  logger.With("module", "tool-manager"),
+		logger: logger.With("module", "tool-manager"),
 	}
 }

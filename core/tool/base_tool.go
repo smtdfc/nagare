@@ -67,9 +67,11 @@ func DefineTool[I any, O any](
 	description string,
 	cb BaseToolCallback[I, O],
 ) Tool {
-	return &BaseTool[I, O]{
+	tool := &BaseTool[I, O]{
 		Name:        name,
 		Description: description,
 		Callback:    cb,
 	}
+
+	return tool
 }

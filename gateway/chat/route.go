@@ -20,6 +20,6 @@ func NewRouteInitializer(
 		app.Get(rest.ListChatSessionsEndpoint, chatController.ListSessions)
 		app.Get(rest.GetChatHistoryEndpoint, chatController.History)
 
-		ws.On(websocket_dtos.ReceivedChatMessageEvent, websocketHandler.OnListenMessage)
+		ws.On(websocket_dtos.RegisterChatListenerEvent, websocketHandler.OnListenMessage)
 	}
 }

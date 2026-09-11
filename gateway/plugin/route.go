@@ -11,6 +11,7 @@ type RouteInitializer func(app *fiber.App, ws *websocket.Coordinator)
 // @Injectable
 func NewRouteInitializer(
 	pluginController *Controller,
+	websocketHandler *WebsocketHandler,
 ) RouteInitializer {
 	return func(app *fiber.App, ws *websocket.Coordinator) {
 		app.Get(rest.GetListPluginEndpoint, pluginController.List)

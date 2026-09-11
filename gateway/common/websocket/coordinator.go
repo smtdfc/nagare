@@ -15,7 +15,7 @@ type EventHandler func(s *melody.Session, w *Coordinator, payload *websocket_dto
 type Coordinator struct {
 	mu       sync.RWMutex
 	rooms    map[string]map[*melody.Session]bool
-	handlers map[websocket_dtos.Event]EventHandler // Đổi từ 1 handler đơn lẻ sang map các event
+	handlers map[websocket_dtos.Event]EventHandler
 }
 
 func (w *Coordinator) JoinRoom(roomID string, s *melody.Session) {

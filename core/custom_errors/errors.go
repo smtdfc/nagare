@@ -36,6 +36,7 @@ var (
 	ErrPluginBinaryMissing            = NewNagareCoreError("PLUGIN_BINARY_MISSING", "Plugin binary is missing")
 	ErrStartPluginFailed              = NewNagareCoreError("START_PLUGIN_FAILED", "Failed to start plugin")
 	ErrUnpackPluginFailed             = NewNagareCoreError("UNPACK_PLUGIN_FAILED", "Failed to unpack plugin")
-
-	ErrUnknown = NewNagareCoreError("UNKNOWN_ERROR", "Unknown error occurred")
+	ErrCheckPluginConnectionFailed    = NewNagareCoreError("CHECK_PLUGIN_CONNECTION_FAILED", "Failed to check plugin connection")
+	ErrPluginConnectionInvalid        = NewNagareCoreError("PLUGIN_CONNECTION_INVALID", "Plugin connection is invalid")
+	ErrUnknown                        = NewNagareCoreError("UNKNOWN_ERROR", "Unknown error occurred")
 )
