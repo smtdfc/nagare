@@ -1,5 +1,7 @@
 package session
 
+import "github.com/google/uuid"
+
 type OwnerType string
 
 const (
@@ -27,9 +29,9 @@ func GetOwnerType(raw string) OwnerType {
 }
 
 type SessionInfo struct {
-	ID        string
+	ID        uuid.UUID
 	Title     string
-	OwnerID   string
+	OwnerID   uuid.UUID
 	OwnerType OwnerType
 	ChannelID string
 	IsArchive bool

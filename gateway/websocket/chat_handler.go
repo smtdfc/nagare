@@ -13,7 +13,7 @@ type ChatHandler struct {
 	sessionMgr *manager.SessionManager
 }
 
-func (c *ChatHandler) OnListenMessage(s *melody.Session, w *Coordinator, message *websocket.WebsocketPayload[any]) {
+func (c *ChatHandler) OnListenMessage(s *melody.Session, w *Coordinator, message *websocket.Payload[any]) {
 	ctx := context.Background()
 	data, err := GetData[websocket.RegisterChatMessageListenerEventPayload](message)
 	if err != nil {

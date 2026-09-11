@@ -114,7 +114,7 @@ type PluginManager struct {
 }
 
 func (p *PluginManager) GetListPlugin(ctx context.Context) ([]*plugin.Plugin, error) {
-	ents, err := p.pluginRepo.GetAllPlugin(ctx)
+	ents, err := p.pluginRepo.FindAll(ctx)
 	if err != nil {
 		return nil, custom_errors.ErrGetListPluginFailed
 	}
@@ -262,7 +262,7 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) error {
 }
 
 func (p *PluginManager) StartAllPlugin(ctx context.Context) error {
-	activePlugins, err := p.pluginRepo.GetAllActivePlugin(ctx)
+	activePlugins, err := p.pluginRepo.FindActive(ctx)
 	if err != nil {
 		p.logger.Error("Start plugin failed", "error", err)
 		return custom_errors.ErrStartPluginFailed
@@ -279,7 +279,7 @@ func (p *PluginManager) StartAllPlugin(ctx context.Context) error {
 }
 
 func (p *PluginManager) StopAllPlugin(ctx context.Context) error {
-	activePlugins, err := p.pluginRepo.GetAllActivePlugin(ctx)
+	activePlugins, err := p.pluginRepo.FindActive(ctx)
 	if err != nil {
 		p.logger.Error("Stop plugin failed", "error", err)
 		return custom_errors.ErrStartPluginFailed

@@ -52,7 +52,7 @@ func (w *Coordinator) LeaveAllRooms(s *melody.Session) {
 	}
 }
 
-func BroadcastToRoom[T any](w *Coordinator, roomID string, event websocket_dtos.WebsocketEvent, data T, exclude *melody.Session) error {
+func BroadcastToRoom[T any](w *Coordinator, roomID string, event websocket_dtos.Event, data T, exclude *melody.Session) error {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 
@@ -61,7 +61,7 @@ func BroadcastToRoom[T any](w *Coordinator, roomID string, event websocket_dtos.
 		return nil
 	}
 
-	raw, err := helpers.MarshalJson(&websocket_dtos.WebsocketPayload[T]{
+	raw, err := helpers.MarshalJson(&websocket_dtos.Payload[T]{
 		Event: event,
 		Data:  data,
 	})
@@ -80,8 +80,8 @@ func BroadcastToRoom[T any](w *Coordinator, roomID string, event websocket_dtos.
 
 	return nil
 }
-func (w *Coordinator) parseMessage(msg []byte) (*websocket_dtos.WebsocketPayload[any], error) {
-	return helpers.UnmarshalJson[websocket_dtos.WebsocketPayload[any]](string(msg))
+func (w *Coordinator) parseMessage(msg []byte) (*websocket_dtos.Payload[any], error) {
+	return helpers.UnmarshalJson[websocket_dtos.Payload[any]](string(msg))
 }
 
 func (w *Coordinator) HandleMessage(s *melody.Session, msg []byte) {
@@ -99,12 +99,12 @@ func (w *Coordinator) HandleMessage(s *melody.Session, msg []byte) {
 	}
 }
 
-func SendMessage[T any](s *melody.Session, event websocket_dtos.WebsocketEvent, data T) error {
+func SendMessage[T any](s *melody.Session, event websocket_dtos.Event, data T) error {
 	if s == nil {
 		return fmt.Errorf("websocket session is nil")
 	}
 
-	raw, err := helpers.MarshalJson(&websocket_dtos.WebsocketPayload[T]{
+	raw, err := helpers.MarshalJson(&websocket_dtos.Payload[T]{
 		Event: event,
 		Data:  data,
 	})
@@ -120,7 +120,7 @@ func SendMessage[T any](s *melody.Session, event websocket_dtos.WebsocketEvent, 
 	return nil
 }
 
-func GetData[T any](payload *websocket_dtos.WebsocketPayload[any]) (*T, error) {
+func GetData[T any](payload *websocket_dtos.Payload[any]) (*T, error) {
 	if payload == nil || payload.Data == nil {
 		return nil, fmt.Errorf("payload or data is nil")
 	}

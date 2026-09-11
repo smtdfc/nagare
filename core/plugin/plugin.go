@@ -1,6 +1,10 @@
 package plugin
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/google/uuid"
+)
 
 type Feature string
 
@@ -26,7 +30,7 @@ func ParseFeatureString(raw string) []Feature {
 }
 
 type Plugin struct {
-	ID       string
+	ID       uuid.UUID
 	PluginID string
 	Name     string
 	Author   string
