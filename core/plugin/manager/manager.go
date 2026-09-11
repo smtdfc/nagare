@@ -44,12 +44,14 @@ func unpackPlugin(archivePath, destDir string) error {
 			return fmt.Errorf("illegal absolute file path detected in archive: %s", file.Name)
 		}
 
-		fpath := filepath.Clean(filepath.Join(absDestDir, file.Name))
-		rel, err := filepath.Rel(absDestDir, fpath)
-		if err != nil {
-			return fmt.Errorf("failed to validate archive path %q: %w", file.Name, err)
+		normalizedName := strings.ReplaceAll(file.Name, "\\", "/")
+		if strings.Contains(normalizedName, "../") || normalizedName == ".." {
+			return fmt.Errorf("illegal file path detected in archive: %s", file.Name)
 		}
-		if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+
+		fpath := filepath.Clean(filepath.Join(absDestDir, file.Name))
+		destPrefix := absDestDir + string(filepath.Separator)
+		if fpath != absDestDir && !strings.HasPrefix(fpath, destPrefix) {
 			return fmt.Errorf("illegal file path detected in archive: %s", file.Name)
 		}
 
