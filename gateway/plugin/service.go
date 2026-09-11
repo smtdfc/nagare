@@ -10,14 +10,19 @@ import (
 )
 
 func toPluginDTO(domain *plugin.Plugin) *rest.Plugin {
+	features := make([]string, 0, len(domain.Features))
+	for _, f := range domain.Features {
+		features = append(features, f.ToString())
+	}
+
 	return &rest.Plugin{
-		ID:       "",
-		PluginID: "",
-		Name:     "",
-		Author:   "",
-		Features: []string{},
-		Version:  "",
-		IsActive: false,
+		ID:       domain.ID.String(),
+		PluginID: domain.PluginID,
+		Name:     domain.Name,
+		Author:   domain.Author,
+		Features: features,
+		Version:  domain.Version,
+		IsActive: domain.IsActive,
 	}
 }
 
