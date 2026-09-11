@@ -1,0 +1,22 @@
+info:
+  name: add
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{NAGARE_REST_API}}/user/llm-providers/add"
+  body:
+    type: json
+    data: |-
+      {
+        
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

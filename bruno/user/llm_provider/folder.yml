@@ -1,0 +1,7 @@
+info:
+  name: llm_provider
+  type: folder
+  seq: 2
+
+request:
+  auth: inherit

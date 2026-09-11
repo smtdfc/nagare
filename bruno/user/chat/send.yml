@@ -1,0 +1,23 @@
+info:
+  name: send
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{NAGARE_REST_API}}/user/chat/send"
+  body:
+    type: json
+    data: |-
+      {
+        "sessionID":"0e3081e0-6245-4fb5-843e-5e2a26d557a5",
+        "text":"Hello"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

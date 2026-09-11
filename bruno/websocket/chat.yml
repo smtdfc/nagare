@@ -1,0 +1,25 @@
+info:
+  name: chat
+  type: websocket
+  seq: 1
+
+websocket:
+  url: "{{NAGARE_WEBSOCKET}}"
+  message:
+    - title: message 1
+      selected: false
+      message:
+        type: json
+        data: |-
+          {
+            "event":"RegisterChatListenerEvent",
+            "data":{
+              "id":"1",
+              "sessionID":"0e3081e0-6245-4fb5-843e-5e2a26d557a5"
+            }
+          }
+  auth: inherit
+
+settings:
+  timeout: 0
+  keepAliveInterval: 0

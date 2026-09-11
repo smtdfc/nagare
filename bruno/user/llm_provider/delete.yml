@@ -1,0 +1,22 @@
+info:
+  name: delete
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{NAGARE_REST_API}}/user/llm-providers/delete"
+  body:
+    type: json
+    data: |-
+      {
+        "id":"e4ef50ec-3ef8-4756-bee3-2b5e77e3b8bd"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
