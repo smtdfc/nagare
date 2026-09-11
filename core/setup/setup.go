@@ -12,8 +12,10 @@ type CoreSetup struct {
 	pluginMgr *manager.PluginManager
 }
 
-func (c *CoreSetup) Setup() error {
+func (c *CoreSetup) Setup(port string) error {
 	ctx := context.Background()
+	c.pluginMgr.SetPluginHostPort(port)
+	
 	c.agentPool.Seed(agent.NAGARE_AGENT_POOL_SIZE)
 	err := c.pluginMgr.StartAllPlugin(ctx)
 	if err != nil {
