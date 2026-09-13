@@ -11,8 +11,9 @@ type Plugin struct {
 }
 
 const (
-	GetListPluginEndpoint      = "/api/v1/user/plugins/list"
-	InstallLocalPluginEndpoint = "/api/v1/user/plugins/install-local"
+	GetListPluginEndpoint         = "/api/v1/user/plugins/list"
+	InstallLocalPluginEndpoint    = "/api/v1/user/plugins/install-local"
+	SendPluginChatMessageEndpoint = "/api/v1/plugin/chat/send"
 )
 
 type GetListPluginResponse struct {

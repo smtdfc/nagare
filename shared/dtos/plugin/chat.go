@@ -1,17 +1,19 @@
 package plugin
 
 import (
-	"github.com/smtdfc/nagare/shared/dtos/rest"
 	"github.com/smtdfc/nagare/shared/dtos/websocket"
 )
 
 const (
-	HandshakeEvent                      websocket.Event = "plugin_handshake"
-	HandshakeSuccessEvent               websocket.Event = "plugin_handshake_success"
-	HandshakeFailedEvent                websocket.Event = "plugin_handshake_failed"
-	CreatePluginChatSessionEvent        websocket.Event = "create_plugin_chat_session"
-	CreatePluginChatSessionSuccessEvent websocket.Event = "create_plugin_chat_session_success"
-	CreatePluginChatSessionErrorEvent   websocket.Event = "create_plugin_chat_session_error"
+	HandshakeEvent                 websocket.Event = "plugin_handshake"
+	HandshakeSuccessEvent          websocket.Event = "plugin_handshake_success"
+	HandshakeFailedEvent           websocket.Event = "plugin_handshake_failed"
+	PrepareChatSessionEvent        websocket.Event = "plugin_session_prepare"
+	PrepareChatSessionSuccessEvent websocket.Event = "plugin_session_prepare_success"
+	PrepareChatSessionFailedEvent  websocket.Event = "plugin_session_prepare_failed"
+	SendChatMessageEvent           websocket.Event = "plugin_message"
+	SendChatMessageSuccessEvent    websocket.Event = "plugin_message_success"
+	SendChatMessageFailedEvent     websocket.Event = "plugin_message_failed"
 )
 
 type HandshakeEventPayload struct {
@@ -32,20 +34,29 @@ type HandshakeFailedEventPayload struct {
 	Cause string `json:"cause"`
 }
 
-type CreatePluginChatSessionEventPayload struct {
-	// Deprecated: use RequestID instead
-	ID    string `json:"id"`
-	Title string `json:"title"`
+type PrepareChatSessionEventPayload struct {
+	ChannelID string `json:"channelID"`
 }
 
-type CreatePluginChatSessionSuccessEventPayload struct {
-	// Deprecated: use RequestID instead
-	ID      string        `json:"id"`
-	Session *rest.Session `json:"session"`
+type PrepareChatSessionSuccessEventPayload struct {
+	ChannelID string `json:"channelID"`
+	SessionID string `json:"sessionID"`
 }
 
-type CreatePluginChatSessionErrorEventPayload struct {
-	// Deprecated: use RequestID instead
-	ID    string `json:"id"`
+type PrepareChatSessionFailedEventPayload struct {
+	ChannelID string `json:"channelID"`
+	Cause     string `json:"cause"`
+}
+
+type SendChatMessageEventPayload struct {
+	SessionID string `json:"sessionID"`
+	Text      string `json:"text"`
+}
+
+type SendChatMessageSuccessEventPayload struct {
+	SessionID string `json:"sessionID"`
+}
+
+type SendChatMessageFailedEventPayload struct {
 	Cause string `json:"cause"`
 }
