@@ -62,7 +62,7 @@ func VerifyRSAToken[T any](tokenString string, publicKeyBytes []byte) (*T, error
 
 	jsonBytes, err := helpers.MarshalJson(userPayload)
 	if err != nil {
-		return zero, fmt.Errorf("failed to marshal user payload: %w", err)
+		return zero, fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
 	payload, err := helpers.UnmarshalJson[T](jsonBytes)
