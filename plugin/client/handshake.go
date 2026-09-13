@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"time"
 	"uuid"
 
@@ -43,28 +44,10 @@ func (p *PluginClient) Handshake(ctx context.Context) error {
 		return ErrHandshakeTimeout
 	case resp := <-respChan:
 		if resp.Event == plugin_dtos.HandshakeFailedEvent {
-			return ErrHandshakeFailed
+			payload, _ := GetData[plugin_dtos.HandshakeFailedEventPayload](resp)
+			p.Logger.Error("Handshake failed", "error", payload)
+			return errors.New(payload.Cause)
 		}
 		return nil
 	}
-}
-
-func (p *PluginClient) onHandshakeSuccess(raw *websocket.Payload[any]) {
-	p.mu.Lock()
-	if ch, exists := p.pendingRequests[raw.RequestID]; exists {
-		ch <- raw
-		p.mu.Unlock()
-		return
-	}
-	p.mu.Unlock()
-}
-
-func (p *PluginClient) onHandshakeFailed(raw *websocket.Payload[any]) {
-	p.mu.Lock()
-	if ch, exists := p.pendingRequests[raw.RequestID]; exists {
-		ch <- raw
-		p.mu.Unlock()
-		return
-	}
-	p.mu.Unlock()
 }
