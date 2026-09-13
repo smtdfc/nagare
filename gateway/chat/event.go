@@ -1,6 +1,9 @@
 package chat
 
-import "github.com/smtdfc/nagare/shared/event_bus"
+import (
+	"github.com/smtdfc/nagare/core/chat"
+	"github.com/smtdfc/nagare/shared/event_bus"
+)
 
 type EventType string
 
@@ -14,9 +17,11 @@ type EventPayload interface {
 }
 
 type SendMessageEvent struct {
-	RequestID string
-	SessionID string
-	Text      string
+	RequestID  string
+	SessionID  string
+	Text       string
+	SenderType chat.SenderType
+	SenderID   string
 }
 
 func (c *SendMessageEvent) GetEventType() EventType {

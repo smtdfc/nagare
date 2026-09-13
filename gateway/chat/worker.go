@@ -24,6 +24,8 @@ func (c *Worker) HandleChat(payload *SendMessageEvent) {
 	output, _ := c.agentInvoker.Invoke(
 		payload.SessionID,
 		payload.Text,
+		payload.SenderType,
+		payload.SenderID,
 	)
 
 	for chunk := range output {
