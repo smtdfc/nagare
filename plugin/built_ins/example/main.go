@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	_ "embed"
-	"fmt"
 
 	"github.com/smtdfc/nagare/plugin/client"
 )
@@ -16,7 +15,7 @@ func main() {
 	pluginClient := client.NewPlugin()
 	_, err := pluginClient.LoadMetadata(metadata)
 	if err != nil {
-		fmt.Println("Metadata error :", err)
+		pluginClient.Logger.Error("Load metadata error", "error", err)
 		return
 	}
 
@@ -25,12 +24,12 @@ func main() {
 		func() {
 			err := pluginClient.Handshake(ctx)
 			if err != nil {
-				fmt.Println("Handshake error :", err)
+				pluginClient.Logger.Error("Handshake error", "error", err)
 				return
 			}
 		},
 	)
 	if err != nil {
-		fmt.Println("Plugin start error :", err)
+		pluginClient.Logger.Error("Handshake error", "error", err)
 	}
 }
