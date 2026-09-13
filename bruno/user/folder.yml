@@ -4,4 +4,6 @@ info:
   seq: 1
 
 request:
-  auth: inherit
+  auth:
+    type: bearer
+    token: "{{AUTH_TOKEN}}"

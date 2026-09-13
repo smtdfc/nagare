@@ -10,7 +10,7 @@ http:
     type: json
     data: |-
       {
-        "path":"/home/smtdfc/Projects/nagare/plugin/built_ins/example/nagare.plugins.example.nagare_plugin"
+        "path":"/home/smtdfc/Projects/nagare/plugin/built_ins/telegram/nagare.plugins.telegram.nagare_plugin"
       }
   auth: inherit
 
