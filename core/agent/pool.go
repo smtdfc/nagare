@@ -23,7 +23,7 @@ func (a *Pool) Put(ag *Agent) *Pool {
 }
 
 func (a *Pool) Seed(size int) *Pool {
-	for _ = range size {
+	for range size {
 		a.Put(NewAgent(a.toolMgr, a.logger))
 	}
 

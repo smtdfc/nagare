@@ -186,6 +186,7 @@ func (p *PluginManager) StartPlugin(ctx context.Context, plugin *plugin.Plugin) 
 		os.Environ(),
 		fmt.Sprintf("NAGARE_PLUGIN_CONNECT_CODE=%s", connectCode),
 		fmt.Sprintf("NAGARE_PLUGIN_HOST_PORT=%s", p.hostPort),
+		fmt.Sprintf("NAGARE_PLUGIN_LOG_FILE=%s", filepath.Join(paths.PluginLogDir, plugin.PluginID+".log")),
 	)
 
 	err := cmd.Start()
@@ -318,26 +319,26 @@ func (p *PluginManager) StopAllPlugin(ctx context.Context) error {
 	return nil
 }
 
-func (p *PluginManager) ValidConnect(cxt context.Context, pluginID string, connectCode string) error {
+func (p *PluginManager) ValidConnect(cxt context.Context, pluginID string, connectCode string) (*plugin.Plugin, error) {
 	pluginEntity, err := p.pluginRepo.FindByPluginId(cxt, pluginID)
 	if err != nil {
-		return custom_errors.ErrCheckPluginConnectionFailed
+		return nil, custom_errors.ErrCheckPluginConnectionFailed
 	}
 
 	if pluginEntity == nil {
-		return custom_errors.ErrPluginNotFound
+		return nil, custom_errors.ErrPluginNotFound
 	}
 
 	code, ok := p.connectCodes[pluginID]
 	if !ok {
-		return custom_errors.ErrPluginConnectionInvalid
+		return nil, custom_errors.ErrPluginConnectionInvalid
 	}
 
 	if code != connectCode {
-		return custom_errors.ErrPluginConnectionInvalid
+		return nil, custom_errors.ErrPluginConnectionInvalid
 	}
 
-	return nil
+	return p.pluginMapper.ToDomain(pluginEntity), nil
 }
 
 // @Injectable

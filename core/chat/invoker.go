@@ -14,6 +14,14 @@ import (
 	"github.com/smtdfc/nagare/shared/message"
 )
 
+type SenderType string
+
+const (
+	User   SenderType = "user"
+	Plugin SenderType = "plugin"
+	System SenderType = "system"
+)
+
 type AgentInvoker struct {
 	agentPool      *agent.Pool
 	sessionMgr     *session_mgr.SessionManager
@@ -26,6 +34,8 @@ type AgentInvoker struct {
 func (a *AgentInvoker) Invoke(
 	sessionID string,
 	text string,
+	senderType SenderType,
+	senderId string,
 ) (message.ReadOnlyChannel, error) {
 	output := make(chan message.Message)
 	ctx := context.Background()
@@ -40,7 +50,7 @@ func (a *AgentInvoker) Invoke(
 
 	go func() {
 		defer close(output)
-
+		var err error
 		generalConfig, err := a.configMgr.GetGeneralConfig(ctx)
 		if err != nil {
 			code, details := extractErrorDetails(err)
@@ -48,11 +58,22 @@ func (a *AgentInvoker) Invoke(
 			return
 		}
 
-		history, err := a.sessionMgr.GetUserChatHistory(ctx, sessionID)
-		if err != nil {
-			code, details := extractErrorDetails(err)
-			output <- message.NewAgentErrorMessage(details, code)
-			return
+		var history message.ListMessage
+
+		if senderType == User {
+			history, err = a.sessionMgr.GetUserChatHistory(ctx, sessionID)
+			if err != nil {
+				code, details := extractErrorDetails(err)
+				output <- message.NewAgentErrorMessage(details, code)
+				return
+			}
+		} else if senderType == Plugin {
+			history, err = a.sessionMgr.GetPluginChatHistory(ctx, sessionID, senderId)
+			if err != nil {
+				code, details := extractErrorDetails(err)
+				output <- message.NewAgentErrorMessage(details, code)
+				return
+			}
 		}
 
 		if generalConfig.CurrentProvider == "" {

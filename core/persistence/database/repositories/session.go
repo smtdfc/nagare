@@ -20,7 +20,7 @@ type SessionRepository struct {
 func (s *SessionRepository) FindByID(ctx context.Context, id string) (*entities.Session, error) {
 	var session entities.Session
 	err := s.db.WithContext(ctx).
-		Where("id = ? AND owner_type = ?", id).
+		Where("id = ?", id).
 		First(&session).Error
 
 	if err != nil {
@@ -65,18 +65,22 @@ func (s *SessionRepository) FindByOwnerID(ctx context.Context, ownerType string,
 	return sessions, nil
 }
 
-func (s *SessionRepository) FindByChannelID(ctx context.Context, ownerType string, ownerID string, channelID string) ([]*entities.Session, error) {
-	var sessions []*entities.Session
+func (s *SessionRepository) FindByChannelID(ctx context.Context, ownerType string, ownerID string, channelID string) (*entities.Session, error) {
+	var session *entities.Session
 	err := s.db.WithContext(ctx).
 		Where("owner_type = ? AND owner_id = ? AND channel_id = ?", ownerType, ownerID, channelID).
-		Find(&sessions).Error
+		First(&session).Error
 
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
 		s.logger.Error("failed to get list session by owner id", "channel", channelID, "owner_id", ownerID, "owner_type", ownerType, "error", err)
 		return nil, err
 	}
 
-	return sessions, nil
+	return session, nil
 }
 
 func (s *SessionRepository) Create(ctx context.Context, session *entities.Session) (*entities.Session, error) {
@@ -135,6 +139,24 @@ func (s *SessionRepository) FindUserSession(ctx context.Context, sessionId strin
 	return &session, nil
 }
 
+func (s *SessionRepository) FindPluginSession(ctx context.Context, sessionId string, pluginId string) (*entities.Session, error) {
+	var session entities.Session
+	err := s.db.WithContext(ctx).
+		Where("owner_type = ? AND owner_id= ? AND id = ?", "plugin", pluginId, sessionId).
+		First(&session).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		s.logger.Error("failed to get session", "error", err)
+		return nil, err
+	}
+
+	return &session, nil
+}
+
 func (s *SessionRepository) FindUserSessionWithMessages(ctx context.Context, sessionId string) (*entities.Session, error) {
 	var session entities.Session
 
@@ -143,6 +165,26 @@ func (s *SessionRepository) FindUserSessionWithMessages(ctx context.Context, ses
 			return db.Order("created_at ASC")
 		}).
 		First(&session, "owner_type = ? AND id = ?", "user", sessionId).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		s.logger.Error("failed to get session", "error", err)
+		return nil, err
+	}
+	return &session, nil
+}
+
+func (s *SessionRepository) FindPluginSessionWithMessages(ctx context.Context, sessionId string, pluginID string) (*entities.Session, error) {
+	var session entities.Session
+
+	err := s.db.WithContext(ctx).
+		Preload("Messages", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at ASC")
+		}).
+		First(&session, "owner_type = ? AND owner_id = ? AND id = ?", "plugin", pluginID, sessionId).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

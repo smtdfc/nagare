@@ -14,6 +14,7 @@ import (
 
 type SessionManager struct {
 	logger        *logger.BaseLogger
+	pluginRepo    *repositories.PluginRepository
 	sessionRepo   *repositories.SessionRepository
 	messageRepo   *repositories.MessageRepository
 	sessionMapper *mappers.SessionMapper
@@ -30,7 +31,7 @@ func (s *SessionManager) CreateUserSession(ctx context.Context, title string) (*
 
 	newSession, err := s.sessionRepo.Create(ctx, s.sessionMapper.ToEntity(sessionInfo))
 	if err != nil {
-		return nil, custom_errors.ErrCreateUserSessionFailed
+		return nil, custom_errors.ErrCreateSessionFailed
 	}
 
 	return s.sessionMapper.ToDomain(newSession), nil
@@ -39,7 +40,7 @@ func (s *SessionManager) CreateUserSession(ctx context.Context, title string) (*
 func (s *SessionManager) GetListUserSession(ctx context.Context) ([]*session.SessionInfo, error) {
 	sessions, err := s.sessionRepo.FindByOwnerType(ctx, session.USER.ToString())
 	if err != nil {
-		return nil, custom_errors.ErrGetUserSessionFailed
+		return nil, custom_errors.ErrGetSessionFailed
 	}
 
 	return s.sessionMapper.ToDomains(sessions), nil
@@ -48,8 +49,8 @@ func (s *SessionManager) GetListUserSession(ctx context.Context) ([]*session.Ses
 func (s *SessionManager) GetUserSession(ctx context.Context, sessionID string) (*session.SessionInfo, error) {
 	userSession, err := s.sessionRepo.FindUserSession(ctx, sessionID)
 	if err != nil {
-		s.logger.Error("failed to get user session", "session_id", sessionID, "err", err)
-		return nil, custom_errors.ErrGetUserSessionFailed
+		s.logger.Error("failed to get session", "session_id", sessionID, "err", err)
+		return nil, custom_errors.ErrGetSessionFailed
 	}
 
 	if userSession == nil {
@@ -62,8 +63,8 @@ func (s *SessionManager) GetUserSession(ctx context.Context, sessionID string) (
 func (s *SessionManager) GetUserChatHistory(ctx context.Context, sessionID string) (message.ListMessage, error) {
 	chatSession, err := s.sessionRepo.FindUserSessionWithMessages(ctx, sessionID)
 	if err != nil {
-		s.logger.Error("failed to get user chat history", "session_id", sessionID, "err", err)
-		return nil, custom_errors.ErrGetUserSessionFailed
+		s.logger.Error("failed to get chat history", "session_id", sessionID, "err", err)
+		return nil, custom_errors.ErrGetSessionFailed
 	}
 
 	if chatSession == nil {
@@ -72,7 +73,95 @@ func (s *SessionManager) GetUserChatHistory(ctx context.Context, sessionID strin
 
 	domains, err := s.messageMapper.ToDomains(chatSession.Messages)
 	if err != nil {
-		s.logger.Error("failed to get user chat history", "session_id", sessionID, "err", err)
+		s.logger.Error("failed to get chat history", "session_id", sessionID, "err", err)
+		return nil, custom_errors.ErrGetChatHistoryFailed
+	}
+
+	return domains, nil
+}
+
+func (s *SessionManager) PreparePluginSession(ctx context.Context, channelID string, pluginID string) (*session.SessionInfo, error) {
+	var err error
+	plugin, err := s.pluginRepo.FindByPluginId(ctx, pluginID)
+	if err != nil {
+		s.logger.Error("failed to prepare session", "channel_id", channelID, "plugin_id", pluginID, "err", err)
+		return nil, custom_errors.ErrPreparePluginSessionFailed
+	}
+	if plugin == nil {
+		return nil, custom_errors.ErrPluginNotFound
+	}
+
+	sessionEntity, err := s.sessionRepo.FindByChannelID(
+		ctx,
+		session.PLUGIN.ToString(),
+		plugin.ID.String(),
+		channelID,
+	)
+	if err != nil {
+		return nil, custom_errors.ErrPreparePluginSessionFailed
+	}
+
+	if sessionEntity == nil {
+		sessionInfo := &session.SessionInfo{
+			Title:     channelID,
+			OwnerID:   plugin.ID,
+			OwnerType: session.PLUGIN,
+			IsArchive: false,
+			ChannelID: channelID,
+		}
+
+		sessionEntity, err = s.sessionRepo.Create(ctx, s.sessionMapper.ToEntity(sessionInfo))
+		if err != nil {
+			return nil, custom_errors.ErrPreparePluginSessionFailed
+		}
+	}
+
+	return s.sessionMapper.ToDomain(sessionEntity), nil
+}
+
+func (s *SessionManager) GetPluginSession(ctx context.Context, sessionID string, pluginID string) (*session.SessionInfo, error) {
+	plugin, err := s.pluginRepo.FindByPluginId(ctx, pluginID)
+	if err != nil {
+		s.logger.Error("failed to get session", "session_id", sessionID, "plugin_id", pluginID, "err", err)
+		return nil, custom_errors.ErrGetSessionFailed
+	}
+	if plugin == nil {
+		return nil, custom_errors.ErrPluginNotFound
+	}
+
+	sessionEntity, err := s.sessionRepo.FindPluginSession(ctx, sessionID, plugin.ID.String())
+	if err != nil {
+		s.logger.Error("failed to get session", "session_id", sessionID, "plugin_id", pluginID, "err", err)
+		return nil, custom_errors.ErrGetSessionFailed
+	}
+
+	if sessionEntity == nil {
+		return nil, custom_errors.ErrSessionNotFound
+	}
+
+	return s.sessionMapper.ToDomain(sessionEntity), nil
+}
+
+func (s *SessionManager) GetPluginChatHistory(ctx context.Context, sessionID string, pluginID string) (message.ListMessage, error) {
+	plugin, err := s.pluginRepo.FindByPluginId(ctx, pluginID)
+	if err != nil {
+		s.logger.Error("failed to get session", "session_id", sessionID, "plugin_id", pluginID, "err", err)
+		return nil, custom_errors.ErrGetSessionFailed
+	}
+
+	chatSession, err := s.sessionRepo.FindPluginSessionWithMessages(ctx, sessionID, plugin.ID.String())
+	if err != nil {
+		s.logger.Error("failed to get chat history", "session_id", sessionID, "plugin_id", pluginID, "err", err)
+		return nil, custom_errors.ErrGetSessionFailed
+	}
+
+	if chatSession == nil {
+		return nil, custom_errors.ErrSessionNotFound
+	}
+
+	domains, err := s.messageMapper.ToDomains(chatSession.Messages)
+	if err != nil {
+		s.logger.Error("failed to get chat history", "session_id", sessionID, "plugin_id", pluginID, "err", err)
 		return nil, custom_errors.ErrGetChatHistoryFailed
 	}
 
@@ -80,10 +169,10 @@ func (s *SessionManager) GetUserChatHistory(ctx context.Context, sessionID strin
 }
 
 func (s *SessionManager) SaveHistory(ctx context.Context, sessionID string, pendingMessage message.ListMessage) error {
-	chatSession, err := s.sessionRepo.FindUserSessionWithMessages(ctx, sessionID)
+	chatSession, err := s.sessionRepo.FindByID(ctx, sessionID)
 	if err != nil {
 		s.logger.Error("failed to save chat history", "session_id", sessionID, "err", err)
-		return custom_errors.ErrSaveUserSessionFailed
+		return custom_errors.ErrSaveSessionFailed
 	}
 
 	if chatSession == nil {
@@ -93,13 +182,13 @@ func (s *SessionManager) SaveHistory(ctx context.Context, sessionID string, pend
 	entities, err := s.messageMapper.ToEntities(pendingMessage, sessionID)
 	if err != nil {
 		s.logger.Error("failed to save chat history", "session_id", sessionID, "err", err)
-		return custom_errors.ErrSaveUserSessionFailed
+		return custom_errors.ErrSaveSessionFailed
 	}
 
 	err = s.messageRepo.CreateBatch(ctx, entities, 200)
 	if err != nil {
 		s.logger.Error("failed to save chat history", "session_id", sessionID, "err", err)
-		return custom_errors.ErrSaveUserSessionFailed
+		return custom_errors.ErrSaveSessionFailed
 	}
 
 	return nil
@@ -112,6 +201,7 @@ func NewSessionManager(
 	sessionMapper *mappers.SessionMapper,
 	messageRepo *repositories.MessageRepository,
 	messageMapper *mappers.MessageMapper,
+	pluginRepo *repositories.PluginRepository,
 ) *SessionManager {
 	return &SessionManager{
 		sessionRepo:   sessionRepo,
@@ -119,5 +209,6 @@ func NewSessionManager(
 		messageRepo:   messageRepo,
 		logger:        logger,
 		messageMapper: messageMapper,
+		pluginRepo:    pluginRepo,
 	}
 }
