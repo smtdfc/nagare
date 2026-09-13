@@ -25,10 +25,11 @@ and uses them to issue a new authentication token with a predefined user payload
 			return
 		}
 
-		payload := security.UserAuthPayload{
-			ID:     helpers.GenerateUUID(),
-			Name:   "User",
-			Scopes: []string{},
+		payload := security.AuthPayload{
+			ID:         helpers.GenerateUUID(),
+			TargetType: "user",
+			Name:       "User",
+			Scopes:     []string{},
 		}
 
 		token, err := security.GenerateRSAToken(
