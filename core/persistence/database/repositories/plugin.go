@@ -1,73 +1,97 @@
 package repositories
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
-	"github.com/smtdfc/nagare/core/persistence"
-	"github.com/smtdfc/nagare/core/persistence/database"
-	"github.com/smtdfc/nagare/core/persistence/database/models"
+	"github.com/smtdfc/nagare/core/logger"
+	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type PluginRepository struct {
-	db *gorm.DB
+	db     *gorm.DB
+	logger *logger.BaseLogger
 }
 
-func (r *PluginRepository) CreatePlugin(plugin *models.Plugin) error {
-	result := r.db.Create(plugin)
-	if result.Error != nil {
-		persistence.PersistenceLogger.Error("failed to create plugin", "error", result.Error)
-		return result.Error
-	}
-	return nil
-}
+func (p *PluginRepository) FindAll(ctx context.Context) ([]*entities.Plugin, error) {
+	var plugins []*entities.Plugin
 
-func (r *PluginRepository) GetAllActivePlugins() ([]models.Plugin, error) {
-	var plugins []models.Plugin
-	result := r.db.Where("active = ?", true).Find(&plugins)
-	if result.Error != nil {
-		persistence.PersistenceLogger.Error("failed to get active plugins", "error", result.Error)
-		return nil, result.Error
+	err := p.db.WithContext(ctx).
+		Find(&plugins).Error
+
+	if err != nil {
+		p.logger.Error("Failed to get all plugin", "error", err)
+		return nil, fmt.Errorf("failed to get all plugin: %w", err)
 	}
+
 	return plugins, nil
 }
 
-func (r *PluginRepository) GetAllPlugins() ([]models.Plugin, error) {
-	var plugins []models.Plugin
-	result := r.db.Find(&plugins)
-	if result.Error != nil {
-		persistence.PersistenceLogger.Error("failed to get all plugins", "error", result.Error)
-		return nil, result.Error
+func (p *PluginRepository) FindActive(ctx context.Context) ([]*entities.Plugin, error) {
+	var plugins []*entities.Plugin
+
+	err := p.db.WithContext(ctx).
+		Where("is_active = ?", true).
+		Find(&plugins).Error
+
+	if err != nil {
+		p.logger.Error("Failed to get all active plugin", "error", err)
+		return nil, fmt.Errorf("failed to get all active plugin: %w", err)
 	}
+
 	return plugins, nil
 }
 
-func (r *PluginRepository) DeletePluginByID(id string) error {
-	result := r.db.Delete(&models.Plugin{}, "id = ?", id)
-	if result.Error != nil {
-		persistence.PersistenceLogger.Error("failed to delete plugin", "error", result.Error)
-		return result.Error
-	}
-	return nil
-}
+func (p *PluginRepository) FindByPluginId(ctx context.Context, pluginId string) (*entities.Plugin, error) {
+	var plugin entities.Plugin
 
-func (r *PluginRepository) GetPluginByID(id string) (*models.Plugin, error) {
-	var plugin models.Plugin
-	result := r.db.First(&plugin, "id = ?", id)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			persistence.PersistenceLogger.Warn("plugin not found", "id", id)
-			return nil, fmt.Errorf("plugin with id %s not found: %w", id, result.Error)
+	err := p.db.WithContext(ctx).
+		Where("plugin_id = ?", pluginId).
+		First(&plugin).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
 		}
-		persistence.PersistenceLogger.Error("failed to get plugin by id", "error", result.Error, "id", id)
-		return nil, result.Error
+
+		p.logger.Error("Failed to get  plugin", "error", err, "pluginId", pluginId)
+		return nil, fmt.Errorf("failed to get plugin: %w", err)
 	}
+
 	return &plugin, nil
 }
 
+func (p *PluginRepository) CreateOrUpdate(ctx context.Context, plugin *entities.Plugin) (*entities.Plugin, error) {
+	err := p.db.WithContext(ctx).
+		Clauses(clause.OnConflict{
+			Columns: []clause.Column{{Name: "plugin_id"}},
+			DoUpdates: clause.AssignmentColumns([]string{
+				"name",
+				"author",
+				"features",
+				"version",
+				"bin",
+				"is_active",
+				"updated_at",
+			}),
+		}).
+		Create(plugin).Error
+
+	if err != nil {
+		p.logger.Error("Failed to create or update plugin", "plugin_id", plugin.PluginID, "error", err)
+		return nil, fmt.Errorf("failed to create or update plugin: %w", err)
+	}
+
+	return plugin, nil
+}
+
 // @Injectable
-func NewPluginRepository() *PluginRepository {
-	db, _ := database.GetDatabase()
-	return &PluginRepository{db: db}
+func NewPluginRepository(db *gorm.DB, logger *logger.BaseLogger) *PluginRepository {
+	return &PluginRepository{
+		db:     db,
+		logger: logger.With("module", "plugin-repository"),
+	}
 }

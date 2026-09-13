@@ -1,39 +1,99 @@
 package agent
 
-import "github.com/smtdfc/nagare/shared/messages"
+import (
+	"sync"
 
-type AgentState struct {
-	Messages        messages.ListMessage
-	PendingMessages messages.ListMessage
+	"github.com/smtdfc/nagare/core/tool"
+	"github.com/smtdfc/nagare/shared/message"
+)
+
+type State struct {
+	mu             sync.RWMutex
+	CurrentMessage message.ListMessage
+	PendingMessage message.ListMessage
+	ToolCalls      tool.ListToolCall
+	LoopCounter    int
 }
 
-func (a *AgentState) WithHistory(history messages.ListMessage) *AgentState {
-	a.Messages = append(a.Messages, history...)
-	return a
-}
+func (a *State) GetFullMessage() message.ListMessage {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
 
-func (a *AgentState) AddMessage(msg messages.Message) *AgentState {
-	a.PendingMessages = append(a.PendingMessages, msg)
-	return a
-}
-
-func (a *AgentState) GetHistory() messages.ListMessage {
-	messages := make(messages.ListMessage, 0, len(a.Messages)+len(a.PendingMessages))
-	messages = append(messages, a.Messages...)
-	messages = append(messages, a.PendingMessages...)
-
+	messages := make(message.ListMessage, 0, len(a.CurrentMessage)+len(a.PendingMessage))
+	messages = append(messages, a.CurrentMessage...)
+	messages = append(messages, a.PendingMessage...)
 	return messages
 }
 
-func (a *AgentState) CommitMessage() error {
-	a.Messages = append(a.Messages, a.PendingMessages...)
-	a.PendingMessages = messages.ListMessage{}
-	return nil
+func (a *State) SetMessages(messages message.ListMessage) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	a.CurrentMessage = messages
 }
 
-func NewAgentState(listMessages messages.ListMessage) *AgentState {
-	return &AgentState{
-		Messages:        listMessages,
-		PendingMessages: messages.ListMessage{},
+func (a *State) AppendMessage(msg message.Message) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	a.PendingMessage = append(a.PendingMessage, msg)
+}
+
+func (a *State) CommitMessage() {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	a.CurrentMessage = append(a.CurrentMessage, a.PendingMessage...)
+	a.PendingMessage = a.PendingMessage[:0]
+}
+
+func (a *State) Reset() {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	a.CurrentMessage = a.CurrentMessage[:0]
+	a.PendingMessage = a.PendingMessage[:0]
+	a.ToolCalls = a.ToolCalls[:0]
+	a.LoopCounter = 0
+}
+
+func (a *State) AddToolCall(toolCall *tool.ToolCall) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	a.ToolCalls = append(a.ToolCalls, toolCall)
+}
+
+func (a *State) ResetToolCall() {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	a.ToolCalls = a.ToolCalls[:0]
+}
+
+func (a *State) IsToolCall() bool {
+	return len(a.ToolCalls) > 0
+}
+
+func (a *State) IncreaseLoopCounter() {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	a.LoopCounter++
+}
+
+func (a *State) GetLoopCounter() int {
+	a.mu.RLock()
+	defer a.mu.RUnlock()
+
+	return a.LoopCounter
+}
+
+func NewAgentState() *State {
+	return &State{
+		CurrentMessage: message.ListMessage{},
+		PendingMessage: message.ListMessage{},
+		ToolCalls:      tool.ListToolCall{},
+		LoopCounter:    0,
 	}
 }

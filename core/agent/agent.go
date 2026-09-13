@@ -1,141 +1,62 @@
 package agent
 
 import (
-	"fmt"
-	"strings"
+	"context"
 
-	"github.com/smtdfc/nagare/core/context"
-	"github.com/smtdfc/nagare/core/custom_errors"
-	"github.com/smtdfc/nagare/core/domains"
-	"github.com/smtdfc/nagare/core/tool"
-	"github.com/smtdfc/nagare/shared/messages"
+	"github.com/smtdfc/nagare/core/llm_provider"
+	"github.com/smtdfc/nagare/core/logger"
+	"github.com/smtdfc/nagare/core/tool/manager"
+	"github.com/smtdfc/nagare/shared/message"
 )
 
 type Agent struct {
-	State       *AgentState
-	LLMProvider domains.LLMProviderAdapter
-	Model       string
-	ToolMgr     *tool.ToolManager
+	toolMgr    *manager.ToolManager
+	model      string
+	llmAdapter llm_provider.LLMProviderAdapter
+	executor   *Executor
+	state      *State
+	logger     *logger.BaseLogger
 }
 
-func (a *Agent) WithLLMProvider(provider domains.LLMProviderAdapter) *Agent {
-	a.LLMProvider = provider
+func (a *Agent) Reset() *Agent {
+	a.model = ""
+	a.state.Reset()
+	a.llmAdapter = nil
 	return a
 }
 
-func (a *Agent) WithModel(model string) *Agent {
-	a.Model = model
+func (a *Agent) WithLLMAdapter(adapter llm_provider.LLMProviderAdapter) *Agent {
+	a.llmAdapter = adapter
 	return a
 }
 
-func (a *Agent) WithState(state *AgentState) *Agent {
-	a.State = state
+func (a *Agent) WithContext(messages message.ListMessage) *Agent {
+	a.state.SetMessages(messages)
 	return a
 }
 
-func (a *Agent) WithToolManager(toolMgr *tool.ToolManager) *Agent {
-	a.ToolMgr = toolMgr
-	return a
-}
-
-func (a *Agent) Reset() {
-	a.Model = ""
-	a.LLMProvider = nil
-	a.State = nil
-}
-
-func (a *Agent) Invoke(msg messages.Message) (domains.MessageChannel, error) {
-	if a.LLMProvider == nil || a.State == nil {
-		AgentLogger.Error("Agent initialization failed. Please check the configuration settings")
-		return nil, custom_errors.NewAgentError("Agent initialization failed. Please check the configuration settings")
-	}
-
-	ectx := context.NewExecuteContext(a.ToolMgr)
-	a.State.AddMessage(msg)
-
-	output := make(domains.MessageChannel)
-
-	go func() {
-		defer close(output)
-		defer AgentLogger.Info("Agent Invoke completed", "model", a.Model)
-		AgentLogger.Info("Agent Invoke", "model", a.Model)
-
-		output <- messages.NewAgentResponse(messages.AGENT_RESPONSE_STARTED)
-		for {
-			llmProviderOutput, err := a.LLMProvider.Chat(a.Model, ectx, a.State.GetHistory(), a.ToolMgr.GetListTool())
-			if err != nil {
-				AgentLogger.Error("LLM Provider Error", "error", err)
-				msg := messages.NewAgentResponse(messages.AGENT_RESPONSE_FAILED)
-				msg.Content = fmt.Sprintf("LLM Provider Error: %s", err.Error())
-				output <- msg
-				return
-			}
-
-			isFlushText := false
-			var toolCalls = domains.ListToolCall{}
-
-			var text strings.Builder
-			var toolCallCount = 0
-			for chunk := range llmProviderOutput {
-				switch message := chunk.(type) {
-				case *messages.ResponseFailed:
-					output <- chunk
-					output <- messages.NewAgentResponse(messages.AGENT_RESPONSE_FAILED)
-					return
-				case *messages.Text:
-					text.WriteString(message.Content)
-					isFlushText = true
-					output <- chunk
-				case *messages.ToolCall:
-					toolCallCount += 1
-					a.State.AddMessage(messages.NewToolCall(message.Name, message.Args, message.CallID))
-					toolCalls = append(toolCalls, domains.NewToolCall(
-						message.Name,
-						message.Args,
-						message.CallID,
-					))
-					output <- chunk
-
-				default:
-					if isFlushText {
-						a.State.AddMessage(messages.NewText(text.String(), messages.AGENT))
-						text.Reset()
-					}
-				}
-			}
-
-			AgentLogger.Info("Agent tool call count", "model", a.Model, "toolCallCount", toolCallCount)
-			if toolCallCount == 0 {
-				break
-			}
-
-			for _, call := range toolCalls {
-				result := ectx.ExecuteToolCalls(call)
-				if result.Status == domains.TOOL_CALL_PENDING {
-					msg := messages.NewAgentResponse(messages.AGENT_RESPONSE_FAILED)
-					msg.Content = "Execution race condition detected: Results were retrieved before the tool finished processing. Please verify that the tool operates synchronously."
-					output <- msg
-					return
-				}
-
-				a.State.AddMessage(messages.NewToolCallResult(
-					result.CallID,
-					result.Result,
-					result.Error,
-				))
-			}
-		}
-
-		output <- messages.NewAgentResponse(messages.AGENT_RESPONSE_COMPLETED)
-	}()
-
+func (a *Agent) Invoke(ctx context.Context, msg message.Message, model string) (message.Channel, error) {
+	a.logger.Info("Start invoke agent")
+	output := make(chan message.Message)
+	go (func() {
+		a.state.AppendMessage(msg)
+		a.executor.Execute(ctx, model, a.llmAdapter, output)
+	})()
 	return output, nil
 }
 
-func NewAgent(model string, llmProvider domains.LLMProviderAdapter, state *AgentState) *Agent {
+func (a *Agent) DumpState() *State {
+	return a.state
+}
+
+func NewAgent(toolMgr *manager.ToolManager, logger *logger.BaseLogger) *Agent {
+	state := NewAgentState()
 	return &Agent{
-		Model:       model,
-		State:       state,
-		LLMProvider: llmProvider,
+		model:      "",
+		llmAdapter: nil,
+		toolMgr:    toolMgr,
+		executor:   NewAgentExecutor(state, toolMgr, logger),
+		state:      state,
+		logger:     logger.With("module", "agent"),
 	}
 }

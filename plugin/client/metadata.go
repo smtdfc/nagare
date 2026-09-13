@@ -1,16 +1,17 @@
 package client
 
 import (
+	mt "github.com/smtdfc/nagare/plugin/metadata"
 	"github.com/smtdfc/nagare/shared/helpers"
-	"github.com/smtdfc/nagare/shared/plugin"
 )
 
-func (p *PluginClient) LoadMetadataFromString(raw string) error {
-	metadata, err := helpers.FromJson[plugin.PluginMetadata](raw)
+func (p *PluginClient) LoadMetadata(raw string) (*mt.PluginMetadata, error) {
+	metadata, err := helpers.UnmarshalJson[mt.PluginMetadata](raw)
 	if err != nil {
-		return err
+		p.Logger.Error("Error unmarshalling plugin metadata", "error", err, "raw", raw)
+		return nil, err
 	}
 
 	p.Metadata = metadata
-	return nil
+	return metadata, nil
 }

@@ -5,29 +5,52 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/smtdfc/nagare/shared/paths"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-var Logger *slog.Logger
+type BaseLogger struct {
+	slog.Logger
+}
 
-func init() {
-	logDir := filepath.Join(paths.LogDir)
-	if err := os.MkdirAll(logDir, 0755); err != nil {
-		panic("Failed to create log directory: " + err.Error())
+func (b *BaseLogger) Clone() *BaseLogger {
+	cloned := b.Logger.With()
+	return &BaseLogger{
+		Logger: *cloned,
+	}
+}
+
+func (b *BaseLogger) With(a ...any) *BaseLogger {
+	return &BaseLogger{
+		Logger: *b.Logger.With(a...),
+	}
+}
+
+// @Injectable
+func NewBaseLogger() (*BaseLogger, error) {
+	if err := os.MkdirAll(paths.LogDir, 0755); err != nil {
+		return nil, err
 	}
 
-	timestamp := time.Now().Format("2006-01-02T15:04:05")
-	file, err := os.OpenFile(filepath.Join(logDir, "core", timestamp+".log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	if err != nil {
-		panic("Failed to open log file: " + err.Error())
+	logPath := filepath.Join(paths.LogDir, "app.log")
+
+	fileRotator := &lumberjack.Logger{
+		Filename:   logPath,
+		MaxSize:    100,
+		MaxBackups: 30,
+		MaxAge:     30,
+		Compress:   true,
 	}
 
-	multiWriter := io.MultiWriter(os.Stdout, file)
-	jsonHandler := slog.NewJSONHandler(multiWriter, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
+	multiWriter := io.MultiWriter(os.Stdout, fileRotator)
+	handler := slog.NewJSONHandler(multiWriter, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
 	})
-	logger := slog.New(jsonHandler)
-	Logger = logger
+
+	baseLogger := slog.New(handler)
+
+	return &BaseLogger{
+		Logger: *baseLogger,
+	}, nil
 }

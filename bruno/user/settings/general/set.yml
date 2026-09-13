@@ -1,0 +1,25 @@
+info:
+  name: set
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{NAGARE_REST_API}}/user/settings/general/set"
+  body:
+    type: json
+    data: |-
+      {
+        "generalSettings":{
+          "currentModel":"openai/gpt-oss-20b",
+          "currentProvider":"9c1d2fdd-5773-44f0-a6b8-a746e717cd97"
+        }
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

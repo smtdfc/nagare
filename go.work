@@ -1,14 +1,14 @@
-go 1.26.6
+go 1.27.0
 
 use (
 	./cli
 	./core
-	./desktop
+	./gateway
 	./plugin/builder
-	./plugin/builtins/example
-	./plugin/builtins/telegram
+	./plugin/built_ins/example
 	./plugin/client
-	./scripts
-	./server
+	./plugin/metadata
+
 	./shared
+	plugin/built_ins/telegram
 )
