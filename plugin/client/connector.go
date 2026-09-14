@@ -9,7 +9,7 @@ import (
 
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
-	"github.com/smtdfc/nagare/shared/dtos/websocket"
+	"github.com/smtdfc/nagare/dtos/websocket"
 )
 
 func GetData[T any](payload *websocket.Payload[any]) (*T, error) {
