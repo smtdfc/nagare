@@ -11,10 +11,10 @@ import (
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/plugin/manager"
 	session_mgr "github.com/smtdfc/nagare/core/session/manager"
+	plugin_dtos "github.com/smtdfc/nagare/dtos/plugin"
+	"github.com/smtdfc/nagare/dtos/websocket"
 	"github.com/smtdfc/nagare/gateway/chat"
 	websocket2 "github.com/smtdfc/nagare/gateway/common/websocket"
-	plugin_dtos "github.com/smtdfc/nagare/shared/dtos/plugin"
-	"github.com/smtdfc/nagare/shared/dtos/websocket"
 )
 
 type WebsocketHandler struct {

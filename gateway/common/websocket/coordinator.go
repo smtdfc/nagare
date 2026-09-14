@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/olahol/melody"
-	websocket_dtos "github.com/smtdfc/nagare/shared/dtos/websocket"
+	websocket_dtos "github.com/smtdfc/nagare/dtos/websocket"
 	"github.com/smtdfc/nagare/shared/helpers"
 )
 

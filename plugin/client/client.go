@@ -8,9 +8,9 @@ import (
 	"os"
 	"sync"
 
+	plugin_dtos "github.com/smtdfc/nagare/dtos/plugin"
+	"github.com/smtdfc/nagare/dtos/websocket"
 	"github.com/smtdfc/nagare/plugin/metadata"
-	plugin_dtos "github.com/smtdfc/nagare/shared/dtos/plugin"
-	"github.com/smtdfc/nagare/shared/dtos/websocket"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 

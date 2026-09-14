@@ -6,7 +6,7 @@ info:
 websocket:
   url: "{{NAGARE_WEBSOCKET}}"
   message:
-    - title: message 1
+    - title: register chat
       selected: false
       message:
         type: json
@@ -18,6 +18,11 @@ websocket:
               "sessionID":"b0db4143-3205-4b2d-93aa-54fe9611052c"
             }
           }
+    - title: message 2
+      selected: true
+      message:
+        type: json
+        data: ""
   auth: inherit
 
 settings:

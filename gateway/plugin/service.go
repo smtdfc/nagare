@@ -5,7 +5,7 @@ import (
 
 	"github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/core/plugin/manager"
-	"github.com/smtdfc/nagare/shared/dtos/rest"
+	"github.com/smtdfc/nagare/dtos/rest"
 	"github.com/smtdfc/nagare/shared/helpers"
 )
 

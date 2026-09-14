@@ -6,8 +6,8 @@ import (
 	"time"
 	"uuid"
 
-	plugin_dtos "github.com/smtdfc/nagare/shared/dtos/plugin"
-	"github.com/smtdfc/nagare/shared/dtos/websocket"
+	plugin_dtos "github.com/smtdfc/nagare/dtos/plugin"
+	"github.com/smtdfc/nagare/dtos/websocket"
 )
 
 func (p *PluginClient) Handshake(ctx context.Context) error {

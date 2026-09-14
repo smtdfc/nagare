@@ -5,7 +5,7 @@ import (
 
 	"github.com/smtdfc/nagare/core/llm_provider"
 	llm_provider_mgr "github.com/smtdfc/nagare/core/llm_provider/manager"
-	"github.com/smtdfc/nagare/shared/dtos/rest"
+	"github.com/smtdfc/nagare/dtos/rest"
 	"github.com/smtdfc/nagare/shared/helpers"
 )
 

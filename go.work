@@ -3,6 +3,7 @@ go 1.27.0
 use (
 	./cli
 	./core
+	./dtos
 	./gateway
 	./plugin/builder
 	./plugin/built_ins/example

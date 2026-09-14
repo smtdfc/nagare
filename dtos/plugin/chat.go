@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"github.com/smtdfc/nagare/shared/dtos/websocket"
+	"github.com/smtdfc/nagare/dtos/websocket"
 )
 
 const (
