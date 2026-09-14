@@ -6,8 +6,8 @@ import (
 
 	"github.com/smtdfc/nagare/core/config"
 	"github.com/smtdfc/nagare/core/config/manager"
+	"github.com/smtdfc/nagare/dtos/rest"
 	"github.com/smtdfc/nagare/gateway/common/custom_errors"
-	"github.com/smtdfc/nagare/shared/dtos/rest"
 )
 
 type SettingsService struct {
