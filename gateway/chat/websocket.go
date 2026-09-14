@@ -6,8 +6,8 @@ import (
 
 	"github.com/olahol/melody"
 	"github.com/smtdfc/nagare/core/session/manager"
+	"github.com/smtdfc/nagare/dtos/websocket"
 	websocket2 "github.com/smtdfc/nagare/gateway/common/websocket"
-	"github.com/smtdfc/nagare/shared/dtos/websocket"
 )
 
 type WebsocketHandler struct {

@@ -9,7 +9,7 @@ import (
 	"github.com/smtdfc/nagare/gateway/common/websocket"
 	"github.com/smtdfc/nagare/shared/helpers"
 
-	websocket_dtos "github.com/smtdfc/nagare/shared/dtos/websocket"
+	websocket_dtos "github.com/smtdfc/nagare/dtos/websocket"
 )
 
 type Worker struct {

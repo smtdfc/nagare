@@ -2,8 +2,8 @@ package chat
 
 import (
 	"github.com/gofiber/fiber/v3"
+	"github.com/smtdfc/nagare/dtos/rest"
 	"github.com/smtdfc/nagare/gateway/utils"
-	"github.com/smtdfc/nagare/shared/dtos/rest"
 )
 
 type Controller struct {

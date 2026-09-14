@@ -7,7 +7,7 @@ import (
 	"github.com/smtdfc/nagare/core/chat"
 	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/core/session/manager"
-	"github.com/smtdfc/nagare/shared/dtos/rest"
+	"github.com/smtdfc/nagare/dtos/rest"
 	"github.com/smtdfc/nagare/shared/helpers"
 )
 
