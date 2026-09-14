@@ -1,4 +1,7 @@
 .dix
 pkg
 *.nagare_plugin
-.env
+.env\
+node_modules
+dist
+routeTree.gen.ts
