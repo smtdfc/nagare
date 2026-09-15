@@ -10,9 +10,11 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/shirou/gopsutil/v4/process"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/mappers"
@@ -387,6 +389,7 @@ func (p *PluginManager) Activate(ctx context.Context, id string) error {
 		return custom_errors.ErrPluginNotFound
 	}
 
+	p.logger.Info("Activating plugin", "pluginID", pluginEntity.PluginID, "name", pluginEntity.Name, "version", pluginEntity.Version)
 	plugin := p.pluginMapper.ToDomain(pluginEntity)
 
 	if plugin.IsActive {
@@ -399,6 +402,7 @@ func (p *PluginManager) Activate(ctx context.Context, id string) error {
 		return custom_errors.ErrActivatePluginFailed
 	}
 
+	p.logger.Info("Plugin activated successfully", "pluginID", plugin.PluginID, "name", plugin.Name, "version", plugin.Version)
 	return p.StartPlugin(ctx, plugin)
 }
 
@@ -412,6 +416,7 @@ func (p *PluginManager) Deactivate(ctx context.Context, id string) error {
 		return custom_errors.ErrPluginNotFound
 	}
 
+	p.logger.Info("Deactivating plugin", "pluginID", pluginEntity.PluginID, "name", pluginEntity.Name, "version", pluginEntity.Version)
 	plugin := p.pluginMapper.ToDomain(pluginEntity)
 	if !plugin.IsActive {
 		return custom_errors.ErrPluginNotActive
@@ -427,8 +432,64 @@ func (p *PluginManager) Deactivate(ctx context.Context, id string) error {
 	if err != nil {
 		return custom_errors.ErrDeactivatePluginFailed
 	}
-
+	p.logger.Info("Plugin deactivated successfully", "pluginID", plugin.PluginID, "name", plugin.Name, "version", plugin.Version)
 	return nil
+}
+
+func (p *PluginManager) GetPluginStatus(ctx context.Context, id string) (*plugin.PluginStatus, error) {
+	pluginEntity, err := p.pluginRepo.FindById(ctx, id)
+	if err != nil {
+		return nil, custom_errors.ErrGetPluginStatusFailed
+	}
+
+	if pluginEntity == nil {
+		return nil, custom_errors.ErrPluginNotFound
+	}
+
+	pluginDomain := p.pluginMapper.ToDomain(pluginEntity)
+	pidPath := pluginDomain.Bin + ".pid"
+	data, err := os.ReadFile(pidPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return &plugin.PluginStatus{
+				PID:      "",
+				PluginID: pluginDomain.PluginID,
+				Name:     pluginDomain.Name,
+				Version:  pluginDomain.Version,
+			}, nil
+		}
+		p.logger.Error("Failed to read PID file", "error", err, "plugin", pluginDomain.PluginID)
+		return nil, custom_errors.ErrGetPluginStatusFailed
+	}
+
+	var pid string
+	if _, err := fmt.Sscanf(string(data), "%s", &pid); err != nil {
+		p.logger.Error("Invalid PID format in file", "error", err, "plugin", pluginDomain.PluginID)
+		return nil, custom_errors.ErrGetPluginStatusFailed
+	}
+
+	pidValue, err := strconv.ParseInt(pid, 10, 32)
+	if err != nil {
+		p.logger.Error("Invalid PID format in file", "error", err, "plugin", pluginDomain.PluginID)
+		return nil, custom_errors.ErrGetPluginStatusFailed
+	}
+
+	proc, err := process.NewProcess(int32(pidValue))
+	if err != nil {
+		p.logger.Error("Failed to get process", "error", err, "plugin", pluginDomain.PluginID)
+		return nil, custom_errors.ErrGetPluginStatusFailed
+	}
+	cpuPercent, _ := proc.CPUPercent()
+	memInfo, _ := proc.MemoryInfo()
+
+	return &plugin.PluginStatus{
+		PID:         pid,
+		PluginID:    pluginDomain.PluginID,
+		Name:        pluginDomain.Name,
+		Version:     pluginDomain.Version,
+		CPUPercent:  cpuPercent,
+		MemoryUsage: float64(memInfo.RSS) / (1024 * 1024),
+	}, nil
 }
 
 // @Injectable

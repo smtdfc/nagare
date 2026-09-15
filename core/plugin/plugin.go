@@ -48,3 +48,12 @@ func (p *Plugin) ToFeaturesString() string {
 
 	return s.String()
 }
+
+type PluginStatus struct {
+	PID         string
+	PluginID    string
+	Name        string
+	Version     string
+	CPUPercent  float64
+	MemoryUsage float64
+}

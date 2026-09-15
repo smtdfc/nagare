@@ -44,5 +44,6 @@ var (
 	ErrActivatePluginFailed           = NewNagareCoreError("ACTIVATE_PLUGIN_FAILED", "Failed to activate plugin")
 	ErrDeactivatePluginFailed         = NewNagareCoreError("DEACTIVATE_PLUGIN_FAILED", "Failed to deactivate plugin")
 	ErrPreparePluginSessionFailed     = NewNagareCoreError("PREPARE_PLUGIN_SESSION_FAILED", "Failed to prepare plugin session")
+	ErrGetPluginStatusFailed          = NewNagareCoreError("GET_PLUGIN_STATUS_FAILED", "Failed to get plugin status")
 	ErrUnknown                        = NewNagareCoreError("UNKNOWN_ERROR", "Unknown error occurred")
 )
