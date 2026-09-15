@@ -21,6 +21,7 @@ func NewRouteInitializer(
 	return func(app *fiber.App, ws *websocket.Coordinator) {
 		app.Get(rest.GetListPluginEndpoint, authMiddleware, pluginController.List)
 		app.Post(rest.InstallLocalPluginEndpoint, authMiddleware, pluginController.InstallLocal)
+		app.Post(rest.UninstallPluginEndpoint, authMiddleware, pluginController.Uninstall)
 
 		ws.On(plugin_dtos.HandshakeEvent, websocketHandler.OnHandshakeEvent)
 		ws.On(plugin_dtos.PrepareChatSessionEvent, websocketHandler.OnPrepareChatSession)

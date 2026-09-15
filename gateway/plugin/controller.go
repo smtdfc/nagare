@@ -33,6 +33,20 @@ func (p *Controller) InstallLocal(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, struct{}{}, 200)
 }
 
+func (p *Controller) Uninstall(ctx fiber.Ctx) error {
+	request, err := utils.ParseBody[*rest.UninstallPluginRequest](ctx)
+	if err != nil {
+		return err
+	}
+
+	err = p.pluginService.UninstallPlugin(ctx, request)
+	if err != nil {
+		return err
+	}
+
+	return utils.ResponseSuccess(ctx, struct{}{}, 200)
+}
+
 // @Injectable
 func NewPluginController(pluginService *Service) *Controller {
 	return &Controller{

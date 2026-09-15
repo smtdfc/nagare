@@ -11,9 +11,9 @@ type Plugin struct {
 }
 
 const (
-	GetListPluginEndpoint         = "/api/v1/user/plugins/list"
-	InstallLocalPluginEndpoint    = "/api/v1/user/plugins/install-local"
-	SendPluginChatMessageEndpoint = "/api/v1/plugin/chat/send"
+	GetListPluginEndpoint      = "/api/v1/user/plugins/list"
+	InstallLocalPluginEndpoint = "/api/v1/user/plugins/install-local"
+	UninstallPluginEndpoint    = "/api/v1/user/plugins/uninstall"
 )
 
 type GetListPluginResponse struct {
@@ -22,4 +22,8 @@ type GetListPluginResponse struct {
 
 type InstallLocalPluginRequest struct {
 	Path string `json:"path"`
+}
+
+type UninstallPluginRequest struct {
+	ID string `json:"id"`
 }

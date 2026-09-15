@@ -45,6 +45,10 @@ func (p *Service) InstallLocalPlugin(ctx context.Context, request *rest.InstallL
 	return p.pluginMgr.Install(ctx, request.Path)
 }
 
+func (p *Service) UninstallPlugin(ctx context.Context, request *rest.UninstallPluginRequest) error {
+	return p.pluginMgr.Uninstall(ctx, request.ID)
+}
+
 // @Injectable
 func NewPluginService(
 	pluginMgr *manager.PluginManager,
