@@ -10,12 +10,22 @@ type Plugin struct {
 	IsActive bool     `json:"isActive"`
 }
 
+type PluginStatus struct {
+	PID         string  `json:"pid"`
+	PluginID    string  `json:"pluginID"`
+	Name        string  `json:"name"`
+	Version     string  `json:"version"`
+	CPUPercent  float64 `json:"cpuPercent"`
+	MemoryUsage float64 `json:"memoryUsage"`
+}
+
 const (
 	GetListPluginEndpoint      = "/api/v1/user/plugins/list"
 	InstallLocalPluginEndpoint = "/api/v1/user/plugins/install-local"
 	UninstallPluginEndpoint    = "/api/v1/user/plugins/uninstall"
 	ActivatePluginEndpoint     = "/api/v1/user/plugins/activate"
 	DeactivatePluginEndpoint   = "/api/v1/user/plugins/deactivate"
+	GetPluginStatusEndpoint    = "/api/v1/user/plugins/status"
 )
 
 type GetListPluginResponse struct {
@@ -36,4 +46,12 @@ type ActivatePluginRequest struct {
 
 type DeactivatePluginRequest struct {
 	ID string `json:"id"`
+}
+
+type GetPluginStatusRequest struct {
+	ID string `json:"id"`
+}
+
+type GetPluginStatusResponse struct {
+	Status *PluginStatus `json:"status"`
 }
