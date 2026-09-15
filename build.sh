@@ -10,7 +10,7 @@ PLATFORMS=(
 )
 
 if ! command -v dix &> /dev/null; then
-    go install github.com/dix/dix/cmd/dix@latest
+    go install github.com/smtdfc/dix@latest
 fi
 
 for platform in "${PLATFORMS[@]}"; do
