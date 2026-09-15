@@ -118,6 +118,16 @@ func (p *PluginRepository) CreateOrUpdate(ctx context.Context, plugin *entities.
 	return plugin, nil
 }
 
+func (p *PluginRepository) Update(ctx context.Context, plugin *entities.Plugin) error {
+	err := p.db.WithContext(ctx).Save(plugin).Error
+	if err != nil {
+		p.logger.Error("Failed to update plugin", "plugin_id", plugin.PluginID, "error", err)
+		return fmt.Errorf("failed to update plugin: %w", err)
+	}
+
+	return nil
+}
+
 // @Injectable
 func NewPluginRepository(db *gorm.DB, logger *logger.BaseLogger) *PluginRepository {
 	return &PluginRepository{

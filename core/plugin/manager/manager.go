@@ -377,6 +377,60 @@ func (p *PluginManager) Uninstall(ctx context.Context, id string) error {
 	return nil
 }
 
+func (p *PluginManager) Activate(ctx context.Context, id string) error {
+	pluginEntity, err := p.pluginRepo.FindById(ctx, id)
+	if err != nil {
+		return custom_errors.ErrActivatePluginFailed
+	}
+
+	if pluginEntity == nil {
+		return custom_errors.ErrPluginNotFound
+	}
+
+	plugin := p.pluginMapper.ToDomain(pluginEntity)
+
+	if plugin.IsActive {
+		return custom_errors.ErrPluginAlreadyActive
+	}
+
+	plugin.IsActive = true
+	err = p.pluginRepo.Update(ctx, p.pluginMapper.ToEntity(plugin))
+	if err != nil {
+		return custom_errors.ErrActivatePluginFailed
+	}
+
+	return p.StartPlugin(ctx, plugin)
+}
+
+func (p *PluginManager) Deactivate(ctx context.Context, id string) error {
+	pluginEntity, err := p.pluginRepo.FindById(ctx, id)
+	if err != nil {
+		return custom_errors.ErrDeactivatePluginFailed
+	}
+
+	if pluginEntity == nil {
+		return custom_errors.ErrPluginNotFound
+	}
+
+	plugin := p.pluginMapper.ToDomain(pluginEntity)
+	if !plugin.IsActive {
+		return custom_errors.ErrPluginNotActive
+	}
+
+	err = p.StopPlugin(ctx, plugin)
+	if err != nil {
+		return custom_errors.ErrDeactivatePluginFailed
+	}
+
+	plugin.IsActive = false
+	err = p.pluginRepo.Update(ctx, p.pluginMapper.ToEntity(plugin))
+	if err != nil {
+		return custom_errors.ErrDeactivatePluginFailed
+	}
+
+	return nil
+}
+
 // @Injectable
 func NewPluginManager(
 	pluginRepo *repositories.PluginRepository,
