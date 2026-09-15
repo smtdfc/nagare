@@ -14,6 +14,8 @@ const (
 	GetListPluginEndpoint      = "/api/v1/user/plugins/list"
 	InstallLocalPluginEndpoint = "/api/v1/user/plugins/install-local"
 	UninstallPluginEndpoint    = "/api/v1/user/plugins/uninstall"
+	ActivatePluginEndpoint     = "/api/v1/user/plugins/activate"
+	DeactivatePluginEndpoint   = "/api/v1/user/plugins/deactivate"
 )
 
 type GetListPluginResponse struct {
@@ -25,5 +27,13 @@ type InstallLocalPluginRequest struct {
 }
 
 type UninstallPluginRequest struct {
+	ID string `json:"id"`
+}
+
+type ActivatePluginRequest struct {
+	ID string `json:"id"`
+}
+
+type DeactivatePluginRequest struct {
 	ID string `json:"id"`
 }
