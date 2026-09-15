@@ -16,6 +16,36 @@ type PluginRepository struct {
 	logger *logger.BaseLogger
 }
 
+func (p *PluginRepository) FindById(ctx context.Context, id string) (*entities.Plugin, error) {
+	var plugin entities.Plugin
+	err := p.db.WithContext(ctx).
+		Where("id = ?", id).
+		First(&plugin).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		p.logger.Error("Failed to get plugin by ID", "error", err, "id", id)
+		return nil, fmt.Errorf("failed to get plugin by ID: %w", err)
+	}
+
+	return &plugin, nil
+}
+
+func (p *PluginRepository) DeleteById(ctx context.Context, id string) error {
+	err := p.db.WithContext(ctx).
+		Unscoped().
+		Where("id = ?", id).
+		Delete(&entities.Plugin{}).Error
+	if err != nil {
+		p.logger.Error("Failed to delete plugin", "error", err, "id", id)
+		return fmt.Errorf("failed to delete plugin: %w", err)
+	}
+	return nil
+}
+
 func (p *PluginRepository) FindAll(ctx context.Context) ([]*entities.Plugin, error) {
 	var plugins []*entities.Plugin
 

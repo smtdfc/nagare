@@ -341,6 +341,42 @@ func (p *PluginManager) ValidConnect(cxt context.Context, pluginID string, conne
 	return p.pluginMapper.ToDomain(pluginEntity), nil
 }
 
+func (p *PluginManager) Uninstall(ctx context.Context, id string) error {
+	pluginEntity, err := p.pluginRepo.FindById(ctx, id)
+	if err != nil {
+		return custom_errors.ErrUninstallPluginFailed
+	}
+
+	if pluginEntity == nil {
+		return custom_errors.ErrPluginNotFound
+	}
+	plugin := p.pluginMapper.ToDomain(pluginEntity)
+
+	p.logger.Info("Uninstalling plugin", "pluginID", pluginEntity.PluginID, "name", pluginEntity.Name, "version", pluginEntity.Version)
+
+	p.logger.Info("Stopping plugin before uninstall", "pluginID", pluginEntity.PluginID)
+	err = p.StopPlugin(ctx, plugin)
+	if err != nil {
+		p.logger.Logger.Error("Failed to stop plugin before uninstall", "error", err, "pluginID", pluginEntity.PluginID)
+	} else {
+		p.logger.Info("Plugin stopped successfully", "pluginID", pluginEntity.PluginID)
+	}
+
+	err = p.pluginRepo.DeleteById(ctx, plugin.ID.String())
+	if err != nil {
+		return custom_errors.ErrUninstallPluginFailed
+	}
+
+	pluginDir := filepath.Join(paths.PluginDir, plugin.PluginID)
+	err = os.RemoveAll(pluginDir)
+	if err != nil {
+		p.logger.Error("Failed to remove plugin directory", "error", err, "pluginID", pluginEntity.PluginID)
+	}
+
+	p.logger.Info("Uninstall plugin completed", "pluginID", pluginEntity.PluginID, "name", pluginEntity.Name, "version", pluginEntity.Version)
+	return nil
+}
+
 // @Injectable
 func NewPluginManager(
 	pluginRepo *repositories.PluginRepository,
