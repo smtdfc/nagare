@@ -9,6 +9,9 @@ PLATFORMS=(
     "darwin/arm64"
 )
 
+if ! command -v dix &> /dev/null; then
+    go install github.com/dix/dix/cmd/dix@latest
+fi
 
 for platform in "${PLATFORMS[@]}"; do
     GOOS=${platform%/*}
