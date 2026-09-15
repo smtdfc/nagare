@@ -47,6 +47,48 @@ func (p *Controller) Uninstall(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, struct{}{}, 200)
 }
 
+func (p *Controller) Activate(ctx fiber.Ctx) error {
+	request, err := utils.ParseBody[*rest.ActivatePluginRequest](ctx)
+	if err != nil {
+		return err
+	}
+
+	err = p.pluginService.ActivatePlugin(ctx, request)
+	if err != nil {
+		return err
+	}
+
+	return utils.ResponseSuccess(ctx, struct{}{}, 200)
+}
+
+func (p *Controller) Deactivate(ctx fiber.Ctx) error {
+	request, err := utils.ParseBody[*rest.DeactivatePluginRequest](ctx)
+	if err != nil {
+		return err
+	}
+
+	err = p.pluginService.DeactivatePlugin(ctx, request)
+	if err != nil {
+		return err
+	}
+
+	return utils.ResponseSuccess(ctx, struct{}{}, 200)
+}
+
+func (p *Controller) Status(ctx fiber.Ctx) error {
+	request, err := utils.ParseBody[*rest.GetPluginStatusRequest](ctx)
+	if err != nil {
+		return err
+	}
+
+	data, err := p.pluginService.GetPluginStatus(ctx, request)
+	if err != nil {
+		return err
+	}
+
+	return utils.ResponseSuccess(ctx, data, 200)
+}
+
 // @Injectable
 func NewPluginController(pluginService *Service) *Controller {
 	return &Controller{

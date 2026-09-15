@@ -22,7 +22,9 @@ func NewRouteInitializer(
 		app.Get(rest.GetListPluginEndpoint, authMiddleware, pluginController.List)
 		app.Post(rest.InstallLocalPluginEndpoint, authMiddleware, pluginController.InstallLocal)
 		app.Post(rest.UninstallPluginEndpoint, authMiddleware, pluginController.Uninstall)
-
+		app.Post(rest.ActivatePluginEndpoint, authMiddleware, pluginController.Activate)
+		app.Post(rest.DeactivatePluginEndpoint, authMiddleware, pluginController.Deactivate)
+		app.Post(rest.GetPluginStatusEndpoint, authMiddleware, pluginController.Status)
 		ws.On(plugin_dtos.HandshakeEvent, websocketHandler.OnHandshakeEvent)
 		ws.On(plugin_dtos.PrepareChatSessionEvent, websocketHandler.OnPrepareChatSession)
 		ws.On(plugin_dtos.SendChatMessageEvent, websocketHandler.OnSendChatMessage)

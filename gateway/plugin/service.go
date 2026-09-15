@@ -49,6 +49,32 @@ func (p *Service) UninstallPlugin(ctx context.Context, request *rest.UninstallPl
 	return p.pluginMgr.Uninstall(ctx, request.ID)
 }
 
+func (p *Service) ActivatePlugin(ctx context.Context, request *rest.ActivatePluginRequest) error {
+	return p.pluginMgr.Activate(ctx, request.ID)
+}
+
+func (p *Service) DeactivatePlugin(ctx context.Context, request *rest.DeactivatePluginRequest) error {
+	return p.pluginMgr.Deactivate(ctx, request.ID)
+}
+
+func (p *Service) GetPluginStatus(ctx context.Context, request *rest.GetPluginStatusRequest) (*rest.GetPluginStatusResponse, error) {
+	status, err := p.pluginMgr.GetPluginStatus(ctx, request.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rest.GetPluginStatusResponse{
+		Status: &rest.PluginStatus{
+			PID:         status.PID,
+			PluginID:    status.PluginID,
+			Name:        status.Name,
+			Version:     status.Version,
+			CPUPercent:  status.CPUPercent,
+			MemoryUsage: status.MemoryUsage,
+		},
+	}, nil
+}
+
 // @Injectable
 func NewPluginService(
 	pluginMgr *manager.PluginManager,
