@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/smtdfc/nagare/compare/v1.4.0...v1.5.0) (2026-09-15)
+
+
+### Features
+
+* add artifact uploads for multiple platforms in release workflow ([3c4e6d0](https://github.com/smtdfc/nagare/commit/3c4e6d0d5b8bbb141cd613b3e4c6725fc426422f))
+
 # [1.4.0](https://github.com/smtdfc/nagare/compare/v1.3.0...v1.4.0) (2026-09-15)
 
 
