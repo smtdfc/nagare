@@ -32,6 +32,7 @@ func (tp *TelegramPlugin) OnReceivedChatMessage(sessionID, chunk string) {
 		if err != nil {
 			return
 		}
+		tp.pluginClient.Logger.Error("Agent error message received", "chatID", chatID, "sessionID", sessionID, "error", errMsg.Error, "code", errMsg.Code)
 		_ = tp.sendTextMessage(context.Background(), chatIntID, errMsg.Error)
 		tp.finishProcessing(chatID, sessionID)
 

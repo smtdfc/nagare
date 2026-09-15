@@ -45,6 +45,21 @@ func (tp *TelegramPlugin) handleSingleMessage(ctx context.Context, update *teleg
 	chatIntID := update.Message.Chat.ID
 	chatID := strconv.FormatInt(chatIntID, 10)
 
+	switch update.Message.Text {
+	case "/start":
+		_ = tp.sendTextMessage(ctx, chatIntID, "Hello! I'm your Nagare bot. How can I assist you today?")
+		return
+	case "/help":
+		_ = tp.sendTextMessage(ctx, chatIntID, "You can send me any message and I'll process it for you.")
+		return
+	case "/ping":
+		_ = tp.sendTextMessage(ctx, chatIntID, "Pong!")
+		return
+	case "/chat_id":
+		_ = tp.sendTextMessage(ctx, chatIntID, "Your chat ID is: "+chatID)
+		return
+	}
+
 	sessionID, exist := tp.getSessionID(chatID)
 	if !exist {
 		var err error
