@@ -1,13 +1,13 @@
 package helpers
 
-func Map[T any, R any](collection []T, iteratee func(T) (R, error)) ([]R, error) {
-	result := make([]R, len(collection))
-	for i, item := range collection {
-		r, err := iteratee(item)
-		if err != nil {
-			return nil, err
+func SliceMap[I any, O any](inputs []I, fn func(I) *O) []*O {
+	outputs := make([]*O, 0, len(inputs))
+	for _, item := range inputs {
+		output := fn(item)
+		if output == nil {
+			continue
 		}
-		result[i] = r
+		outputs = append(outputs, output)
 	}
-	return result, nil
+	return outputs
 }

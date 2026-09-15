@@ -2,50 +2,57 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/smtdfc/nagare/core/persistence"
-	"github.com/smtdfc/nagare/core/persistence/database"
-	"github.com/smtdfc/nagare/core/persistence/database/models"
+	"github.com/smtdfc/nagare/core/logger"
+	"github.com/smtdfc/nagare/core/persistence/database/entities"
+
 	"gorm.io/gorm"
 )
 
 type MessageRepository struct {
-	db *gorm.DB
+	db     *gorm.DB
+	logger *logger.BaseLogger
 }
 
-func (r *MessageRepository) GetMessageBySessionID(ctx context.Context, id string) ([]models.Message, error) {
-	var messages []models.Message
-	messages, err := gorm.G[models.Message](r.db).
-		Where("session_id = ?", id).
-		Order("created_at ASC").
-		Find(ctx)
-	if err != nil {
-		persistence.PersistenceLogger.Error("Failed to get messages by session ID", "error", err)
-		return nil, err
-	}
-
-	return messages, nil
-}
-
-func (r *MessageRepository) SaveMessages(ctx context.Context, messages []*models.Message) error {
+func (m *MessageRepository) CreateBatch(ctx context.Context, messages []*entities.Message, batchSize int) error {
 	if len(messages) == 0 {
 		return nil
 	}
+	
+	if batchSize <= 0 {
+		batchSize = 100
+	}
 
-	batchSize := 500
-
-	err := r.db.WithContext(ctx).CreateInBatches(messages, batchSize).Error
+	err := m.db.WithContext(ctx).CreateInBatches(messages, batchSize).Error
 	if err != nil {
-		persistence.PersistenceLogger.Error("Failed to save messages", "error", err)
-		return err
+		m.logger.Error("Failed to create messages in batch", "count", len(messages), "error", err)
+		return fmt.Errorf("failed to create messages in batch: %w", err)
 	}
 
 	return nil
 }
 
-func NewMessageRepository() *MessageRepository {
-	db, _ := database.GetDatabase()
+func (m *MessageRepository) FindBySessionID(ctx context.Context, sessionID string) ([]*entities.Message, error) {
+	var messages []*entities.Message
+
+	err := m.db.WithContext(ctx).
+		Where("session_id = ?", sessionID).
+		Order("created_at ASC").
+		Find(&messages).Error
+
+	if err != nil {
+		m.logger.Error("Failed to get messages by session ID", "session", sessionID, "error", err)
+		return nil, fmt.Errorf("failed to get messages by session ID: %w", err)
+	}
+
+	return messages, nil
+}
+
+// @Injectable
+func NewMessageRepository(db *gorm.DB, logger *logger.BaseLogger) *MessageRepository {
 	return &MessageRepository{
-		db: db,
+		db:     db,
+		logger: logger.With("module", "message-repository"),
 	}
 }

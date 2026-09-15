@@ -1,0 +1,4 @@
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/smtdfc/nagare/shared v0.0.0-20260913185550-bfd8375e8e57 h1:3gnNf7TcxJzlKyE/FZUAup1JawXdxxZL2imifLZcPI0=
+github.com/smtdfc/nagare/shared v0.0.0-20260913185550-bfd8375e8e57/go.mod h1:EETOKzVZHSpln3TgVr1Z+VoAeJbYHyx5pClRLo9agwc=

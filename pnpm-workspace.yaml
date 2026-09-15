@@ -1,6 +1,2 @@
 packages:
-  - "ui/main"
-  - "desktop/frontend"
-  - "ui/packages/*"
-allowBuilds:
-  unrs-resolver: true
+  - "./client/*"

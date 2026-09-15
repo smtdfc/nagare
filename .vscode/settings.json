@@ -1,11 +1,12 @@
 {
-  "files.watcherExclude": {
-    "**/routeTree.gen.ts": true
-  },
-  "search.exclude": {
-    "**/routeTree.gen.ts": true
-  },
-  "files.readonlyInclude": {
-    "**/routeTree.gen.ts": true
-  }
+  "cSpell.words": [
+    "danieljoos",
+    "dbus",
+    "dtos",
+    "godbus",
+    "gofiber",
+    "Nagare",
+    "smtdfc",
+    "wincred"
+  ]
 }

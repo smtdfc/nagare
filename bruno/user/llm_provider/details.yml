@@ -1,0 +1,20 @@
+info:
+  name: details
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{NAGARE_REST_API}}/user/llm-providers/details?provider=9c1d2fdd-5773-44f0-a6b8-a746e717cd97"
+  params:
+    - name: provider
+      value: 9c1d2fdd-5773-44f0-a6b8-a746e717cd97
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -1,8 +1,0 @@
-{
-  "id": "nagare.example",
-  "version": "1",
-  "architectures": ["amd64"],
-  "api_version": "1",
-  "name": "Example Plugin",
-  "author": "Nagare team"
-}

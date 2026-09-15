@@ -1,71 +1,85 @@
 package repositories
 
 import (
-	"github.com/smtdfc/nagare/core/persistence"
-	"github.com/smtdfc/nagare/core/persistence/database"
-	"github.com/smtdfc/nagare/core/persistence/database/models"
+	"context"
+	"errors"
+
+	"github.com/smtdfc/nagare/core/logger"
+	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"gorm.io/gorm"
 )
 
 type LLMProviderRepository struct {
-	db *gorm.DB
+	db     *gorm.DB
+	logger *logger.BaseLogger
 }
 
-func (r *LLMProviderRepository) FindAll() ([]models.LLMProvider, error) {
-	var providers []models.LLMProvider
-	if err := r.db.Find(&providers).Error; err != nil {
-		persistence.PersistenceLogger.Error("Failed to find all providers", "error", err)
+func (l *LLMProviderRepository) FindAll(ctx context.Context) ([]*entities.LLMProvider, error) {
+	var providers []*entities.LLMProvider
+	err := l.db.WithContext(ctx).Find(&providers).Error
+	if err != nil {
+		l.logger.Error("Failed to get all provider", "err", err)
 		return nil, err
 	}
+
 	return providers, nil
 }
 
-func (r *LLMProviderRepository) Save(provider *models.LLMProvider) error {
-	if err := r.db.Save(provider).Error; err != nil {
-		persistence.PersistenceLogger.Error("Failed to save provider", "error", err)
-		return err
-	}
-	return nil
-}
-
-func (r *LLMProviderRepository) UpdateByID(id string, provider *models.LLMProvider) error {
-	if err := r.db.Model(&models.LLMProvider{}).Where("id = ?", id).Updates(provider).Error; err != nil {
-		persistence.PersistenceLogger.Error("Failed to update provider", "error", err)
-		return err
-	}
-	return nil
-}
-
-func (r *LLMProviderRepository) FindByID(id string) (*models.LLMProvider, error) {
-	var provider models.LLMProvider
-	if err := r.db.Where("id = ?", id).First(&provider).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+func (l *LLMProviderRepository) FindByID(ctx context.Context, id string) (*entities.LLMProvider, error) {
+	var provider entities.LLMProvider
+	err := l.db.Where("id = ?", id).WithContext(ctx).First(&provider).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 
-		persistence.PersistenceLogger.Error("Failed to find provider", "error", err)
+		l.logger.Error("Failed to get provider", "id", id, "err", err)
 		return nil, err
 	}
+
 	return &provider, nil
 }
 
-func (r *LLMProviderRepository) CreateProvider(provider *models.LLMProvider) error {
-	if err := r.db.Create(provider).Error; err != nil {
-		persistence.PersistenceLogger.Error("Failed to create provider", "error", err)
+func (l *LLMProviderRepository) DeleteByID(ctx context.Context, id string) error {
+	err := l.db.WithContext(ctx).Where("id = ?", id).Delete(&entities.LLMProvider{}).Error
+	if err != nil {
+		l.logger.Error("Failed to delete provider", "id", id, "err", err)
 		return err
 	}
+
 	return nil
 }
 
-func (r *LLMProviderRepository) DeleteByID(id string) error {
-	if err := r.db.Where("id = ?", id).Delete(&models.LLMProvider{}).Error; err != nil {
-		persistence.PersistenceLogger.Error("Failed to delete provider", "error", err)
-		return err
+func (l *LLMProviderRepository) Update(ctx context.Context, provider *entities.LLMProvider) error {
+	result := l.db.WithContext(ctx).Model(provider).Where("id = ?", provider.ID).Updates(provider)
+
+	if result.Error != nil {
+		l.logger.Error("Failed to update provider", "id", provider.ID, "err", result.Error)
+		return result.Error
 	}
+
+	if result.RowsAffected == 0 {
+		l.logger.Warn("Provider not found for update", "id", provider.ID)
+		return gorm.ErrRecordNotFound
+	}
+
 	return nil
 }
 
-func NewLLMProviderRepository() *LLMProviderRepository {
-	db, _ := database.GetDatabase()
-	return &LLMProviderRepository{db: db}
+func (l *LLMProviderRepository) Add(ctx context.Context, provider *entities.LLMProvider) (*entities.LLMProvider, error) {
+	err := l.db.WithContext(ctx).Create(&provider).Error
+	if err != nil {
+		l.logger.Error("Failed to create provider", "err", err)
+		return nil, err
+	}
+
+	return provider, nil
+}
+
+// @Injectable
+func NewLLMProviderRepository(db *gorm.DB, logger *logger.BaseLogger) *LLMProviderRepository {
+	return &LLMProviderRepository{
+		db:     db,
+		logger: logger.With("module", "llm-provider-repository"),
+	}
 }
