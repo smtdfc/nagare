@@ -5,8 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-
-	"github.com/smtdfc/nagare/shared/paths"
 )
 
 func TryStartGateway(isDebugMode bool) error {
@@ -17,7 +15,7 @@ func TryStartGateway(isDebugMode bool) error {
 		cmd.Dir = filepath.Join(workingDir, "../gateway")
 		cmd.Env = append(os.Environ(), "NAGARE_GATEWAY_MODE=debug")
 	} else {
-		cmd = exec.Command(paths.GatewayBinFile)
+		cmd = exec.Command("nagare-gateway")
 		cmd.Env = append(os.Environ(), "NAGARE_GATEWAY_MODE=prod")
 	}
 
