@@ -1,0 +1,22 @@
+info:
+  name: status
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{NAGARE_REST_API}}/user/plugins/status"
+  body:
+    type: json
+    data: |-
+      {
+        "id":"988124c4-a931-4a74-a320-55a22337168e"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

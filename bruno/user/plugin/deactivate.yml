@@ -1,0 +1,22 @@
+info:
+  name: deactivate
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{NAGARE_REST_API}}/user/plugins/deactivate"
+  body:
+    type: json
+    data: |-
+      {
+        "id":"988124c4-a931-4a74-a320-55a22337168e"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
