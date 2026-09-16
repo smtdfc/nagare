@@ -17,4 +17,5 @@ func init() {
 	RegisterTool(declarations.ListProcessTool)
 	RegisterTool(declarations.KillProcessTool)
 	RegisterTool(declarations.PowerControlTool)
+	RegisterTool(declarations.VolumeControlTool)
 }
