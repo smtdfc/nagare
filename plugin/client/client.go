@@ -45,7 +45,10 @@ func (p *PluginClient) handleEvent(payload *websocket.Payload[any]) {
 		plugin_dtos.PrepareChatSessionSuccessEvent,
 		plugin_dtos.HandshakeFailedEvent,
 		plugin_dtos.SendChatMessageSuccessEvent,
-		plugin_dtos.SendChatMessageFailedEvent:
+		plugin_dtos.SendChatMessageFailedEvent,
+		plugin_dtos.ResetChatChannelSuccessEvent,
+		plugin_dtos.ResetChatChannelFailedEvent:
+
 		p.mu.Lock()
 		if ch, exists := p.pendingRequests[payload.RequestID]; exists {
 			ch <- payload
