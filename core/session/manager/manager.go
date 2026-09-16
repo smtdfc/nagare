@@ -194,6 +194,32 @@ func (s *SessionManager) SaveHistory(ctx context.Context, sessionID string, pend
 	return nil
 }
 
+func (s *SessionManager) ResetChatChannel(ctx context.Context, channelID string, pluginID string) error {
+	plugin, err := s.pluginRepo.FindByPluginId(ctx, pluginID)
+	if err != nil {
+		s.logger.Error("failed to reset session", "plugin_id", pluginID, "err", err)
+		return custom_errors.ErrPluginNotFound
+	}
+
+	chatSession, err := s.sessionRepo.FindByChannelID(ctx, session.PLUGIN.ToString(), plugin.ID.String(), channelID)
+	if err != nil {
+		s.logger.Error("failed to reset session", "session_id", chatSession.ID.String(), "err", err)
+		return custom_errors.ErrResetSessionFailed
+	}
+
+	if chatSession == nil {
+		return custom_errors.ErrSessionNotFound
+	}
+
+	err = s.messageRepo.DeleteBySessionID(ctx, chatSession.ID.String())
+	if err != nil {
+		s.logger.Error("failed to reset session", "session_id", chatSession.ID.String(), "err", err)
+		return custom_errors.ErrResetSessionFailed
+	}
+
+	return nil
+}
+
 // @Injectable
 func NewSessionManager(
 	logger *logger.BaseLogger,
