@@ -7,7 +7,7 @@ websocket:
   url: "{{NAGARE_WEBSOCKET}}"
   message:
     - title: register chat
-      selected: false
+      selected: true
       message:
         type: json
         data: |-
@@ -15,14 +15,20 @@ websocket:
             "event":"RegisterChatListenerEvent",
             "data":{
               "id":"1",
-              "sessionID":"b0db4143-3205-4b2d-93aa-54fe9611052c"
+              "sessionID":"a9ac17a9-2a20-4b0b-8799-46f44b5b306d"
             }
           }
-    - title: message 2
-      selected: true
+    - title: auth
+      selected: false
       message:
         type: json
-        data: ""
+        data: |-
+          {
+            "event":"AuthEvent",
+            "data":{
+              "token":"{{AUTH_TOKEN}}"
+            }
+          }
   auth: inherit
 
 settings:
