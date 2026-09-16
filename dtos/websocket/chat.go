@@ -1,6 +1,7 @@
 package websocket
 
 const (
+
 	ReceivedChatMessageEvent         Event = "ReceivedChatMessageEvent"
 	RegisterChatListenerEvent        Event = "RegisterChatListenerEvent"
 	RegisterChatListenerSuccessEvent Event = "RegisterChatListenerSuccessEvent"
