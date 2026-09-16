@@ -13,4 +13,8 @@ func RegisterTool(tool tool.Tool) {
 
 func init() {
 	RegisterTool(declarations.WeatherTool)
+	RegisterTool(declarations.TimeTool)
+	RegisterTool(declarations.ListProcessTool)
+	RegisterTool(declarations.KillProcessTool)
+	RegisterTool(declarations.PowerControlTool)
 }

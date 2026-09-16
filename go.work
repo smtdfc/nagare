@@ -5,6 +5,7 @@ use (
 	./core
 	./dtos
 	./gateway
+	./pkg/system
 	./plugin/builder
 	./plugin/built_ins/example
 	./plugin/client
