@@ -6,12 +6,15 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/smtdfc/nagare/gateway/common/config"
 	"github.com/smtdfc/nagare/gateway/common/custom_errors"
-	"github.com/smtdfc/nagare/shared/security"
+	"github.com/smtdfc/nagare/gateway/common/guards"
 )
 
 type AuthMiddleware fiber.Handler
 
-func AuthMiddlewareProvider(appConfig *config.Config) fiber.Handler {
+func AuthMiddlewareProvider(
+	appConfig *config.Config,
+	authGuard *guards.AuthGuard,
+) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		authorizationHeader := ctx.Get("Authorization")
 		if authorizationHeader == "" {
@@ -19,7 +22,7 @@ func AuthMiddlewareProvider(appConfig *config.Config) fiber.Handler {
 		}
 
 		parts := strings.Split(authorizationHeader, " ")
-		if len(parts) != 2 {
+		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
 			return custom_errors.ErrUnauthorized
 		}
 
@@ -28,9 +31,9 @@ func AuthMiddlewareProvider(appConfig *config.Config) fiber.Handler {
 			return custom_errors.ErrUnauthorized
 		}
 
-		auth, err := security.VerifyRSAToken[security.AuthPayload](tokenString, []byte(appConfig.PublicKey))
+		auth, err := authGuard.VerifyUserFromToken(tokenString)
 		if err != nil {
-			return custom_errors.ErrUnauthorized
+			return err
 		}
 
 		ctx.Locals("user", auth)

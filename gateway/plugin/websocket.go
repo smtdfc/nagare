@@ -156,6 +156,36 @@ func (w *WebsocketHandler) OnSendChatMessage(s *melody.Session, ws *websocket2.C
 	}, message.RequestID)
 }
 
+func (w *WebsocketHandler) OnResetChatChannel(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
+	ctx := context.Background()
+	data, err := websocket2.GetData[plugin_dtos.ResetChatChannelEventPayload](message)
+	if err != nil {
+		_ = websocket2.SendMessage(s, plugin_dtos.ResetChatChannelFailedEvent, &plugin_dtos.ResetChatChannelFailedEventPayload{
+			Cause: "failed to parsing payload",
+		}, message.RequestID)
+		return
+	}
+	auth, err := w.getPluginAuth(s)
+	if err != nil {
+		_ = websocket2.SendMessage(s, plugin_dtos.ResetChatChannelFailedEvent, &plugin_dtos.ResetChatChannelFailedEventPayload{
+			Cause: err.Error(),
+		}, message.RequestID)
+		return
+	}
+
+	err = w.sessionMgr.ResetChatChannel(ctx, data.ChannelID, auth.TargetID)
+	if err != nil {
+		_ = websocket2.SendMessage(s, plugin_dtos.ResetChatChannelFailedEvent, &plugin_dtos.ResetChatChannelFailedEventPayload{
+			Cause: err.Error(),
+		}, message.RequestID)
+		return
+	}
+
+	_ = websocket2.SendMessage(s, plugin_dtos.ResetChatChannelSuccessEvent, &plugin_dtos.ResetChatChannelSuccessEventPayload{
+		ChannelID: data.ChannelID,
+	}, message.RequestID)
+}
+
 func (w *WebsocketHandler) getPluginAuth(s *melody.Session) (*websocket2.AuthData, error) {
 	value, exist := s.Get("auth")
 	if !exist {

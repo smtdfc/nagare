@@ -5,6 +5,7 @@ import (
 	plugin_dtos "github.com/smtdfc/nagare/dtos/plugin"
 	"github.com/smtdfc/nagare/dtos/rest"
 	"github.com/smtdfc/nagare/gateway/common/config"
+	"github.com/smtdfc/nagare/gateway/common/guards"
 	"github.com/smtdfc/nagare/gateway/common/middlewares"
 	"github.com/smtdfc/nagare/gateway/common/websocket"
 )
@@ -16,8 +17,10 @@ func NewRouteInitializer(
 	pluginController *Controller,
 	websocketHandler *WebsocketHandler,
 	appConfig *config.Config,
+	authGuard *guards.AuthGuard,
 ) RouteInitializer {
-	authMiddleware := middlewares.AuthMiddlewareProvider(appConfig)
+	authMiddleware := middlewares.AuthMiddlewareProvider(appConfig, authGuard)
+
 	return func(app *fiber.App, ws *websocket.Coordinator) {
 		app.Get(rest.GetListPluginEndpoint, authMiddleware, pluginController.List)
 		app.Post(rest.InstallLocalPluginEndpoint, authMiddleware, pluginController.InstallLocal)
@@ -25,8 +28,10 @@ func NewRouteInitializer(
 		app.Post(rest.ActivatePluginEndpoint, authMiddleware, pluginController.Activate)
 		app.Post(rest.DeactivatePluginEndpoint, authMiddleware, pluginController.Deactivate)
 		app.Post(rest.GetPluginStatusEndpoint, authMiddleware, pluginController.Status)
+
 		ws.On(plugin_dtos.HandshakeEvent, websocketHandler.OnHandshakeEvent)
 		ws.On(plugin_dtos.PrepareChatSessionEvent, websocketHandler.OnPrepareChatSession)
 		ws.On(plugin_dtos.SendChatMessageEvent, websocketHandler.OnSendChatMessage)
+		ws.On(plugin_dtos.ResetChatChannelEvent, websocketHandler.OnResetChatChannel)
 	}
 }
