@@ -1,10 +1,10 @@
 package declarations
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
+	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/pkg/system"
 )
@@ -21,7 +21,7 @@ type PowerControlOutput struct {
 var PowerControlTool = tool.DefineTool(
 	"power_control_tool",
 	"Cross-platform control for system power actions: shutdown, restart, suspend, hibernate, or logout",
-	func(ctx context.Context, args *PowerControlInput) (*PowerControlOutput, error) {
+	func(ctx *context.ExecuteContext, args *PowerControlInput, _ tool.Bindings) (*PowerControlOutput, error) {
 		if args == nil || args.Action == "" {
 			return nil, fmt.Errorf("action is required (shutdown, restart, suspend, hibernate, logout)")
 		}
@@ -29,7 +29,7 @@ var PowerControlTool = tool.DefineTool(
 		action := strings.ToLower(strings.TrimSpace(args.Action))
 		powerCtrl := system.NewPowerControl()
 		var err error
-		
+
 		switch action {
 		case "shutdown":
 			err = powerCtrl.Shutdown()

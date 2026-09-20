@@ -1,9 +1,9 @@
 package declarations
 
 import (
-	"context"
 	"fmt"
 
+	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/pkg/system"
 )
@@ -20,7 +20,7 @@ type KillProcessOutput struct {
 var KillProcessTool = tool.DefineTool(
 	"kill_process_tool",
 	"Terminate a running process by its PID",
-	func(ctx context.Context, args *KillProcessInput) (*KillProcessOutput, error) {
+	func(ctx *context.ExecuteContext, args *KillProcessInput, _ tool.Bindings) (*KillProcessOutput, error) {
 		if args == nil || args.PID <= 0 {
 			return nil, fmt.Errorf("invalid PID provided")
 		}

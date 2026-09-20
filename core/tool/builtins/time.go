@@ -1,9 +1,9 @@
 package declarations
 
 import (
-	"context"
 	"time"
 
+	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/tool"
 )
 
@@ -19,7 +19,7 @@ type TimeToolOutput struct {
 var TimeTool = tool.DefineTool(
 	"time_tool",
 	"Get current date and time",
-	func(ctx context.Context, args *TimeToolInput) (*TimeToolOutput, error) {
+	func(ctx *context.ExecuteContext, args *TimeToolInput, _ tool.Bindings) (*TimeToolOutput, error) {
 		loc := time.Local
 
 		if args != nil && args.Timezone != "" {

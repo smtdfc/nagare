@@ -1,11 +1,11 @@
 package declarations
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
+	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/tool"
 )
 
@@ -55,7 +55,7 @@ type WeatherToolOutput struct {
 var WeatherTool = tool.DefineTool(
 	"weather_tool",
 	"Get weather",
-	func(ctx context.Context, args *WeatherToolInput) (*WeatherToolOutput, error) {
+	func(ctx *context.ExecuteContext, args *WeatherToolInput, _ tool.Bindings) (*WeatherToolOutput, error) {
 		apiURL := fmt.Sprintf("https://api.open-meteo.com/v1/forecast?latitude=%f&longitude=%f&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weathercode",
 			args.Lat, args.Lng)
 		req, err := http.NewRequestWithContext(ctx, "GET", apiURL, nil)

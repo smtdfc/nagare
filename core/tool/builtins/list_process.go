@@ -1,9 +1,9 @@
 package declarations
 
 import (
-	"context"
 	"fmt"
 
+	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/pkg/system"
 )
@@ -32,7 +32,7 @@ type ListProcessOutput struct {
 var ListProcessTool = tool.DefineTool(
 	"list_process_tool",
 	"List and filter running processes by memory, CPU, name inclusion, or name exclusion with sorting and limits",
-	func(ctx context.Context, args *ListProcessInput) (*ListProcessOutput, error) {
+	func(ctx *context.ExecuteContext, args *ListProcessInput, _ tool.Bindings) (*ListProcessOutput, error) {
 		procMgr := system.NewProcessManager()
 
 		var query *system.ProcessQuery

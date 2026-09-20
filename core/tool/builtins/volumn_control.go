@@ -1,10 +1,10 @@
 package declarations
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
+	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/pkg/system"
 )
@@ -22,7 +22,7 @@ type VolumeControlOutput struct {
 var VolumeControlTool = tool.DefineTool(
 	"volume_control_tool",
 	"Cross-platform control for system volume: set, get, mute, unmute, increment, or decrement",
-	func(ctx context.Context, args *VolumeControlInput) (*VolumeControlOutput, error) {
+	func(ctx *context.ExecuteContext, args *VolumeControlInput, _ tool.Bindings) (*VolumeControlOutput, error) {
 		if args == nil || args.Action == "" {
 			return nil, fmt.Errorf("action is required (set, get, mute, unmute, increment, decrement)")
 		}
