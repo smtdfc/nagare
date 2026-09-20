@@ -60,7 +60,7 @@ func (s *SessionManager) GetUserSession(ctx context.Context, sessionID string) (
 	return s.sessionMapper.ToDomain(userSession), nil
 }
 
-func (s *SessionManager) GetUserChatHistory(ctx context.Context, sessionID string) (message.ListMessage, error) {
+func (s *SessionManager) GetUserChatHistory(ctx context.Context, sessionID string) (*session.SessionHistory, error) {
 	chatSession, err := s.sessionRepo.FindUserSessionWithMessages(ctx, sessionID)
 	if err != nil {
 		s.logger.Error("failed to get chat history", "session_id", sessionID, "err", err)
@@ -70,14 +70,20 @@ func (s *SessionManager) GetUserChatHistory(ctx context.Context, sessionID strin
 	if chatSession == nil {
 		return nil, custom_errors.ErrSessionNotFound
 	}
-
+	sessionDomain := s.sessionMapper.ToDomain(chatSession)
 	domains, err := s.messageMapper.ToDomains(chatSession.Messages)
 	if err != nil {
 		s.logger.Error("failed to get chat history", "session_id", sessionID, "err", err)
 		return nil, custom_errors.ErrGetChatHistoryFailed
 	}
 
-	return domains, nil
+	return &session.SessionHistory{
+		OwnerType: sessionDomain.OwnerType,
+		OwnerID:   sessionDomain.OwnerID,
+		SessionID: sessionDomain.ID,
+		ChannelID: sessionDomain.ChannelID,
+		Messages:  domains,
+	}, nil
 }
 
 func (s *SessionManager) PreparePluginSession(ctx context.Context, channelID string, pluginID string) (*session.SessionInfo, error) {
@@ -142,7 +148,34 @@ func (s *SessionManager) GetPluginSession(ctx context.Context, sessionID string,
 	return s.sessionMapper.ToDomain(sessionEntity), nil
 }
 
-func (s *SessionManager) GetPluginChatHistory(ctx context.Context, sessionID string, pluginID string) (message.ListMessage, error) {
+func (s *SessionManager) GetChatHistory(ctx context.Context, sessionID string) (*session.SessionHistory, error) {
+	chatSession, err := s.sessionRepo.FindSessionWithMessages(ctx, sessionID)
+	if err != nil {
+		s.logger.Error("failed to get chat history", "session_id", sessionID, "err", err)
+		return nil, custom_errors.ErrGetSessionFailed
+	}
+
+	if chatSession == nil {
+		return nil, custom_errors.ErrSessionNotFound
+	}
+
+	sessionDomain := s.sessionMapper.ToDomain(chatSession)
+	domains, err := s.messageMapper.ToDomains(chatSession.Messages)
+	if err != nil {
+		s.logger.Error("failed to get chat history", "session_id", sessionID, "err", err)
+		return nil, custom_errors.ErrGetChatHistoryFailed
+	}
+
+	return &session.SessionHistory{
+		OwnerType: sessionDomain.OwnerType,
+		OwnerID:   sessionDomain.OwnerID,
+		SessionID: sessionDomain.ID,
+		ChannelID: sessionDomain.ChannelID,
+		Messages:  domains,
+	}, nil
+}
+
+func (s *SessionManager) GetPluginChatHistory(ctx context.Context, sessionID string, pluginID string) (*session.SessionHistory, error) {
 	plugin, err := s.pluginRepo.FindByPluginId(ctx, pluginID)
 	if err != nil {
 		s.logger.Error("failed to get session", "session_id", sessionID, "plugin_id", pluginID, "err", err)
@@ -158,14 +191,20 @@ func (s *SessionManager) GetPluginChatHistory(ctx context.Context, sessionID str
 	if chatSession == nil {
 		return nil, custom_errors.ErrSessionNotFound
 	}
-
+	sessionDomain := s.sessionMapper.ToDomain(chatSession)
 	domains, err := s.messageMapper.ToDomains(chatSession.Messages)
 	if err != nil {
 		s.logger.Error("failed to get chat history", "session_id", sessionID, "plugin_id", pluginID, "err", err)
 		return nil, custom_errors.ErrGetChatHistoryFailed
 	}
 
-	return domains, nil
+	return &session.SessionHistory{
+		OwnerType: sessionDomain.OwnerType,
+		OwnerID:   sessionDomain.OwnerID,
+		SessionID: sessionDomain.ID,
+		ChannelID: sessionDomain.ChannelID,
+		Messages:  domains,
+	}, nil
 }
 
 func (s *SessionManager) SaveHistory(ctx context.Context, sessionID string, pendingMessage message.ListMessage) error {
@@ -233,7 +272,7 @@ func NewSessionManager(
 		sessionRepo:   sessionRepo,
 		sessionMapper: sessionMapper,
 		messageRepo:   messageRepo,
-		logger:        logger,
+		logger:        logger.With("module", "session-manager"),
 		messageMapper: messageMapper,
 		pluginRepo:    pluginRepo,
 	}
