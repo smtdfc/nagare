@@ -30,10 +30,10 @@ for platform in "${PLATFORMS[@]}"; do
 
     echo "Building Gateway..."
     cd gateway
-    dix wire . --workspace
-    GOOS=$GOOS GOARCH=$GOARCH go build -o "../$OUT_DIR/nagare-gateway$EXT" .
+    dix wire  --workspace
     cd ..
 
+    GOOS=$GOOS GOARCH=$GOARCH go build -o "../$OUT_DIR/nagare-gateway$EXT" ./gateway
     echo "Done: $platform"
 done
 
