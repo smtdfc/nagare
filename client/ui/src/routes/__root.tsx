@@ -1,5 +1,10 @@
-import * as React from 'react'
+
 import { Outlet, createRootRoute } from '@tanstack/react-router'
+import { AppSidebar } from "@/components/app-sidebar"
+import {
+    SidebarInset,
+    SidebarProvider,
+} from "@/components/ui/sidebar"
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -7,9 +12,11 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   return (
-    <React.Fragment>
-      <div>Hello "__root"!</div>
-      <Outlet />
-    </React.Fragment>
+      <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+              <Outlet/>
+          </SidebarInset>
+      </SidebarProvider>
   )
 }

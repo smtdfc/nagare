@@ -17,7 +17,7 @@ const config = defineConfig({
     },
   },
   plugins: [
-    tailwindcss(),
+
     tanstackRouter({
       target: "react",
       autoCodeSplitting: true,
@@ -31,6 +31,7 @@ const config = defineConfig({
       ),
     }),
     viteReact(),
+    tailwindcss(),
   ],
 });
 
