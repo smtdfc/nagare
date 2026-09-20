@@ -7,24 +7,24 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/olahol/melody"
-	chat2 "github.com/smtdfc/nagare/core/chat"
+	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/plugin/manager"
 	session_mgr "github.com/smtdfc/nagare/core/session/manager"
 	plugin_dtos "github.com/smtdfc/nagare/dtos/plugin"
 	"github.com/smtdfc/nagare/dtos/websocket"
-	"github.com/smtdfc/nagare/gateway/chat"
 	websocket2 "github.com/smtdfc/nagare/gateway/common/websocket"
 )
 
-type WebsocketHandler struct {
-	pluginMgr    *manager.PluginManager
-	sessionMgr   *session_mgr.SessionManager
-	chatEventBus *chat.EventBus
-	logger       *logger.BaseLogger
+type ChatWebsocketHandler struct {
+	pluginMgr         *manager.PluginManager
+	sessionMgr        *session_mgr.SessionManager
+	chatEventBus      *event_bus.CoreEventBus
+	logger            *logger.BaseLogger
+	pluginConnections map[string]*melody.Session
 }
 
-func (w *WebsocketHandler) OnHandshakeEvent(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
+func (w *ChatWebsocketHandler) OnHandshakeEvent(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
 	ctx := context.Background()
 	data, err := websocket2.GetData[plugin_dtos.HandshakeEventPayload](message)
 	if err != nil {
@@ -57,6 +57,7 @@ func (w *WebsocketHandler) OnHandshakeEvent(s *melody.Session, ws *websocket2.Co
 		Scopes:     scopes,
 	})
 
+	ws.JoinRoom(fmt.Sprintf("plugin:%s:chat", pluginInfo.ID.String()), s)
 	err = websocket2.SendMessage(s, plugin_dtos.HandshakeSuccessEvent, &plugin_dtos.HandshakeSuccessEventPayload{
 		ID: data.ID,
 	}, message.RequestID)
@@ -66,7 +67,7 @@ func (w *WebsocketHandler) OnHandshakeEvent(s *melody.Session, ws *websocket2.Co
 	w.logger.Info("Handshake success", "pluginID", data.PluginID)
 }
 
-func (w *WebsocketHandler) OnPrepareChatSession(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
+func (w *ChatWebsocketHandler) OnPrepareChatSession(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
 	ctx := context.Background()
 	data, err := websocket2.GetData[plugin_dtos.PrepareChatSessionEventPayload](message)
 	if err != nil {
@@ -109,7 +110,6 @@ func (w *WebsocketHandler) OnPrepareChatSession(s *melody.Session, ws *websocket
 		return
 	}
 
-	ws.JoinRoom(fmt.Sprintf("session:%s", session.ID.String()), s)
 	w.logger.Info("Done ", "channelID", data.ChannelID, "sessionID", session.ID.String())
 	_ = websocket2.SendMessage(s, plugin_dtos.PrepareChatSessionSuccessEvent, &plugin_dtos.PrepareChatSessionSuccessEventPayload{
 		ChannelID: data.ChannelID,
@@ -118,7 +118,7 @@ func (w *WebsocketHandler) OnPrepareChatSession(s *melody.Session, ws *websocket
 
 }
 
-func (w *WebsocketHandler) OnSendChatMessage(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
+func (w *ChatWebsocketHandler) OnSendChatMessage(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
 	ctx := context.Background()
 	data, err := websocket2.GetData[plugin_dtos.SendChatMessageEventPayload](message)
 	if err != nil {
@@ -143,12 +143,12 @@ func (w *WebsocketHandler) OnSendChatMessage(s *melody.Session, ws *websocket2.C
 		return
 	}
 
-	w.chatEventBus.Publish(ctx, string(chat.Topic), &chat.SendMessageEvent{
+	w.chatEventBus.Publish(ctx, event_bus.SendEvent, &event_bus.SendMessageEventPayload{
 		RequestID:  uuid.New().String(),
 		SessionID:  data.SessionID,
 		Text:       data.Text,
 		SenderID:   auth.TargetID,
-		SenderType: chat2.Plugin,
+		SenderType: event_bus.Plugin,
 	})
 
 	_ = websocket2.SendMessage(s, plugin_dtos.SendChatMessageSuccessEvent, &plugin_dtos.SendChatMessageSuccessEventPayload{
@@ -156,7 +156,7 @@ func (w *WebsocketHandler) OnSendChatMessage(s *melody.Session, ws *websocket2.C
 	}, message.RequestID)
 }
 
-func (w *WebsocketHandler) OnResetChatChannel(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
+func (w *ChatWebsocketHandler) OnResetChatChannel(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
 	ctx := context.Background()
 	data, err := websocket2.GetData[plugin_dtos.ResetChatChannelEventPayload](message)
 	if err != nil {
@@ -186,7 +186,7 @@ func (w *WebsocketHandler) OnResetChatChannel(s *melody.Session, ws *websocket2.
 	}, message.RequestID)
 }
 
-func (w *WebsocketHandler) getPluginAuth(s *melody.Session) (*websocket2.AuthData, error) {
+func (w *ChatWebsocketHandler) getPluginAuth(s *melody.Session) (*websocket2.AuthData, error) {
 	value, exist := s.Get("auth")
 	if !exist {
 		return nil, errors.New("access denied")
@@ -204,10 +204,10 @@ func (w *WebsocketHandler) getPluginAuth(s *melody.Session) (*websocket2.AuthDat
 func NewWebsocketHandler(
 	pluginMgr *manager.PluginManager,
 	sessionMgr *session_mgr.SessionManager,
-	chatEventBus *chat.EventBus,
+	chatEventBus *event_bus.CoreEventBus,
 	logger *logger.BaseLogger,
-) *WebsocketHandler {
-	return &WebsocketHandler{
+) *ChatWebsocketHandler {
+	return &ChatWebsocketHandler{
 		pluginMgr:    pluginMgr,
 		sessionMgr:   sessionMgr,
 		chatEventBus: chatEventBus,

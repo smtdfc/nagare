@@ -6,11 +6,11 @@ import (
 	"github.com/smtdfc/nagare/gateway/utils"
 )
 
-type Controller struct {
-	pluginService *Service
+type PluginController struct {
+	pluginService *PluginService
 }
 
-func (p *Controller) List(ctx fiber.Ctx) error {
+func (p *PluginController) List(ctx fiber.Ctx) error {
 	data, err := p.pluginService.ListPlugins(ctx)
 	if err != nil {
 		return err
@@ -19,7 +19,7 @@ func (p *Controller) List(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (p *Controller) InstallLocal(ctx fiber.Ctx) error {
+func (p *PluginController) InstallLocal(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.InstallLocalPluginRequest](ctx)
 	if err != nil {
 		return err
@@ -33,7 +33,7 @@ func (p *Controller) InstallLocal(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, struct{}{}, 200)
 }
 
-func (p *Controller) Uninstall(ctx fiber.Ctx) error {
+func (p *PluginController) Uninstall(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.UninstallPluginRequest](ctx)
 	if err != nil {
 		return err
@@ -47,7 +47,7 @@ func (p *Controller) Uninstall(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, struct{}{}, 200)
 }
 
-func (p *Controller) Activate(ctx fiber.Ctx) error {
+func (p *PluginController) Activate(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.ActivatePluginRequest](ctx)
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func (p *Controller) Activate(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, struct{}{}, 200)
 }
 
-func (p *Controller) Deactivate(ctx fiber.Ctx) error {
+func (p *PluginController) Deactivate(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.DeactivatePluginRequest](ctx)
 	if err != nil {
 		return err
@@ -75,7 +75,7 @@ func (p *Controller) Deactivate(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, struct{}{}, 200)
 }
 
-func (p *Controller) Status(ctx fiber.Ctx) error {
+func (p *PluginController) Status(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.GetPluginStatusRequest](ctx)
 	if err != nil {
 		return err
@@ -90,8 +90,8 @@ func (p *Controller) Status(ctx fiber.Ctx) error {
 }
 
 // @Injectable
-func NewPluginController(pluginService *Service) *Controller {
-	return &Controller{
+func NewPluginController(pluginService *PluginService) *PluginController {
+	return &PluginController{
 		pluginService: pluginService,
 	}
 }

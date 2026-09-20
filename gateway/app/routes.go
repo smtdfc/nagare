@@ -23,10 +23,10 @@ func RegisterPprofRoutes(app *fiber.App) {
 // @Injectable
 func SetupRoutes(
 	app *App,
-	chatRoutes chat.RouteInitializer,
-	llmProviderRoutes llm_provider.RouteInitializer,
-	pluginRoutes plugin.RouteInitializer,
-	settingsRoutes settings.RouteInitializer,
+	chatRoutes chat.ChatRouteInitializer,
+	llmProviderRoutes llm_provider.LLMProviderRouteInitializer,
+	pluginRoutes plugin.PluginRouteInitializer,
+	settingsRoutes settings.SettingsRouteInitializer,
 ) *Routes {
 
 	chatRoutes(app.fiberApp, app.wsCoordinator)

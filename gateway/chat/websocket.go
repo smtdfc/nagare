@@ -5,18 +5,20 @@ import (
 	"fmt"
 
 	"github.com/olahol/melody"
+	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/session/manager"
 	"github.com/smtdfc/nagare/dtos/websocket"
 	"github.com/smtdfc/nagare/gateway/common/guards"
 	websocket2 "github.com/smtdfc/nagare/gateway/common/websocket"
 )
 
-type WebsocketHandler struct {
+type ChatWebsocketHandler struct {
 	sessionMgr *manager.SessionManager
 	authGuard  *guards.AuthGuard
+	logger     *logger.BaseLogger
 }
 
-func (c *WebsocketHandler) OnAuth(s *melody.Session, w *websocket2.Coordinator, message *websocket.Payload[any]) {
+func (c *ChatWebsocketHandler) OnAuth(s *melody.Session, w *websocket2.Coordinator, message *websocket.Payload[any]) {
 	data, err := websocket2.GetData[websocket.AuthEventPayload](message)
 	if err != nil {
 		err := websocket2.SendMessage(s, websocket.AuthFailedEvent, &websocket.AuthFailedEventPayload{
@@ -58,7 +60,7 @@ func (c *WebsocketHandler) OnAuth(s *melody.Session, w *websocket2.Coordinator, 
 	}
 }
 
-func (c *WebsocketHandler) OnListenMessage(s *melody.Session, w *websocket2.Coordinator, message *websocket.Payload[any]) {
+func (c *ChatWebsocketHandler) OnListenMessage(s *melody.Session, w *websocket2.Coordinator, message *websocket.Payload[any]) {
 	ctx := context.Background()
 	data, err := websocket2.GetData[websocket.RegisterChatMessageListenerEventPayload](message)
 	if err != nil {
@@ -108,9 +110,11 @@ func (c *WebsocketHandler) OnListenMessage(s *melody.Session, w *websocket2.Coor
 func NewWebsocketHandler(
 	sessionMgr *manager.SessionManager,
 	authGuard *guards.AuthGuard,
-) *WebsocketHandler {
-	return &WebsocketHandler{
+	logger *logger.BaseLogger,
+) *ChatWebsocketHandler {
+	return &ChatWebsocketHandler{
 		sessionMgr: sessionMgr,
 		authGuard:  authGuard,
+		logger:     logger.With("module", "gateway:chat:websocket_handler"),
 	}
 }
