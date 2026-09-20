@@ -21,7 +21,7 @@ type RunStats struct {
 
 // @Injectable
 // @Root
-func StartApp(app *App, coreSetup *setup.CoreSetup, _ *Routes, chatWorker *chat.ChatWorker, pluginMgr *manager.PluginManager) *RunStats {
+func StartApp(app *App, coreSetup *setup.CoreSetup, _ *Routes, chatWorker *chat.Worker, pluginMgr *manager.PluginManager) *RunStats {
 	err := coreSetup.Setup(app.config.Port)
 	if err != nil {
 		return &RunStats{
@@ -30,7 +30,7 @@ func StartApp(app *App, coreSetup *setup.CoreSetup, _ *Routes, chatWorker *chat.
 		}
 	}
 
-	chatWorker.Do()
+	chatWorker.Start()
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 
@@ -54,7 +54,7 @@ func StartApp(app *App, coreSetup *setup.CoreSetup, _ *Routes, chatWorker *chat.
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		err := coreSetup.Teardown(ctx)
+		err := pluginMgr.StopAllPlugin(ctx)
 		if err != nil {
 			log.Printf("Error: %v", err)
 		}

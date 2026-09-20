@@ -19,7 +19,7 @@ func (m *MessageRepository) CreateBatch(ctx context.Context, messages []*entitie
 	if len(messages) == 0 {
 		return nil
 	}
-
+	
 	if batchSize <= 0 {
 		batchSize = 100
 	}
@@ -47,19 +47,6 @@ func (m *MessageRepository) FindBySessionID(ctx context.Context, sessionID strin
 	}
 
 	return messages, nil
-}
-
-func (m *MessageRepository) DeleteBySessionID(ctx context.Context, sessionID string) error {
-	err := m.db.WithContext(ctx).
-		Where("session_id = ?", sessionID).
-		Delete(&entities.Message{}).Error
-
-	if err != nil {
-		m.logger.Error("Failed to delete messages by session ID", "session", sessionID, "error", err)
-		return fmt.Errorf("failed to delete messages by session ID: %w", err)
-	}
-
-	return nil
 }
 
 // @Injectable

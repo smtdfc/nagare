@@ -14,9 +14,6 @@ const (
 	SendChatMessageEvent           websocket.Event = "plugin_message"
 	SendChatMessageSuccessEvent    websocket.Event = "plugin_message_success"
 	SendChatMessageFailedEvent     websocket.Event = "plugin_message_failed"
-	ResetChatChannelEvent          websocket.Event = "plugin_session_reset"
-	ResetChatChannelSuccessEvent   websocket.Event = "plugin_session_reset_success"
-	ResetChatChannelFailedEvent    websocket.Event = "plugin_session_reset_failed"
 )
 
 type HandshakeEventPayload struct {
@@ -61,17 +58,5 @@ type SendChatMessageSuccessEventPayload struct {
 }
 
 type SendChatMessageFailedEventPayload struct {
-	Cause string `json:"cause"`
-}
-
-type ResetChatChannelEventPayload struct {
-	ChannelID string `json:"channelID"`
-}
-
-type ResetChatChannelSuccessEventPayload struct {
-	ChannelID string `json:"channelID"`
-}
-
-type ResetChatChannelFailedEventPayload struct {
 	Cause string `json:"cause"`
 }

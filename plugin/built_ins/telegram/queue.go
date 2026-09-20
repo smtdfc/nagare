@@ -41,16 +41,10 @@ func (tp *TelegramPlugin) processQueue(ctx context.Context, chatID string) {
 	}
 }
 
-func (tp *TelegramPlugin) clearSessionID(chatID string) {
-	tp.mu.Lock()
-	defer tp.mu.Unlock()
-
-	delete(tp.channels, chatID)
-}
-
 func (tp *TelegramPlugin) handleSingleMessage(ctx context.Context, update *telego.Update) {
 	chatIntID := update.Message.Chat.ID
 	chatID := strconv.FormatInt(chatIntID, 10)
+
 	sessionID, exist := tp.getSessionID(chatID)
 	if !exist {
 		var err error
@@ -60,37 +54,6 @@ func (tp *TelegramPlugin) handleSingleMessage(ctx context.Context, update *teleg
 			return
 		}
 		tp.setSessionID(chatID, sessionID)
-	}
-
-	switch update.Message.Text {
-	case "/start":
-		_ = tp.sendTextMessage(ctx, chatIntID, "Hello! I'm your Nagare bot. How can I assist you today?")
-		tp.finishProcessing(chatID, sessionID)
-		return
-	case "/help":
-		_ = tp.sendTextMessage(ctx, chatIntID, "You can send me any message and I'll process it for you.")
-		tp.finishProcessing(chatID, sessionID)
-		return
-	case "/ping":
-		_ = tp.sendTextMessage(ctx, chatIntID, "Pong!")
-		tp.finishProcessing(chatID, sessionID)
-		return
-	case "/chat_id":
-		_ = tp.sendTextMessage(ctx, chatIntID, "Your chat ID is: "+chatID)
-		tp.finishProcessing(chatID, sessionID)
-		return
-	case "/reset":
-		err := tp.pluginClient.ResetChatChannel(ctx, chatID)
-		if err != nil {
-			tp.pluginClient.Logger.Error("failed to reset chat session", "chatID", chatID, "error", err)
-			_ = tp.sendTextMessage(ctx, chatIntID, "Oops! Error while resetting chat session")
-			tp.finishProcessing(chatID, sessionID)
-			return
-		}
-		tp.clearSessionID(chatID)
-		_ = tp.sendTextMessage(ctx, chatIntID, "Chat session has been reset.")
-		tp.finishProcessing(chatID, sessionID)
-		return
 	}
 
 	err := tp.pluginClient.SendChatMessage(ctx, sessionID, update.Message.Text)

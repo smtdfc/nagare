@@ -1,0 +1,12 @@
+name: Development
+variables:
+  - name: NAGARE_REST_API
+    value: http://127.0.0.1:9832/api/v1
+  - name: NAGARE_WEBSOCKET
+    value: http://127.0.0.1:9832/ws
+  - secret: true
+    name: GROG_API_KEY
+    description: ""
+  - secret: true
+    name: AUTH_TOKEN
+    description: ""

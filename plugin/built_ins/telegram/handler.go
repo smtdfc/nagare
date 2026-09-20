@@ -2,28 +2,15 @@ package main
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/smtdfc/nagare/shared/helpers"
 	"github.com/smtdfc/nagare/shared/message"
 )
 
-func (tp *TelegramPlugin) OnReceivedChatMessage(sessionID, channelID, chunk string) {
-	var chatID string
-	var chatIntID int64
-
-	if channelID != "" {
-		num, err := strconv.ParseInt(channelID, 10, 64)
-		if err != nil {
-			return
-		}
-		chatIntID = num
-	} else {
-		var ok bool
-		chatID, chatIntID, ok = tp.getChatIDBySessionID(sessionID)
-		if !ok {
-			return
-		}
+func (tp *TelegramPlugin) OnReceivedChatMessage(sessionID, chunk string) {
+	chatID, chatIntID, ok := tp.getChatIDBySessionID(sessionID)
+	if !ok {
+		return
 	}
 
 	msg, err := helpers.UnmarshalJson[message.AnyMessage](chunk)
@@ -45,7 +32,6 @@ func (tp *TelegramPlugin) OnReceivedChatMessage(sessionID, channelID, chunk stri
 		if err != nil {
 			return
 		}
-		tp.pluginClient.Logger.Error("Agent error message received", "chatID", chatID, "sessionID", sessionID, "error", errMsg.Error, "code", errMsg.Code)
 		_ = tp.sendTextMessage(context.Background(), chatIntID, errMsg.Error)
 		tp.finishProcessing(chatID, sessionID)
 

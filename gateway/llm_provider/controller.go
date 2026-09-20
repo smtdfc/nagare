@@ -6,11 +6,11 @@ import (
 	"github.com/smtdfc/nagare/gateway/utils"
 )
 
-type LLMProviderController struct {
-	llmProviderService *LLMProviderService
+type Controller struct {
+	llmProviderService *Service
 }
 
-func (l *LLMProviderController) List(ctx fiber.Ctx) error {
+func (l *Controller) List(ctx fiber.Ctx) error {
 	data, err := l.llmProviderService.ListProviders(ctx)
 	if err != nil {
 		return err
@@ -19,7 +19,7 @@ func (l *LLMProviderController) List(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (l *LLMProviderController) Details(ctx fiber.Ctx) error {
+func (l *Controller) Details(ctx fiber.Ctx) error {
 	providerID := ctx.Query("provider")
 	data, err := l.llmProviderService.GetProviderDetails(ctx, providerID)
 	if err != nil {
@@ -29,7 +29,7 @@ func (l *LLMProviderController) Details(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (l *LLMProviderController) Add(ctx fiber.Ctx) error {
+func (l *Controller) Add(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.AddLLMProviderRequest](ctx)
 	if err != nil {
 		return err
@@ -43,7 +43,7 @@ func (l *LLMProviderController) Add(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (l *LLMProviderController) Delete(ctx fiber.Ctx) error {
+func (l *Controller) Delete(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.DeleteLLMProviderRequest](ctx)
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func (l *LLMProviderController) Delete(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, struct{}{}, 200)
 }
 
-func (l *LLMProviderController) GetModels(ctx fiber.Ctx) error {
+func (l *Controller) GetModels(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.GetLLMProviderModelsRequest](ctx)
 	if err != nil {
 		return err
@@ -73,9 +73,9 @@ func (l *LLMProviderController) GetModels(ctx fiber.Ctx) error {
 
 // @Injectable
 func NewLLMProviderController(
-	llmProviderService *LLMProviderService,
-) *LLMProviderController {
-	return &LLMProviderController{
+	llmProviderService *Service,
+) *Controller {
+	return &Controller{
 		llmProviderService: llmProviderService,
 	}
 }

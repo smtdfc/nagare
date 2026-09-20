@@ -10,11 +10,9 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/shirou/gopsutil/v4/process"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/mappers"
@@ -343,155 +341,6 @@ func (p *PluginManager) ValidConnect(cxt context.Context, pluginID string, conne
 	return p.pluginMapper.ToDomain(pluginEntity), nil
 }
 
-func (p *PluginManager) Uninstall(ctx context.Context, id string) error {
-	pluginEntity, err := p.pluginRepo.FindById(ctx, id)
-	if err != nil {
-		return custom_errors.ErrUninstallPluginFailed
-	}
-
-	if pluginEntity == nil {
-		return custom_errors.ErrPluginNotFound
-	}
-	plugin := p.pluginMapper.ToDomain(pluginEntity)
-
-	p.logger.Info("Uninstalling plugin", "pluginID", pluginEntity.PluginID, "name", pluginEntity.Name, "version", pluginEntity.Version)
-
-	p.logger.Info("Stopping plugin before uninstall", "pluginID", pluginEntity.PluginID)
-	err = p.StopPlugin(ctx, plugin)
-	if err != nil {
-		p.logger.Logger.Error("Failed to stop plugin before uninstall", "error", err, "pluginID", pluginEntity.PluginID)
-	} else {
-		p.logger.Info("Plugin stopped successfully", "pluginID", pluginEntity.PluginID)
-	}
-
-	err = p.pluginRepo.DeleteById(ctx, plugin.ID.String())
-	if err != nil {
-		return custom_errors.ErrUninstallPluginFailed
-	}
-
-	pluginDir := filepath.Join(paths.PluginDir, plugin.PluginID)
-	err = os.RemoveAll(pluginDir)
-	if err != nil {
-		p.logger.Error("Failed to remove plugin directory", "error", err, "pluginID", pluginEntity.PluginID)
-	}
-
-	p.logger.Info("Uninstall plugin completed", "pluginID", pluginEntity.PluginID, "name", pluginEntity.Name, "version", pluginEntity.Version)
-	return nil
-}
-
-func (p *PluginManager) Activate(ctx context.Context, id string) error {
-	pluginEntity, err := p.pluginRepo.FindById(ctx, id)
-	if err != nil {
-		return custom_errors.ErrActivatePluginFailed
-	}
-
-	if pluginEntity == nil {
-		return custom_errors.ErrPluginNotFound
-	}
-
-	p.logger.Info("Activating plugin", "pluginID", pluginEntity.PluginID, "name", pluginEntity.Name, "version", pluginEntity.Version)
-	plg := p.pluginMapper.ToDomain(pluginEntity)
-
-	if plg.IsActive {
-		return custom_errors.ErrPluginAlreadyActive
-	}
-
-	plg.IsActive = true
-	err = p.pluginRepo.Update(ctx, p.pluginMapper.ToEntity(plg))
-	if err != nil {
-		return custom_errors.ErrActivatePluginFailed
-	}
-
-	p.logger.Info("Plugin activated successfully", "pluginID", plg.PluginID, "name", plg.Name, "version", plg.Version)
-	return p.StartPlugin(ctx, plg)
-}
-
-func (p *PluginManager) Deactivate(ctx context.Context, id string) error {
-	pluginEntity, err := p.pluginRepo.FindById(ctx, id)
-	if err != nil {
-		return custom_errors.ErrDeactivatePluginFailed
-	}
-
-	if pluginEntity == nil {
-		return custom_errors.ErrPluginNotFound
-	}
-
-	p.logger.Info("Deactivating plugin", "pluginID", pluginEntity.PluginID, "name", pluginEntity.Name, "version", pluginEntity.Version)
-	plugin := p.pluginMapper.ToDomain(pluginEntity)
-	if !plugin.IsActive {
-		return custom_errors.ErrPluginNotActive
-	}
-
-	err = p.StopPlugin(ctx, plugin)
-	if err != nil {
-		return custom_errors.ErrDeactivatePluginFailed
-	}
-
-	plugin.IsActive = false
-	err = p.pluginRepo.Update(ctx, p.pluginMapper.ToEntity(plugin))
-	if err != nil {
-		return custom_errors.ErrDeactivatePluginFailed
-	}
-	p.logger.Info("Plugin deactivated successfully", "pluginID", plugin.PluginID, "name", plugin.Name, "version", plugin.Version)
-	return nil
-}
-
-func (p *PluginManager) GetPluginStatus(ctx context.Context, id string) (*plugin.PluginStatus, error) {
-	pluginEntity, err := p.pluginRepo.FindById(ctx, id)
-	if err != nil {
-		return nil, custom_errors.ErrGetPluginStatusFailed
-	}
-
-	if pluginEntity == nil {
-		return nil, custom_errors.ErrPluginNotFound
-	}
-
-	pluginDomain := p.pluginMapper.ToDomain(pluginEntity)
-	pidPath := pluginDomain.Bin + ".pid"
-	data, err := os.ReadFile(pidPath)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return &plugin.PluginStatus{
-				PID:      "",
-				PluginID: pluginDomain.PluginID,
-				Name:     pluginDomain.Name,
-				Version:  pluginDomain.Version,
-			}, nil
-		}
-		p.logger.Error("Failed to read PID file", "error", err, "plugin", pluginDomain.PluginID)
-		return nil, custom_errors.ErrGetPluginStatusFailed
-	}
-
-	var pid string
-	if _, err := fmt.Sscanf(string(data), "%s", &pid); err != nil {
-		p.logger.Error("Invalid PID format in file", "error", err, "plugin", pluginDomain.PluginID)
-		return nil, custom_errors.ErrGetPluginStatusFailed
-	}
-
-	pidValue, err := strconv.ParseInt(pid, 10, 32)
-	if err != nil {
-		p.logger.Error("Invalid PID format in file", "error", err, "plugin", pluginDomain.PluginID)
-		return nil, custom_errors.ErrGetPluginStatusFailed
-	}
-
-	proc, err := process.NewProcess(int32(pidValue))
-	if err != nil {
-		p.logger.Error("Failed to get process", "error", err, "plugin", pluginDomain.PluginID)
-		return nil, custom_errors.ErrGetPluginStatusFailed
-	}
-	cpuPercent, _ := proc.CPUPercent()
-	memInfo, _ := proc.MemoryInfo()
-
-	return &plugin.PluginStatus{
-		PID:         pid,
-		PluginID:    pluginDomain.PluginID,
-		Name:        pluginDomain.Name,
-		Version:     pluginDomain.Version,
-		CPUPercent:  cpuPercent,
-		MemoryUsage: float64(memInfo.RSS) / (1024 * 1024),
-	}, nil
-}
-
 // @Injectable
 func NewPluginManager(
 	pluginRepo *repositories.PluginRepository,
@@ -500,8 +349,7 @@ func NewPluginManager(
 ) *PluginManager {
 	return &PluginManager{
 		pluginRepo:   pluginRepo,
-		pluginMapper: pluginMapper,
-		logger:       logger.With("module", "plugin-manager"),
+		logger:       logger,
 		connectCodes: make(map[string]string),
 	}
 }

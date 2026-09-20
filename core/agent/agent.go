@@ -3,16 +3,11 @@ package agent
 import (
 	"context"
 
-	context2 "github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/llm_provider"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/tool/manager"
 	"github.com/smtdfc/nagare/shared/message"
 )
-
-type InvokeOption struct {
-	SessionID string
-}
 
 type Agent struct {
 	toolMgr    *manager.ToolManager
@@ -40,19 +35,12 @@ func (a *Agent) WithContext(messages message.ListMessage) *Agent {
 	return a
 }
 
-func (a *Agent) Invoke(ctx context.Context, msg message.Message, model string, options *InvokeOption) (message.Channel, error) {
+func (a *Agent) Invoke(ctx context.Context, msg message.Message, model string) (message.Channel, error) {
 	a.logger.Info("Start invoke agent")
 	output := make(chan message.Message)
 	go (func() {
 		a.state.AppendMessage(msg)
-		ectx := &context2.ExecuteContext{
-			Context: ctx,
-		}
-		if options != nil {
-			ectx.SessionID = options.SessionID
-		}
-		
-		a.executor.Execute(ectx, model, a.llmAdapter, output)
+		a.executor.Execute(ctx, model, a.llmAdapter, output)
 	})()
 	return output, nil
 }

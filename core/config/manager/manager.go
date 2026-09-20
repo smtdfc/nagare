@@ -5,7 +5,6 @@ import (
 
 	"github.com/smtdfc/nagare/core/config"
 	"github.com/smtdfc/nagare/core/custom_errors"
-	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/mappers"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 )
@@ -15,7 +14,6 @@ const GeneralConfigScopeName = "nagare.config.general"
 type ConfigManager struct {
 	kvRepo   *repositories.KVRepository
 	kvMapper *mappers.KVMapper
-	logger   *logger.BaseLogger
 }
 
 func (c *ConfigManager) GetGeneralConfig(ctx context.Context) (*config.GeneralConfig, error) {
@@ -47,14 +45,9 @@ func (c *ConfigManager) SetGeneralConfig(ctx context.Context, conf *config.Gener
 }
 
 // @Injectable
-func NewConfigManager(
-	kvRepo *repositories.KVRepository,
-	kvMapper *mappers.KVMapper,
-	logger *logger.BaseLogger,
-) *ConfigManager {
+func NewConfigManager(kvRepo *repositories.KVRepository, kvMapper *mappers.KVMapper) *ConfigManager {
 	return &ConfigManager{
 		kvRepo:   kvRepo,
 		kvMapper: kvMapper,
-		logger:   logger,
 	}
 }

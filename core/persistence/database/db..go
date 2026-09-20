@@ -20,7 +20,7 @@ func InitDatabase(logger *logger.BaseLogger) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	err = db.AutoMigrate(&entities.KV{}, &entities.Session{}, &entities.Message{}, &entities.Plugin{}, &entities.LLMProvider{}, &entities.Task{})
+	err = db.AutoMigrate(&entities.KV{}, &entities.Session{}, &entities.Message{}, &entities.Plugin{}, &entities.LLMProvider{})
 	if err != nil {
 		databaseLogger.Error("Failed to migrate database", "error", err)
 		return nil, err

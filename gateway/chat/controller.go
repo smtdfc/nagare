@@ -2,17 +2,15 @@ package chat
 
 import (
 	"github.com/gofiber/fiber/v3"
-	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/dtos/rest"
 	"github.com/smtdfc/nagare/gateway/utils"
 )
 
-type ChatController struct {
-	chatService *ChatService
-	logger      *logger.BaseLogger
+type Controller struct {
+	chatService *Service
 }
 
-func (c *ChatController) SendMessage(ctx fiber.Ctx) error {
+func (c *Controller) SendMessage(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.SendChatMessageRequest](ctx)
 	if err != nil {
 		return err
@@ -26,7 +24,7 @@ func (c *ChatController) SendMessage(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, 0, 200)
 }
 
-func (c *ChatController) CreateSession(ctx fiber.Ctx) error {
+func (c *Controller) CreateSession(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.CreateChatSessionRequest](ctx)
 	if err != nil {
 		return err
@@ -40,7 +38,7 @@ func (c *ChatController) CreateSession(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (c *ChatController) ListSessions(ctx fiber.Ctx) error {
+func (c *Controller) ListSessions(ctx fiber.Ctx) error {
 	data, err := c.chatService.ListSessions(ctx)
 	if err != nil {
 		return err
@@ -49,7 +47,7 @@ func (c *ChatController) ListSessions(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (c *ChatController) History(ctx fiber.Ctx) error {
+func (c *Controller) History(ctx fiber.Ctx) error {
 	sessionID := ctx.Query("session")
 
 	data, err := c.chatService.GetHistory(ctx, sessionID)
@@ -61,9 +59,8 @@ func (c *ChatController) History(ctx fiber.Ctx) error {
 }
 
 // @Injectable
-func NewController(chatService *ChatService, logger *logger.BaseLogger) *ChatController {
-	return &ChatController{
+func NewController(chatService *Service) *Controller {
+	return &Controller{
 		chatService: chatService,
-		logger:      logger.With("module", "gateway:chat:controller"),
 	}
 }

@@ -4,8 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/smtdfc/nagare/core/event_bus"
-	"github.com/smtdfc/nagare/core/logger"
+	"github.com/smtdfc/nagare/core/chat"
 	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/core/session/manager"
 	"github.com/smtdfc/nagare/dtos/rest"
@@ -23,29 +22,28 @@ func toSessionDTO(s *session.SessionInfo) *rest.Session {
 	}
 }
 
-type ChatService struct {
-	chatEventBus *event_bus.CoreEventBus
+type Service struct {
+	chatEventBus *EventBus
 	sessionMgr   *manager.SessionManager
-	logger       *logger.BaseLogger
 }
 
-func (c *ChatService) SendMessage(ctx context.Context, request *rest.SendChatMessageRequest) error {
+func (c *Service) SendMessage(ctx context.Context, request *rest.SendChatMessageRequest) error {
 	_, err := c.sessionMgr.GetUserSession(ctx, request.SessionID)
 	if err != nil {
 		return err
 	}
 
-	c.chatEventBus.Publish(ctx, event_bus.SendEvent, &event_bus.SendMessageEventPayload{
+	c.chatEventBus.Publish(ctx, string(Topic), &SendMessageEvent{
 		RequestID:  uuid.New().String(),
 		SessionID:  request.SessionID,
 		Text:       request.Text,
-		SenderType: event_bus.User,
+		SenderType: chat.User,
 		SenderID:   "",
 	})
 	return nil
 }
 
-func (c *ChatService) CreateSession(ctx context.Context, request *rest.CreateChatSessionRequest) (*rest.CreateChatSessionResponse, error) {
+func (c *Service) CreateSession(ctx context.Context, request *rest.CreateChatSessionRequest) (*rest.CreateChatSessionResponse, error) {
 	chatSession, err := c.sessionMgr.CreateUserSession(ctx, request.Title)
 	if err != nil {
 		return nil, err
@@ -56,7 +54,7 @@ func (c *ChatService) CreateSession(ctx context.Context, request *rest.CreateCha
 	}, nil
 }
 
-func (c *ChatService) ListSessions(ctx context.Context) (*rest.ListChatSessionsResponse, error) {
+func (c *Service) ListSessions(ctx context.Context) (*rest.ListChatSessionsResponse, error) {
 	sessions, err := c.sessionMgr.GetListUserSession(ctx)
 	if err != nil {
 		return nil, err
@@ -67,23 +65,22 @@ func (c *ChatService) ListSessions(ctx context.Context) (*rest.ListChatSessionsR
 	}, nil
 }
 
-func (c *ChatService) GetHistory(ctx context.Context, sessionID string) (*rest.GetChatHistoryResponse, error) {
-	sessionHistory, err := c.sessionMgr.GetUserChatHistory(ctx, sessionID)
+func (c *Service) GetHistory(ctx context.Context, sessionID string) (*rest.GetChatHistoryResponse, error) {
+	messages, err := c.sessionMgr.GetUserChatHistory(ctx, sessionID)
 	if err != nil {
 		return nil, err
 	}
 
 	return &rest.GetChatHistoryResponse{
 		SessionID: sessionID,
-		Messages:  sessionHistory.Messages,
+		Messages:  messages,
 	}, nil
 }
 
 // @Injectable
-func NewService(sessionMgr *manager.SessionManager, chatEventBus *event_bus.CoreEventBus, logger *logger.BaseLogger) *ChatService {
-	return &ChatService{
+func NewService(sessionMgr *manager.SessionManager, chatEventBus *EventBus) *Service {
+	return &Service{
 		chatEventBus: chatEventBus,
 		sessionMgr:   sessionMgr,
-		logger:       logger.With("module", "gateway:chat:service"),
 	}
 }

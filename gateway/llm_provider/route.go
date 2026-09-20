@@ -4,20 +4,18 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/smtdfc/nagare/dtos/rest"
 	"github.com/smtdfc/nagare/gateway/common/config"
-	"github.com/smtdfc/nagare/gateway/common/guards"
 	"github.com/smtdfc/nagare/gateway/common/middlewares"
 	"github.com/smtdfc/nagare/gateway/common/websocket"
 )
 
-type LLMProviderRouteInitializer func(app *fiber.App, ws *websocket.Coordinator)
+type RouteInitializer func(app *fiber.App, ws *websocket.Coordinator)
 
 // @Injectable
 func NewRouteInitializer(
-	llmProviderController *LLMProviderController,
+	llmProviderController *Controller,
 	appConfig *config.Config,
-	authGuard *guards.AuthGuard,
-) LLMProviderRouteInitializer {
-	authMiddleware := middlewares.AuthMiddlewareProvider(appConfig, authGuard)
+) RouteInitializer {
+	authMiddleware := middlewares.AuthMiddlewareProvider(appConfig)
 
 	return func(app *fiber.App, ws *websocket.Coordinator) {
 		app.Get(rest.ListLLMProvidersEndpoint, authMiddleware, llmProviderController.List)
