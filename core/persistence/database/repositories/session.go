@@ -157,6 +157,26 @@ func (s *SessionRepository) FindPluginSession(ctx context.Context, sessionId str
 	return &session, nil
 }
 
+func (s *SessionRepository) FindSessionWithMessages(ctx context.Context, sessionId string) (*entities.Session, error) {
+	var session entities.Session
+
+	err := s.db.WithContext(ctx).
+		Preload("Messages", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at ASC")
+		}).
+		First(&session, "id = ?", sessionId).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+
+		s.logger.Error("failed to get session", "error", err)
+		return nil, err
+	}
+	return &session, nil
+}
+
 func (s *SessionRepository) FindUserSessionWithMessages(ctx context.Context, sessionId string) (*entities.Session, error) {
 	var session entities.Session
 
