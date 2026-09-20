@@ -1,7 +1,6 @@
 package websocket
 
 const (
-
 	ReceivedChatMessageEvent         Event = "ReceivedChatMessageEvent"
 	RegisterChatListenerEvent        Event = "RegisterChatListenerEvent"
 	RegisterChatListenerSuccessEvent Event = "RegisterChatListenerSuccessEvent"
@@ -10,6 +9,7 @@ const (
 
 type ReceivedChatMessageEventPayload struct {
 	SessionID string `json:"sessionID"`
+	ChannelID string `json:"channelID"`
 	Message   string `json:"message"`
 }
 
