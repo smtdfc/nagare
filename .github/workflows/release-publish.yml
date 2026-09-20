@@ -1,0 +1,35 @@
+name: release-publish.yml
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27'
+      - name: "Install Dix"
+        run: go install github.com/smtdfc/dix@latest
+
+      - name: Build
+        run: ./build.sh
+
+      - name: Archive binaries
+        run: |
+          mkdir -p packed
+          for dir in dist/*; do
+            if [ -d "$dir" ]; then
+              platform=$(basename "$dir")
+              tar -czvf "packed/nagare-$platform.tar.gz" -C "$dir" .
+            fi
+          done
+
+      - name: Upload binaries to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: packed/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
