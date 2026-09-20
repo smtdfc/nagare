@@ -12,6 +12,7 @@ type Event[T any] struct {
 
 type BaseEventBus[T any] struct {
 	mu          sync.RWMutex
+	writeMu     sync.Mutex
 	subscribers map[string][]chan T
 }
 
@@ -21,21 +22,21 @@ func NewBaseEventBus[T any]() *BaseEventBus[T] {
 	}
 }
 
-func (b *BaseEventBus[T]) Subscribe(topic string) (<-chan T, func()) {
+func (b *BaseEventBus[T]) Subscribe(eventName string) (<-chan T, func()) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	ch := make(chan T, 100)
-	b.subscribers[topic] = append(b.subscribers[topic], ch)
+	ch := make(chan T, 1000)
+	b.subscribers[eventName] = append(b.subscribers[eventName], ch)
 
 	unsub := func() {
 		b.mu.Lock()
 		defer b.mu.Unlock()
 
-		subs := b.subscribers[topic]
+		subs := b.subscribers[eventName]
 		for i, sub := range subs {
 			if sub == ch {
-				b.subscribers[topic] = append(subs[:i], subs[i+1:]...)
+				b.subscribers[eventName] = append(subs[:i], subs[i+1:]...)
 				close(ch)
 				break
 			}
@@ -44,17 +45,23 @@ func (b *BaseEventBus[T]) Subscribe(topic string) (<-chan T, func()) {
 
 	return ch, unsub
 }
-
-func (b *BaseEventBus[T]) Publish(ctx context.Context, topic string, payload T) {
+func (b *BaseEventBus[T]) Publish(ctx context.Context, eventName string, payload T) {
 	b.mu.RLock()
-	defer b.mu.RUnlock()
+	subs := b.subscribers[eventName]
+	b.mu.RUnlock()
 
-	if subs, ok := b.subscribers[topic]; ok {
-		for _, ch := range subs {
-			select {
-			case ch <- payload:
-			default:
-			}
+	if len(subs) == 0 {
+		return
+	}
+
+	b.writeMu.Lock()
+	defer b.writeMu.Unlock()
+
+	for _, ch := range subs {
+		select {
+		case ch <- payload:
+		case <-ctx.Done():
+			return
 		}
 	}
 }
