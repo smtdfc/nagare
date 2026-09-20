@@ -11,7 +11,7 @@ import (
 )
 
 func prepareDirectories(cwd, pluginID string) (pkgDir, binFile, sigFile string, err error) {
-	pkgDir = filepath.Join(cwd, "pkg")
+	pkgDir = filepath.Join(cwd, "pkgs")
 	binDir := filepath.Join(pkgDir, "bin")
 
 	binFileName := pluginID
