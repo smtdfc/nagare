@@ -35,6 +35,6 @@ func NewAgentPool(toolMgr *manager.ToolManager, logger *logger.BaseLogger) *Pool
 	return &Pool{
 		Pool:    make(chan *Agent, NAGARE_AGENT_POOL_SIZE),
 		toolMgr: toolMgr,
-		logger:  logger,
+		logger:  logger.With("module", "agent-pool"),
 	}
 }

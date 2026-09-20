@@ -1,10 +1,10 @@
 package agent
 
 import (
-	"context"
 	"strings"
 	"time"
 
+	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/llm_provider"
 	"github.com/smtdfc/nagare/core/logger"
@@ -22,7 +22,7 @@ type Executor struct {
 	logger  *logger.BaseLogger
 }
 
-func (a *Executor) ExecuteTool(ctx context.Context, toolCall *tool.ToolCall) *tool.Result {
+func (a *Executor) ExecuteTool(ctx *context.ExecuteContext, toolCall *tool.ToolCall) *tool.Result {
 	result := a.toolMgr.Call(ctx, toolCall)
 	if !result.IsSuccess {
 		a.logger.Error("Failed to execute tool", "tool", toolCall.Name, "error", result.Result)
@@ -42,7 +42,7 @@ func (a *Executor) HandleError(message *message.ResponseFailedMessage) error {
 	return custom_errors.ErrUnknown
 }
 
-func (a *Executor) Execute(ctx context.Context, model string, llmAdapter llm_provider.LLMProviderAdapter, output message.WriteOnlyChannel) {
+func (a *Executor) Execute(ctx *context.ExecuteContext, model string, llmAdapter llm_provider.LLMProviderAdapter, output message.WriteOnlyChannel) {
 	defer close(output)
 
 	isError := false
