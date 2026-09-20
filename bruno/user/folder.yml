@@ -1,9 +1,0 @@
-info:
-  name: user
-  type: folder
-  seq: 1
-
-request:
-  auth:
-    type: bearer
-    token: "{{AUTH_TOKEN}}"
