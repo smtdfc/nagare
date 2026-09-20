@@ -60,6 +60,9 @@ func (tp *TelegramPlugin) Start(ctx context.Context) error {
 
 // sendTextMessage sends a text message to a Telegram chat and logs any error.
 func (tp *TelegramPlugin) sendTextMessage(ctx context.Context, chatID int64, text string) error {
+	if text == "" {
+		return nil
+	}
 	_, err := tp.bot.SendMessage(ctx, tu.Message(tu.ID(chatID), text))
 	if err != nil {
 		tp.pluginClient.Logger.Error("Error sending message to telegram", "chatID", chatID, "error", err)
