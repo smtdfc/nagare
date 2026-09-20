@@ -6,11 +6,11 @@ import (
 	"github.com/smtdfc/nagare/gateway/utils"
 )
 
-type Controller struct {
+type SettingsController struct {
 	settingsService *SettingsService
 }
 
-func (s *Controller) GetGeneralConfig(ctx fiber.Ctx) error {
+func (s *SettingsController) GetGeneralConfig(ctx fiber.Ctx) error {
 	data, err := s.settingsService.GetGeneralSettings(ctx)
 	if err != nil {
 		return err
@@ -19,7 +19,7 @@ func (s *Controller) GetGeneralConfig(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (s *Controller) SetGeneralConfig(ctx fiber.Ctx) error {
+func (s *SettingsController) SetGeneralConfig(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.SetGeneralSettingsRequest](ctx)
 	if err != nil {
 		return err
@@ -34,8 +34,8 @@ func (s *Controller) SetGeneralConfig(ctx fiber.Ctx) error {
 }
 
 // @Injectable
-func NewSettingsController(settingsService *SettingsService) *Controller {
-	return &Controller{
+func NewSettingsController(settingsService *SettingsService) *SettingsController {
+	return &SettingsController{
 		settingsService: settingsService,
 	}
 }
