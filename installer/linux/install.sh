@@ -2,6 +2,7 @@
 
 REPO="smtdfc/nagare"
 INSTALL_PATH="/usr/local/bin"
+
 install_binary() {
     local src="$1"
     local dest="$2"
@@ -40,7 +41,6 @@ detect_arch() {
     fi
 }
 
-
 OS="$(detect_os)"
 ARCH="$(detect_arch)"
 echo "Detected system: OS=$OS, Arch=$ARCH"
@@ -58,7 +58,7 @@ if [ -d "$LOCAL_DIST" ] && [ -f "$LOCAL_DIST/nagare" ]; then
     fi
 
     echo "========================================="
-    echo " Nagare local installation completed!"
+    echo " Nagare installation completed!"
     echo "========================================="
     exit 0
 fi
@@ -69,7 +69,6 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-echo "Local build not found in $LOCAL_DIST. Fetching the latest version from GitHub..."
 VERSION=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 
 if [ -z "$VERSION" ]; then
@@ -79,30 +78,34 @@ fi
 
 echo "Selected version for installation: $VERSION"
 
-CLEAN_VERSION="${VERSION#v}"
-CLI_FILE="nagare-${OS}-${ARCH}-${CLEAN_VERSION}"
-GATEWAY_FILE="nagare-gateway-${OS}-${ARCH}-${CLEAN_VERSION}"
+ARCHIVE_NAME="nagare-${OS}-${ARCH}.tar.gz"
 BASE_URL="https://github.com/$REPO/releases/download/$VERSION"
+ARCHIVE_URL="$BASE_URL/$ARCHIVE_NAME"
 
-echo "Downloading binaries from GitHub..."
-CLI_URL="$BASE_URL/$CLI_FILE"
-echo "Downloading CLI from: $CLI_URL"
-if curl -sL -f "$CLI_URL" -o "$INSTALL_PATH/nagare"; then
-    chmod +x "$INSTALL_PATH/nagare"
-    echo "Successfully installed CLI: nagare"
-else
-    echo "Warning: Could not download CLI asset for this configuration from GitHub Release."
-fi
+TMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TMP_DIR"' EXIT
 
-GATEWAY_URL="$BASE_URL/$GATEWAY_FILE"
-echo "Downloading Gateway from: $GATEWAY_URL"
-if curl -sL -f "$GATEWAY_URL" -o "$INSTALL_PATH/nagare-gateway"; then
-    chmod +x "$INSTALL_PATH/nagare-gateway"
-    echo "Successfully installed Gateway: nagare-gateway"
+echo "Downloading archive from: $ARCHIVE_URL"
+if curl -sL -f "$ARCHIVE_URL" -o "$TMP_DIR/$ARCHIVE_NAME"; then
+    echo "Extracting archive..."
+    tar -xzf "$TMP_DIR/$ARCHIVE_NAME" -C "$TMP_DIR"
+
+    if [ -f "$TMP_DIR/nagare" ]; then
+        install_binary "$TMP_DIR/nagare" "$INSTALL_PATH/nagare" "CLI"
+    else
+        echo "Warning: 'nagare' binary not found in the downloaded archive."
+    fi
+
+    if [ -f "$TMP_DIR/nagare-gateway" ]; then
+        install_binary "$TMP_DIR/nagare-gateway" "$INSTALL_PATH/nagare-gateway" "Gateway"
+    else
+        echo "Notice: 'nagare-gateway' binary not found in the archive, skipping."
+    fi
 else
-    echo "Warning: Could not download Gateway asset for this configuration from GitHub Release."
+    echo "Error: Could not download release archive for this configuration from GitHub."
+    exit 1
 fi
 
 echo "========================================="
-echo " Nagare GitHub installation completed ($VERSION)!"
+echo " Nagare installation completed!"
 echo "========================================="
