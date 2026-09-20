@@ -390,20 +390,20 @@ func (p *PluginManager) Activate(ctx context.Context, id string) error {
 	}
 
 	p.logger.Info("Activating plugin", "pluginID", pluginEntity.PluginID, "name", pluginEntity.Name, "version", pluginEntity.Version)
-	plugin := p.pluginMapper.ToDomain(pluginEntity)
+	plg := p.pluginMapper.ToDomain(pluginEntity)
 
-	if plugin.IsActive {
+	if plg.IsActive {
 		return custom_errors.ErrPluginAlreadyActive
 	}
 
-	plugin.IsActive = true
-	err = p.pluginRepo.Update(ctx, p.pluginMapper.ToEntity(plugin))
+	plg.IsActive = true
+	err = p.pluginRepo.Update(ctx, p.pluginMapper.ToEntity(plg))
 	if err != nil {
 		return custom_errors.ErrActivatePluginFailed
 	}
 
-	p.logger.Info("Plugin activated successfully", "pluginID", plugin.PluginID, "name", plugin.Name, "version", plugin.Version)
-	return p.StartPlugin(ctx, plugin)
+	p.logger.Info("Plugin activated successfully", "pluginID", plg.PluginID, "name", plg.Name, "version", plg.Version)
+	return p.StartPlugin(ctx, plg)
 }
 
 func (p *PluginManager) Deactivate(ctx context.Context, id string) error {
@@ -500,7 +500,8 @@ func NewPluginManager(
 ) *PluginManager {
 	return &PluginManager{
 		pluginRepo:   pluginRepo,
-		logger:       logger,
+		pluginMapper: pluginMapper,
+		logger:       logger.With("module", "plugin-manager"),
 		connectCodes: make(map[string]string),
 	}
 }
