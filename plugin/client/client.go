@@ -21,7 +21,7 @@ type PluginClient struct {
 	connector             *Connector
 	mu                    sync.Mutex
 	pendingRequests       map[string]chan *websocket.Payload[any]
-	OnReceivedChatMessage func(sessionID string, chunk string)
+	OnReceivedChatMessage func(sessionID string, channelID string, chunk string)
 }
 
 func (p *PluginClient) Start(ctx context.Context, onStart func()) error {
@@ -57,7 +57,7 @@ func (p *PluginClient) handleEvent(payload *websocket.Payload[any]) {
 		return
 	case websocket.ReceivedChatMessageEvent:
 		d, _ := GetData[websocket.ReceivedChatMessageEventPayload](payload)
-		p.OnReceivedChatMessage(d.SessionID, d.Message)
+		p.OnReceivedChatMessage(d.SessionID, d.ChannelID, d.Message)
 	default:
 		p.Logger.Warn("Unknown event", "event", payload.Event)
 	}
@@ -83,7 +83,7 @@ func NewPlugin() *PluginClient {
 	p := &PluginClient{
 		Config:                &Config{},
 		pendingRequests:       make(map[string]chan *websocket.Payload[any]),
-		OnReceivedChatMessage: func(sessionID string, chunk string) {},
+		OnReceivedChatMessage: func(sessionID string, _ string, chunk string) {},
 		Logger:                slog.New(handler),
 	}
 
