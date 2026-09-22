@@ -29,13 +29,15 @@ func (c *ChatWebsocketHandler) OnAuth(s *melody.Session, w *websocket2.Coordinat
 		}
 	}
 
-	if data != nil || data.Token == "" {
+	if data == nil || data.Token == "" {
 		err := websocket2.SendMessage(s, websocket.AuthFailedEvent, &websocket.AuthFailedEventPayload{
 			Cause: "Unauthorized",
 		}, message.RequestID)
 		if err != nil {
 			return
 		}
+
+		return
 	}
 
 	auth, err := c.authGuard.VerifyUserFromToken(data.Token)
