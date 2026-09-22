@@ -78,6 +78,16 @@ func (c *ChatService) GetHistory(ctx context.Context, sessionID string) (*rest.G
 		Messages:  sessionHistory.Messages,
 	}, nil
 }
+func (c *ChatService) GetSession(ctx context.Context, sessionID string) (*rest.GetChatSessionResponse, error) {
+	s, err := c.sessionMgr.GetUserSession(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rest.GetChatSessionResponse{
+		Session: toSessionDTO(s),
+	}, nil
+}
 
 // @Injectable
 func NewService(sessionMgr *manager.SessionManager, chatEventBus *event_bus.CoreEventBus, logger *logger.BaseLogger) *ChatService {

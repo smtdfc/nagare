@@ -6,8 +6,9 @@ import (
 	context2 "github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/llm_provider"
 	"github.com/smtdfc/nagare/core/logger"
+	message "github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/tool/manager"
-	"github.com/smtdfc/nagare/shared/message"
+	"github.com/smtdfc/nagare/shared/messages"
 )
 
 type InvokeOption struct {
@@ -35,14 +36,14 @@ func (a *Agent) WithLLMAdapter(adapter llm_provider.LLMProviderAdapter) *Agent {
 	return a
 }
 
-func (a *Agent) WithContext(messages message.ListMessage) *Agent {
+func (a *Agent) WithContext(messages messages.ListMessage) *Agent {
 	a.state.SetMessages(messages)
 	return a
 }
 
-func (a *Agent) Invoke(ctx context.Context, msg message.Message, model string, options *InvokeOption) (message.Channel, error) {
+func (a *Agent) Invoke(ctx context.Context, msg messages.Message, model string, options *InvokeOption) (message.Channel, error) {
 	a.logger.Info("Start invoke agent")
-	output := make(chan message.Message)
+	output := make(chan messages.Message)
 	go (func() {
 		a.state.AppendMessage(msg)
 		ectx := &context2.ExecuteContext{
@@ -51,7 +52,7 @@ func (a *Agent) Invoke(ctx context.Context, msg message.Message, model string, o
 		if options != nil {
 			ectx.SessionID = options.SessionID
 		}
-		
+
 		a.executor.Execute(ectx, model, a.llmAdapter, output)
 	})()
 	return output, nil

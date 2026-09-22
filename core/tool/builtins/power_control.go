@@ -15,7 +15,7 @@ type PowerControlInput struct {
 
 type PowerControlOutput struct {
 	Success bool   `json:"success"`
-	Message string `json:"message"`
+	Message string `json:"messages"`
 }
 
 var PowerControlTool = tool.DefineTool(

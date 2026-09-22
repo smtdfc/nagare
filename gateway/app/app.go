@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/olahol/melody"
 	"github.com/smtdfc/nagare/core/logger"
 	config2 "github.com/smtdfc/nagare/gateway/common/config"
@@ -24,11 +25,13 @@ func NewApp(
 ) *App {
 	m := melody.New()
 	m.Config.MaxMessageSize = 10 * 1024 * 1024 // 10MB
+	fiberApp := fiber.New(fiber.Config{
+		ErrorHandler: ErrorHandler,
+	})
 
+	fiberApp.Use(cors.New())
 	return &App{
-		fiberApp: fiber.New(fiber.Config{
-			ErrorHandler: ErrorHandler,
-		}),
+		fiberApp:      fiberApp,
 		melody:        m,
 		config:        config,
 		wsCoordinator: wsCoordinator,

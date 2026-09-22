@@ -66,6 +66,6 @@ func (m *MessageRepository) DeleteBySessionID(ctx context.Context, sessionID str
 func NewMessageRepository(db *gorm.DB, logger *logger.BaseLogger) *MessageRepository {
 	return &MessageRepository{
 		db:     db,
-		logger: logger.With("module", "message-repository"),
+		logger: logger.With("module", "messages-repository"),
 	}
 }

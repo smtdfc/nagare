@@ -78,7 +78,7 @@ func (p *PluginClient) SendChatMessage(ctx context.Context, sessionID string, te
 		requestID,
 	)
 	if err != nil {
-		p.Logger.Error("failed to send chat session message", "error", err)
+		p.Logger.Error("failed to send chat session messages", "error", err)
 		return err
 	}
 
@@ -88,7 +88,7 @@ func (p *PluginClient) SendChatMessage(ctx context.Context, sessionID string, te
 	case resp := <-respChan:
 		if resp.Event == plugin_dtos.SendChatMessageFailedEvent {
 			payload, _ := GetData[plugin_dtos.SendChatMessageFailedEventPayload](resp)
-			p.Logger.Error("failed to send chat session message", "error", payload)
+			p.Logger.Error("failed to send chat session messages", "error", payload)
 			return errors.New(payload.Cause)
 		}
 

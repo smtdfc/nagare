@@ -14,7 +14,7 @@ type KillProcessInput struct {
 
 type KillProcessOutput struct {
 	Success bool   `json:"success"`
-	Message string `json:"message"`
+	Message string `json:"messages"`
 }
 
 var KillProcessTool = tool.DefineTool(

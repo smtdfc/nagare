@@ -1,6 +1,6 @@
 package tool
 
-import "github.com/smtdfc/nagare/shared/message"
+import "github.com/smtdfc/nagare/shared/messages"
 
 type Result struct {
 	callID    string
@@ -10,13 +10,13 @@ type Result struct {
 	err       error
 }
 
-func (t *Result) ToMessage() *message.ToolResultMessage {
+func (t *Result) ToMessage() *messages.ToolResultMessage {
 	Result := t.Result
 	if !t.IsSuccess {
 		Result = t.err.Error()
 	}
 
-	return message.NewToolResultMessage(
+	return messages.NewToolResultMessage(
 		t.callID,
 		t.name,
 		Result,

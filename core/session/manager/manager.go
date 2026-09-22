@@ -9,7 +9,7 @@ import (
 	"github.com/smtdfc/nagare/core/mappers"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"github.com/smtdfc/nagare/core/session"
-	"github.com/smtdfc/nagare/shared/message"
+	"github.com/smtdfc/nagare/shared/messages"
 )
 
 type SessionManager struct {
@@ -207,7 +207,7 @@ func (s *SessionManager) GetPluginChatHistory(ctx context.Context, sessionID str
 	}, nil
 }
 
-func (s *SessionManager) SaveHistory(ctx context.Context, sessionID string, pendingMessage message.ListMessage) error {
+func (s *SessionManager) SaveHistory(ctx context.Context, sessionID string, pendingMessage messages.ListMessage) error {
 	chatSession, err := s.sessionRepo.FindByID(ctx, sessionID)
 	if err != nil {
 		s.logger.Error("failed to save chat history", "session_id", sessionID, "err", err)

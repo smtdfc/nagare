@@ -94,7 +94,7 @@ func (w *ChatWebsocketHandler) OnPrepareChatSession(s *melody.Session, ws *webso
 	//	_ = websocket2.SendMessage(s, plugin_dtos.PrepareChatSessionFailedEvent, &plugin_dtos.PrepareChatSessionFailedEventPayload{
 	//		ChannelID: data.ChannelID,
 	//		Cause:     "Plugin not supported this feature",
-	//	}, message.RequestID)
+	//	}, messages.RequestID)
 	//	return
 	//}
 

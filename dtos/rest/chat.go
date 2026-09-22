@@ -1,12 +1,13 @@
 package rest
 
-import "github.com/smtdfc/nagare/shared/message"
+import "github.com/smtdfc/nagare/shared/messages"
 
 const (
 	SendChatMessageEndpoint   = "/api/v1/user/chat/send"
 	CreateChatSessionEndpoint = "/api/v1/user/chat/session/create"
 	ListChatSessionsEndpoint  = "/api/v1/user/chat/session/list"
-	GetChatHistoryEndpoint    = "/api/v1/user/chat/history"
+	GetChatSessionEndpoint    = "/api/v1/user/chat/session/:id"
+	GetChatHistoryEndpoint    = "/api/v1/user/chat/session/:id/history"
 )
 
 type Session struct {
@@ -36,6 +37,10 @@ type GetChatHistoryRequest struct {
 }
 
 type GetChatHistoryResponse struct {
-	SessionID string            `json:"sessionID"`
-	Messages  []message.Message `json:"messages"`
+	SessionID string             `json:"sessionID"`
+	Messages  []messages.Message `json:"messages"`
+}
+
+type GetChatSessionResponse struct {
+	Session *Session `json:"session"`
 }

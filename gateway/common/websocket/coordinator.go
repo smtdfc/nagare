@@ -120,7 +120,7 @@ func SendMessage[T any](s *melody.Session, event websocket_dtos.Event, data T, r
 	}
 
 	if err := s.Write([]byte(raw)); err != nil {
-		return fmt.Errorf("failed to write message to session: %w", err)
+		return fmt.Errorf("failed to write messages to session: %w", err)
 	}
 
 	return nil

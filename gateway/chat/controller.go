@@ -50,9 +50,19 @@ func (c *ChatController) ListSessions(ctx fiber.Ctx) error {
 }
 
 func (c *ChatController) History(ctx fiber.Ctx) error {
-	sessionID := ctx.Query("session")
+	sessionID := ctx.Params("id")
 
 	data, err := c.chatService.GetHistory(ctx, sessionID)
+	if err != nil {
+		return err
+	}
+
+	return utils.ResponseSuccess(ctx, data, 200)
+}
+
+func (c *ChatController) GetSession(ctx fiber.Ctx) error {
+	sessionID := ctx.Params("id")
+	data, err := c.chatService.GetSession(ctx, sessionID)
 	if err != nil {
 		return err
 	}

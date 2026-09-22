@@ -7,42 +7,42 @@ import (
 
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/shared/helpers"
-	"github.com/smtdfc/nagare/shared/message"
+	"github.com/smtdfc/nagare/shared/messages"
 )
 
 type MessageMapper struct {
 }
 
-func (m *MessageMapper) ToDomain(entity *entities.Message) (message.Message, error) {
+func (m *MessageMapper) ToDomain(entity *entities.Message) (messages.Message, error) {
 	if entity == nil {
 		return nil, nil
 	}
 
 	switch entity.MessageKind {
-	case string(message.AgentStartedMessageType):
-		return helpers.UnmarshalJson[message.AgentStartedMessage](entity.Content)
-	case string(message.AgentCompletedMessageType):
-		return helpers.UnmarshalJson[message.AgentCompletedMessage](entity.Content)
-	case string(message.ReasoningMessageType):
-		return helpers.UnmarshalJson[message.ReasoningMessage](entity.Content)
-	case string(message.ResponseStartedMessageType):
-		return helpers.UnmarshalJson[message.ResponseStartedMessage](entity.Content)
-	case string(message.ResponseFailedMessageType):
-		return helpers.UnmarshalJson[message.ResponseFailedMessage](entity.Content)
-	case string(message.ResponseCompletedMessageType):
-		return helpers.UnmarshalJson[message.ResponseCompletedMessage](entity.Content)
-	case string(message.TextMessageType):
-		return helpers.UnmarshalJson[message.TextMessage](entity.Content)
-	case string(message.ToolCallMessageType):
-		return helpers.UnmarshalJson[message.ToolCallMessage](entity.Content)
-	case string(message.ToolResultMessageType):
-		return helpers.UnmarshalJson[message.ToolResultMessage](entity.Content)
+	case string(messages.AgentStartedMessageType):
+		return helpers.UnmarshalJson[messages.AgentStartedMessage](entity.Content)
+	case string(messages.AgentCompletedMessageType):
+		return helpers.UnmarshalJson[messages.AgentCompletedMessage](entity.Content)
+	case string(messages.ReasoningMessageType):
+		return helpers.UnmarshalJson[messages.ReasoningMessage](entity.Content)
+	case string(messages.ResponseStartedMessageType):
+		return helpers.UnmarshalJson[messages.ResponseStartedMessage](entity.Content)
+	case string(messages.ResponseFailedMessageType):
+		return helpers.UnmarshalJson[messages.ResponseFailedMessage](entity.Content)
+	case string(messages.ResponseCompletedMessageType):
+		return helpers.UnmarshalJson[messages.ResponseCompletedMessage](entity.Content)
+	case string(messages.TextMessageType):
+		return helpers.UnmarshalJson[messages.TextMessage](entity.Content)
+	case string(messages.ToolCallMessageType):
+		return helpers.UnmarshalJson[messages.ToolCallMessage](entity.Content)
+	case string(messages.ToolResultMessageType):
+		return helpers.UnmarshalJson[messages.ToolResultMessage](entity.Content)
 	default:
 		return nil, fmt.Errorf("failed to covert")
 	}
 }
 
-func (m *MessageMapper) ToEntity(domain message.Message, sessionID string) (*entities.Message, error) {
+func (m *MessageMapper) ToEntity(domain messages.Message, sessionID string) (*entities.Message, error) {
 	if domain == nil {
 		return nil, nil
 	}
@@ -64,7 +64,7 @@ func (m *MessageMapper) ToEntity(domain message.Message, sessionID string) (*ent
 	}, nil
 }
 
-func (m *MessageMapper) ToEntities(domains []message.Message, sessionID string) ([]*entities.Message, error) {
+func (m *MessageMapper) ToEntities(domains []messages.Message, sessionID string) ([]*entities.Message, error) {
 	if domains == nil {
 		return nil, nil
 	}
@@ -86,12 +86,12 @@ func (m *MessageMapper) ToEntities(domains []message.Message, sessionID string) 
 	return messageEntities, nil
 }
 
-func (m *MessageMapper) ToDomains(entities []*entities.Message) ([]message.Message, error) {
+func (m *MessageMapper) ToDomains(entities []*entities.Message) ([]messages.Message, error) {
 	if entities == nil {
 		return nil, nil
 	}
 
-	domains := make([]message.Message, 0, len(entities))
+	domains := make([]messages.Message, 0, len(entities))
 	for _, entity := range entities {
 		if entity == nil {
 			continue
@@ -99,7 +99,7 @@ func (m *MessageMapper) ToDomains(entities []*entities.Message) ([]message.Messa
 
 		domain, err := m.ToDomain(entity)
 		if err != nil {
-			return nil, fmt.Errorf("failed to map entity to domain for message id %v: %w", entity.ID, err)
+			return nil, fmt.Errorf("failed to map entity to domain for messages id %v: %w", entity.ID, err)
 		}
 
 		domains = append(domains, domain)

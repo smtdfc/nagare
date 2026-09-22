@@ -16,7 +16,7 @@ type VolumeControlInput struct {
 
 type VolumeControlOutput struct {
 	Success bool   `json:"success"`
-	Message string `json:"message"`
+	Message string `json:"messages"`
 }
 
 var VolumeControlTool = tool.DefineTool(

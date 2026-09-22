@@ -9,13 +9,13 @@ import (
 	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/gateway/common/websocket"
 	"github.com/smtdfc/nagare/shared/helpers"
-	"github.com/smtdfc/nagare/shared/message"
+	"github.com/smtdfc/nagare/shared/messages"
 
 	websocket_dtos "github.com/smtdfc/nagare/dtos/websocket"
 )
 
 type SessionJob struct {
-	Chunk            message.Message
+	Chunk            messages.Message
 	RequestID        string
 	ChannelID        string
 	SessionOwnerID   string
@@ -49,7 +49,7 @@ func (c *ChatWorker) HandleChunkMessage(sessionID string, job *SessionJob) {
 		c.logger.Error("Failed to broadcast chunk event: ", "requestID", job.RequestID, "error", err)
 		return
 	}
-	
+
 	if job.SessionOwnerID != "" && job.SessionOwnerType == string(session.PLUGIN) {
 		err := websocket.BroadcastToRoom(
 			c.ws,

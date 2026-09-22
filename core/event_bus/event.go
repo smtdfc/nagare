@@ -5,7 +5,7 @@ import (
 
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/shared/event_bus"
-	"github.com/smtdfc/nagare/shared/message"
+	"github.com/smtdfc/nagare/shared/messages"
 )
 
 type SenderType string
@@ -51,7 +51,7 @@ type ChatChunkEventPayload struct {
 	RequestID        string
 	SessionID        string
 	ChannelID        string
-	Chunk            message.Message
+	Chunk            messages.Message
 	SenderType       SenderType
 	SenderID         string
 	SessionOwnerID   string

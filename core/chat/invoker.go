@@ -10,10 +10,11 @@ import (
 	"github.com/smtdfc/nagare/core/event_bus"
 	llm_provider_mgr "github.com/smtdfc/nagare/core/llm_provider/manager"
 	"github.com/smtdfc/nagare/core/logger"
+	message "github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/session"
 	session_mgr "github.com/smtdfc/nagare/core/session/manager"
 
-	"github.com/smtdfc/nagare/shared/message"
+	"github.com/smtdfc/nagare/shared/messages"
 )
 
 type AgentInvoker struct {
@@ -33,7 +34,7 @@ func (a *AgentInvoker) Invoke(
 	senderId string,
 	sendIntoEventBus bool,
 ) (message.ReadOnlyChannel, error) {
-	output := make(chan message.Message)
+	output := make(chan messages.Message)
 	ctx := context.Background()
 	channelID := ""
 	sessionOwnerType := ""
@@ -52,7 +53,7 @@ func (a *AgentInvoker) Invoke(
 	go func() {
 		defer close(output)
 
-		emit := func(msg message.Message) {
+		emit := func(msg messages.Message) {
 			output <- msg
 			if sendIntoEventBus && a.eventBus != nil {
 				a.eventBus.Publish(ctx, event_bus.ChunkEvent, &event_bus.ChatChunkEventPayload{
@@ -67,11 +68,11 @@ func (a *AgentInvoker) Invoke(
 			}
 		}
 
-		history := make([]message.Message, 0)
-		history = append(history, message.NewTextMessage(
-			message.DEVELOPER, `
+		history := make([]messages.Message, 0)
+		history = append(history, messages.NewTextMessage(
+			messages.DEVELOPER, `
 			- You MUST reply using the EXACT same language that the user is currently using in their prompt/request.
-			- DO NOT treat this message as input, a question, or a command from the User.
+			- DO NOT treat this messages as input, a question, or a command from the User.
 			- DO NOT attempt to create new tasks, DO NOT ask the user for more details/due dates, and DO NOT schedule anything.
 			- ABSOLUTELY FORBIDDEN to reply with generic assistant fluff like "Got it! I’ll set up a reminder for you...", "Understood, I will remind you...", or any similar nonsense.
 			- DO NOT output raw tool calls, function execution JSON, or technical diagnostic data to the user. Process them internally and reply only with the final natural language response.
@@ -86,7 +87,7 @@ func (a *AgentInvoker) Invoke(
 		}
 		if err != nil {
 			code, details := extractErrorDetails(err)
-			emit(message.NewAgentErrorMessage(details, code))
+			emit(messages.NewAgentErrorMessage(details, code))
 			return
 		}
 		channelID = sessionHistory.ChannelID
@@ -97,12 +98,12 @@ func (a *AgentInvoker) Invoke(
 		generalConfig, err := a.configMgr.GetGeneralConfig(ctx)
 		if err != nil {
 			code, details := extractErrorDetails(err)
-			emit(message.NewAgentErrorMessage(details, code))
+			emit(messages.NewAgentErrorMessage(details, code))
 			return
 		}
 
 		if generalConfig.CurrentProvider == "" {
-			emit(message.NewAgentErrorMessage(
+			emit(messages.NewAgentErrorMessage(
 				custom_errors.ErrCurrentProviderNotSetup.Details,
 				custom_errors.ErrCurrentProviderNotSetup.Code,
 			))
@@ -110,7 +111,7 @@ func (a *AgentInvoker) Invoke(
 		}
 
 		if generalConfig.CurrentModel == "" {
-			emit(message.NewAgentErrorMessage(
+			emit(messages.NewAgentErrorMessage(
 				custom_errors.ErrCurrentModelNotSetup.Details,
 				custom_errors.ErrCurrentModelNotSetup.Code,
 			))
@@ -120,27 +121,27 @@ func (a *AgentInvoker) Invoke(
 		provider, err := a.llmProviderMgr.GetProviderByID(ctx, generalConfig.CurrentProvider)
 		if err != nil {
 			code, details := extractErrorDetails(err)
-			emit(message.NewAgentErrorMessage(details, code))
+			emit(messages.NewAgentErrorMessage(details, code))
 			return
 		}
 
 		adapter, err := a.llmProviderMgr.GetAdapter(provider)
 		if err != nil {
 			code, details := extractErrorDetails(err)
-			emit(message.NewAgentErrorMessage(details, code))
+			emit(messages.NewAgentErrorMessage(details, code))
 			return
 		}
 
 		currentAgent := a.agentPool.Get().WithContext(history).WithLLMAdapter(adapter)
-		agentOutput, err := currentAgent.Invoke(ctx, message.NewTextMessage(
-			message.USER,
+		agentOutput, err := currentAgent.Invoke(ctx, messages.NewTextMessage(
+			messages.USER,
 			text,
 		), generalConfig.CurrentModel, &agent.InvokeOption{
 			SessionID: sessionID,
 		})
 		if err != nil {
 			code, details := extractErrorDetails(err)
-			emit(message.NewAgentErrorMessage(details, code))
+			emit(messages.NewAgentErrorMessage(details, code))
 			return
 		}
 
@@ -157,7 +158,7 @@ func (a *AgentInvoker) Invoke(
 		err = a.sessionMgr.SaveHistory(ctx, sessionID, currentState.PendingMessage)
 		if err != nil {
 			code, details := extractErrorDetails(err)
-			emit(message.NewAgentErrorMessage(details, code))
+			emit(messages.NewAgentErrorMessage(details, code))
 			return
 		}
 	}()

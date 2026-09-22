@@ -12,9 +12,10 @@ import (
 	"github.com/openai/openai-go/v3/responses"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
+	message "github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/shared/helpers"
-	"github.com/smtdfc/nagare/shared/message"
+	"github.com/smtdfc/nagare/shared/messages"
 )
 
 type OpenAICompatibleAdapter struct {
@@ -24,11 +25,11 @@ type OpenAICompatibleAdapter struct {
 	logger  *logger.BaseLogger
 }
 
-func (o *OpenAICompatibleAdapter) TransformToProviderMessage(msg message.Message) (responses.ResponseInputItemUnionParam, error) {
+func (o *OpenAICompatibleAdapter) TransformToProviderMessage(msg messages.Message) (responses.ResponseInputItemUnionParam, error) {
 	switch t := msg.(type) {
-	case *message.TextMessage:
+	case *messages.TextMessage:
 		item := &responses.ResponseInputItemMessageParam{
-			Type: "message",
+			Type: "messages",
 			Content: responses.ResponseInputMessageContentListParam{
 				responses.ResponseInputContentUnionParam{
 					OfInputText: &responses.ResponseInputTextParam{
@@ -39,23 +40,23 @@ func (o *OpenAICompatibleAdapter) TransformToProviderMessage(msg message.Message
 		}
 
 		switch t.Role {
-		case message.USER:
+		case messages.USER:
 			item.Role = "user"
 			return responses.ResponseInputItemUnionParam{
 				OfInputMessage: item,
 			}, nil
 
-		case message.SYSTEM:
+		case messages.SYSTEM:
 			item.Role = "system"
 			return responses.ResponseInputItemUnionParam{
 				OfInputMessage: item,
 			}, nil
-		case message.DEVELOPER:
+		case messages.DEVELOPER:
 			item.Role = "developer"
 			return responses.ResponseInputItemUnionParam{
 				OfInputMessage: item,
 			}, nil
-		case message.AGENT:
+		case messages.AGENT:
 			return responses.ResponseInputItemUnionParam{
 				OfOutputMessage: &responses.ResponseOutputMessageParam{
 					Content: []responses.ResponseOutputMessageContentUnionParam{
@@ -69,7 +70,7 @@ func (o *OpenAICompatibleAdapter) TransformToProviderMessage(msg message.Message
 			}, nil
 		}
 
-	case *message.ToolResultMessage:
+	case *messages.ToolResultMessage:
 		return responses.ResponseInputItemUnionParam{
 			OfFunctionCallOutput: &responses.ResponseInputItemFunctionCallOutputParam{
 				CallID: t.CallID,
@@ -79,7 +80,7 @@ func (o *OpenAICompatibleAdapter) TransformToProviderMessage(msg message.Message
 			},
 		}, nil
 
-	case *message.ToolCallMessage:
+	case *messages.ToolCallMessage:
 		return responses.ResponseInputItemUnionParam{
 			OfFunctionCall: &responses.ResponseFunctionToolCallParam{
 				CallID:    t.CallID,
@@ -113,7 +114,7 @@ func (o *OpenAICompatibleAdapter) TransformToolDeclarations(tools tool.ListTool)
 	return toolParams, nil
 }
 
-func (o *OpenAICompatibleAdapter) Send(ctx context.Context, model string, listMessage message.ListMessage, tools tool.ListTool) (message.ReadOnlyChannel, error) {
+func (o *OpenAICompatibleAdapter) Send(ctx context.Context, model string, listMessage messages.ListMessage, tools tool.ListTool) (message.ReadOnlyChannel, error) {
 	if !slices.Contains(o.Models, model) {
 		return nil, custom_errors.ErrModelNotSupportedByProvider
 	}
@@ -134,7 +135,7 @@ func (o *OpenAICompatibleAdapter) Send(ctx context.Context, model string, listMe
 		inputs = append(inputs, input)
 	}
 
-	outputChannel := make(chan message.Message)
+	outputChannel := make(chan messages.Message)
 
 	go (func() {
 		defer close(outputChannel)
@@ -161,11 +162,11 @@ func (o *OpenAICompatibleAdapter) Send(ctx context.Context, model string, listMe
 				// 	ReasoningTokens: usage.OutputTokensDetails.ReasoningTokens,
 				// 	TotalTokens:     usage.TotalTokens,
 				// })
-				outputChannel <- message.NewResponseFailedMessage(fmt.Sprintf("%s", err.Code), err.Message)
+				outputChannel <- messages.NewResponseFailedMessage(fmt.Sprintf("%s", err.Code), err.Message)
 			case "response.output_item.done":
 				if event.AsResponseOutputItemAdded().Item.Type == "function_call" {
 					item := event.AsResponseOutputItemAdded().Item
-					outputChannel <- message.NewToolCallMessage(
+					outputChannel <- messages.NewToolCallMessage(
 						item.CallID,
 						item.Name,
 						item.Arguments.OfString,
@@ -174,15 +175,15 @@ func (o *OpenAICompatibleAdapter) Send(ctx context.Context, model string, listMe
 
 			case "response.output_text.delta":
 				if event.Delta != "" {
-					outputChannel <- message.NewTextMessage(
-						message.AGENT,
+					outputChannel <- messages.NewTextMessage(
+						messages.AGENT,
 						event.Delta,
 					)
 				}
 
 			case "response.reasoning_text.delta":
 				if event.Delta != "" {
-					outputChannel <- message.NewReasoningMessage(
+					outputChannel <- messages.NewReasoningMessage(
 						event.Delta,
 					)
 				}
@@ -192,17 +193,17 @@ func (o *OpenAICompatibleAdapter) Send(ctx context.Context, model string, listMe
 		if err := stream.Err(); err != nil {
 			o.logger.Error("stream error", "error", err)
 			if strings.Contains(err.Error(), "404") {
-				outputChannel <- message.NewResponseFailedMessage(
+				outputChannel <- messages.NewResponseFailedMessage(
 					"404",
 					fmt.Sprintf("Model %s not found", model),
 				)
 			} else if strings.Contains(err.Error(), "429") {
-				outputChannel <- message.NewResponseFailedMessage(
+				outputChannel <- messages.NewResponseFailedMessage(
 					"429",
 					fmt.Sprintf("Quota exceed: %s", err.Error()),
 				)
 			} else {
-				outputChannel <- message.NewResponseFailedMessage(
+				outputChannel <- messages.NewResponseFailedMessage(
 					"400",
 					err.Error(),
 				)

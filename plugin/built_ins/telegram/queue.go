@@ -68,7 +68,7 @@ func (tp *TelegramPlugin) handleSingleMessage(ctx context.Context, update *teleg
 		tp.finishProcessing(chatID, sessionID)
 		return
 	case "/help":
-		_ = tp.sendTextMessage(ctx, chatIntID, "You can send me any message and I'll process it for you.")
+		_ = tp.sendTextMessage(ctx, chatIntID, "You can send me any messages and I'll process it for you.")
 		tp.finishProcessing(chatID, sessionID)
 		return
 	case "/ping":
@@ -95,7 +95,7 @@ func (tp *TelegramPlugin) handleSingleMessage(ctx context.Context, update *teleg
 
 	err := tp.pluginClient.SendChatMessage(ctx, sessionID, update.Message.Text)
 	if err != nil {
-		_ = tp.sendTextMessage(ctx, chatIntID, "Oops! Error while sending message")
+		_ = tp.sendTextMessage(ctx, chatIntID, "Oops! Error while sending messages")
 		return
 	}
 }

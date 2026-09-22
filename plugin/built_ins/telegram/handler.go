@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/smtdfc/nagare/shared/helpers"
-	"github.com/smtdfc/nagare/shared/message"
+	"github.com/smtdfc/nagare/shared/messages"
 )
 
 func (tp *TelegramPlugin) OnReceivedChatMessage(sessionID, channelID, chunk string) {
@@ -26,31 +26,31 @@ func (tp *TelegramPlugin) OnReceivedChatMessage(sessionID, channelID, chunk stri
 		}
 	}
 
-	msg, err := helpers.UnmarshalJson[message.AnyMessage](chunk)
+	msg, err := helpers.UnmarshalJson[messages.AnyMessage](chunk)
 	if err != nil {
 		return
 	}
 
 	switch msg.Type {
-	case message.TextMessageType:
-		textMsg, err := helpers.UnmarshalJson[message.TextMessage](chunk)
+	case messages.TextMessageType:
+		textMsg, err := helpers.UnmarshalJson[messages.TextMessage](chunk)
 		if err != nil {
 			return
 		}
 		buf := tp.getOrCreateBuffer(sessionID)
 		buf.Append(textMsg.Content)
 
-	case message.AgentErrorMessageType:
-		errMsg, err := helpers.UnmarshalJson[message.AgentErrorMessage](chunk)
+	case messages.AgentErrorMessageType:
+		errMsg, err := helpers.UnmarshalJson[messages.AgentErrorMessage](chunk)
 		if err != nil {
 			return
 		}
-		tp.pluginClient.Logger.Error("Agent error message received", "chatID", chatID, "sessionID", sessionID, "error", errMsg.Error, "code", errMsg.Code)
+		tp.pluginClient.Logger.Error("Agent error messages received", "chatID", chatID, "sessionID", sessionID, "error", errMsg.Error, "code", errMsg.Code)
 		_ = tp.sendTextMessage(context.Background(), chatIntID, errMsg.Error)
 		tp.finishProcessing(chatID, sessionID)
 
-	case message.AgentCompletedMessageType:
-		completedMsg, err := helpers.UnmarshalJson[message.AgentCompletedMessage](chunk)
+	case messages.AgentCompletedMessageType:
+		completedMsg, err := helpers.UnmarshalJson[messages.AgentCompletedMessage](chunk)
 		if err != nil {
 			return
 		}

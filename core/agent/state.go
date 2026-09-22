@@ -4,35 +4,35 @@ import (
 	"sync"
 
 	"github.com/smtdfc/nagare/core/tool"
-	"github.com/smtdfc/nagare/shared/message"
+	"github.com/smtdfc/nagare/shared/messages"
 )
 
 type State struct {
 	mu             sync.RWMutex
-	CurrentMessage message.ListMessage
-	PendingMessage message.ListMessage
+	CurrentMessage messages.ListMessage
+	PendingMessage messages.ListMessage
 	ToolCalls      tool.ListToolCall
 	LoopCounter    int
 }
 
-func (a *State) GetFullMessage() message.ListMessage {
+func (a *State) GetFullMessage() messages.ListMessage {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	messages := make(message.ListMessage, 0, len(a.CurrentMessage)+len(a.PendingMessage))
+	messages := make(messages.ListMessage, 0, len(a.CurrentMessage)+len(a.PendingMessage))
 	messages = append(messages, a.CurrentMessage...)
 	messages = append(messages, a.PendingMessage...)
 	return messages
 }
 
-func (a *State) SetMessages(messages message.ListMessage) {
+func (a *State) SetMessages(messages messages.ListMessage) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
 	a.CurrentMessage = messages
 }
 
-func (a *State) AppendMessage(msg message.Message) {
+func (a *State) AppendMessage(msg messages.Message) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
@@ -91,8 +91,8 @@ func (a *State) GetLoopCounter() int {
 
 func NewAgentState() *State {
 	return &State{
-		CurrentMessage: message.ListMessage{},
-		PendingMessage: message.ListMessage{},
+		CurrentMessage: messages.ListMessage{},
+		PendingMessage: messages.ListMessage{},
 		ToolCalls:      tool.ListToolCall{},
 		LoopCounter:    0,
 	}

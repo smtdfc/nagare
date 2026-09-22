@@ -8,10 +8,11 @@ import (
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/llm_provider"
 	"github.com/smtdfc/nagare/core/logger"
+	message "github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/core/tool/manager"
 	"github.com/smtdfc/nagare/shared/helpers"
-	"github.com/smtdfc/nagare/shared/message"
+	"github.com/smtdfc/nagare/shared/messages"
 )
 
 const MAX_AGENT_LOOP_COUNT = 20
@@ -33,7 +34,7 @@ func (a *Executor) ExecuteTool(ctx *context.ExecuteContext, toolCall *tool.ToolC
 	return result
 }
 
-func (a *Executor) HandleError(message *message.ResponseFailedMessage) error {
+func (a *Executor) HandleError(message *messages.ResponseFailedMessage) error {
 	switch message.Code {
 	case "429":
 		return custom_errors.ErrModelQuotaExceed
@@ -55,8 +56,8 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, llmAdapter
 		}
 
 		a.state.AppendMessage(
-			message.NewTextMessage(
-				message.AGENT,
+			messages.NewTextMessage(
+				messages.AGENT,
 				textBuilder.String(),
 			),
 		)
@@ -79,7 +80,7 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, llmAdapter
 
 		if a.state.LoopCounter > MAX_AGENT_LOOP_COUNT {
 			a.logger.Info("Agent loop exceeded maximum iterations")
-			output <- message.NewAgentErrorMessage(
+			output <- messages.NewAgentErrorMessage(
 				custom_errors.ErrAgentExceedMaxIterations.Details,
 				custom_errors.ErrAgentExceedMaxIterations.Code,
 			)
@@ -94,21 +95,21 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, llmAdapter
 		if err != nil {
 			isError = true
 			a.logger.Error("Agent error", "error", err)
-			output <- message.NewAgentErrorMessage(err.Error(), custom_errors.ErrLLMProviderAdapter.Code)
+			output <- messages.NewAgentErrorMessage(err.Error(), custom_errors.ErrLLMProviderAdapter.Code)
 			break
 		}
 
 		for chunk := range llmOutput {
 			output <- chunk
 			switch chunk.GetMessageType() {
-			case message.TextMessageType:
-				_, msg := helpers.SafeCast[*message.TextMessage](chunk)
+			case messages.TextMessageType:
+				_, msg := helpers.SafeCast[*messages.TextMessage](chunk)
 				textBuilder.WriteString(msg.Content)
 				isTextItem = true
 
-			case message.ToolCallMessageType:
+			case messages.ToolCallMessageType:
 				flushText()
-				_, msg := helpers.SafeCast[*message.ToolCallMessage](chunk)
+				_, msg := helpers.SafeCast[*messages.ToolCallMessage](chunk)
 				a.state.AddToolCall(tool.NewToolCall(
 					msg.CallID,
 					msg.Name,
@@ -116,9 +117,9 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, llmAdapter
 				))
 				a.state.AppendMessage(chunk)
 
-			case message.ResponseFailedMessageType:
+			case messages.ResponseFailedMessageType:
 				flushText()
-				_, msg := helpers.SafeCast[*message.ResponseFailedMessage](chunk)
+				_, msg := helpers.SafeCast[*messages.ResponseFailedMessage](chunk)
 				a.logger.Error("Agent error", "error", msg.Cause)
 				executeError = a.HandleError(msg)
 			}
@@ -129,7 +130,7 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, llmAdapter
 		if executeError != nil {
 			isError = true
 			a.logger.Info("Agent loop exited due to an error")
-			output <- message.NewAgentErrorMessage(executeError.Error(), custom_errors.ErrAgentLoop.Code)
+			output <- messages.NewAgentErrorMessage(executeError.Error(), custom_errors.ErrAgentLoop.Code)
 			break
 		}
 
@@ -144,7 +145,7 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, llmAdapter
 	}
 
 	endTime := time.Since(startTime).Seconds()
-	output <- message.NewAgentCompletedMessage(
+	output <- messages.NewAgentCompletedMessage(
 		!isError,
 		isCancel,
 		endTime,
