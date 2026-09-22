@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/smtdfc/nagare/compare/nagare-v1.6.0...nagare-v1.6.1) (2026-09-22)
+
+
+### Bug Fixes
+
+* **gateway:** correct condition for authentication failure handling ([ba6d6e0](https://github.com/smtdfc/nagare/commit/ba6d6e096e2f1ded856cdb7ab6b580e334ac8b29))
+
 ## [1.6.0](https://github.com/smtdfc/nagare/compare/nagare-v1.5.0...nagare-v1.6.0) (2026-09-20)
 
 
