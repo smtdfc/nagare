@@ -1,75 +1,61 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 
-import { NavChatHistory } from "#/components/nav-chat-history.tsx"
-import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
+import { NavChatHistory } from "#/components/nav-chat-history.tsx";
+import { NavMain } from "@/components/nav-main";
+import { NavSecondary } from "@/components/nav-secondary";
 import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar"
-import { TerminalIcon, SearchIcon, Settings2Icon, MessageCircleQuestionIcon,
+} from "@/components/ui/sidebar";
+import {
+  TerminalIcon,
+  SearchIcon,
+  Settings2Icon,
+  MessageCircleQuestionIcon,
   PlugIcon,
-  MessageCircle
-} from "lucide-react"
+  MessageCircle,
+} from "lucide-react";
 
 const data = {
   teams: [
     {
       name: "Acme Inc",
-      logo: (
-        <TerminalIcon
-        />
-      ),
+      logo: <TerminalIcon />,
       plan: "Enterprise",
     },
   ],
   navMain: [
     {
       title: "New chat",
-      url: "#",
-      icon: (
-          <MessageCircle
-          />
-      ),
+      url: "/chat/new",
+      icon: <MessageCircle />,
       isActive: true,
     },
     {
       title: "Search",
       url: "#",
-      icon: (
-        <SearchIcon
-        />
-      ),
+      icon: <SearchIcon />,
     },
   ],
   navSecondary: [
     {
       title: "Settings",
       url: "#",
-      icon: (
-        <Settings2Icon
-        />
-      ),
+      icon: <Settings2Icon />,
     },
     {
       title: "Plugins",
       url: "#",
-      icon: (
-        <PlugIcon
-        />
-      ),
+      icon: <PlugIcon />,
     },
     {
       title: "Help",
       url: "#",
-      icon: (
-        <MessageCircleQuestionIcon
-        />
-      ),
+      icon: <MessageCircleQuestionIcon />,
     },
   ],
   favorites: [
@@ -124,7 +110,7 @@ const data = {
       emoji: "✅",
     },
   ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -139,5 +125,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

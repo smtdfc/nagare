@@ -2,17 +2,18 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import { Link } from "@tanstack/react-router";
 
 export function NavMain({
   items,
 }: {
   items: {
-    title: string
-    url: string
-    icon: React.ReactNode
-    isActive?: boolean
-  }[]
+    title: string;
+    url: string;
+    icon: React.ReactNode;
+    isActive?: boolean;
+  }[];
 }) {
   return (
     <SidebarMenu>
@@ -20,7 +21,7 @@ export function NavMain({
         <SidebarMenuItem key={item.title}>
           <SidebarMenuButton
             isActive={item.isActive}
-            render={<a href={item.url} />}
+            render={<Link to={item.url} />}
           >
             {item.icon}
             <span>{item.title}</span>
@@ -28,5 +29,5 @@ export function NavMain({
         </SidebarMenuItem>
       ))}
     </SidebarMenu>
-  )
+  );
 }

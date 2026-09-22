@@ -1,11 +1,11 @@
-import * as React from "react"
+import * as React from "react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
 import {
   Sidebar,
   SidebarContent,
@@ -14,109 +14,86 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { Settings2Icon, FileTextIcon, LinkIcon, CopyIcon, CornerUpRightIcon, Trash2Icon, CornerUpLeftIcon, ChartLineIcon, GalleryVerticalEndIcon, TrashIcon, BellIcon, ArrowUpIcon, ArrowDownIcon, StarIcon, MoreHorizontalIcon } from "lucide-react"
+} from "@/components/ui/sidebar";
+import {
+  Settings2Icon,
+  LinkIcon,
+  CopyIcon,
+  CornerUpRightIcon,
+  Trash2Icon,
+  CornerUpLeftIcon,
+  ChartLineIcon,
+  GalleryVerticalEndIcon,
+  TrashIcon,
+  BellIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  MoreHorizontalIcon,
+} from "lucide-react";
 
 const data = [
   [
     {
       label: "Customize Page",
-      icon: (
-        <Settings2Icon
-        />
-      ),
+      icon: <Settings2Icon />,
     },
   ],
   [
     {
       label: "Copy Link",
-      icon: (
-        <LinkIcon
-        />
-      ),
+      icon: <LinkIcon />,
     },
     {
       label: "Duplicate",
-      icon: (
-        <CopyIcon
-        />
-      ),
+      icon: <CopyIcon />,
     },
     {
       label: "Move to",
-      icon: (
-        <CornerUpRightIcon
-        />
-      ),
+      icon: <CornerUpRightIcon />,
     },
     {
       label: "Move to Trash",
-      icon: (
-        <Trash2Icon
-        />
-      ),
+      icon: <Trash2Icon />,
     },
   ],
   [
     {
       label: "Undo",
-      icon: (
-        <CornerUpLeftIcon
-        />
-      ),
+      icon: <CornerUpLeftIcon />,
     },
     {
       label: "View analytics",
-      icon: (
-        <ChartLineIcon
-        />
-      ),
+      icon: <ChartLineIcon />,
     },
     {
       label: "Version History",
-      icon: (
-        <GalleryVerticalEndIcon
-        />
-      ),
+      icon: <GalleryVerticalEndIcon />,
     },
     {
       label: "Show delete pages",
-      icon: (
-        <TrashIcon
-        />
-      ),
+      icon: <TrashIcon />,
     },
     {
       label: "Notifications",
-      icon: (
-        <BellIcon
-        />
-      ),
+      icon: <BellIcon />,
     },
   ],
   [
     {
       label: "Import",
-      icon: (
-        <ArrowUpIcon
-        />
-      ),
+      icon: <ArrowUpIcon />,
     },
     {
       label: "Export",
-      icon: (
-        <ArrowDownIcon
-        />
-      ),
+      icon: <ArrowDownIcon />,
     },
   ],
-]
+];
 export function NavActions() {
-  const [isOpen, setIsOpen] = React.useState(false)
+  const [isOpen, setIsOpen] = React.useState(false);
 
   return (
     <div className="flex items-center gap-2 text-sm">
-
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger
           render={
@@ -127,8 +104,7 @@ export function NavActions() {
             />
           }
         >
-          <MoreHorizontalIcon
-          />
+          <MoreHorizontalIcon />
         </PopoverTrigger>
         <PopoverContent
           className="w-56 overflow-hidden rounded-lg p-0"
@@ -156,5 +132,5 @@ export function NavActions() {
         </PopoverContent>
       </Popover>
     </div>
-  )
+  );
 }

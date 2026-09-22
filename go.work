@@ -13,4 +13,5 @@ use (
 
 	./shared
 	plugin/built_ins/telegram
+	scripts
 )
