@@ -1,4 +1,4 @@
-package message
+package messages
 
 import "github.com/smtdfc/nagare/shared/helpers"
 

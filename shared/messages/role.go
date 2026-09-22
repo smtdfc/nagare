@@ -1,4 +1,4 @@
-package message
+package messages
 
 type Role string
 
