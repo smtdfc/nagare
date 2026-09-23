@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.7.0](https://github.com/smtdfc/nagare/compare/nagare-v1.6.1...nagare-v1.7.0) (2026-09-23)
+
+
+### Features
+
+* (client/ui):  add new chat routes and components for improved user interaction ([fcc550c](https://github.com/smtdfc/nagare/commit/fcc550cb04db2eca640a8fc060ca76839addab25))
+
+
+### Bug Fixes
+
+* **core/llm-adapter:** correct message type in TransformToProviderMessage and comment out logging in Send method ([9a139d3](https://github.com/smtdfc/nagare/commit/9a139d34510b8792d6b972b3029535e640facc24))
+* **dtos:** correct JSON key for message in ReceivedChatMessageEventPayload ([f1dcabe](https://github.com/smtdfc/nagare/commit/f1dcabeaff496918195e5aa607f3d445ea8f9e3b))
+
 ## [1.6.1](https://github.com/smtdfc/nagare/compare/nagare-v1.6.0...nagare-v1.6.1) (2026-09-22)
 
 
