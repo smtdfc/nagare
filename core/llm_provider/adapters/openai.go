@@ -29,7 +29,7 @@ func (o *OpenAICompatibleAdapter) TransformToProviderMessage(msg messages.Messag
 	switch t := msg.(type) {
 	case *messages.TextMessage:
 		item := &responses.ResponseInputItemMessageParam{
-			Type: "messages",
+			Type: "message",
 			Content: responses.ResponseInputMessageContentListParam{
 				responses.ResponseInputContentUnionParam{
 					OfInputText: &responses.ResponseInputTextParam{
@@ -139,6 +139,16 @@ func (o *OpenAICompatibleAdapter) Send(ctx context.Context, model string, listMe
 
 	go (func() {
 		defer close(outputChannel)
+		// paramsJson, _ := json.Marshal(responses.ResponseNewParams{
+		// 	Model: model,
+		// 	Input: responses.ResponseNewParamsInputUnion{
+		// 		OfInputItemList: inputs,
+		// 	},
+		// 	Tools:       listTool,
+		// 	Temperature: param.NewOpt(0.1),
+		// 	TopP:        param.NewOpt(0.9),
+		// })
+		// o.logger.Info("Outgoing Groq payload", "payload", string(paramsJson))
 		stream := o.Client.Responses.NewStreaming(ctx, responses.ResponseNewParams{
 			Model: model,
 			Input: responses.ResponseNewParamsInputUnion{
