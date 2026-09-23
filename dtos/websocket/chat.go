@@ -10,7 +10,7 @@ const (
 type ReceivedChatMessageEventPayload struct {
 	SessionID string `json:"sessionID"`
 	ChannelID string `json:"channelID"`
-	Message   string `json:"messages"`
+	Message   string `json:"message"`
 }
 
 type RegisterChatMessageListenerEventPayload struct {
