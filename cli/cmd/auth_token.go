@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	cli_helpers "github.com/smtdfc/nagare/cli/helpers"
-	"github.com/smtdfc/nagare/shared/helpers"
 	"github.com/smtdfc/nagare/shared/security"
 	"github.com/spf13/cobra"
 )
@@ -26,7 +26,7 @@ and uses them to issue a new authentication token with a predefined user payload
 		}
 
 		payload := security.AuthPayload{
-			ID:         helpers.GenerateUUID(),
+			ID:         uuid.Nil.String(),
 			TargetType: "user",
 			Name:       "User",
 			Scopes:     []string{},
