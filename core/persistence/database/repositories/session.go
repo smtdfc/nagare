@@ -121,10 +121,10 @@ func (s *SessionRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *SessionRepository) FindUserSession(ctx context.Context, sessionId string) (*entities.Session, error) {
+func (s *SessionRepository) FindUserSession(ctx context.Context, sessionId string, ownerID string) (*entities.Session, error) {
 	var session entities.Session
 	err := s.db.WithContext(ctx).
-		Where("owner_type = ? AND id = ?", "user", sessionId).
+		Where("owner_type = ? AND owner_id = ? AND id = ?", "user", ownerID, sessionId).
 		First(&session).Error
 
 	if err != nil {
@@ -177,14 +177,14 @@ func (s *SessionRepository) FindSessionWithMessages(ctx context.Context, session
 	return &session, nil
 }
 
-func (s *SessionRepository) FindUserSessionWithMessages(ctx context.Context, sessionId string) (*entities.Session, error) {
+func (s *SessionRepository) FindUserSessionWithMessages(ctx context.Context, sessionId string, ownerID string) (*entities.Session, error) {
 	var session entities.Session
 
 	err := s.db.WithContext(ctx).
 		Preload("Messages", func(db *gorm.DB) *gorm.DB {
 			return db.Order("created_at ASC")
 		}).
-		First(&session, "owner_type = ? AND id = ?", "user", sessionId).Error
+		First(&session, "owner_type = ? AND owner_id = ? AND id = ?", "user", ownerID, sessionId).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

@@ -13,7 +13,7 @@ type Session struct {
 	ID        uuid.UUID `gorm:"primaryKey;" json:"id"`
 	Title     string    `gorm:"type:varchar(255);not null" json:"title"`
 	ChannelID string    `gorm:"type:varchar(255);index:idx_channel,composite:owner" json:"channel_id"`
-	OwnerID   uuid.UUID `gorm:"type:uuid;index:idx_owner,composite:owner" json:"owner_id"`
+	OwnerID   string    `gorm:"type:varchar(64);index:idx_owner,composite:owner" json:"owner_id"`
 	OwnerType string    `gorm:"type:varchar(50);index:idx_owner,composite:owner" json:"owner_type"`
 	IsArchive bool      `gorm:"default:false" json:"is_archive"`
 
