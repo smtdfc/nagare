@@ -12,7 +12,8 @@ import ChatInput from "#/components/chat-input.tsx";
 import type { ChatData } from "#/types/chat";
 import { useChat } from "#/hooks/use-chat.ts";
 import { ChatService } from "@nagare-app/services";
-import { MessageType } from "@nagare-app/messages";
+import { MessageType, Role } from "@nagare-app/messages";
+import { useState } from "react";
 
 export const Route = createFileRoute("/(dashboard)/chat")({
   component: RouteComponent,
@@ -20,20 +21,26 @@ export const Route = createFileRoute("/(dashboard)/chat")({
 
 function RouteComponent() {
   const navigate = useNavigate();
+  const [chatData, setChatData] = useState<ChatData>({
+    text: "",
+  });
+  const isProcessing = useChat((c) => c.isProcessing);
   const chatSession = useChat((c) => c.chatSession);
   const setPendingMessages = useChat((c) => c.setPendingMessages);
   const setIsConnected = useChat((c) => c.setIsConnected);
   const onSend = async (data: ChatData) => {
+    setPendingMessages([
+      {
+        id: crypto.randomUUID(),
+        role: Role.USER,
+        type: MessageType.TextMessageType,
+        content: data.text,
+      },
+    ]);
+
     if (!chatSession) {
       const session = await ChatService.createChatSession(data.text);
       setIsConnected(false);
-      setPendingMessages([
-        {
-          id: "",
-          type: MessageType.TextMessageType,
-          content: data.text,
-        },
-      ]);
 
       await navigate({
         to: `/chat/${session.id}`,
@@ -71,7 +78,11 @@ function RouteComponent() {
         <div className="flex-1 overflow-y-auto px-4 py-10 flex flex-col gap-4">
           <Outlet />
         </div>
-        <ChatInput onSend={onSend} />
+        <ChatInput
+          onSend={onSend}
+          currentChatData={chatData}
+          disabled={isProcessing}
+        />
       </div>
     </div>
   );
