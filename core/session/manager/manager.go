@@ -3,7 +3,6 @@ package manager
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/mappers"
@@ -21,10 +20,10 @@ type SessionManager struct {
 	messageMapper *mappers.MessageMapper
 }
 
-func (s *SessionManager) CreateUserSession(ctx context.Context, title string) (*session.SessionInfo, error) {
+func (s *SessionManager) CreateUserSession(ctx context.Context, title string, ownerID string) (*session.SessionInfo, error) {
 	sessionInfo := &session.SessionInfo{
 		Title:     title,
-		OwnerID:   uuid.Nil,
+		OwnerID:   ownerID,
 		OwnerType: session.USER,
 		IsArchive: false,
 	}
@@ -37,8 +36,8 @@ func (s *SessionManager) CreateUserSession(ctx context.Context, title string) (*
 	return s.sessionMapper.ToDomain(newSession), nil
 }
 
-func (s *SessionManager) GetListUserSession(ctx context.Context) ([]*session.SessionInfo, error) {
-	sessions, err := s.sessionRepo.FindByOwnerType(ctx, session.USER.ToString())
+func (s *SessionManager) GetListUserSession(ctx context.Context, ownerID string) ([]*session.SessionInfo, error) {
+	sessions, err := s.sessionRepo.FindByOwnerID(ctx, session.USER.ToString(), ownerID)
 	if err != nil {
 		return nil, custom_errors.ErrGetSessionFailed
 	}
@@ -46,8 +45,8 @@ func (s *SessionManager) GetListUserSession(ctx context.Context) ([]*session.Ses
 	return s.sessionMapper.ToDomains(sessions), nil
 }
 
-func (s *SessionManager) GetUserSession(ctx context.Context, sessionID string) (*session.SessionInfo, error) {
-	userSession, err := s.sessionRepo.FindUserSession(ctx, sessionID)
+func (s *SessionManager) GetUserSession(ctx context.Context, sessionID string, ownerID string) (*session.SessionInfo, error) {
+	userSession, err := s.sessionRepo.FindUserSession(ctx, sessionID, ownerID)
 	if err != nil {
 		s.logger.Error("failed to get session", "session_id", sessionID, "err", err)
 		return nil, custom_errors.ErrGetSessionFailed
@@ -60,8 +59,8 @@ func (s *SessionManager) GetUserSession(ctx context.Context, sessionID string) (
 	return s.sessionMapper.ToDomain(userSession), nil
 }
 
-func (s *SessionManager) GetUserChatHistory(ctx context.Context, sessionID string) (*session.SessionHistory, error) {
-	chatSession, err := s.sessionRepo.FindUserSessionWithMessages(ctx, sessionID)
+func (s *SessionManager) GetUserChatHistory(ctx context.Context, sessionID string, ownerID string) (*session.SessionHistory, error) {
+	chatSession, err := s.sessionRepo.FindUserSessionWithMessages(ctx, sessionID, ownerID)
 	if err != nil {
 		s.logger.Error("failed to get chat history", "session_id", sessionID, "err", err)
 		return nil, custom_errors.ErrGetSessionFailed
@@ -110,7 +109,7 @@ func (s *SessionManager) PreparePluginSession(ctx context.Context, channelID str
 	if sessionEntity == nil {
 		sessionInfo := &session.SessionInfo{
 			Title:     channelID,
-			OwnerID:   plugin.ID,
+			OwnerID:   plugin.ID.String(),
 			OwnerType: session.PLUGIN,
 			IsArchive: false,
 			ChannelID: channelID,

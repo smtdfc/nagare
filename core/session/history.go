@@ -10,5 +10,5 @@ type SessionHistory struct {
 	ChannelID string
 	Messages  messages.ListMessage
 	OwnerType OwnerType
-	OwnerID   uuid.UUID
+	OwnerID   string
 }

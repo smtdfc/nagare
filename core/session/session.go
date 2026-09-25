@@ -31,7 +31,7 @@ func GetOwnerType(raw string) OwnerType {
 type SessionInfo struct {
 	ID        uuid.UUID
 	Title     string
-	OwnerID   uuid.UUID
+	OwnerID   string
 	OwnerType OwnerType
 	ChannelID string
 	IsArchive bool
