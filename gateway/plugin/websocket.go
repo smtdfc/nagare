@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/google/uuid"
 	"github.com/olahol/melody"
 	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/logger"
+	core_plugin "github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/core/plugin/manager"
 	session_mgr "github.com/smtdfc/nagare/core/session/manager"
 	plugin_dtos "github.com/smtdfc/nagare/dtos/plugin"
@@ -90,13 +92,13 @@ func (w *ChatWebsocketHandler) OnPrepareChatSession(s *melody.Session, ws *webso
 
 	w.logger.Info("debug", "data", data)
 
-	//if slices.Contains(auth.Scopes, "chat") {
-	//	_ = websocket2.SendMessage(s, plugin_dtos.PrepareChatSessionFailedEvent, &plugin_dtos.PrepareChatSessionFailedEventPayload{
-	//		ChannelID: data.ChannelID,
-	//		Cause:     "Plugin not supported this feature",
-	//	}, messages.RequestID)
-	//	return
-	//}
+	if !slices.Contains(auth.Scopes, core_plugin.ChatFeature.ToString()) {
+		_ = websocket2.SendMessage(s, plugin_dtos.PrepareChatSessionFailedEvent, &plugin_dtos.PrepareChatSessionFailedEventPayload{
+			ChannelID: data.ChannelID,
+			Cause:     "Plugin not supported this feature",
+		}, message.RequestID)
+		return
+	}
 
 	w.logger.Info("Prepare chat session", "channelID", data.ChannelID)
 	session, err := w.sessionMgr.PreparePluginSession(ctx, data.ChannelID, auth.TargetID)
@@ -131,6 +133,12 @@ func (w *ChatWebsocketHandler) OnSendChatMessage(s *melody.Session, ws *websocke
 	if err != nil {
 		_ = websocket2.SendMessage(s, plugin_dtos.SendChatMessageFailedEvent, &plugin_dtos.SendChatMessageFailedEventPayload{
 			Cause: err.Error(),
+		}, message.RequestID)
+		return
+	}
+	if !slices.Contains(auth.Scopes, core_plugin.ChatFeature.ToString()) {
+		_ = websocket2.SendMessage(s, plugin_dtos.SendChatMessageFailedEvent, &plugin_dtos.SendChatMessageFailedEventPayload{
+			Cause: "Plugin not supported this feature",
 		}, message.RequestID)
 		return
 	}
