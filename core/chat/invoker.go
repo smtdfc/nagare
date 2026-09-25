@@ -79,7 +79,7 @@ func (a *AgentInvoker) Invoke(
 		`))
 
 		if senderType == event_bus.User {
-			sessionHistory, err = a.sessionMgr.GetUserChatHistory(ctx, sessionID)
+			sessionHistory, err = a.sessionMgr.GetUserChatHistory(ctx, sessionID, senderId)
 		} else if senderType == event_bus.Plugin {
 			sessionHistory, err = a.sessionMgr.GetPluginChatHistory(ctx, sessionID, senderId)
 		} else if senderType == event_bus.System {
@@ -92,7 +92,7 @@ func (a *AgentInvoker) Invoke(
 		}
 		channelID = sessionHistory.ChannelID
 		history = append(history, sessionHistory.Messages...)
-		sessionOwnerID = sessionHistory.OwnerID.String()
+		sessionOwnerID = sessionHistory.OwnerID
 		sessionOwnerType = sessionHistory.OwnerType.ToString()
 
 		generalConfig, err := a.configMgr.GetGeneralConfig(ctx)
