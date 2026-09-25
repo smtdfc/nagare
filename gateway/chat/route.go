@@ -28,6 +28,7 @@ func NewRouteInitializer(
 		app.Get(rest.GetChatHistoryEndpoint, authMiddleware, chatController.History)
 		app.Get(rest.GetChatSessionEndpoint, authMiddleware, chatController.GetSession)
 		ws.On(websocket_dtos.RegisterChatListenerEvent, websocketHandler.OnListenMessage)
+		ws.On(websocket_dtos.UnregisterChatListenerEvent, websocketHandler.OnUnlistenMessage)
 		ws.On(websocket_dtos.AuthEvent, websocketHandler.OnAuth)
 	}
 }

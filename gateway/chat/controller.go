@@ -4,7 +4,9 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/dtos/rest"
+	"github.com/smtdfc/nagare/gateway/common/custom_errors"
 	"github.com/smtdfc/nagare/gateway/utils"
+	"github.com/smtdfc/nagare/shared/security"
 )
 
 type ChatController struct {
@@ -12,13 +14,27 @@ type ChatController struct {
 	logger      *logger.BaseLogger
 }
 
+func authenticatedUserID(ctx fiber.Ctx) (string, error) {
+	auth, ok := ctx.Locals("user").(*security.AuthPayload)
+	if !ok || auth == nil || auth.ID == "" {
+		return "", custom_errors.ErrUnauthorized
+	}
+
+	return auth.ID, nil
+}
+
 func (c *ChatController) SendMessage(ctx fiber.Ctx) error {
+	ownerID, err := authenticatedUserID(ctx)
+	if err != nil {
+		return err
+	}
+
 	request, err := utils.ParseBody[*rest.SendChatMessageRequest](ctx)
 	if err != nil {
 		return err
 	}
 
-	err = c.chatService.SendMessage(ctx, request)
+	err = c.chatService.SendMessage(ctx, ownerID, request)
 	if err != nil {
 		return err
 	}
@@ -27,12 +43,17 @@ func (c *ChatController) SendMessage(ctx fiber.Ctx) error {
 }
 
 func (c *ChatController) CreateSession(ctx fiber.Ctx) error {
+	ownerID, err := authenticatedUserID(ctx)
+	if err != nil {
+		return err
+	}
+
 	request, err := utils.ParseBody[*rest.CreateChatSessionRequest](ctx)
 	if err != nil {
 		return err
 	}
 
-	data, err := c.chatService.CreateSession(ctx, request)
+	data, err := c.chatService.CreateSession(ctx, ownerID, request)
 	if err != nil {
 		return err
 	}
@@ -41,7 +62,12 @@ func (c *ChatController) CreateSession(ctx fiber.Ctx) error {
 }
 
 func (c *ChatController) ListSessions(ctx fiber.Ctx) error {
-	data, err := c.chatService.ListSessions(ctx)
+	ownerID, err := authenticatedUserID(ctx)
+	if err != nil {
+		return err
+	}
+
+	data, err := c.chatService.ListSessions(ctx, ownerID)
 	if err != nil {
 		return err
 	}
@@ -50,9 +76,14 @@ func (c *ChatController) ListSessions(ctx fiber.Ctx) error {
 }
 
 func (c *ChatController) History(ctx fiber.Ctx) error {
+	ownerID, err := authenticatedUserID(ctx)
+	if err != nil {
+		return err
+	}
+
 	sessionID := ctx.Params("id")
 
-	data, err := c.chatService.GetHistory(ctx, sessionID)
+	data, err := c.chatService.GetHistory(ctx, ownerID, sessionID)
 	if err != nil {
 		return err
 	}
@@ -61,8 +92,13 @@ func (c *ChatController) History(ctx fiber.Ctx) error {
 }
 
 func (c *ChatController) GetSession(ctx fiber.Ctx) error {
+	ownerID, err := authenticatedUserID(ctx)
+	if err != nil {
+		return err
+	}
+
 	sessionID := ctx.Params("id")
-	data, err := c.chatService.GetSession(ctx, sessionID)
+	data, err := c.chatService.GetSession(ctx, ownerID, sessionID)
 	if err != nil {
 		return err
 	}

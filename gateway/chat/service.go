@@ -29,8 +29,8 @@ type ChatService struct {
 	logger       *logger.BaseLogger
 }
 
-func (c *ChatService) SendMessage(ctx context.Context, request *rest.SendChatMessageRequest) error {
-	_, err := c.sessionMgr.GetUserSession(ctx, request.SessionID)
+func (c *ChatService) SendMessage(ctx context.Context, ownerID string, request *rest.SendChatMessageRequest) error {
+	_, err := c.sessionMgr.GetUserSession(ctx, request.SessionID, ownerID)
 	if err != nil {
 		return err
 	}
@@ -40,13 +40,13 @@ func (c *ChatService) SendMessage(ctx context.Context, request *rest.SendChatMes
 		SessionID:  request.SessionID,
 		Text:       request.Text,
 		SenderType: event_bus.User,
-		SenderID:   "",
+		SenderID:   ownerID,
 	})
 	return nil
 }
 
-func (c *ChatService) CreateSession(ctx context.Context, request *rest.CreateChatSessionRequest) (*rest.CreateChatSessionResponse, error) {
-	chatSession, err := c.sessionMgr.CreateUserSession(ctx, request.Title)
+func (c *ChatService) CreateSession(ctx context.Context, ownerID string, request *rest.CreateChatSessionRequest) (*rest.CreateChatSessionResponse, error) {
+	chatSession, err := c.sessionMgr.CreateUserSession(ctx, request.Title, ownerID)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +56,8 @@ func (c *ChatService) CreateSession(ctx context.Context, request *rest.CreateCha
 	}, nil
 }
 
-func (c *ChatService) ListSessions(ctx context.Context) (*rest.ListChatSessionsResponse, error) {
-	sessions, err := c.sessionMgr.GetListUserSession(ctx)
+func (c *ChatService) ListSessions(ctx context.Context, ownerID string) (*rest.ListChatSessionsResponse, error) {
+	sessions, err := c.sessionMgr.GetListUserSession(ctx, ownerID)
 	if err != nil {
 		return nil, err
 	}
@@ -67,8 +67,8 @@ func (c *ChatService) ListSessions(ctx context.Context) (*rest.ListChatSessionsR
 	}, nil
 }
 
-func (c *ChatService) GetHistory(ctx context.Context, sessionID string) (*rest.GetChatHistoryResponse, error) {
-	sessionHistory, err := c.sessionMgr.GetUserChatHistory(ctx, sessionID)
+func (c *ChatService) GetHistory(ctx context.Context, ownerID string, sessionID string) (*rest.GetChatHistoryResponse, error) {
+	sessionHistory, err := c.sessionMgr.GetUserChatHistory(ctx, sessionID, ownerID)
 	if err != nil {
 		return nil, err
 	}
@@ -78,8 +78,8 @@ func (c *ChatService) GetHistory(ctx context.Context, sessionID string) (*rest.G
 		Messages:  sessionHistory.Messages,
 	}, nil
 }
-func (c *ChatService) GetSession(ctx context.Context, sessionID string) (*rest.GetChatSessionResponse, error) {
-	s, err := c.sessionMgr.GetUserSession(ctx, sessionID)
+func (c *ChatService) GetSession(ctx context.Context, ownerID string, sessionID string) (*rest.GetChatSessionResponse, error) {
+	s, err := c.sessionMgr.GetUserSession(ctx, sessionID, ownerID)
 	if err != nil {
 		return nil, err
 	}

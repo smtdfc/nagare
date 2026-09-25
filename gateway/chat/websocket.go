@@ -27,6 +27,8 @@ func (c *ChatWebsocketHandler) OnAuth(s *melody.Session, w *websocket2.Coordinat
 		if err != nil {
 			return
 		}
+
+		return
 	}
 
 	if data == nil || data.Token == "" {
@@ -48,6 +50,8 @@ func (c *ChatWebsocketHandler) OnAuth(s *melody.Session, w *websocket2.Coordinat
 		if err != nil {
 			return
 		}
+
+		return
 	}
 
 	s.Set("auth", &websocket2.AuthData{
@@ -73,6 +77,7 @@ func (c *ChatWebsocketHandler) OnListenMessage(s *melody.Session, w *websocket2.
 		if err != nil {
 			return
 		}
+		return
 	}
 
 	if _, err := websocket2.GetAuth(s, "user"); err != nil {
@@ -86,7 +91,12 @@ func (c *ChatWebsocketHandler) OnListenMessage(s *melody.Session, w *websocket2.
 		return
 	}
 
-	_, err = c.sessionMgr.GetUserSession(ctx, data.SessionID)
+	auth, err := websocket2.GetAuth(s, "user")
+	if err != nil {
+		return
+	}
+
+	_, err = c.sessionMgr.GetUserSession(ctx, data.SessionID, auth.TargetID)
 	if err != nil {
 		err := websocket2.SendMessage(s, websocket.RegisterChatListenerFailEvent, &websocket.RegisterChatListenerFailEventPayload{
 			ID:    data.ID,
@@ -106,6 +116,40 @@ func (c *ChatWebsocketHandler) OnListenMessage(s *melody.Session, w *websocket2.
 	if err != nil {
 		return
 	}
+}
+
+func (c *ChatWebsocketHandler) OnUnlistenMessage(s *melody.Session, w *websocket2.Coordinator, message *websocket.Payload[any]) {
+	ctx := context.Background()
+	data, err := websocket2.GetData[websocket.RegisterChatMessageListenerEventPayload](message)
+	if err != nil {
+		_ = websocket2.SendMessage(s, websocket.UnregisterChatListenerFailEvent, &websocket.RegisterChatListenerFailEventPayload{
+			ID:    "",
+			Cause: "failed to parsing payload",
+		}, message.RequestID)
+		return
+	}
+
+	auth, err := websocket2.GetAuth(s, "user")
+	if err != nil {
+		_ = websocket2.SendMessage(s, websocket.UnregisterChatListenerFailEvent, &websocket.RegisterChatListenerFailEventPayload{
+			ID:    data.ID,
+			Cause: err.Error(),
+		}, message.RequestID)
+		return
+	}
+
+	if _, err := c.sessionMgr.GetUserSession(ctx, data.SessionID, auth.TargetID); err != nil {
+		_ = websocket2.SendMessage(s, websocket.UnregisterChatListenerFailEvent, &websocket.RegisterChatListenerFailEventPayload{
+			ID:    data.ID,
+			Cause: err.Error(),
+		}, message.RequestID)
+		return
+	}
+
+	w.LeaveRoom(fmt.Sprintf("session:%s", data.SessionID), s)
+	_ = websocket2.SendMessage(s, websocket.UnregisterChatListenerSuccessEvent, &websocket.RegisterChatListenerSuccessEventEventPayload{
+		ID: data.ID,
+	}, message.RequestID)
 }
 
 // @Injectable
