@@ -14,7 +14,7 @@ func toLLMProviderDTO(domain *llm_provider.LLMProviderConfig) *rest.LLMProvider 
 		ID:         domain.ID.String(),
 		Name:       domain.Name,
 		Compatible: domain.Compatible.ToString(),
-		ApiKey:     domain.ApiKey,
+		ApiKey:     "",
 		Models:     domain.Models,
 		BaseURL:    domain.BaseURL,
 	}
