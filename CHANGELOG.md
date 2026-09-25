@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.8.0](https://github.com/smtdfc/nagare/compare/nagare-v1.7.0...nagare-v1.8.0) (2026-09-25)
+
+
+### Features
+
+* **client/services:** implement chat history retrieval and message sending functionality ([272ae95](https://github.com/smtdfc/nagare/commit/272ae955d26acd71e6d585d94bb4247d41268ac5))
+* **client/ui:** enhance chat functionality with suggestions and improved input handling ([e0f9bd7](https://github.com/smtdfc/nagare/commit/e0f9bd72f981e313233cda619334fd040cb53ac9))
+* **dtos:** add unregister chat listener events to the event constants ([4ec7e1a](https://github.com/smtdfc/nagare/commit/4ec7e1a31bd749ed0ceabbc6fcadeec80cf0b988))
+* **gateway:** enhance chat functionality with user authentication and session management ([020f82b](https://github.com/smtdfc/nagare/commit/020f82b2e0cbc86554a8c0f84955ab5dac88e069))
+* **installers:** add installation scripts for Linux and Windows ([70073df](https://github.com/smtdfc/nagare/commit/70073dfa3d6f0244fa437c5a875ee8cc9acebf7d))
+* **metadata:** add GetFeatures method to retrieve plugin features as a comma-separated string ([aa2cf97](https://github.com/smtdfc/nagare/commit/aa2cf976dc17c8e9edc6391196d2185fa1889406))
+
+
+### Bug Fixes
+
+* **cli:** replace helpers.GenerateUUID with uuid.Nil.String for token ID generation ([044f11d](https://github.com/smtdfc/nagare/commit/044f11d626083122c7a87477b7e3a3ac3320767a))
+* **core/chat:** update GetUserChatHistory method to include senderId and adjust OwnerID handling ([9ef89d6](https://github.com/smtdfc/nagare/commit/9ef89d665415bbd1e6437364abe0ec7d59fc77e0))
+* **core/plugin:** update ChatFeature constant to use lowercase for consistency ([c5670ff](https://github.com/smtdfc/nagare/commit/c5670ffa9c23b1e7c259191e12779aab3055afa6))
+* **gateway:** set ApiKey to an empty string in toLLMProviderDTO ([b8a1603](https://github.com/smtdfc/nagare/commit/b8a1603cb931454a0d09a67617646a93da85f449))
+* **gateway:** update feature check for chat session preparation and message sending ([50e8d85](https://github.com/smtdfc/nagare/commit/50e8d85b2e370012ba96ac637b7af415d4201532))
+* **plugin/telegram:** correct log message for received agent error ([a0aca57](https://github.com/smtdfc/nagare/commit/a0aca57d4f8f5ce03912f5f8a019f5199d1bbf0a))
+
 ## [1.7.0](https://github.com/smtdfc/nagare/compare/nagare-v1.6.1...nagare-v1.7.0) (2026-09-23)
 
 
