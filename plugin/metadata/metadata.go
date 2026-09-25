@@ -36,3 +36,7 @@ func (m *PluginMetadata) Validate() error {
 	}
 	return nil
 }
+
+func (m *PluginMetadata) GetFeatures() string {
+	return strings.Join(m.Features, ",")
+}
