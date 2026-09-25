@@ -1,9 +1,9 @@
 {
-    "id": "nagare.plugins.telegram",
-    "name": "Nagare Telegram plugin",
-    "author": "smtdfc",
-    "version": "1.0.0",
-    "api_version": "1",
-    "description": "An Telegram plugin for nagare",
-    "features": ["chat"]
+  "id": "nagare.plugins.telegram",
+  "name": "Nagare Telegram plugin",
+  "author": "smtdfc",
+  "version": "1.0.0",
+  "api_version": "1",
+  "description": "An Telegram plugin for nagare",
+  "features": ["chat"]
 }
