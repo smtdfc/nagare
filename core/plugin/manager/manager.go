@@ -268,7 +268,7 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) error {
 		PluginID: pluginMetadata.ID,
 		Name:     pluginMetadata.Name,
 		Author:   pluginMetadata.Author,
-		Features: []plugin.Feature{},
+		Features: plugin.ParseFeatureString(pluginMetadata.GetFeatures()),
 		Version:  pluginMetadata.Version,
 		Bin:      binFile,
 		IsActive: true,

@@ -9,7 +9,7 @@ import (
 type Feature string
 
 const (
-	ChatFeature Feature = "CHAT_FEATURE"
+	ChatFeature Feature = "chat"
 )
 
 func (p Feature) ToString() string {
