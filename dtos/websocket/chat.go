@@ -1,10 +1,13 @@
 package websocket
 
 const (
-	ReceivedChatMessageEvent         Event = "ReceivedChatMessageEvent"
-	RegisterChatListenerEvent        Event = "RegisterChatListenerEvent"
-	RegisterChatListenerSuccessEvent Event = "RegisterChatListenerSuccessEvent"
-	RegisterChatListenerFailEvent    Event = "RegisterChatListenerFailEvent"
+	ReceivedChatMessageEvent           Event = "ReceivedChatMessageEvent"
+	RegisterChatListenerEvent          Event = "RegisterChatListenerEvent"
+	RegisterChatListenerSuccessEvent   Event = "RegisterChatListenerSuccessEvent"
+	RegisterChatListenerFailEvent      Event = "RegisterChatListenerFailEvent"
+	UnregisterChatListenerEvent        Event = "UnregisterChatListenerEvent"
+	UnregisterChatListenerSuccessEvent Event = "UnregisterChatListenerSuccessEvent"
+	UnregisterChatListenerFailEvent    Event = "UnregisterChatListenerFailEvent"
 )
 
 type ReceivedChatMessageEventPayload struct {
