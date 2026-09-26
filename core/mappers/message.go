@@ -57,7 +57,13 @@ func (m *MessageMapper) ToEntity(domain messages.Message, sessionID string) (*en
 		return nil, err
 	}
 
+	messageID, err := uuid.Parse(domain.GetMessageID())
+	if err != nil {
+		return nil, err
+	}
+
 	return &entities.Message{
+		ID:          messageID,
 		MessageKind: domain.GetMessageType().ToString(),
 		Content:     raw,
 		SessionID:   id,
