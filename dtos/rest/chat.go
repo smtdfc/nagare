@@ -32,13 +32,21 @@ type ListChatSessionsResponse struct {
 	Sessions []*Session `json:"sessions"`
 }
 
+type ListChatSessionsRequest struct {
+	Limit  int `json:"limit" query:"limit"`
+	Offset int `json:"offset" query:"offset"`
+}
+
 type GetChatHistoryRequest struct {
 	SessionID string `json:"sessionID"`
+	Limit     int    `json:"limit" query:"limit"`
+	BeforeID  string `json:"beforeID" query:"beforeID"`
 }
 
 type GetChatHistoryResponse struct {
-	SessionID string             `json:"sessionID"`
-	Messages  []messages.Message `json:"messages"`
+	SessionID  string             `json:"sessionID"`
+	Messages   []messages.Message `json:"messages"`
+	NextCursor string             `json:"nextCursor"`
 }
 
 type GetChatSessionResponse struct {
