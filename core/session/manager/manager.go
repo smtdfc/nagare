@@ -45,6 +45,15 @@ func (s *SessionManager) GetListUserSession(ctx context.Context, ownerID string)
 	return s.sessionMapper.ToDomains(sessions), nil
 }
 
+func (s *SessionManager) GetListUserSessionPage(ctx context.Context, ownerID string, offset int, limit int) ([]*session.SessionInfo, error) {
+	sessions, err := s.sessionRepo.FindByOwnerIDPage(ctx, session.USER.ToString(), ownerID, offset, limit)
+	if err != nil {
+		return nil, custom_errors.ErrGetSessionFailed
+	}
+
+	return s.sessionMapper.ToDomains(sessions), nil
+}
+
 func (s *SessionManager) GetUserSession(ctx context.Context, sessionID string, ownerID string) (*session.SessionInfo, error) {
 	userSession, err := s.sessionRepo.FindUserSession(ctx, sessionID, ownerID)
 	if err != nil {
@@ -82,6 +91,39 @@ func (s *SessionManager) GetUserChatHistory(ctx context.Context, sessionID strin
 		SessionID: sessionDomain.ID,
 		ChannelID: sessionDomain.ChannelID,
 		Messages:  domains,
+	}, nil
+}
+
+func (s *SessionManager) GetUserChatHistoryPage(ctx context.Context, sessionID string, ownerID string, beforeID string, limit int) (*session.SessionHistory, error) {
+	chatSession, err := s.sessionRepo.FindUserSession(ctx, sessionID, ownerID)
+	if err != nil {
+		s.logger.Error("failed to get chat history page", "session_id", sessionID, "err", err)
+		return nil, custom_errors.ErrGetSessionFailed
+	}
+
+	if chatSession == nil {
+		return nil, custom_errors.ErrSessionNotFound
+	}
+
+	domains, nextCursor, err := s.messageRepo.FindBySessionIDCursor(ctx, sessionID, beforeID, limit)
+	if err != nil {
+		s.logger.Error("failed to get chat history page", "session_id", sessionID, "err", err)
+		return nil, custom_errors.ErrGetChatHistoryFailed
+	}
+
+	messages, err := s.messageMapper.ToDomains(domains)
+	if err != nil {
+		s.logger.Error("failed to map chat history page", "session_id", sessionID, "err", err)
+		return nil, custom_errors.ErrGetChatHistoryFailed
+	}
+	sessionDomain := s.sessionMapper.ToDomain(chatSession)
+	return &session.SessionHistory{
+		OwnerType:  sessionDomain.OwnerType,
+		OwnerID:    sessionDomain.OwnerID,
+		SessionID:  sessionDomain.ID,
+		ChannelID:  sessionDomain.ChannelID,
+		Messages:   messages,
+		NextCursor: nextCursor,
 	}, nil
 }
 

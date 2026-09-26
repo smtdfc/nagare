@@ -6,9 +6,10 @@ import (
 )
 
 type SessionHistory struct {
-	SessionID uuid.UUID
-	ChannelID string
-	Messages  messages.ListMessage
-	OwnerType OwnerType
-	OwnerID   string
+	SessionID  uuid.UUID
+	ChannelID  string
+	Messages   messages.ListMessage
+	NextCursor string
+	OwnerType  OwnerType
+	OwnerID    string
 }
