@@ -7,8 +7,12 @@ type ResponseStartedMessage struct {
 	Type MessageType `json:"type"`
 }
 
-func (t *ResponseStartedMessage) GetMessageType() MessageType {
-	return t.Type
+func (m *ResponseStartedMessage) GetMessageID() string {
+	return m.ID
+}
+
+func (m *ResponseStartedMessage) GetMessageType() MessageType {
+	return m.Type
 }
 
 func NewResponseStartedMessage() *ResponseStartedMessage {
@@ -23,8 +27,12 @@ type ResponseCompletedMessage struct {
 	Type MessageType `json:"type"`
 }
 
-func (t *ResponseCompletedMessage) GetMessageType() MessageType {
-	return t.Type
+func (m *ResponseCompletedMessage) GetMessageID() string {
+	return m.ID
+}
+
+func (m *ResponseCompletedMessage) GetMessageType() MessageType {
+	return m.Type
 }
 
 func NewResponseCompletedMessage() *ResponseCompletedMessage {
@@ -41,8 +49,12 @@ type ResponseFailedMessage struct {
 	Cause string      `json:"cause"`
 }
 
-func (t *ResponseFailedMessage) GetMessageType() MessageType {
-	return t.Type
+func (m *ResponseFailedMessage) GetMessageID() string {
+	return m.ID
+}
+
+func (m *ResponseFailedMessage) GetMessageType() MessageType {
+	return m.Type
 }
 
 func NewResponseFailedMessage(code string, cause string) *ResponseFailedMessage {

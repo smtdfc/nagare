@@ -8,8 +8,12 @@ type ReasoningMessage struct {
 	Content string      `json:"content"`
 }
 
-func (t *ReasoningMessage) GetMessageType() MessageType {
-	return t.Type
+func (m *ReasoningMessage) GetMessageID() string {
+	return m.ID
+}
+
+func (m *ReasoningMessage) GetMessageType() MessageType {
+	return m.Type
 }
 
 func NewReasoningMessage(content string) *ReasoningMessage {

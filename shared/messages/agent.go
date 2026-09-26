@@ -7,8 +7,12 @@ type AgentStartedMessage struct {
 	Type MessageType `json:"type"`
 }
 
-func (t *AgentStartedMessage) GetMessageType() MessageType {
-	return t.Type
+func (m *AgentStartedMessage) GetMessageID() string {
+	return m.ID
+}
+
+func (m *AgentStartedMessage) GetMessageType() MessageType {
+	return m.Type
 }
 
 func NewAgentStartedMessage() *AgentStartedMessage {
@@ -26,8 +30,12 @@ type AgentCompletedMessage struct {
 	Duration float64     `json:"duration"`
 }
 
-func (t *AgentCompletedMessage) GetMessageType() MessageType {
-	return t.Type
+func (m *AgentCompletedMessage) GetMessageID() string {
+	return m.ID
+}
+
+func (m *AgentCompletedMessage) GetMessageType() MessageType {
+	return m.Type
 }
 
 func NewAgentCompletedMessage(isSuccess bool, isCancel bool, duration float64) *AgentCompletedMessage {
@@ -47,8 +55,12 @@ type AgentErrorMessage struct {
 	Error string      `json:"error"`
 }
 
-func (t *AgentErrorMessage) GetMessageType() MessageType {
-	return t.Type
+func (m *AgentErrorMessage) GetMessageID() string {
+	return m.ID
+}
+
+func (m *AgentErrorMessage) GetMessageType() MessageType {
+	return m.Type
 }
 
 func NewAgentErrorMessage(err string, code string) *AgentErrorMessage {
