@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.9.0](https://github.com/smtdfc/nagare/compare/nagare-v1.8.0...nagare-v1.9.0) (2026-09-26)
+
+
+### Features
+
+* **client/ui:** implement session listing and chat message display with pagination ([e60761a](https://github.com/smtdfc/nagare/commit/e60761aee6820490c772196bc80b600cc43ae352))
+* **core/mappers:** add message ID parsing in ToEntity method ([379af2d](https://github.com/smtdfc/nagare/commit/379af2dd2d690577048c5c0f54b0f4ee9e5e49a8))
+* **core/repositories:** add pagination support for session and message retrieval ([1bfb47d](https://github.com/smtdfc/nagare/commit/1bfb47d8a5dceda695e5f839949a7bb51da0dd29))
+* **core/session:** add pagination support for user sessions and chat history retrieval ([4c84da5](https://github.com/smtdfc/nagare/commit/4c84da50c2ac4867cb2f538f31dcd87b9f3c4363))
+* **core/tool:** add file and directory management tools including create, read, write, delete, and list functionalities ([48d4fac](https://github.com/smtdfc/nagare/commit/48d4fac44ad1b2b94186eec47d660a0deb6a5104))
+* **core/tool:** add OpenBrowser tool to launch URLs in the default browser ([8c6f966](https://github.com/smtdfc/nagare/commit/8c6f9665be824abaef24a7ecacb665cc679d42dc))
+* **dtos:** enhance chat history request and response structures ([9076750](https://github.com/smtdfc/nagare/commit/9076750dc97e860fcb8085d145bd47cdba244fb7))
+* **gateway:** implement pagination for session listing and chat history retrieval ([51c5d8b](https://github.com/smtdfc/nagare/commit/51c5d8b493eecc516410cdf677dde22a6ce8cd26))
+* **pkgs/system:** add OpenBrowser function to launch URLs in default browser ([8575137](https://github.com/smtdfc/nagare/commit/8575137b75db681c839a7bf51517ce19dd5dc7f1))
+* **pkgs/system:** add UserDirectories struct and functions to resolve user directories ([1ddb42f](https://github.com/smtdfc/nagare/commit/1ddb42f70263732f3b9ccf3de60c9845ed94473a))
+* **pkgs/system:** implement Start method to launch processes with command and arguments ([11fc38d](https://github.com/smtdfc/nagare/commit/11fc38ded895297f0526e3093b48b6fa756ebabd))
+* **shared/messages:** add GetMessageID method to message types and refactor GetMessageType ([cdcf6c5](https://github.com/smtdfc/nagare/commit/cdcf6c53cc4d426ed6145d75ae0353b077e6853b))
+
 ## [1.8.0](https://github.com/smtdfc/nagare/compare/nagare-v1.7.0...nagare-v1.8.0) (2026-09-25)
 
 
