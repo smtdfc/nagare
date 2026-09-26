@@ -38,7 +38,7 @@ func (m *MessageRepository) FindBySessionID(ctx context.Context, sessionID strin
 
 	err := m.db.WithContext(ctx).
 		Where("session_id = ?", sessionID).
-		Order("created_at ASC").
+		Order("created_at ASC, rowid ASC").
 		Find(&messages).Error
 
 	if err != nil {
@@ -47,6 +47,61 @@ func (m *MessageRepository) FindBySessionID(ctx context.Context, sessionID strin
 	}
 
 	return messages, nil
+}
+
+func (m *MessageRepository) FindBySessionIDCursor(ctx context.Context, sessionID string, beforeID string, limit int) ([]*entities.Message, string, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	type messagePageRow struct {
+		entities.Message
+	}
+	var rows []messagePageRow
+
+	query := m.db.WithContext(ctx).
+		Table("messages").
+		Select("messages.*").
+		Where("session_id = ?", sessionID)
+
+	if beforeID != "" {
+		query = query.Where(
+			"(created_at, rowid) < (SELECT created_at, rowid FROM messages WHERE id = ? AND session_id = ?)",
+			beforeID,
+			sessionID,
+		)
+	}
+
+	err := query.
+		Order("created_at DESC, rowid DESC").
+		Limit(limit + 1).
+		Scan(&rows).Error
+	if err != nil {
+		m.logger.Error("Failed to get message page by session ID", "session", sessionID, "error", err)
+		return nil, "", fmt.Errorf("failed to get message page by session ID: %w", err)
+	}
+
+	if len(rows) > limit {
+		rows = rows[:limit]
+	}
+
+	messages := make([]*entities.Message, len(rows))
+	for index := range rows {
+		messages[index] = &rows[index].Message
+	}
+
+	for left, right := 0, len(messages)-1; left < right; left, right = left+1, right-1 {
+		messages[left], messages[right] = messages[right], messages[left]
+	}
+
+	if len(messages) == 0 {
+		return messages, "", nil
+	}
+
+	return messages, messages[0].ID.String(), nil
 }
 
 func (m *MessageRepository) DeleteBySessionID(ctx context.Context, sessionID string) error {

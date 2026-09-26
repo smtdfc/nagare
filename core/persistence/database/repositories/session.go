@@ -65,6 +65,34 @@ func (s *SessionRepository) FindByOwnerID(ctx context.Context, ownerType string,
 	return sessions, nil
 }
 
+func (s *SessionRepository) FindByOwnerIDPage(ctx context.Context, ownerType string, ownerID string, offset int, limit int) ([]*entities.Session, error) {
+	var sessions []*entities.Session
+
+	if offset < 0 {
+		offset = 0
+	}
+	if limit <= 0 {
+		limit = 50
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	err := s.db.WithContext(ctx).
+		Where("owner_type = ? AND owner_id = ?", ownerType, ownerID).
+		Order("created_at DESC, rowid DESC").
+		Offset(offset).
+		Limit(limit).
+		Find(&sessions).Error
+
+	if err != nil {
+		s.logger.Error("failed to get session page by owner id", "owner_id", ownerID, "owner_type", ownerType, "error", err)
+		return nil, err
+	}
+
+	return sessions, nil
+}
+
 func (s *SessionRepository) FindByChannelID(ctx context.Context, ownerType string, ownerID string, channelID string) (*entities.Session, error) {
 	var session *entities.Session
 	err := s.db.WithContext(ctx).
@@ -162,7 +190,7 @@ func (s *SessionRepository) FindSessionWithMessages(ctx context.Context, session
 
 	err := s.db.WithContext(ctx).
 		Preload("Messages", func(db *gorm.DB) *gorm.DB {
-			return db.Order("created_at ASC")
+			return db.Order("created_at ASC, rowid ASC")
 		}).
 		First(&session, "id = ?", sessionId).Error
 
@@ -182,7 +210,7 @@ func (s *SessionRepository) FindUserSessionWithMessages(ctx context.Context, ses
 
 	err := s.db.WithContext(ctx).
 		Preload("Messages", func(db *gorm.DB) *gorm.DB {
-			return db.Order("created_at ASC")
+			return db.Order("created_at ASC, rowid ASC")
 		}).
 		First(&session, "owner_type = ? AND owner_id = ? AND id = ?", "user", ownerID, sessionId).Error
 
@@ -202,7 +230,7 @@ func (s *SessionRepository) FindPluginSessionWithMessages(ctx context.Context, s
 
 	err := s.db.WithContext(ctx).
 		Preload("Messages", func(db *gorm.DB) *gorm.DB {
-			return db.Order("created_at ASC")
+			return db.Order("created_at ASC, rowid ASC")
 		}).
 		First(&session, "owner_type = ? AND owner_id = ? AND id = ?", "plugin", pluginID, sessionId).Error
 
