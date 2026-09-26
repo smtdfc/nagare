@@ -2,6 +2,7 @@ package system
 
 import (
 	"fmt"
+	"os/exec"
 	"sort"
 	"strings"
 
@@ -28,6 +29,30 @@ type ProcessManager struct{}
 
 func NewProcessManager() *ProcessManager {
 	return &ProcessManager{}
+}
+
+func (pm *ProcessManager) Start(command string, args []string, workingDir string) (int32, error) {
+	if strings.TrimSpace(command) == "" {
+		return 0, fmt.Errorf("command cannot be empty")
+	}
+
+	cmd := exec.Command(command, args...)
+	if workingDir != "" {
+		cmd.Dir = workingDir
+	}
+
+	cmd.Stdin = nil
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	if err := cmd.Start(); err != nil {
+		return 0, fmt.Errorf("failed to start process: %w", err)
+	}
+
+	go func() {
+		_ = cmd.Wait()
+	}()
+
+	return int32(cmd.Process.Pid), nil
 }
 
 func (pm *ProcessManager) Kill(pid int32) (string, error) {
