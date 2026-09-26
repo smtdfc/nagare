@@ -56,8 +56,15 @@ func (c *ChatService) CreateSession(ctx context.Context, ownerID string, request
 	}, nil
 }
 
-func (c *ChatService) ListSessions(ctx context.Context, ownerID string) (*rest.ListChatSessionsResponse, error) {
-	sessions, err := c.sessionMgr.GetListUserSession(ctx, ownerID)
+func (c *ChatService) ListSessions(ctx context.Context, ownerID string, offset int, limit int) (*rest.ListChatSessionsResponse, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 50
+	}
+	if offset < 0 {
+		offset = 0
+	}
+
+	sessions, err := c.sessionMgr.GetListUserSessionPage(ctx, ownerID, offset, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -76,6 +83,23 @@ func (c *ChatService) GetHistory(ctx context.Context, ownerID string, sessionID 
 	return &rest.GetChatHistoryResponse{
 		SessionID: sessionID,
 		Messages:  sessionHistory.Messages,
+	}, nil
+}
+
+func (c *ChatService) GetHistoryPage(ctx context.Context, ownerID string, sessionID string, beforeID string, limit int) (*rest.GetChatHistoryResponse, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 50
+	}
+
+	sessionHistory, err := c.sessionMgr.GetUserChatHistoryPage(ctx, sessionID, ownerID, beforeID, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rest.GetChatHistoryResponse{
+		SessionID:  sessionID,
+		Messages:   sessionHistory.Messages,
+		NextCursor: sessionHistory.NextCursor,
 	}, nil
 }
 func (c *ChatService) GetSession(ctx context.Context, ownerID string, sessionID string) (*rest.GetChatSessionResponse, error) {

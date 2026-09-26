@@ -1,6 +1,8 @@
 package chat
 
 import (
+	"strconv"
+
 	"github.com/gofiber/fiber/v3"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/dtos/rest"
@@ -67,7 +69,10 @@ func (c *ChatController) ListSessions(ctx fiber.Ctx) error {
 		return err
 	}
 
-	data, err := c.chatService.ListSessions(ctx, ownerID)
+	limit, _ := strconv.Atoi(ctx.Query("limit"))
+	offset, _ := strconv.Atoi(ctx.Query("offset"))
+
+	data, err := c.chatService.ListSessions(ctx, ownerID, offset, limit)
 	if err != nil {
 		return err
 	}
@@ -82,8 +87,10 @@ func (c *ChatController) History(ctx fiber.Ctx) error {
 	}
 
 	sessionID := ctx.Params("id")
+	limit, _ := strconv.Atoi(ctx.Query("limit"))
+	beforeID := ctx.Query("beforeID")
 
-	data, err := c.chatService.GetHistory(ctx, ownerID, sessionID)
+	data, err := c.chatService.GetHistoryPage(ctx, ownerID, sessionID, beforeID, limit)
 	if err != nil {
 		return err
 	}
