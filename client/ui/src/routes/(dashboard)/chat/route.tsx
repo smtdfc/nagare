@@ -28,6 +28,9 @@ function RouteComponent() {
   const chatSession = useChat((c) => c.chatSession);
   const setPendingMessages = useChat((c) => c.setPendingMessages);
   const setIsConnected = useChat((c) => c.setIsConnected);
+  const sessions = useChat((c) => c.sessions);
+  const setSessions = useChat((c) => c.setSessions);
+
   const onSend = async (data: ChatData) => {
     setPendingMessages([
       {
@@ -41,7 +44,7 @@ function RouteComponent() {
     if (!chatSession) {
       const session = await ChatService.createChatSession(data.text);
       setIsConnected(false);
-
+      setSessions([...sessions, session]);
       await navigate({
         to: `/chat/${session.id}`,
       });
@@ -74,8 +77,8 @@ function RouteComponent() {
         )}
       </header>
 
-      <div className="flex-1 overflow-y-hidden flex flex-col">
-        <div className="flex-1 overflow-y-auto px-4 py-10 flex flex-col gap-4">
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+        <div className="flex-1 min-h-0 overflow-hidden px-4 py-10 flex flex-col gap-4">
           <Outlet />
         </div>
         <ChatInput

@@ -3,7 +3,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 
 export function NavMain({
   items,
@@ -15,12 +15,14 @@ export function NavMain({
     isActive?: boolean;
   }[];
 }) {
+  const pathname = useLocation({ select: (location) => location.pathname });
+
   return (
     <SidebarMenu>
       {items.map((item) => (
         <SidebarMenuItem key={item.title}>
           <SidebarMenuButton
-            isActive={item.isActive}
+            isActive={item.url !== "#" && pathname === item.url}
             render={<Link to={item.url} />}
           >
             {item.icon}

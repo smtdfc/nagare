@@ -23,26 +23,38 @@ import {
   ArrowUpRightIcon,
   Trash2Icon,
 } from "lucide-react";
+import type { Session } from "@nagare-app/dtos";
+import { Link, useLocation } from "@tanstack/react-router";
+import { Spinner } from "#/components/ui/spinner";
+import { envConfig, Environment } from "@nagare-app/services";
 
-export function NavChatHistory({
-  favorites,
-}: {
-  favorites: {
-    name: string;
-    url: string;
-    emoji: string;
-  }[];
-}) {
+type NavListChatProps = {
+  sessions: Session[];
+  isLoading?: boolean;
+};
+
+export function NavListChat({ sessions, isLoading = false }: NavListChatProps) {
   const { isMobile } = useSidebar();
+  const pathname = useLocation({ select: (location) => location.pathname });
+
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>History</SidebarGroupLabel>
       <SidebarMenu>
-        {favorites.map((item) => (
-          <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton render={<a href={item.url} title={item.name} />}>
-              <span>{item.emoji}</span>
-              <span>{item.name}</span>
+        {sessions.map((item) => (
+          <SidebarMenuItem key={item.id}>
+            <SidebarMenuButton
+              isActive={pathname === `/chat/${item.id}`}
+              render={
+                <Link
+                  to="/chat/$id"
+                  params={{
+                    id: item.id,
+                  }}
+                />
+              }
+            >
+              <span>{item.title}</span>
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger
@@ -62,14 +74,26 @@ export function NavChatHistory({
                 align={isMobile ? "end" : "start"}
               >
                 <DropdownMenuGroup>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      navigator.clipboard.writeText(item.id);
+                    }}
+                  >
                     <LinkIcon className="text-muted-foreground" />
-                    <span>Copy Link</span>
+                    <span>Copy Session ID</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <ArrowUpRightIcon className="text-muted-foreground" />
-                    <span>Open in New Tab</span>
-                  </DropdownMenuItem>
+
+                  {envConfig.current === Environment.Web ? (
+                    <DropdownMenuItem
+                      onClick={() => window.open(`/chat/${item.id}`)}
+                    >
+                      <ArrowUpRightIcon className="text-muted-foreground" />
+                      <span>Open in New Tab</span>
+                    </DropdownMenuItem>
+                  ) : (
+                    ""
+                  )}
+
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="text-red-600">
                     <Trash2Icon />
@@ -80,12 +104,11 @@ export function NavChatHistory({
             </DropdownMenu>
           </SidebarMenuItem>
         ))}
-        <SidebarMenuItem>
-          <SidebarMenuButton className="text-sidebar-foreground/70">
-            <MoreHorizontalIcon />
-            <span>More</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+        {isLoading && (
+          <SidebarMenuItem className="justify-center py-2">
+            <Spinner />
+          </SidebarMenuItem>
+        )}
       </SidebarMenu>
     </SidebarGroup>
   );

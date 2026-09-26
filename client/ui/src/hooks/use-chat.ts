@@ -7,10 +7,11 @@ export type ChatState = {
   chatSession: Session | null;
   isConnected: boolean;
   isProcessing: boolean;
-  chats: Session[];
+  sessions: Session[];
   pendingMessages: Message[];
 
   setChatSession: (session: Session | null) => void;
+  setSessions: (sessions: Session[]) => void;
   setIsConnected: (isConnected: boolean) => void;
   setIsProcessing: (isProcessing: boolean) => void;
   setPendingMessages: (pendingMessages: Message[]) => void;
@@ -20,7 +21,7 @@ export type ChatState = {
 export const useChat = create<ChatState>((set) => ({
   currentChatID: null,
   chatSession: null,
-  chats: [],
+  sessions: [],
   isConnected: false,
   isProcessing: false,
   pendingMessages: [],
@@ -31,6 +32,10 @@ export const useChat = create<ChatState>((set) => ({
     }
 
     set({ currentChatID: session.id, chatSession: session });
+  },
+
+  setSessions: (sessions) => {
+    set({ sessions });
   },
 
   setIsConnected: (isConnected: boolean) => {

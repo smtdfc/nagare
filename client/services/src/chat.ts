@@ -7,12 +7,15 @@ import {
   type GetChatHistoryResponse,
   GetChatSessionEndpoint,
   type GetChatSessionResponse,
+  ListChatSessionsEndpoint,
+  type ListChatSessionsResponse,
   type Payload,
   type ReceivedChatMessageEventPayload,
   type RegisterChatListenerFailEventPayload,
   type RegisterChatListenerSuccessEventEventPayload,
   type RegisterChatMessageListenerEventPayload,
   SendChatMessageEndpoint,
+  type Session,
 } from "@nagare-app/dtos";
 import { catchError } from "#/lib/errors.ts";
 import type { Message } from "@nagare-app/messages";
@@ -46,14 +49,29 @@ export class ChatService {
     }
   }
 
-  static async getChatHistory(id: string) {
+  static async listSessions(limit = 50, offset = 0) {
+    try {
+      const response = await instance.get<
+        ApiResponse<ListChatSessionsResponse>
+      >(ListChatSessionsEndpoint, { params: { limit, offset } });
+      const body = response.data;
+      return body.data.sessions! as Session[];
+    } catch (e) {
+      catchError(e);
+    }
+  }
+
+  static async getChatHistory(id: string, limit = 50, beforeID = "") {
     try {
       const response = await instance.get<ApiResponse<GetChatHistoryResponse>>(
         GetChatHistoryEndpoint.replace(":id", id),
-        {},
+        { params: { limit, beforeID } },
       );
       const body = response.data;
-      return (body.data.messages as Message[])!;
+      return {
+        messages: (body.data.messages as Message[])!,
+        nextCursor: body.data.nextCursor,
+      };
     } catch (error) {
       catchError(error);
     }
