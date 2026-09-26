@@ -19,4 +19,5 @@ func init() {
 	RegisterTool(declarations.PowerControlTool)
 	RegisterTool(declarations.VolumeControlTool)
 	RegisterTool(declarations.CreateTaskTool)
+	RegisterTool(declarations.OpenBrowserTool)
 }
