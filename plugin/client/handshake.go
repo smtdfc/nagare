@@ -3,51 +3,35 @@ package client
 import (
 	"context"
 	"errors"
-	"time"
-	"uuid"
 
 	plugin_dtos "github.com/smtdfc/nagare/dtos/plugin"
-	"github.com/smtdfc/nagare/dtos/websocket"
 )
 
 func (p *PluginClient) Handshake(ctx context.Context) error {
-	requestID := uuid.NewV4().String()
-	respChan := make(chan *websocket.Payload[any], 1)
+	payload := plugin_dtos.HandshakeEventPayload{
+		PackageName: p.Metadata.PackageName,
+		ConnectCode: p.ConnectConfig.ConnectCode,
+	}
 
-	p.mu.Lock()
-	p.pendingRequests[requestID] = respChan
-	p.mu.Unlock()
-
-	defer func() {
-		p.mu.Lock()
-		delete(p.pendingRequests, requestID)
-		p.mu.Unlock()
-	}()
-
-	err := p.connector.Send(
+	resp, err := sendAndWait[plugin_dtos.HandshakeSuccessEventPayload, plugin_dtos.HandshakeFailedEventPayload](
+		p,
+		ctx,
 		plugin_dtos.HandshakeEvent,
-		plugin_dtos.HandshakeEventPayload{
-			ID:          requestID,
-			PackageName: p.Metadata.PackageName,
-			ConnectCode: p.ConnectConfig.ConnectCode,
-		},
-		requestID,
+		payload,
+		plugin_dtos.HandshakeFailedEvent,
+		plugin_dtos.HandshakeSuccessEvent,
 	)
 	if err != nil {
+		p.Logger.Error("failed to perform handshake", "error", err)
 		return err
 	}
 
-	select {
-	case <-ctx.Done():
-		return ErrHandshakeCancelled
-	case <-time.After(5 * time.Second):
-		return ErrHandshakeTimeout
-	case resp := <-respChan:
-		if resp.Event == plugin_dtos.HandshakeFailedEvent {
-			payload, _ := GetData[plugin_dtos.HandshakeFailedEventPayload](resp)
-			p.Logger.Error("Handshake failed", "error", payload)
-			return errors.New(payload.Cause)
-		}
-		return nil
+	if !resp.IsSuccess {
+		p.Logger.Error("handshake failed", "error", resp.Error)
+		return errors.New(resp.Error.Cause)
 	}
+
+	p.Logger.Info("handshake successful")
+
+	return nil
 }

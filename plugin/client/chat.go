@@ -3,137 +3,85 @@ package client
 import (
 	"context"
 	"errors"
-	"uuid"
 
 	plugin_dtos "github.com/smtdfc/nagare/dtos/plugin"
-	"github.com/smtdfc/nagare/dtos/websocket"
 )
 
 func (p *PluginClient) PrepareChatSession(ctx context.Context, channelID string) (string, error) {
-	requestID := uuid.NewV4().String()
-	respChan := make(chan *websocket.Payload[any], 1)
+	payload := plugin_dtos.PrepareChatSessionEventPayload{
+		ChannelID: channelID,
+	}
 
-	p.mu.Lock()
-	p.pendingRequests[requestID] = respChan
-	p.mu.Unlock()
-
-	defer func() {
-		p.mu.Lock()
-		delete(p.pendingRequests, requestID)
-		p.mu.Unlock()
-	}()
-
-	err := p.connector.Send(
+	resp, err := sendAndWait[plugin_dtos.PrepareChatSessionSuccessEventPayload, plugin_dtos.PrepareChatSessionFailedEventPayload](
+		p,
+		ctx,
 		plugin_dtos.PrepareChatSessionEvent,
-		plugin_dtos.PrepareChatSessionEventPayload{
-			ChannelID: channelID,
-		},
-		requestID,
+		payload,
+		plugin_dtos.PrepareChatSessionFailedEvent,
+		plugin_dtos.PrepareChatSessionSuccessEvent,
 	)
 	if err != nil {
-		p.Logger.Error("failed to send prepare chat session event", "error", err)
+		p.Logger.Error("failed to prepare chat session", "error", err)
 		return "", err
 	}
 
-	select {
-	case <-ctx.Done():
-		return "", ctx.Err()
-	case resp := <-respChan:
-		if resp.Event == plugin_dtos.PrepareChatSessionFailedEvent {
-			payload, _ := GetData[plugin_dtos.PrepareChatSessionFailedEventPayload](resp)
-			p.Logger.Error("failed to prepare chat session event", "error", payload)
-			return "", errors.New(payload.Cause)
-		}
-
-		if resp.Event == plugin_dtos.PrepareChatSessionSuccessEvent {
-			payload, _ := GetData[plugin_dtos.PrepareChatSessionSuccessEventPayload](resp)
-			return payload.SessionID, nil
-		}
-
-		return "", nil
+	if !resp.IsSuccess {
+		p.Logger.Error("failed to prepare chat session", "error", resp.Error)
+		return "", errors.New(resp.Error.Cause)
 	}
 
+	return resp.Data.SessionID, nil
 }
 
 func (p *PluginClient) SendChatMessage(ctx context.Context, sessionID string, text string) error {
-	requestID := uuid.NewV4().String()
-	respChan := make(chan *websocket.Payload[any], 1)
+	payload := plugin_dtos.SendChatMessageEventPayload{
+		SessionID: sessionID,
+		Text:      text,
+	}
 
-	p.mu.Lock()
-	p.pendingRequests[requestID] = respChan
-	p.mu.Unlock()
-
-	defer func() {
-		p.mu.Lock()
-		delete(p.pendingRequests, requestID)
-		p.mu.Unlock()
-	}()
-
-	err := p.connector.Send(
+	resp, err := sendAndWait[plugin_dtos.SendChatMessageSuccessEventPayload, plugin_dtos.SendChatMessageFailedEventPayload](
+		p,
+		ctx,
 		plugin_dtos.SendChatMessageEvent,
-		plugin_dtos.SendChatMessageEventPayload{
-			SessionID: sessionID,
-			Text:      text,
-		},
-		requestID,
+		payload,
+		plugin_dtos.SendChatMessageFailedEvent,
+		plugin_dtos.SendChatMessageSuccessEvent,
 	)
 	if err != nil {
 		p.Logger.Error("failed to send chat session messages", "error", err)
 		return err
 	}
 
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case resp := <-respChan:
-		if resp.Event == plugin_dtos.SendChatMessageFailedEvent {
-			payload, _ := GetData[plugin_dtos.SendChatMessageFailedEventPayload](resp)
-			p.Logger.Error("failed to send chat session messages", "error", payload)
-			return errors.New(payload.Cause)
-		}
-
-		return nil
+	if !resp.IsSuccess {
+		p.Logger.Error("failed to send chat session messages", "error", resp.Error)
+		return errors.New(resp.Error.Cause)
 	}
 
+	return nil
 }
 
 func (p *PluginClient) ResetChatChannel(ctx context.Context, channelID string) error {
-	requestID := uuid.NewV4().String()
-	respChan := make(chan *websocket.Payload[any], 1)
+	payload := plugin_dtos.ResetChatChannelEventPayload{
+		ChannelID: channelID,
+	}
 
-	p.mu.Lock()
-	p.pendingRequests[requestID] = respChan
-	p.mu.Unlock()
-
-	defer func() {
-		p.mu.Lock()
-		delete(p.pendingRequests, requestID)
-		p.mu.Unlock()
-	}()
-
-	err := p.connector.Send(
+	resp, err := sendAndWait[plugin_dtos.ResetChatChannelSuccessEventPayload, plugin_dtos.ResetChatChannelFailedEventPayload](
+		p,
+		ctx,
 		plugin_dtos.ResetChatChannelEvent,
-		plugin_dtos.ResetChatChannelEventPayload{
-			ChannelID: channelID,
-		},
-		requestID,
+		payload,
+		plugin_dtos.ResetChatChannelFailedEvent,
+		plugin_dtos.ResetChatChannelSuccessEvent,
 	)
 	if err != nil {
-		p.Logger.Error("failed to send reset chat channel event", "error", err)
+		p.Logger.Error("failed to reset chat channel", "error", err)
 		return err
 	}
 
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case resp := <-respChan:
-		if resp.Event == plugin_dtos.ResetChatChannelFailedEvent {
-			payload, _ := GetData[plugin_dtos.ResetChatChannelFailedEventPayload](resp)
-			p.Logger.Error("failed to reset chat channel", "error", payload)
-			return errors.New(payload.Cause)
-		}
-
-		return nil
+	if !resp.IsSuccess {
+		p.Logger.Error("failed to reset chat channel", "error", resp.Error)
+		return errors.New(resp.Error.Cause)
 	}
 
+	return nil
 }

@@ -22,7 +22,7 @@ type PluginClient struct {
 	Logger                *slog.Logger
 	connector             *Connector
 	pendingRequests       map[string]chan *websocket.Payload[any]
-	dynamicTools          []DynamicTool
+	tools                 []PluginTool
 	OnReceivedChatMessage func(sessionID string, channelID string, chunk string)
 }
 
@@ -42,17 +42,30 @@ func (p *PluginClient) Start(ctx context.Context, onStart func()) error {
 
 func (p *PluginClient) handleEvent(payload *websocket.Payload[any]) {
 	switch payload.Event {
-	case plugin_dtos.HandshakeSuccessEvent,
+	case
+		// Handshake
+		plugin_dtos.HandshakeSuccessEvent,
+		plugin_dtos.HandshakeFailedEvent,
+
+		// Prepare chat
 		plugin_dtos.PrepareChatSessionFailedEvent,
 		plugin_dtos.PrepareChatSessionSuccessEvent,
-		plugin_dtos.HandshakeFailedEvent,
-		plugin_dtos.RegisterDynamicToolsEvent,
-		plugin_dtos.RegisterDynamicToolsSuccessEvent,
-		plugin_dtos.RegisterDynamicToolsErrorEvent,
+
+		// Register plugin tool
+		plugin_dtos.RegisterPluginToolSuccessEvent,
+		plugin_dtos.RegisterPluginToolFailedEvent,
+
+		// Send chat message
 		plugin_dtos.SendChatMessageSuccessEvent,
 		plugin_dtos.SendChatMessageFailedEvent,
+
+		// Reset chat channel
 		plugin_dtos.ResetChatChannelSuccessEvent,
-		plugin_dtos.ResetChatChannelFailedEvent:
+		plugin_dtos.ResetChatChannelFailedEvent,
+
+		// Register tool categories
+		plugin_dtos.RegisterToolCategoriesSuccessEvent,
+		plugin_dtos.RegisterToolCategoriesFailedEvent:
 
 		p.mu.Lock()
 		if ch, exists := p.pendingRequests[payload.RequestID]; exists {
@@ -90,7 +103,7 @@ func NewPlugin() *PluginClient {
 		pendingRequests:       make(map[string]chan *websocket.Payload[any]),
 		OnReceivedChatMessage: func(sessionID string, _ string, chunk string) {},
 		Logger:                slog.New(handler),
-		dynamicTools:          make([]DynamicTool, 0),
+		tools:                 make([]PluginTool, 0),
 	}
 
 	p.ConfigDir = os.Getenv("NAGARE_PLUGIN_CONFIG_DIR")

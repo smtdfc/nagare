@@ -13,4 +13,6 @@ var (
 	ErrPrepareChatSessionFailed = errors.New("prepare chat session failed")
 	ErrIncorrectToolArgs        = errors.New("incorrect tool args")
 	ErrMarshalToolResultFailed  = errors.New("marshal results failed")
+	ErrTimeout                  = errors.New("timeout")
+	ErrActionCancelled          = errors.New("action cancelled")
 )
