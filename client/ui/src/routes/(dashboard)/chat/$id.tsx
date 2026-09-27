@@ -31,6 +31,26 @@ export const Route = createFileRoute("/(dashboard)/chat/$id")({
   component: RouteComponent,
 });
 
+const allowShowMessageTypes = [MessageType.TextMessageType];
+const allowHandleMessageTypes = [
+  MessageType.TextMessageType,
+  MessageType.ToolCallMessageType,
+  MessageType.AgentCompletedMessageType,
+  MessageType.AgentErrorMessageType,
+];
+
+function renderMessageContent(message: ChatMessage) {
+  if (!allowShowMessageTypes.includes(message.type)) {
+    return null;
+  }
+
+  return (
+    <MessageScrollerItem key={message.id} messageId={message.id}>
+      <ChatMessageItem message={message} />
+    </MessageScrollerItem>
+  );
+}
+
 function RouteComponent() {
   const { id } = useParams({ from: "/(dashboard)/chat/$id" });
   const [statusText, setStatusText] = useState("Processing...");
@@ -55,12 +75,17 @@ function RouteComponent() {
   const viewportRef = useRef<HTMLDivElement>(null);
 
   const handleMessage = useCallback(async (chunk: ChatMessage) => {
+    if (!allowHandleMessageTypes.includes(chunk.type)) {
+      return;
+    }
+
     setMessages((prev) => {
       const lastMsg = prev[prev.length - 1];
       const isChunkText = isTextMessage(chunk);
       const isLastText = lastMsg && isTextMessage(lastMsg);
 
       if (isChunkText && isLastText) {
+        setStatusText(`Responding...`);
         const lastRole = getMessageRole(lastMsg);
         const chunkRole = getMessageRole(chunk);
         if (lastRole !== chunkRole) {
@@ -78,6 +103,7 @@ function RouteComponent() {
       }
 
       if (isAgentCompletedMessage(chunk)) {
+        setStatusText(`Finishing ...`);
         setIsProcessing(false);
       }
 
@@ -117,10 +143,9 @@ function RouteComponent() {
         HISTORY_PAGE_SIZE,
         historyCursorRef.current,
       );
-      if (historySessionRef.current !== id) return;
-      if (!history) return;
 
-      if (history.messages.length === 0) {
+      if (historySessionRef.current !== id) return;
+      if (!history || history.messages.length === 0) {
         historyCursorRef.current = null;
         setCanLoadOlderHistory(false);
         return;
@@ -129,17 +154,14 @@ function RouteComponent() {
       historyCursorRef.current = history.nextCursor;
       setCanLoadOlderHistory(Boolean(history.nextCursor));
 
-      const existingMessageIds = new Set(messages.map((message) => message.id));
+      const existingMessageIds = new Set(
+        messagesRef.current.map((message) => message.id),
+      );
       const olderMessages = history.messages.filter(
-        (message) =>
-          !existingMessageIds.has(message.id) &&
-          message.type === MessageType.TextMessageType,
+        (message) => !existingMessageIds.has(message.id),
       );
 
-      [...olderMessages, ...messagesRef.current].forEach((message) => {
-        handleMessage(message);
-      });
-
+      setMessages((prev) => [...olderMessages, ...prev]);
       requestAnimationFrame(() => {
         const currentViewport = viewportRef.current;
         if (!currentViewport) return;
@@ -148,7 +170,7 @@ function RouteComponent() {
           (currentViewport.scrollHeight - previousScrollHeight);
       });
     } catch (error) {
-      console.error("Error loading older chat history:", error);
+      showToastError(error);
     } finally {
       if (historySessionRef.current === id) {
         isLoadingHistoryRef.current = false;
@@ -232,7 +254,7 @@ function RouteComponent() {
         isSessionReadyRef.current = true;
         setIsConnected(true);
       } catch (error) {
-        console.error("Error:", error);
+        showToastError(error);
       }
     };
 
@@ -300,12 +322,7 @@ function RouteComponent() {
                 </div>
               )}
 
-              {messages.map((message) => (
-                <MessageScrollerItem key={message.id} messageId={message.id}>
-                  <ChatMessageItem message={message} />
-                </MessageScrollerItem>
-              ))}
-
+              {messages.map((message) => renderMessageContent(message))}
               {isProcessing && (
                 <div className="flex w-full justify-start items-center gap-1.5">
                   <Spinner />
