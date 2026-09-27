@@ -34,5 +34,13 @@ export function getMessageRole(message: ChatMessage) {
     return (message.role as string).toLowerCase();
   }
 
+  if (isAgentCompletedMessage(message) || isAgentErrorMessage(message)) {
+    return "system";
+  }
+
+  if (isToolCallMessage(message)) {
+    return "tool";
+  }
+
   return "agent";
 }

@@ -222,7 +222,6 @@ function RouteComponent() {
 
     const fetchData = async () => {
       try {
-        setStatusText("Processing...");
         const session = await ChatService.getChatSession(id);
         if (!isMounted) return;
         setChatSession(session);
@@ -280,6 +279,7 @@ function RouteComponent() {
 
         if (firstMessage && isTextMessage(firstMessage)) {
           setMessages((prev) => [...prev, firstMessage]);
+          setStatusText("Processing...");
           await ChatService.sendMessage(id, firstMessage.content);
           setIsProcessing(true);
           setPendingMessages(pendingMessages.slice(1));
