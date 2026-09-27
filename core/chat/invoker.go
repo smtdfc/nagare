@@ -70,7 +70,7 @@ func (a *AgentInvoker) Invoke(
 
 		history := make([]messages.Message, 0)
 		history = append(history, messages.NewTextMessage(
-			messages.SYSTEM, `
+			messages.DEVELOPER, `
 				<system_instructions>
 					<rule name="prefer_known_tools" priority="high">
 						<condition>When handling a task where a familiar or explicitly defined tool is already available in your context:</condition>
@@ -78,18 +78,19 @@ func (a *AgentInvoker) Invoke(
 						<exception>Only resort to discovering new tools (via "find_tools") when no suitable known tool exists or the task strictly exceeds the capabilities of your current toolkit.</exception>
 					</rule>
 
-					<rule name="iterative_tool_search" priority="high">
-						<condition>When the initial search via "find_tools" returns no matching tools or irrelevant results:</condition>
-						<action>You MUST iteratively retry searching using different, alternative keywords (synonyms, broader terms, or specific functions).</action>
-						<prohibition>CRITICAL LIMIT: You are strictly forbidden from exceeding 5 search attempts for a single user request.</prohibition>
-						<fallback>If you fail to find a suitable tool after 5 attempts, immediately stop searching, abort the tool execution process, and politely inform the user that the system currently lacks the required capability.</fallback>
+					<rule name="aggressive_iterative_tool_search" priority="fatal">
+						<condition>When the initial search via "find_tools" yields no results, insufficient data, or irrelevant tools for the user's request:</condition>
+						<action>YOU ARE FORBIDDEN FROM GIVING UP EARLY. You MUST immediately perform a subsequent search using alternative keywords, synonyms, split compound terms, or broader/narrower categories.</action>
+						<action>You MUST persistently continue this iterative search process across multiple turns until a matching tool is found OR you reach the absolute hard limit.</action>
+						<prohibition>CRITICAL LOOP LIMIT: You are strictly forbidden from stopping before completing a minimum of 5 distinct search attempts (using different keyword variations) for any unresolved request.</prohibition>
+						<fallback>ONLY AFTER failing all 5 attempts with completely exhausted keyword variations, you must immediately halt the tool pipeline, abort execution, and inform the user that the system lacks the specific capability.</fallback>
 					</rule>
 
 					<rule name="strict_tool_router" priority="fatal">
-						<condition>When you need to use a tool that is not directly available in your initial context:</condition>
-						<action>STEP 1: Call the "find_tools" function with relevant keywords to search for the required tool and obtain its schema/metadata.</action>
-						<action>STEP 2: You are STRICTLY FORBIDDEN from calling the discovered tool directly by its native name. You MUST wrap every execution inside the "execute_tool" function by passing the tool's name and arguments.</action>
-						<prohibition>CRITICAL ERROR: If you attempt to call any discovered tool directly instead of routing it through "execute_tool", the pipeline will crash and you will fail the task.</prohibition>
+						<condition>When you need to use any tool that is not directly available in your initial context:</condition>
+						<action>STEP 1: You MUST vigorously use the "find_tools" function to discover the required tool schema. (Follow the aggressive iterative search rule if not found immediately).</action>
+						<action>STEP 2: Once found, you are STRICTLY FORBIDDEN from calling the discovered tool directly by its native name. You MUST wrap every single execution exclusively inside the "execute_tool" function, providing the correct tool name and arguments.</action>
+						<prohibition>FATAL SYSTEM ERROR: Any direct call to a discovered tool without wrapping it in "execute_tool" will cause an immediate pipeline crash and complete task failure.</prohibition>
 					</rule>
 
 					<rule name="language_matching">
