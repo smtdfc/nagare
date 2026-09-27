@@ -17,6 +17,7 @@ import (
 	task_manager "github.com/smtdfc/nagare/core/task/manager"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/core/tool/registry"
+	"github.com/smtdfc/nagare/shared/helpers"
 )
 
 type ToolBindings struct {
@@ -25,9 +26,8 @@ type ToolBindings struct {
 	eventBus *event_bus.CoreEventBus
 }
 
-// FindDynamicToolsByKeywords implements [tool.Bindings].
-func (t *ToolBindings) FindDynamicToolsByKeywords(ctx *context.ExecuteContext, keywords []string) ([]*tool.DynamicTool, error) {
-	return t.toolMgr.FindDynamicToolsByKeywords(ctx.Context, keywords)
+func (t *ToolBindings) FindToolsByKeywords(ctx *context.ExecuteContext, keywords []string) ([]tool.ToolMetadata, error) {
+	return t.toolMgr.FindToolsByKeywords(ctx.Context, keywords)
 }
 
 func (t ToolBindings) RefreshTask(ctx *context.ExecuteContext) {
@@ -90,6 +90,14 @@ func (t ToolBindings) GetTaskManager() *task_manager.TaskManager {
 	return t.taskMgr
 }
 
+func (t ToolBindings) CallTool(ctx *context.ExecuteContext, toolName string, args string) *tool.Result {
+	return t.toolMgr.Call(ctx, &tool.ToolCall{
+		CallID: time.Now().Format("20060102150405"),
+		Name:   toolName,
+		Args:   args,
+	})
+}
+
 type ToolManager struct {
 	mu                sync.RWMutex
 	cachedList        tool.ListTool
@@ -125,7 +133,9 @@ func (t *ToolManager) GetListTool() tool.ListTool {
 
 	list := make(tool.ListTool, 0, len(registry.Registry))
 	for _, item := range registry.Registry {
-		list = append(list, item)
+		if !item.RequiresRouter {
+			list = append(list, item.Tool)
+		}
 	}
 
 	t.cachedList = list
@@ -140,7 +150,7 @@ func (t *ToolManager) Call(ctx *context.ExecuteContext, toolCall *tool.ToolCall)
 	}
 
 	bindings := t.createBindings()
-	result, err := calledTool.WithBindings(bindings).Execute(ctx, toolCall.Args)
+	result, err := calledTool.Tool.WithBindings(bindings).Execute(ctx, toolCall.Args)
 	if err != nil {
 		return toolResultBuilder.Failure(err).Build()
 	}
@@ -157,13 +167,27 @@ func (t *ToolManager) UseDynamicTools(ctx context2.Context, dynamicTools []*tool
 	return nil
 }
 
-func (t *ToolManager) FindDynamicToolsByKeywords(ctx context2.Context, keywords []string) ([]*tool.DynamicTool, error) {
-	entities, err := t.dynamicToolRepo.FindByKeywords(keywords)
-	if err != nil {
-		return nil, custom_errors.ErrFindDynamicToolFailed
+func (t *ToolManager) FindToolsByKeywords(ctx context2.Context, keywords []string) ([]tool.ToolMetadata, error) {
+	list := make([]tool.ToolMetadata, 0)
+
+	for _, item := range registry.Registry {
+		if !item.RequiresRouter {
+			continue
+		}
+
+		nameMatch := helpers.ContainsAnyKeyword(item.Tool.GetName(), keywords)
+		descMatch := helpers.ContainsAnyKeyword(item.Tool.GetDescription(), keywords)
+
+		if nameMatch || descMatch {
+			list = append(list, tool.ToolMetadata{
+				Name:        item.Tool.GetName(),
+				Description: item.Tool.GetDescription(),
+				Args:        item.Tool.GetArgsSchema(),
+			})
+		}
 	}
-	
-	return t.dynamicToolMapper.ToDomains(entities), nil
+
+	return list, nil
 }
 
 // @Injectable
