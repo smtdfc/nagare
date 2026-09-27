@@ -7,6 +7,8 @@ import (
 	"github.com/smtdfc/nagare/plugin/client"
 )
 
+var categories = []string{"google_calendar"}
+
 //go:embed metadata.json
 var metadata string
 
@@ -29,6 +31,7 @@ var findTaskTool = client.DefineTool(
 			TaskName: taskName,
 		}, nil
 	},
+	categories,
 )
 
 type CreateReminderInput struct {
@@ -52,13 +55,18 @@ var createReminderTool = client.DefineTool(
 			ReminderID: reminderID,
 		}, nil
 	},
+	categories,
 )
+
+func OnStart(ctx context.Context, pluginClient *client.PluginClient) {
+	pluginClient.RegisterToolCategories(ctx, categories)
+	pluginClient.RegisterPluginTool(ctx, findTaskTool)
+	pluginClient.RegisterPluginTool(ctx, createReminderTool)
+}
 
 func main() {
 	ctx := context.Background()
 	pluginClient := client.NewPlugin()
-	pluginClient.UseDynamicTool(findTaskTool)
-	pluginClient.UseDynamicTool(createReminderTool)
 	_, err := pluginClient.LoadMetadata(metadata)
 	if err != nil {
 		pluginClient.Logger.Error("Load metadata error", "error", err)
@@ -74,14 +82,10 @@ func main() {
 				return
 			}
 
-			err = pluginClient.RegisterDynamicTools(ctx)
-			if err != nil {
-				pluginClient.Logger.Error("Register dynamic tools error", "error", err)
-				return
-			}
+			OnStart(ctx, pluginClient)
 		},
 	)
 	if err != nil {
-		pluginClient.Logger.Error("Handshake error", "error", err)
+		pluginClient.Logger.Error("Error", "error", err)
 	}
 }

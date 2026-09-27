@@ -4,6 +4,6 @@
   "author": "smtdfc",
   "version": "1.0.0",
   "api_version": "1",
-  "features": ["dynamic_tool"],
+  "features": ["plugin_tool"],
   "description": "A plugin for Nagare that integrates with Google Calendar, allowing users to manage their calendar events and tasks directly from the nagare platform."
 }
