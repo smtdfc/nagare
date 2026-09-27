@@ -13,12 +13,11 @@ import (
 	core_plugin "github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/core/plugin/manager"
 	session_mgr "github.com/smtdfc/nagare/core/session/manager"
-	"github.com/smtdfc/nagare/core/tool"
 	manager2 "github.com/smtdfc/nagare/core/tool/manager"
+	tool_registry "github.com/smtdfc/nagare/core/tool/registry"
 	plugin_dtos "github.com/smtdfc/nagare/dtos/plugin"
 	"github.com/smtdfc/nagare/dtos/websocket"
 	websocket2 "github.com/smtdfc/nagare/gateway/common/websocket"
-	"github.com/smtdfc/nagare/shared/helpers"
 )
 
 type PluginWebsocketHandler struct {
@@ -28,15 +27,6 @@ type PluginWebsocketHandler struct {
 	chatEventBus      *event_bus.CoreEventBus
 	logger            *logger.BaseLogger
 	pluginConnections map[string]*melody.Session
-}
-
-func toDomain(dto plugin_dtos.DynamicTool, pluginID uuid.UUID) *tool.DynamicTool {
-	return &tool.DynamicTool{
-		Name:        dto.Name,
-		Description: dto.Description,
-		Args:        dto.ArgsSchema,
-		PluginID:    pluginID,
-	}
 }
 
 func (w *PluginWebsocketHandler) OnHandshakeEvent(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
@@ -194,6 +184,13 @@ func (w *PluginWebsocketHandler) OnResetChatChannel(s *melody.Session, ws *webso
 		return
 	}
 
+	if !slices.Contains(auth.Scopes, core_plugin.ChatFeature.ToString()) {
+		_ = websocket2.SendMessage(s, plugin_dtos.ResetChatChannelFailedEvent, &plugin_dtos.ResetChatChannelFailedEventPayload{
+			Cause: "Plugin not supported this feature",
+		}, message.RequestID)
+		return
+	}
+
 	err = w.sessionMgr.ResetChatChannel(ctx, data.ChannelID, auth.TargetID)
 	if err != nil {
 		_ = websocket2.SendMessage(s, plugin_dtos.ResetChatChannelFailedEvent, &plugin_dtos.ResetChatChannelFailedEventPayload{
@@ -207,51 +204,68 @@ func (w *PluginWebsocketHandler) OnResetChatChannel(s *melody.Session, ws *webso
 	}, message.RequestID)
 }
 
-func (w *PluginWebsocketHandler) OnRegisterDynamicTool(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
-	ctx := context.Background()
-	data, err := websocket2.GetData[plugin_dtos.RegisterDynamicToolsPayload](message)
+func (w *PluginWebsocketHandler) OnRegisterTool(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
+	data, err := websocket2.GetData[plugin_dtos.RegisterPluginToolEventPayload](message)
 	if err != nil {
-		_ = websocket2.SendMessage(s, plugin_dtos.RegisterDynamicToolsErrorEvent, &plugin_dtos.RegisterDynamicToolsErrorPayload{
+		_ = websocket2.SendMessage(s, plugin_dtos.RegisterPluginToolFailedEvent, &plugin_dtos.RegisterPluginToolFailedEventPayload{
 			Cause: "failed to parsing payload",
 		}, message.RequestID)
 		return
 	}
 	auth, err := w.getPluginAuth(s)
 	if err != nil {
-		_ = websocket2.SendMessage(s, plugin_dtos.RegisterDynamicToolsErrorEvent, &plugin_dtos.RegisterDynamicToolsErrorPayload{
+		_ = websocket2.SendMessage(s, plugin_dtos.RegisterPluginToolFailedEvent, &plugin_dtos.RegisterPluginToolFailedEventPayload{
 			Cause: err.Error(),
 		}, message.RequestID)
 		return
 	}
 
-	if !slices.Contains(auth.Scopes, core_plugin.DynamicToolFeature.ToString()) {
-		_ = websocket2.SendMessage(s, plugin_dtos.RegisterDynamicToolsErrorEvent, &plugin_dtos.RegisterDynamicToolsErrorPayload{
+	if !slices.Contains(auth.Scopes, core_plugin.PluginToolFeature.ToString()) {
+		_ = websocket2.SendMessage(s, plugin_dtos.RegisterPluginToolFailedEvent, &plugin_dtos.RegisterPluginToolFailedEventPayload{
 			Cause: "Plugin not supported this feature",
 		}, message.RequestID)
 		return
 	}
 
-	pluginID, err := uuid.Parse(auth.TargetID)
+	w.logger.Info("Registering plugin tool", "name", data.Tool.Name, "pluginID", auth.TargetID)
+	tool_registry.RegisterPluginTool(
+		data.Tool.Name,
+		data.Tool.Args,
+		data.Tool.Description,
+		data.Tool.Categories,
+		auth.TargetID,
+		true,
+	)
+
+	_ = websocket2.SendMessage(s, plugin_dtos.RegisterPluginToolSuccessEvent, &plugin_dtos.RegisterPluginToolSuccessEventPayload{}, message.RequestID)
+}
+
+func (w *PluginWebsocketHandler) OnRegisterToolCategories(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
+	data, err := websocket2.GetData[plugin_dtos.RegisterToolCategoriesEventPayload](message)
 	if err != nil {
-		_ = websocket2.SendMessage(s, plugin_dtos.RegisterDynamicToolsErrorEvent, &plugin_dtos.RegisterDynamicToolsErrorPayload{
-			Cause: "Failed to parse plugin ID",
+		_ = websocket2.SendMessage(s, plugin_dtos.RegisterToolCategoriesFailedEvent, &plugin_dtos.RegisterToolCategoriesFailedEventPayload{
+			Cause: "failed to parsing payload",
 		}, message.RequestID)
 		return
 	}
-
-	domains := helpers.SliceMap(data.Tools, func(d plugin_dtos.DynamicTool) *tool.DynamicTool {
-		return toDomain(d, pluginID)
-	})
-
-	err = w.toolMgr.UseDynamicTools(ctx, domains)
+	auth, err := w.getPluginAuth(s)
 	if err != nil {
-		_ = websocket2.SendMessage(s, plugin_dtos.RegisterDynamicToolsErrorEvent, &plugin_dtos.RegisterDynamicToolsErrorPayload{
+		_ = websocket2.SendMessage(s, plugin_dtos.RegisterToolCategoriesFailedEvent, &plugin_dtos.RegisterToolCategoriesFailedEventPayload{
 			Cause: err.Error(),
 		}, message.RequestID)
 		return
 	}
 
-	_ = websocket2.SendMessage(s, plugin_dtos.RegisterDynamicToolsSuccessEvent, &plugin_dtos.RegisterDynamicToolsSuccessPayload{}, message.RequestID)
+	if !slices.Contains(auth.Scopes, core_plugin.PluginToolFeature.ToString()) {
+		_ = websocket2.SendMessage(s, plugin_dtos.RegisterToolCategoriesFailedEvent, &plugin_dtos.RegisterToolCategoriesFailedEventPayload{
+			Cause: "Plugin not supported this feature",
+		}, message.RequestID)
+		return
+	}
+
+	w.toolMgr.AddPluginToolCategories(auth.TargetID, data.Categories)
+	w.logger.Info("Registered plugin tool categories", "categories", data.Categories, "pluginID", auth.TargetID)
+	_ = websocket2.SendMessage(s, plugin_dtos.RegisterToolCategoriesSuccessEvent, &plugin_dtos.RegisterToolCategoriesSuccessEventPayload{}, message.RequestID)
 }
 
 func (w *PluginWebsocketHandler) getPluginAuth(s *melody.Session) (*websocket2.AuthData, error) {
