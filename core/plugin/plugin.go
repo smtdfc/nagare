@@ -9,8 +9,8 @@ import (
 type Feature string
 
 const (
-	ChatFeature        Feature = "chat"
-	DynamicToolFeature Feature = "dynamic_tool"
+	ChatFeature       Feature = "chat"
+	PluginToolFeature Feature = "plugin_tool"
 )
 
 func (p Feature) ToString() string {
@@ -21,11 +21,12 @@ func ParseFeatureString(raw string) []Feature {
 	parts := strings.Split(raw, ",")
 	var features []Feature
 	for _, p := range parts {
+		p = strings.TrimSpace(p)
 		switch p {
 		case string(ChatFeature):
 			features = append(features, ChatFeature)
-		case string(DynamicToolFeature):
-			features = append(features, DynamicToolFeature)
+		case string(PluginToolFeature):
+			features = append(features, PluginToolFeature)
 		}
 	}
 
