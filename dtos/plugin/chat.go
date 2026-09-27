@@ -5,18 +5,21 @@ import (
 )
 
 const (
-	HandshakeEvent                 websocket.Event = "plugin_handshake"
-	HandshakeSuccessEvent          websocket.Event = "plugin_handshake_success"
-	HandshakeFailedEvent           websocket.Event = "plugin_handshake_failed"
-	PrepareChatSessionEvent        websocket.Event = "plugin_session_prepare"
-	PrepareChatSessionSuccessEvent websocket.Event = "plugin_session_prepare_success"
-	PrepareChatSessionFailedEvent  websocket.Event = "plugin_session_prepare_failed"
-	SendChatMessageEvent           websocket.Event = "plugin_message"
-	SendChatMessageSuccessEvent    websocket.Event = "plugin_message_success"
-	SendChatMessageFailedEvent     websocket.Event = "plugin_message_failed"
-	ResetChatChannelEvent          websocket.Event = "plugin_session_reset"
-	ResetChatChannelSuccessEvent   websocket.Event = "plugin_session_reset_success"
-	ResetChatChannelFailedEvent    websocket.Event = "plugin_session_reset_failed"
+	HandshakeEvent        websocket.Event = "plugin:handshake"
+	HandshakeSuccessEvent websocket.Event = "plugin:handshake:success"
+	HandshakeFailedEvent  websocket.Event = "plugin:handshake:failed"
+
+	PrepareChatSessionEvent        websocket.Event = "plugin:prepare_chat_session"
+	PrepareChatSessionSuccessEvent websocket.Event = "plugin:prepare_chat_session:success"
+	PrepareChatSessionFailedEvent  websocket.Event = "plugin:prepare_chat_session:failed"
+
+	SendChatMessageEvent        websocket.Event = "plugin:send_chat_message"
+	SendChatMessageSuccessEvent websocket.Event = "plugin:send_chat_message:success"
+	SendChatMessageFailedEvent  websocket.Event = "plugin:send_chat_message:failed"
+
+	ResetChatChannelEvent        websocket.Event = "plugin:reset_chat_channel"
+	ResetChatChannelSuccessEvent websocket.Event = "plugin:reset_chat_channel:success"
+	ResetChatChannelFailedEvent  websocket.Event = "plugin:reset_chat_channel:failed"
 )
 
 type HandshakeEventPayload struct {
