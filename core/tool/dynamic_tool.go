@@ -12,3 +12,9 @@ type DynamicTool struct {
 	PluginID    uuid.UUID
 	Plugin      *plugin.Plugin
 }
+
+type ToolMetadata struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Args        string `json:"args"`
+}

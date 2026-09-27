@@ -5,27 +5,37 @@ import (
 	declarations "github.com/smtdfc/nagare/core/tool/builtins"
 )
 
-var Registry = map[string]tool.Tool{}
+type ToolItem struct {
+	RequiresRouter bool
+	Tool           tool.Tool
+}
 
-func RegisterTool(tool tool.Tool) {
-	Registry[tool.GetName()] = tool
+var Registry = map[string]ToolItem{}
+
+func RegisterTool(tool tool.Tool, requiresRouter bool) {
+	Registry[tool.GetName()] = ToolItem{
+		RequiresRouter: requiresRouter,
+		Tool:           tool,
+	}
 }
 
 func init() {
-	RegisterTool(declarations.SearchResourceTool)
-	RegisterTool(declarations.DynamicToolCallTool)
-	RegisterTool(declarations.WeatherTool)
-	RegisterTool(declarations.TimeTool)
-	RegisterTool(declarations.ListProcessTool)
-	RegisterTool(declarations.CreateProcessTool)
-	RegisterTool(declarations.KillProcessTool)
-	RegisterTool(declarations.PowerControlTool)
-	RegisterTool(declarations.VolumeControlTool)
-	RegisterTool(declarations.CreateTaskTool)
-	RegisterTool(declarations.OpenBrowserTool)
-	RegisterTool(declarations.ReadFileTool)
-	RegisterTool(declarations.WriteFileTool)
-	RegisterTool(declarations.ListDirectoryTool)
-	RegisterTool(declarations.DeleteFileTool)
-	RegisterTool(declarations.GetUserDirectoriesTool)
+	RegisterTool(declarations.FindTools, false)
+	RegisterTool(declarations.ExecuteTool, false)
+
+	// requires router
+	RegisterTool(declarations.WeatherTool, true)
+	RegisterTool(declarations.TimeTool, true)
+	RegisterTool(declarations.ListProcessTool, true)
+	RegisterTool(declarations.CreateProcessTool, true)
+	RegisterTool(declarations.KillProcessTool, true)
+	RegisterTool(declarations.PowerControlTool, true)
+	RegisterTool(declarations.VolumeControlTool, true)
+	RegisterTool(declarations.CreateTaskTool, true)
+	RegisterTool(declarations.OpenBrowserTool, true)
+	RegisterTool(declarations.ReadFileTool, true)
+	RegisterTool(declarations.WriteFileTool, true)
+	RegisterTool(declarations.ListDirectoryTool, true)
+	RegisterTool(declarations.DeleteFileTool, true)
+	RegisterTool(declarations.GetUserDirectoriesTool, true)
 }
