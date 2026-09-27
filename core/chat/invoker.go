@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/smtdfc/nagare/core/agent"
 	config_mgr "github.com/smtdfc/nagare/core/config/manager"
@@ -13,7 +14,7 @@ import (
 	message "github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/session"
 	session_mgr "github.com/smtdfc/nagare/core/session/manager"
-
+	tool_mgr "github.com/smtdfc/nagare/core/tool/manager"
 	"github.com/smtdfc/nagare/shared/messages"
 )
 
@@ -24,6 +25,7 @@ type AgentInvoker struct {
 	configMgr      *config_mgr.ConfigManager
 	eventBus       *event_bus.CoreEventBus
 	adapterLogger  *logger.BaseLogger
+	toolMgr        *tool_mgr.ToolManager
 	logger         *logger.BaseLogger
 }
 
@@ -68,42 +70,72 @@ func (a *AgentInvoker) Invoke(
 			}
 		}
 
+		toolCategories := a.toolMgr.GetCategoriesString()
 		history := make([]messages.Message, 0)
 		history = append(history, messages.NewTextMessage(
-			messages.DEVELOPER, `
+			messages.DEVELOPER,
+			fmt.Sprintf(`
 				<system_instructions>
-					<rule name="prefer_known_tools" priority="high">
-						<condition>When handling a task where a familiar or explicitly defined tool is already available in your context:</condition>
-						<action>You MUST prioritize using known tools directly to optimize processing speed and performance.</action>
-						<exception>Only resort to discovering new tools (via "find_tools") when no suitable known tool exists or the task strictly exceeds the capabilities of your current toolkit.</exception>
-					</rule>
+					<metadata>
+						<attr key="name">Nagare</attr>
+						<attr key="description">Virtual assistant operating on the computer</attr>
+					</metadata>
+					<rule name="tool_routing">
+						<description>Automated process for discovering, selecting, and executing tools when a request lacks the necessary handling capability.</description>
+						<conditions>
+							<condition>Activate only when the user request exceeds current capabilities and requires external tool assistance.</condition>
+							<condition>Input categories (%s) must be thoroughly analyzed to precisely match the functionality of the tools.</condition>
+						</conditions>
 
-					<rule name="aggressive_iterative_tool_search" priority="fatal">
-						<condition>When the initial search via "find_tools" yields no results, insufficient data, or irrelevant tools for the user's request:</condition>
-						<action>YOU ARE FORBIDDEN FROM GIVING UP EARLY. You MUST immediately perform a subsequent search using alternative keywords, synonyms, split compound terms, or broader/narrower categories.</action>
-						<action>You MUST persistently continue this iterative search process across multiple turns until a matching tool is found OR you reach the absolute hard limit.</action>
-						<prohibition>CRITICAL LOOP LIMIT: You are strictly forbidden from stopping before completing a minimum of 5 distinct search attempts (using different keyword variations) for any unresolved request.</prohibition>
-						<fallback>ONLY AFTER failing all 5 attempts with completely exhausted keyword variations, you must immediately halt the tool pipeline, abort execution, and inform the user that the system lacks the specific capability.</fallback>
-					</rule>
+						<steps>
+							<step n="1">
+								<action>Analyze syntax and semantics of the user request.</action>
+								<details>Determine the exact category or domain from the permitted set: %s.</details>
+							</step>
 
-					<rule name="strict_tool_router" priority="fatal">
-						<condition>When you need to use any tool that is not directly available in your initial context:</condition>
-						<action>STEP 1: You MUST vigorously use the "find_tools" function to discover the required tool schema. (Follow the aggressive iterative search rule if not found immediately).</action>
-						<action>STEP 2: Once found, you are STRICTLY FORBIDDEN from calling the discovered tool directly by its native name. You MUST wrap every single execution exclusively inside the "execute_tool" function, providing the correct tool name and arguments.</action>
-						<prohibition>FATAL SYSTEM ERROR: Any direct call to a discovered tool without wrapping it in "execute_tool" will cause an immediate pipeline crash and complete task failure.</prohibition>
-					</rule>
+							<step n="2">
+								<action>Invoke the system discovery tool.</action>
+								<details>Execute the "find_tool_by_categories" function with the determined category from Step 1 as a parameter to retrieve a list of available tools.</details>
+							</step>
 
-					<rule name="language_matching">
-						<directive>You MUST reply using the EXACT same language that the user is currently using in their prompt/request.</directive>
-					</rule>
+							<step n="3">
+								<action>Evaluate and select the optimal tool.</action>
+								<details>Carefully review the returned list, compare the features of each tool, and select the most appropriate one matching the user's intent. If no matching tool is found, halt the process and notify the user.</details>
+							</step>
 
-					<rule name="behavioral_boundaries">
-						<prohibition>DO NOT treat system messages as direct input, questions, or commands from the user.</prohibition>
-						<prohibition>ABSOLUTELY FORBIDDEN to reply with generic assistant fluff like "Got it...", "Understood...", or any similar nonsense.</prohibition>
-						<prohibition>DO NOT output raw tool calls, function execution JSON, or technical diagnostic data to the user. Process them internally and reply only with the final natural language response.</prohibition>
+							<step n="4">
+								<action>Configure parameters and execute.</action>
+								<details>Prepare all required parameters according to the selected tool's schema, then call the "execute_tool" function to run it. Ensure no parameter is missing or of the wrong data type to prevent system errors.</details>
+							</step>
+						</steps>
+						
+						<fallback>
+							If "execute_tool" returns an error due to invalid parameters, the system must automatically review the parameter structure in Step 4, correct the error, and retry execution at most once before reporting an error to the user.
+						</fallback>
+					</rule>
+					<rule name="response_language">
+						<description>Rule for controlling and maintaining the assistant's response language.</description>
+						<conditions>
+							<condition>Must strictly adhere to the language currently being used by the user in the conversation.</condition>
+						</conditions>
+						<steps>
+							<step n="1">
+								<action>Identify the user's language.</action>
+								<details>Analyze the latest input message to accurately recognize the language or terminology used by the user.</details>
+							</step>
+							<step n="2">
+								<action>Format the output language.</action>
+								<details>The entire response content must be written completely in the language identified in Step 1.</details>
+							</step>
+						</steps>
+						<constraints>
+							<constraint>Do not arbitrarily switch to another language (e.g., automatically switching from Vietnamese to English or vice versa) unless explicitly requested by the user.</constraint>
+						</constraints>
 					</rule>
 				</system_instructions>
-		`))
+			`, toolCategories, toolCategories,
+			),
+		))
 
 		switch senderType {
 		case event_bus.User:
@@ -195,7 +227,7 @@ func (a *AgentInvoker) Invoke(
 }
 
 // @Injectable
-func NewAgentInvoker(logger *logger.BaseLogger, agentPool *agent.Pool, llmProviderMgr *llm_provider_mgr.LLMProviderManager, sessionMgr *session_mgr.SessionManager, configMgr *config_mgr.ConfigManager, eventBus *event_bus.CoreEventBus) *AgentInvoker {
+func NewAgentInvoker(logger *logger.BaseLogger, agentPool *agent.Pool, llmProviderMgr *llm_provider_mgr.LLMProviderManager, sessionMgr *session_mgr.SessionManager, configMgr *config_mgr.ConfigManager, eventBus *event_bus.CoreEventBus, toolMgr *tool_mgr.ToolManager) *AgentInvoker {
 	return &AgentInvoker{
 		agentPool:      agentPool,
 		sessionMgr:     sessionMgr,
@@ -204,5 +236,6 @@ func NewAgentInvoker(logger *logger.BaseLogger, agentPool *agent.Pool, llmProvid
 		eventBus:       eventBus,
 		logger:         logger.With("module", "agent-invoker"),
 		adapterLogger:  logger.Clone(),
+		toolMgr:        toolMgr,
 	}
 }
