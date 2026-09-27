@@ -1,12 +1,27 @@
 package helpers
 
-import "strings"
+import (
+	"strings"
+)
 
-func ContainsAnyKeyword(target string, keywords []string) bool {
+func ContainsAnyWord(target string, keywords []string) bool {
 	targetLower := strings.ToLower(target)
+
+	targetWords := strings.Fields(targetLower)
+
 	for _, kw := range keywords {
-		if strings.Contains(targetLower, strings.ToLower(kw)) {
-			return true
+		kwLower := strings.ToLower(strings.TrimSpace(kw))
+		if kwLower == "" {
+			continue
+		}
+
+		kwParts := strings.Fields(kwLower)
+		for _, part := range kwParts {
+			for _, tWord := range targetWords {
+				if tWord == part {
+					return true
+				}
+			}
 		}
 	}
 	return false
