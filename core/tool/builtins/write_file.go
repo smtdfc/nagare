@@ -50,4 +50,5 @@ var WriteFileTool = tool.DefineTool(
 
 		return &WriteFileOutput{Path: args.Path, Bytes: len(args.Content)}, nil
 	},
+	[]string{tool.FilesystemCategory},
 )

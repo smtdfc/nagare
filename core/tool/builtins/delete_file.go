@@ -43,4 +43,5 @@ var DeleteFileTool = tool.DefineTool(
 
 		return &DeleteFileOutput{Path: args.Path}, nil
 	},
+	[]string{tool.FilesystemCategory},
 )

@@ -14,7 +14,9 @@ type DynamicTool struct {
 }
 
 type ToolMetadata struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Args        string `json:"args"`
+	Name         string `json:"name"`
+	Description  string `json:"description"`
+	Args         string `json:"args"`
+	IsPluginTool bool   `json:"is_plugin_tool"`
+	PluginID     string `json:"plugin_id,omitempty"`
 }

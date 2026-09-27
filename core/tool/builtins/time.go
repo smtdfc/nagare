@@ -35,4 +35,5 @@ var TimeTool = tool.DefineTool(
 			UnixTime: now.Unix(),
 		}, nil
 	},
+	[]string{tool.TimingCategory},
 )

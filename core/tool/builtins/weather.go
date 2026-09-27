@@ -93,4 +93,5 @@ var WeatherTool = tool.DefineTool(
 			},
 		}, nil
 	},
+	[]string{tool.WeatherCategory},
 )

@@ -47,4 +47,5 @@ var CreateTaskTool = tool.DefineTool(
 			TaskID: taskID,
 		}, nil
 	},
+	[]string{tool.TaskManagementCategory},
 )

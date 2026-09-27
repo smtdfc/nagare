@@ -66,4 +66,5 @@ var VolumeControlTool = tool.DefineTool(
 			Message: fmt.Sprintf("Successfully executed volume action: %s", action),
 		}, nil
 	},
+	[]string{tool.AudioManagementCategory},
 )

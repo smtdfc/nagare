@@ -39,4 +39,5 @@ var KillProcessTool = tool.DefineTool(
 			Message: fmt.Sprintf("Successfully terminated process '%s' (PID: %d)", name, args.PID),
 		}, nil
 	},
+	[]string{tool.ProcessManagementCategory},
 )

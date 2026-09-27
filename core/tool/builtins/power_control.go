@@ -60,4 +60,5 @@ var PowerControlTool = tool.DefineTool(
 			Message: fmt.Sprintf("Successfully executed system action: %s", action),
 		}, nil
 	},
+	[]string{tool.PowerManagementCategory},
 )

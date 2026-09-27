@@ -52,4 +52,5 @@ var ListDirectoryTool = tool.DefineTool(
 
 		return &ListDirectoryOutput{Path: path, Entries: result}, nil
 	},
+	[]string{tool.FilesystemCategory},
 )

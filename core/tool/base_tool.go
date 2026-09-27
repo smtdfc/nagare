@@ -15,6 +15,11 @@ type BaseTool[I any, O any] struct {
 	Description string
 	Callback    BaseToolCallback[I, O]
 	Bindings    Bindings
+	Categories  []string
+}
+
+func (b *BaseTool[I, O]) GetCategories() []string {
+	return b.Categories
 }
 
 func (b *BaseTool[I, O]) GetBindings() Bindings {
@@ -76,11 +81,13 @@ func DefineTool[I any, O any](
 	name string,
 	description string,
 	cb BaseToolCallback[I, O],
+	categories []string,
 ) Tool {
 	tool := &BaseTool[I, O]{
 		Name:        name,
 		Description: description,
 		Callback:    cb,
+		Categories:  categories,
 	}
 
 	return tool

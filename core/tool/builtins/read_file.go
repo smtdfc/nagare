@@ -49,4 +49,5 @@ var ReadFileTool = tool.DefineTool(
 
 		return &ReadFileOutput{Path: args.Path, Content: string(content), Bytes: len(content)}, nil
 	},
+	[]string{tool.FilesystemCategory},
 )

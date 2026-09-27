@@ -24,4 +24,5 @@ var OpenBrowserTool = tool.DefineTool(
 
 		return &OpenBrowserOutput{}, nil
 	},
+	[]string{tool.BrowserCategory},
 )

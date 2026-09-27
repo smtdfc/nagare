@@ -3,109 +3,27 @@ package manager
 import (
 	context2 "context"
 	"errors"
-	"slices"
+	"strings"
 	"sync"
-	"time"
 
 	"github.com/smtdfc/nagare/core/context"
-	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/core/mappers"
-	"github.com/smtdfc/nagare/core/persistence/database/repositories"
-	task2 "github.com/smtdfc/nagare/core/task"
 	task_manager "github.com/smtdfc/nagare/core/task/manager"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/core/tool/registry"
 	"github.com/smtdfc/nagare/shared/helpers"
 )
 
-type ToolBindings struct {
-	taskMgr  *task_manager.TaskManager
-	toolMgr  *ToolManager
-	eventBus *event_bus.CoreEventBus
-}
-
-func (t *ToolBindings) FindToolsByKeywords(ctx *context.ExecuteContext, keywords []string) ([]tool.ToolMetadata, error) {
-	return t.toolMgr.FindToolsByKeywords(ctx.Context, keywords)
-}
-
-func (t ToolBindings) RefreshTask(ctx *context.ExecuteContext) {
-	t.eventBus.Publish(ctx, event_bus.RefreshTaskEvent, &event_bus.RefreshTaskEventPayload{})
-}
-
-func (t ToolBindings) CreateTask(ctx *context.ExecuteContext, sessionID, name, prompt string, triggerBy string, repeat bool, repeatRule string, startTime string, endTime string) (string, error) {
-	var triggerSources = []string{"scheduled"}
-	var repeatRules = []string{"no_repeat", "daily"}
-	if !slices.Contains(triggerSources, triggerBy) {
-		return "", errors.New("trigger source does not valid")
-	}
-
-	r := task2.NoRepeat
-	if repeat {
-		if !slices.Contains(repeatRules, repeatRule) {
-			return "", errors.New("repeat rule does not valid")
-		}
-		r = task2.MapTaskRepeatRuleToTaskRepeatRule(repeatRule)
-	}
-
-	var parsedStartTime *time.Time
-	if startTime != "" {
-		tStart, err := time.Parse(time.RFC3339, startTime)
-		if err != nil {
-			tStart, err = time.Parse("2006-01-02 15:04:05", startTime)
-			if err != nil {
-				return "", errors.New("startTime format is invalid, expected RFC3339 or YYYY-MM-DD HH:MM:SS")
-			}
-		}
-		parsedStartTime = &tStart
-	}
-
-	var parsedEndTime *time.Time
-	if endTime != "" {
-		tEnd, err := time.Parse(time.RFC3339, endTime)
-		if err != nil {
-			tEnd, err = time.Parse("2006-01-02 15:04:05", endTime)
-			if err != nil {
-				return "", errors.New("endTime format is invalid, expected RFC3339 or YYYY-MM-DD HH:MM:SS")
-			}
-		}
-		parsedEndTime = &tEnd
-	}
-
-	task, err := t.taskMgr.Create(ctx, name, sessionID, prompt, &task2.TaskTriggerRule{
-		By:        task2.MapTaskTriggerSourceToTaskSource(triggerBy),
-		StartTime: parsedStartTime,
-		EndTime:   parsedEndTime,
-		Repeat:    r,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return task.ID.String(), nil
-}
-
-func (t ToolBindings) GetTaskManager() *task_manager.TaskManager {
-	return t.taskMgr
-}
-
-func (t ToolBindings) CallTool(ctx *context.ExecuteContext, toolName string, args string) *tool.Result {
-	return t.toolMgr.Call(ctx, &tool.ToolCall{
-		CallID: time.Now().Format("20060102150405"),
-		Name:   toolName,
-		Args:   args,
-	})
-}
-
 type ToolManager struct {
-	mu                sync.RWMutex
-	cachedList        tool.ListTool
-	logger            *logger.BaseLogger
-	taskMgr           *task_manager.TaskManager
-	eventBus          *event_bus.CoreEventBus
-	dynamicToolRepo   *repositories.DynamicToolRepository
-	dynamicToolMapper *mappers.DynamicToolMapper
+	mu         sync.RWMutex
+	cachedList tool.ListTool
+	logger     *logger.BaseLogger
+	taskMgr    *task_manager.TaskManager
+	eventBus   *event_bus.CoreEventBus
+
+	toolCategories       []string
+	pluginToolCategories map[string][]string
 }
 
 func (t *ToolManager) createBindings() *ToolBindings {
@@ -158,15 +76,6 @@ func (t *ToolManager) Call(ctx *context.ExecuteContext, toolCall *tool.ToolCall)
 	return toolResultBuilder.Success(result).Build()
 }
 
-func (t *ToolManager) UseDynamicTools(ctx context2.Context, dynamicTools []*tool.DynamicTool) error {
-	err := t.dynamicToolRepo.UpsertBatch(t.dynamicToolMapper.ToEntities(dynamicTools))
-	if err != nil {
-		return custom_errors.ErrAddDynamicToolFailed
-	}
-
-	return nil
-}
-
 func (t *ToolManager) FindToolsByKeywords(ctx context2.Context, keywords []string) ([]tool.ToolMetadata, error) {
 	list := make([]tool.ToolMetadata, 0)
 
@@ -175,14 +84,23 @@ func (t *ToolManager) FindToolsByKeywords(ctx context2.Context, keywords []strin
 			continue
 		}
 
-		nameMatch := helpers.ContainsAnyKeyword(item.Tool.GetName(), keywords)
-		descMatch := helpers.ContainsAnyKeyword(item.Tool.GetDescription(), keywords)
+		nameMatch := helpers.ContainsAnyWord(item.Tool.GetName(), keywords)
+		descMatch := helpers.ContainsAnyWord(item.Tool.GetDescription(), keywords)
+		categoriesMatch := false
+		for _, category := range item.Tool.GetCategories() {
+			if helpers.ContainsAnyWord(category, keywords) {
+				categoriesMatch = true
+				break
+			}
+		}
 
-		if nameMatch || descMatch {
+		if nameMatch || descMatch || categoriesMatch {
 			list = append(list, tool.ToolMetadata{
-				Name:        item.Tool.GetName(),
-				Description: item.Tool.GetDescription(),
-				Args:        item.Tool.GetArgsSchema(),
+				Name:         item.Tool.GetName(),
+				Description:  item.Tool.GetDescription(),
+				Args:         item.Tool.GetArgsSchema(),
+				PluginID:     item.PluginID,
+				IsPluginTool: item.IsPluginTool,
 			})
 		}
 	}
@@ -190,13 +108,82 @@ func (t *ToolManager) FindToolsByKeywords(ctx context2.Context, keywords []strin
 	return list, nil
 }
 
+func (t *ToolManager) GetCategoriesString() string {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+
+	allCategories := make([]string, len(t.toolCategories))
+	copy(allCategories, t.toolCategories)
+
+	for _, pluginCategories := range t.pluginToolCategories {
+		allCategories = append(allCategories, pluginCategories...)
+	}
+
+	categorySet := make(map[string]struct{})
+	for _, category := range allCategories {
+		categorySet[category] = struct{}{}
+	}
+
+	uniqueCategories := make([]string, 0, len(categorySet))
+	for category := range categorySet {
+		uniqueCategories = append(uniqueCategories, category)
+	}
+
+	return strings.Join(uniqueCategories, ", ")
+}
+
+func (t *ToolManager) GetPluginToolCategoriesString(pluginID string) string {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+
+	if categories, exists := t.pluginToolCategories[pluginID]; exists {
+		return strings.Join(categories, ", ")
+	}
+	return strings.Join(t.toolCategories, ", ")
+}
+
+func (t *ToolManager) AddCategory(category string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	for _, existingCategory := range t.toolCategories {
+		if existingCategory == category {
+			return
+		}
+	}
+
+	t.toolCategories = append(t.toolCategories, category)
+}
+
+func (t *ToolManager) AddPluginToolCategories(pluginID string, categories []string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if _, exists := t.pluginToolCategories[pluginID]; exists {
+		t.pluginToolCategories[pluginID] = append(t.pluginToolCategories[pluginID], categories...)
+	} else {
+		t.pluginToolCategories[pluginID] = categories
+	}
+}
+
 // @Injectable
-func NewToolManager(logger *logger.BaseLogger, taskMgr *task_manager.TaskManager, eventBus *event_bus.CoreEventBus, dynamicToolRepo *repositories.DynamicToolRepository, dynamicToolMapper *mappers.DynamicToolMapper) *ToolManager {
+func NewToolManager(logger *logger.BaseLogger, taskMgr *task_manager.TaskManager, eventBus *event_bus.CoreEventBus) *ToolManager {
 	return &ToolManager{
-		logger:            logger.With("module", "tool-manager"),
-		taskMgr:           taskMgr,
-		eventBus:          eventBus,
-		dynamicToolRepo:   dynamicToolRepo,
-		dynamicToolMapper: dynamicToolMapper,
+		logger:   logger.With("module", "tool-manager"),
+		taskMgr:  taskMgr,
+		eventBus: eventBus,
+		toolCategories: []string{
+			tool.ProcessManagementCategory,
+			tool.PowerManagementCategory,
+			tool.AudioManagementCategory,
+			tool.FilesystemCategory,
+			tool.BrowserCategory,
+			tool.WeatherCategory,
+			tool.NetworkingCategory,
+			tool.TaskManagementCategory,
+			tool.ToolRoutingCategory,
+			tool.TimingCategory,
+		},
+		pluginToolCategories: make(map[string][]string),
 	}
 }

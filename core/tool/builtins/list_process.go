@@ -67,4 +67,5 @@ var ListProcessTool = tool.DefineTool(
 			Total:     len(procList),
 		}, nil
 	},
+	[]string{tool.ProcessManagementCategory},
 )

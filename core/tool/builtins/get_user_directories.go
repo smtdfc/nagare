@@ -21,4 +21,5 @@ var GetUserDirectoriesTool = tool.DefineTool(
 
 		return &GetUserDirectoriesOutput{Directories: directories}, nil
 	},
+	[]string{tool.FilesystemCategory},
 )

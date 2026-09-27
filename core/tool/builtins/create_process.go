@@ -37,4 +37,5 @@ var CreateProcessTool = tool.DefineTool(
 			Command: args.Command,
 		}, nil
 	},
+	[]string{tool.ProcessManagementCategory},
 )
