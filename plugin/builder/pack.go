@@ -11,7 +11,7 @@ import (
 )
 
 func prepareDirectories(cwd, packageName string) (pkgDir, binFile, sigFile string, err error) {
-	pkgDir = filepath.Join(cwd, "pkgs")
+	pkgDir = filepath.Join(cwd, "pkg")
 	binDir := filepath.Join(pkgDir, "bin")
 
 	binFileName := packageName
