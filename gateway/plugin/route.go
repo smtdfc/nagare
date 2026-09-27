@@ -15,7 +15,7 @@ type PluginRouteInitializer func(app *fiber.App, ws *websocket.Coordinator)
 // @Injectable
 func NewRouteInitializer(
 	pluginController *PluginController,
-	websocketHandler *ChatWebsocketHandler,
+	websocketHandler *PluginWebsocketHandler,
 	appConfig *config.Config,
 	authGuard *guards.AuthGuard,
 ) PluginRouteInitializer {
@@ -33,5 +33,6 @@ func NewRouteInitializer(
 		ws.On(plugin_dtos.PrepareChatSessionEvent, websocketHandler.OnPrepareChatSession)
 		ws.On(plugin_dtos.SendChatMessageEvent, websocketHandler.OnSendChatMessage)
 		ws.On(plugin_dtos.ResetChatChannelEvent, websocketHandler.OnResetChatChannel)
+		ws.On(plugin_dtos.RegisterDynamicToolsEvent, websocketHandler.OnRegisterDynamicTool)
 	}
 }

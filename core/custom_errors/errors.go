@@ -50,5 +50,7 @@ var (
 	ErrGetUpcomingTaskFailed          = NewNagareCoreError("GET_UPCOMING_TASK_FAILED", "Failed to get upcoming task")
 	ErrMarkTaskQueuedFailed           = NewNagareCoreError("MARK_TASK_QUEUED_FAILED", "Failed to mark task queued")
 	ErrCancelTaskQueuedFailed         = NewNagareCoreError("CANCEL_TASK_QUEUED_FAILED", "Failed to cancel task queued")
+	ErrAddDynamicToolFailed           = NewNagareCoreError("ADD_DYNAMIC_TOOL_FAILED", "Failed to add dynamic tool")
+	ErrFindDynamicToolFailed          = NewNagareCoreError("FIND_DYNAMIC_TOOL_FAILED", "Failed to find dynamic tool")
 	ErrUnknown                        = NewNagareCoreError("UNKNOWN_ERROR", "Unknown error occurred")
 )

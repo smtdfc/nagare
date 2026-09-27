@@ -9,7 +9,7 @@ import (
 )
 
 type KillProcessInput struct {
-	PID int32 `json:"pid"` // PID of the process to be terminated
+	PID int32 `json:"pid" jsonschema_description:"The Process ID (PID) of the process to be terminated. This should be a positive integer representing the unique identifier of the running process."`
 }
 
 type KillProcessOutput struct {

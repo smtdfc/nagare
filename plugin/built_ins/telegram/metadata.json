@@ -1,5 +1,5 @@
 {
-  "id": "nagare.plugins.telegram",
+  "package_name": "nagare.plugins.telegram",
   "name": "Nagare Telegram plugin",
   "author": "smtdfc",
   "version": "1.0.0",

@@ -1,14 +1,18 @@
 package manager
 
 import (
+	context2 "context"
 	"errors"
 	"slices"
 	"sync"
 	"time"
 
 	"github.com/smtdfc/nagare/core/context"
+	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/logger"
+	"github.com/smtdfc/nagare/core/mappers"
+	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	task2 "github.com/smtdfc/nagare/core/task"
 	task_manager "github.com/smtdfc/nagare/core/task/manager"
 	"github.com/smtdfc/nagare/core/tool"
@@ -17,7 +21,13 @@ import (
 
 type ToolBindings struct {
 	taskMgr  *task_manager.TaskManager
+	toolMgr  *ToolManager
 	eventBus *event_bus.CoreEventBus
+}
+
+// FindDynamicToolsByKeywords implements [tool.Bindings].
+func (t *ToolBindings) FindDynamicToolsByKeywords(ctx *context.ExecuteContext, keywords []string) ([]*tool.DynamicTool, error) {
+	return t.toolMgr.FindDynamicToolsByKeywords(ctx.Context, keywords)
 }
 
 func (t ToolBindings) RefreshTask(ctx *context.ExecuteContext) {
@@ -81,17 +91,20 @@ func (t ToolBindings) GetTaskManager() *task_manager.TaskManager {
 }
 
 type ToolManager struct {
-	mu         sync.RWMutex
-	cachedList tool.ListTool
-	logger     *logger.BaseLogger
-	taskMgr    *task_manager.TaskManager
-	eventBus   *event_bus.CoreEventBus
+	mu                sync.RWMutex
+	cachedList        tool.ListTool
+	logger            *logger.BaseLogger
+	taskMgr           *task_manager.TaskManager
+	eventBus          *event_bus.CoreEventBus
+	dynamicToolRepo   *repositories.DynamicToolRepository
+	dynamicToolMapper *mappers.DynamicToolMapper
 }
 
 func (t *ToolManager) createBindings() *ToolBindings {
 	return &ToolBindings{
 		taskMgr:  t.taskMgr,
 		eventBus: t.eventBus,
+		toolMgr:  t,
 	}
 }
 
@@ -135,11 +148,31 @@ func (t *ToolManager) Call(ctx *context.ExecuteContext, toolCall *tool.ToolCall)
 	return toolResultBuilder.Success(result).Build()
 }
 
+func (t *ToolManager) UseDynamicTools(ctx context2.Context, dynamicTools []*tool.DynamicTool) error {
+	err := t.dynamicToolRepo.UpsertBatch(t.dynamicToolMapper.ToEntities(dynamicTools))
+	if err != nil {
+		return custom_errors.ErrAddDynamicToolFailed
+	}
+
+	return nil
+}
+
+func (t *ToolManager) FindDynamicToolsByKeywords(ctx context2.Context, keywords []string) ([]*tool.DynamicTool, error) {
+	entities, err := t.dynamicToolRepo.FindByKeywords(keywords)
+	if err != nil {
+		return nil, custom_errors.ErrFindDynamicToolFailed
+	}
+	
+	return t.dynamicToolMapper.ToDomains(entities), nil
+}
+
 // @Injectable
-func NewToolManager(logger *logger.BaseLogger, taskMgr *task_manager.TaskManager, eventBus *event_bus.CoreEventBus) *ToolManager {
+func NewToolManager(logger *logger.BaseLogger, taskMgr *task_manager.TaskManager, eventBus *event_bus.CoreEventBus, dynamicToolRepo *repositories.DynamicToolRepository, dynamicToolMapper *mappers.DynamicToolMapper) *ToolManager {
 	return &ToolManager{
-		logger:   logger.With("module", "tool-manager"),
-		taskMgr:  taskMgr,
-		eventBus: eventBus,
+		logger:            logger.With("module", "tool-manager"),
+		taskMgr:           taskMgr,
+		eventBus:          eventBus,
+		dynamicToolRepo:   dynamicToolRepo,
+		dynamicToolMapper: dynamicToolMapper,
 	}
 }

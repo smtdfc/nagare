@@ -15,20 +15,22 @@ import (
 )
 
 type PluginClient struct {
+	mu                    sync.Mutex
 	Metadata              *metadata.PluginMetadata
-	Config                *Config
+	ConnectConfig         *ConnectConfig
+	ConfigDir             string
 	Logger                *slog.Logger
 	connector             *Connector
-	mu                    sync.Mutex
 	pendingRequests       map[string]chan *websocket.Payload[any]
+	dynamicTools          []DynamicTool
 	OnReceivedChatMessage func(sessionID string, channelID string, chunk string)
 }
 
 func (p *PluginClient) Start(ctx context.Context, onStart func()) error {
-	p.Config.Port = os.Getenv("NAGARE_PLUGIN_HOST_PORT")
-	p.Config.ConnectCode = os.Getenv("NAGARE_PLUGIN_CONNECT_CODE")
+	p.ConnectConfig.Port = os.Getenv("NAGARE_PLUGIN_HOST_PORT")
+	p.ConnectConfig.ConnectCode = os.Getenv("NAGARE_PLUGIN_CONNECT_CODE")
 
-	err := p.connector.Connect(ctx, fmt.Sprintf("ws://127.0.0.1:%s/ws", p.Config.Port))
+	err := p.connector.Connect(ctx, fmt.Sprintf("ws://127.0.0.1:%s/ws", p.ConnectConfig.Port))
 	if err != nil {
 		p.Logger.Error("Start plugin error", "error", err)
 		return err
@@ -44,6 +46,9 @@ func (p *PluginClient) handleEvent(payload *websocket.Payload[any]) {
 		plugin_dtos.PrepareChatSessionFailedEvent,
 		plugin_dtos.PrepareChatSessionSuccessEvent,
 		plugin_dtos.HandshakeFailedEvent,
+		plugin_dtos.RegisterDynamicToolsEvent,
+		plugin_dtos.RegisterDynamicToolsSuccessEvent,
+		plugin_dtos.RegisterDynamicToolsErrorEvent,
 		plugin_dtos.SendChatMessageSuccessEvent,
 		plugin_dtos.SendChatMessageFailedEvent,
 		plugin_dtos.ResetChatChannelSuccessEvent,
@@ -81,12 +86,14 @@ func NewPlugin() *PluginClient {
 	})
 
 	p := &PluginClient{
-		Config:                &Config{},
+		ConnectConfig:         &ConnectConfig{},
 		pendingRequests:       make(map[string]chan *websocket.Payload[any]),
 		OnReceivedChatMessage: func(sessionID string, _ string, chunk string) {},
 		Logger:                slog.New(handler),
+		dynamicTools:          make([]DynamicTool, 0),
 	}
 
+	p.ConfigDir = os.Getenv("NAGARE_PLUGIN_CONFIG_DIR")
 	p.connector = NewConnector(p.handleEvent)
 	return p
 }

@@ -11,4 +11,6 @@ var (
 	ErrHandshakeTimeout         = errors.New("handshake timeout")
 	ErrHandshakeCancelled       = errors.New("handshake cancelled")
 	ErrPrepareChatSessionFailed = errors.New("prepare chat session failed")
+	ErrIncorrectToolArgs        = errors.New("incorrect tool args")
+	ErrMarshalToolResultFailed  = errors.New("marshal results failed")
 )

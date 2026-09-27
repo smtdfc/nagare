@@ -13,20 +13,33 @@ import (
 	core_plugin "github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/core/plugin/manager"
 	session_mgr "github.com/smtdfc/nagare/core/session/manager"
+	"github.com/smtdfc/nagare/core/tool"
+	manager2 "github.com/smtdfc/nagare/core/tool/manager"
 	plugin_dtos "github.com/smtdfc/nagare/dtos/plugin"
 	"github.com/smtdfc/nagare/dtos/websocket"
 	websocket2 "github.com/smtdfc/nagare/gateway/common/websocket"
+	"github.com/smtdfc/nagare/shared/helpers"
 )
 
-type ChatWebsocketHandler struct {
+type PluginWebsocketHandler struct {
 	pluginMgr         *manager.PluginManager
+	toolMgr           *manager2.ToolManager
 	sessionMgr        *session_mgr.SessionManager
 	chatEventBus      *event_bus.CoreEventBus
 	logger            *logger.BaseLogger
 	pluginConnections map[string]*melody.Session
 }
 
-func (w *ChatWebsocketHandler) OnHandshakeEvent(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
+func toDomain(dto plugin_dtos.DynamicTool, pluginID uuid.UUID) *tool.DynamicTool {
+	return &tool.DynamicTool{
+		Name:        dto.Name,
+		Description: dto.Description,
+		Args:        dto.ArgsSchema,
+		PluginID:    pluginID,
+	}
+}
+
+func (w *PluginWebsocketHandler) OnHandshakeEvent(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
 	ctx := context.Background()
 	data, err := websocket2.GetData[plugin_dtos.HandshakeEventPayload](message)
 	if err != nil {
@@ -37,10 +50,10 @@ func (w *ChatWebsocketHandler) OnHandshakeEvent(s *melody.Session, ws *websocket
 		return
 	}
 
-	w.logger.Info("Handshaking with plugin", "pluginID", data.PluginID)
-	pluginInfo, err := w.pluginMgr.ValidConnect(ctx, data.PluginID, data.ConnectCode)
+	w.logger.Info("Handshaking with plugin", "packageName", data.PackageName)
+	pluginInfo, err := w.pluginMgr.ValidConnect(ctx, data.PackageName, data.ConnectCode)
 	if err != nil {
-		w.logger.Error("Handshake failed", "pluginID", data.PluginID, "cause", err)
+		w.logger.Error("Handshake failed", "packageName", data.PackageName, "cause", err)
 		_ = websocket2.SendMessage(s, plugin_dtos.HandshakeFailedEvent, &plugin_dtos.HandshakeFailedEventPayload{
 			ID:    data.ID,
 			Cause: err.Error(),
@@ -55,7 +68,7 @@ func (w *ChatWebsocketHandler) OnHandshakeEvent(s *melody.Session, ws *websocket
 
 	s.Set("auth", &websocket2.AuthData{
 		TargetType: "plugin",
-		TargetID:   data.PluginID,
+		TargetID:   pluginInfo.ID.String(),
 		Scopes:     scopes,
 	})
 
@@ -66,10 +79,10 @@ func (w *ChatWebsocketHandler) OnHandshakeEvent(s *melody.Session, ws *websocket
 	if err != nil {
 		return
 	}
-	w.logger.Info("Handshake success", "pluginID", data.PluginID)
+	w.logger.Info("Handshake success", "packageName", data.PackageName)
 }
 
-func (w *ChatWebsocketHandler) OnPrepareChatSession(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
+func (w *PluginWebsocketHandler) OnPrepareChatSession(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
 	ctx := context.Background()
 	data, err := websocket2.GetData[plugin_dtos.PrepareChatSessionEventPayload](message)
 	if err != nil {
@@ -120,7 +133,7 @@ func (w *ChatWebsocketHandler) OnPrepareChatSession(s *melody.Session, ws *webso
 
 }
 
-func (w *ChatWebsocketHandler) OnSendChatMessage(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
+func (w *PluginWebsocketHandler) OnSendChatMessage(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
 	ctx := context.Background()
 	data, err := websocket2.GetData[plugin_dtos.SendChatMessageEventPayload](message)
 	if err != nil {
@@ -164,7 +177,7 @@ func (w *ChatWebsocketHandler) OnSendChatMessage(s *melody.Session, ws *websocke
 	}, message.RequestID)
 }
 
-func (w *ChatWebsocketHandler) OnResetChatChannel(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
+func (w *PluginWebsocketHandler) OnResetChatChannel(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
 	ctx := context.Background()
 	data, err := websocket2.GetData[plugin_dtos.ResetChatChannelEventPayload](message)
 	if err != nil {
@@ -194,7 +207,54 @@ func (w *ChatWebsocketHandler) OnResetChatChannel(s *melody.Session, ws *websock
 	}, message.RequestID)
 }
 
-func (w *ChatWebsocketHandler) getPluginAuth(s *melody.Session) (*websocket2.AuthData, error) {
+func (w *PluginWebsocketHandler) OnRegisterDynamicTool(s *melody.Session, ws *websocket2.Coordinator, message *websocket.Payload[any]) {
+	ctx := context.Background()
+	data, err := websocket2.GetData[plugin_dtos.RegisterDynamicToolsPayload](message)
+	if err != nil {
+		_ = websocket2.SendMessage(s, plugin_dtos.RegisterDynamicToolsErrorEvent, &plugin_dtos.RegisterDynamicToolsErrorPayload{
+			Cause: "failed to parsing payload",
+		}, message.RequestID)
+		return
+	}
+	auth, err := w.getPluginAuth(s)
+	if err != nil {
+		_ = websocket2.SendMessage(s, plugin_dtos.RegisterDynamicToolsErrorEvent, &plugin_dtos.RegisterDynamicToolsErrorPayload{
+			Cause: err.Error(),
+		}, message.RequestID)
+		return
+	}
+
+	if !slices.Contains(auth.Scopes, core_plugin.DynamicToolFeature.ToString()) {
+		_ = websocket2.SendMessage(s, plugin_dtos.RegisterDynamicToolsErrorEvent, &plugin_dtos.RegisterDynamicToolsErrorPayload{
+			Cause: "Plugin not supported this feature",
+		}, message.RequestID)
+		return
+	}
+
+	pluginID, err := uuid.Parse(auth.TargetID)
+	if err != nil {
+		_ = websocket2.SendMessage(s, plugin_dtos.RegisterDynamicToolsErrorEvent, &plugin_dtos.RegisterDynamicToolsErrorPayload{
+			Cause: "Failed to parse plugin ID",
+		}, message.RequestID)
+		return
+	}
+
+	domains := helpers.SliceMap(data.Tools, func(d plugin_dtos.DynamicTool) *tool.DynamicTool {
+		return toDomain(d, pluginID)
+	})
+
+	err = w.toolMgr.UseDynamicTools(ctx, domains)
+	if err != nil {
+		_ = websocket2.SendMessage(s, plugin_dtos.RegisterDynamicToolsErrorEvent, &plugin_dtos.RegisterDynamicToolsErrorPayload{
+			Cause: err.Error(),
+		}, message.RequestID)
+		return
+	}
+
+	_ = websocket2.SendMessage(s, plugin_dtos.RegisterDynamicToolsSuccessEvent, &plugin_dtos.RegisterDynamicToolsSuccessPayload{}, message.RequestID)
+}
+
+func (w *PluginWebsocketHandler) getPluginAuth(s *melody.Session) (*websocket2.AuthData, error) {
 	value, exist := s.Get("auth")
 	if !exist {
 		return nil, errors.New("access denied")
@@ -212,12 +272,14 @@ func (w *ChatWebsocketHandler) getPluginAuth(s *melody.Session) (*websocket2.Aut
 func NewWebsocketHandler(
 	pluginMgr *manager.PluginManager,
 	sessionMgr *session_mgr.SessionManager,
+	toolMgr *manager2.ToolManager,
 	chatEventBus *event_bus.CoreEventBus,
 	logger *logger.BaseLogger,
-) *ChatWebsocketHandler {
-	return &ChatWebsocketHandler{
+) *PluginWebsocketHandler {
+	return &PluginWebsocketHandler{
 		pluginMgr:    pluginMgr,
 		sessionMgr:   sessionMgr,
+		toolMgr:      toolMgr,
 		chatEventBus: chatEventBus,
 		logger:       logger,
 	}

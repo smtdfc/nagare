@@ -10,16 +10,16 @@ import (
 	"runtime"
 )
 
-func prepareDirectories(cwd, pluginID string) (pkgDir, binFile, sigFile string, err error) {
+func prepareDirectories(cwd, packageName string) (pkgDir, binFile, sigFile string, err error) {
 	pkgDir = filepath.Join(cwd, "pkgs")
 	binDir := filepath.Join(pkgDir, "bin")
 
-	binFileName := pluginID
+	binFileName := packageName
 	if runtime.GOOS == "windows" {
 		binFileName += ".exe"
 	}
 	binFile = filepath.Join(binDir, binFileName)
-	sigFile = filepath.Join(pkgDir, pluginID+".sig")
+	sigFile = filepath.Join(pkgDir, packageName+".sig")
 
 	if err = os.MkdirAll(pkgDir, 0775); err != nil {
 		return

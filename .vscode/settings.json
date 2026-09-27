@@ -5,6 +5,8 @@
     "dtos",
     "godbus",
     "gofiber",
+    "invopop",
+    "jsonschema",
     "Meteo",
     "Nagare",
     "smtdfc",

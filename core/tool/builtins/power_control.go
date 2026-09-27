@@ -10,7 +10,7 @@ import (
 )
 
 type PowerControlInput struct {
-	Action string `json:"action"` // "shutdown", "restart", "suspend", "hibernate", "logout"
+	Action string `json:"action" jsonschema_description:"Specifies the power action to be performed. Supported actions include 'shutdown', 'restart', 'suspend', 'hibernate', and 'logout'."`
 }
 
 type PowerControlOutput struct {

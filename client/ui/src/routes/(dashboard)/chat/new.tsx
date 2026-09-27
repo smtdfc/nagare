@@ -58,7 +58,7 @@ function RouteComponent() {
         </p>
       </div>
       <ChatSuggestions
-        onSelect={(prompt) => {
+        onSelect={(_prompt) => {
           reset();
         }}
         suggestions={suggestions}

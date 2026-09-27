@@ -22,7 +22,7 @@ const (
 type HandshakeEventPayload struct {
 	// Deprecated: use RequestID instead
 	ID          string `json:"id"`
-	PluginID    string `json:"PluginID"`
+	PackageName string `json:"packageName"`
 	ConnectCode string `json:"connectCode"`
 }
 

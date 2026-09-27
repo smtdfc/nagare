@@ -75,11 +75,11 @@ func (p *PluginRepository) FindActive(ctx context.Context) ([]*entities.Plugin, 
 	return plugins, nil
 }
 
-func (p *PluginRepository) FindByPluginId(ctx context.Context, pluginId string) (*entities.Plugin, error) {
+func (p *PluginRepository) FindByPackageName(ctx context.Context, packageName string) (*entities.Plugin, error) {
 	var plugin entities.Plugin
 
 	err := p.db.WithContext(ctx).
-		Where("plugin_id = ?", pluginId).
+		Where("package_name = ?", packageName).
 		First(&plugin).Error
 
 	if err != nil {
@@ -87,7 +87,7 @@ func (p *PluginRepository) FindByPluginId(ctx context.Context, pluginId string) 
 			return nil, nil
 		}
 
-		p.logger.Error("Failed to get  plugin", "error", err, "pluginId", pluginId)
+		p.logger.Error("Failed to get plugin", "error", err, "packageName", packageName)
 		return nil, fmt.Errorf("failed to get plugin: %w", err)
 	}
 
@@ -97,7 +97,7 @@ func (p *PluginRepository) FindByPluginId(ctx context.Context, pluginId string) 
 func (p *PluginRepository) CreateOrUpdate(ctx context.Context, plugin *entities.Plugin) (*entities.Plugin, error) {
 	err := p.db.WithContext(ctx).
 		Clauses(clause.OnConflict{
-			Columns: []clause.Column{{Name: "plugin_id"}},
+			Columns: []clause.Column{{Name: "package_name"}},
 			DoUpdates: clause.AssignmentColumns([]string{
 				"name",
 				"author",
@@ -111,7 +111,7 @@ func (p *PluginRepository) CreateOrUpdate(ctx context.Context, plugin *entities.
 		Create(plugin).Error
 
 	if err != nil {
-		p.logger.Error("Failed to create or update plugin", "plugin_id", plugin.PluginID, "error", err)
+		p.logger.Error("Failed to create or update plugin", "package_name", plugin.PackageName, "error", err)
 		return nil, fmt.Errorf("failed to create or update plugin: %w", err)
 	}
 
@@ -121,7 +121,7 @@ func (p *PluginRepository) CreateOrUpdate(ctx context.Context, plugin *entities.
 func (p *PluginRepository) Update(ctx context.Context, plugin *entities.Plugin) error {
 	err := p.db.WithContext(ctx).Save(plugin).Error
 	if err != nil {
-		p.logger.Error("Failed to update plugin", "plugin_id", plugin.PluginID, "error", err)
+		p.logger.Error("Failed to update plugin", "package_name", plugin.PackageName, "error", err)
 		return fmt.Errorf("failed to update plugin: %w", err)
 	}
 

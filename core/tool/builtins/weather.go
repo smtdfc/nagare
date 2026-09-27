@@ -36,8 +36,8 @@ type OpenMeteoApiResponse struct {
 }
 
 type WeatherToolInput struct {
-	Lat float32
-	Lng float32
+	Lat float32 `json:"lat" jsonschema_description:"Latitude of the location for which to retrieve weather information. The value should be a floating-point number representing the geographic latitude in degrees."`
+	Lng float32 `json:"lng" jsonschema_description:"Longitude of the location for which to retrieve weather information. The value should be a floating-point number representing the geographic longitude in degrees."`
 }
 
 type WeatherValue[T any] struct {
@@ -54,7 +54,7 @@ type WeatherToolOutput struct {
 
 var WeatherTool = tool.DefineTool(
 	"weather_tool",
-	"Get weather",
+	"Fetches current weather information for a specified geographic location. The tool retrieves data such as temperature, wind speed, relative humidity, and weather code based on the provided latitude and longitude coordinates.",
 	func(ctx *context.ExecuteContext, args *WeatherToolInput, _ tool.Bindings) (*WeatherToolOutput, error) {
 		apiURL := fmt.Sprintf("https://api.open-meteo.com/v1/forecast?latitude=%f&longitude=%f&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weathercode",
 			args.Lat, args.Lng)

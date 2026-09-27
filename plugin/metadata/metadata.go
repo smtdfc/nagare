@@ -9,18 +9,18 @@ type PluginBinaryMetadata map[string]string
 type PluginFeatures []string
 
 type PluginMetadata struct {
-	ID         string               `json:"id"`
-	Name       string               `json:"name"`
-	Version    string               `json:"version"`
-	ApiVersion string               `json:"api_version"`
-	Author     string               `json:"author"`
-	Bin        PluginBinaryMetadata `json:"bin"`
-	Features   PluginFeatures       `json:"features"`
+	PackageName string               `json:"package_name"`
+	Name        string               `json:"name"`
+	Version     string               `json:"version"`
+	ApiVersion  string               `json:"api_version"`
+	Author      string               `json:"author"`
+	Bin         PluginBinaryMetadata `json:"bin"`
+	Features    PluginFeatures       `json:"features"`
 }
 
 func (m *PluginMetadata) Validate() error {
-	if strings.TrimSpace(m.ID) == "" {
-		return errors.New("plugin metadata 'id' is required")
+	if strings.TrimSpace(m.PackageName) == "" {
+		return errors.New("plugin metadata 'package_name' is required")
 	}
 	if strings.TrimSpace(m.Name) == "" {
 		return errors.New("plugin metadata 'name' is required")

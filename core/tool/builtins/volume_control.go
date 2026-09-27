@@ -10,8 +10,8 @@ import (
 )
 
 type VolumeControlInput struct {
-	Action string `json:"action"` // "set", "get", "mute", "unmute", "increment", "decrement"
-	Value  int    `json:"value"`  // Giá trị tương ứng cho action (ví dụ: 50 cho set, 10 cho tăng/giảm)
+	Action string `json:"action" jsonschema_description:"Specifies the volume action to be performed. Supported actions include 'set', 'get', 'mute', 'unmute', 'increment', and 'decrement'.`
+	Value  int    `json:"value" jsonschema_description:"The value to be used for the volume action. For 'set', this is the desired volume level. For 'increment' and 'decrement', this is the amount to change the volume by."`
 }
 
 type VolumeControlOutput struct {

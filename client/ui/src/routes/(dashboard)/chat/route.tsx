@@ -21,7 +21,7 @@ export const Route = createFileRoute("/(dashboard)/chat")({
 
 function RouteComponent() {
   const navigate = useNavigate();
-  const [chatData, setChatData] = useState<ChatData>({
+  const [chatData] = useState<ChatData>({
     text: "",
   });
   const isProcessing = useChat((c) => c.isProcessing);

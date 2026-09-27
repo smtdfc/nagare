@@ -32,7 +32,7 @@ func Build() {
 	printSuccess()
 
 	printStep("Generating package structure")
-	pkgDir, binFile, sigFile, err := prepareDirectories(cwd, pluginMetadata.ID)
+	pkgDir, binFile, sigFile, err := prepareDirectories(cwd, pluginMetadata.PackageName)
 	if err != nil {
 		printError("%v", err)
 		return
@@ -60,7 +60,7 @@ func Build() {
 	}
 	printSuccess()
 
-	outputPackage := pluginMetadata.ID + ".nagare_plugin"
+	outputPackage := pluginMetadata.PackageName + ".nagare_plugin"
 	printStep(fmt.Sprintf("Packing into archive (%s)", outputPackage))
 	if err := packPlugin(pkgDir, outputPackage); err != nil {
 		printError("%v", err)

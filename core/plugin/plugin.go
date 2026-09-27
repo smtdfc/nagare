@@ -9,7 +9,8 @@ import (
 type Feature string
 
 const (
-	ChatFeature Feature = "chat"
+	ChatFeature        Feature = "chat"
+	DynamicToolFeature Feature = "dynamic_tool"
 )
 
 func (p Feature) ToString() string {
@@ -23,6 +24,8 @@ func ParseFeatureString(raw string) []Feature {
 		switch p {
 		case string(ChatFeature):
 			features = append(features, ChatFeature)
+		case string(DynamicToolFeature):
+			features = append(features, DynamicToolFeature)
 		}
 	}
 
@@ -30,14 +33,14 @@ func ParseFeatureString(raw string) []Feature {
 }
 
 type Plugin struct {
-	ID       uuid.UUID
-	PluginID string
-	Name     string
-	Author   string
-	Features []Feature
-	Version  string
-	Bin      string
-	IsActive bool
+	ID          uuid.UUID
+	PackageName string
+	Name        string
+	Author      string
+	Features    []Feature
+	Version     string
+	Bin         string
+	IsActive    bool
 }
 
 func (p *Plugin) ToFeaturesString() string {
@@ -51,7 +54,7 @@ func (p *Plugin) ToFeaturesString() string {
 
 type PluginStatus struct {
 	PID         string
-	PluginID    string
+	PackageName string
 	Name        string
 	Version     string
 	CPUPercent  float64

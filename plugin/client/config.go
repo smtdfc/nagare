@@ -1,7 +1,6 @@
 package client
 
-type Config struct {
-	PluginID    string
+type ConnectConfig struct {
 	Port        string
 	ConnectCode string
 }

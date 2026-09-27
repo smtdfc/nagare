@@ -7,6 +7,7 @@ import (
 type Bindings interface {
 	RefreshTask(ctx *context2.ExecuteContext)
 	CreateTask(ctx *context2.ExecuteContext, sessionID string, name string, prompt string, triggerBy string, repeat bool, repeatRule string, startTime string, endTime string) (string, error)
+	FindDynamicToolsByKeywords(ctx *context2.ExecuteContext, keywords []string) ([]*DynamicTool, error)
 }
 
 type Tool interface {

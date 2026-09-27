@@ -16,13 +16,13 @@ func toPluginDTO(domain *plugin.Plugin) *rest.Plugin {
 	}
 
 	return &rest.Plugin{
-		ID:       domain.ID.String(),
-		PluginID: domain.PluginID,
-		Name:     domain.Name,
-		Author:   domain.Author,
-		Features: features,
-		Version:  domain.Version,
-		IsActive: domain.IsActive,
+		ID:          domain.ID.String(),
+		PackageName: domain.PackageName,
+		Name:        domain.Name,
+		Author:      domain.Author,
+		Features:    features,
+		Version:     domain.Version,
+		IsActive:    domain.IsActive,
 	}
 }
 
@@ -66,7 +66,7 @@ func (p *PluginService) GetPluginStatus(ctx context.Context, request *rest.GetPl
 	return &rest.GetPluginStatusResponse{
 		Status: &rest.PluginStatus{
 			PID:         status.PID,
-			PluginID:    status.PluginID,
+			PackageName: status.PackageName,
 			Name:        status.Name,
 			Version:     status.Version,
 			CPUPercent:  status.CPUPercent,

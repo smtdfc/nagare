@@ -8,6 +8,7 @@ use (
 	./pkgs/system
 	./plugin/builder
 	./plugin/built_ins/example
+	./plugin/built_ins/google-calendar
 	./plugin/client
 	./plugin/metadata
 

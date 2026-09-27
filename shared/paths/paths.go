@@ -34,7 +34,7 @@ func init() {
 	PluginLogDir = filepath.Join(LogDir, "plugins")
 	PluginDir = filepath.Join(DataDir, "plugins")
 	TempDir = filepath.Join(DataDir, "temp")
-	PluginConfigDir = filepath.Join(ConfigDir, "plugin")
+	PluginConfigDir = filepath.Join(ConfigDir, "plugins")
 	ConfigFile = filepath.Join(DataDir, "config.json")
 	GatewayBinFile = filepath.Join("/opt", "nagare", "nagare-gateway")
 	paths := []string{

@@ -127,11 +127,11 @@ func (s *SessionManager) GetUserChatHistoryPage(ctx context.Context, sessionID s
 	}, nil
 }
 
-func (s *SessionManager) PreparePluginSession(ctx context.Context, channelID string, pluginID string) (*session.SessionInfo, error) {
+func (s *SessionManager) PreparePluginSession(ctx context.Context, channelID string, targetID string) (*session.SessionInfo, error) {
 	var err error
-	plugin, err := s.pluginRepo.FindByPluginId(ctx, pluginID)
+	plugin, err := s.pluginRepo.FindById(ctx, targetID)
 	if err != nil {
-		s.logger.Error("failed to prepare session", "channel_id", channelID, "plugin_id", pluginID, "err", err)
+		s.logger.Error("failed to prepare session", "channel_id", channelID, "target_id", targetID, "err", err)
 		return nil, custom_errors.ErrPreparePluginSessionFailed
 	}
 	if plugin == nil {
@@ -166,10 +166,10 @@ func (s *SessionManager) PreparePluginSession(ctx context.Context, channelID str
 	return s.sessionMapper.ToDomain(sessionEntity), nil
 }
 
-func (s *SessionManager) GetPluginSession(ctx context.Context, sessionID string, pluginID string) (*session.SessionInfo, error) {
-	plugin, err := s.pluginRepo.FindByPluginId(ctx, pluginID)
+func (s *SessionManager) GetPluginSession(ctx context.Context, sessionID string, targetID string) (*session.SessionInfo, error) {
+	plugin, err := s.pluginRepo.FindById(ctx, targetID)
 	if err != nil {
-		s.logger.Error("failed to get session", "session_id", sessionID, "plugin_id", pluginID, "err", err)
+		s.logger.Error("failed to get session", "session_id", sessionID, "target_id", targetID, "err", err)
 		return nil, custom_errors.ErrGetSessionFailed
 	}
 	if plugin == nil {
@@ -178,7 +178,7 @@ func (s *SessionManager) GetPluginSession(ctx context.Context, sessionID string,
 
 	sessionEntity, err := s.sessionRepo.FindPluginSession(ctx, sessionID, plugin.ID.String())
 	if err != nil {
-		s.logger.Error("failed to get session", "session_id", sessionID, "plugin_id", pluginID, "err", err)
+		s.logger.Error("failed to get session", "session_id", sessionID, "package_name", plugin.PackageName, "err", err)
 		return nil, custom_errors.ErrGetSessionFailed
 	}
 
@@ -217,7 +217,7 @@ func (s *SessionManager) GetChatHistory(ctx context.Context, sessionID string) (
 }
 
 func (s *SessionManager) GetPluginChatHistory(ctx context.Context, sessionID string, pluginID string) (*session.SessionHistory, error) {
-	plugin, err := s.pluginRepo.FindByPluginId(ctx, pluginID)
+	plugin, err := s.pluginRepo.FindById(ctx, pluginID)
 	if err != nil {
 		s.logger.Error("failed to get session", "session_id", sessionID, "plugin_id", pluginID, "err", err)
 		return nil, custom_errors.ErrGetSessionFailed
@@ -275,7 +275,7 @@ func (s *SessionManager) SaveHistory(ctx context.Context, sessionID string, pend
 }
 
 func (s *SessionManager) ResetChatChannel(ctx context.Context, channelID string, pluginID string) error {
-	plugin, err := s.pluginRepo.FindByPluginId(ctx, pluginID)
+	plugin, err := s.pluginRepo.FindById(ctx, pluginID)
 	if err != nil {
 		s.logger.Error("failed to reset session", "plugin_id", pluginID, "err", err)
 		return custom_errors.ErrPluginNotFound

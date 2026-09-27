@@ -1,0 +1,1 @@
+{"package_name":"nagare.plugins.google-calendar","name":"Google Calendar Plugin","version":"1.0.0","api_version":"1","author":"smtdfc","bin":{"linux":"bin/nagare.plugins.google-calendar"},"features":["dynamic_tool"]}

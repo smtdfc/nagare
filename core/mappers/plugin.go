@@ -9,28 +9,32 @@ import (
 type PluginMapper struct{}
 
 func (p *PluginMapper) ToDomain(entity *entities.Plugin) *plugin.Plugin {
+	if entity == nil {
+		return nil
+	}
+
 	return &plugin.Plugin{
-		ID:       entity.ID,
-		PluginID: entity.PluginID,
-		Name:     entity.Name,
-		Author:   entity.Author,
-		Features: plugin.ParseFeatureString(entity.Features),
-		Version:  entity.Version,
-		Bin:      entity.Bin,
-		IsActive: entity.IsActive,
+		ID:          entity.ID,
+		PackageName: entity.PackageName,
+		Name:        entity.Name,
+		Author:      entity.Author,
+		Features:    plugin.ParseFeatureString(entity.Features),
+		Version:     entity.Version,
+		Bin:         entity.Bin,
+		IsActive:    entity.IsActive,
 	}
 }
 
 func (p *PluginMapper) ToEntity(domain *plugin.Plugin) *entities.Plugin {
 	return &entities.Plugin{
-		ID:       domain.ID,
-		PluginID: domain.PluginID,
-		Name:     domain.Name,
-		Author:   domain.Author,
-		Features: domain.ToFeaturesString(),
-		Version:  domain.Version,
-		Bin:      domain.Bin,
-		IsActive: domain.IsActive,
+		ID:          domain.ID,
+		PackageName: domain.PackageName,
+		Name:        domain.Name,
+		Author:      domain.Author,
+		Features:    domain.ToFeaturesString(),
+		Version:     domain.Version,
+		Bin:         domain.Bin,
+		IsActive:    domain.IsActive,
 	}
 }
 

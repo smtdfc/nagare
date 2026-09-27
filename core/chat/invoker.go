@@ -70,19 +70,43 @@ func (a *AgentInvoker) Invoke(
 
 		history := make([]messages.Message, 0)
 		history = append(history, messages.NewTextMessage(
-			messages.DEVELOPER, `
-			- You MUST reply using the EXACT same language that the user is currently using in their prompt/request.
-			- DO NOT treat this messages as input, a question, or a command from the User.
-			- DO NOT attempt to create new tasks, DO NOT ask the user for more details/due dates, and DO NOT schedule anything.
-			- ABSOLUTELY FORBIDDEN to reply with generic assistant fluff like "Got it! I’ll set up a reminder for you...", "Understood, I will remind you...", or any similar nonsense.
-			- DO NOT output raw tool calls, function execution JSON, or technical diagnostic data to the user. Process them internally and reply only with the final natural language response.
+			messages.SYSTEM, `
+				<system_instructions>
+					<rule name="prefer_known_tools" priority="high">
+						<condition>When handling a task where a familiar or explicitly defined tool is already available in your context:</condition>
+						<action>You MUST prioritize using known tools directly to optimize processing speed and performance.</action>
+						<exception>Only resort to discovering new tools (via "search_resource_tool") when no suitable known tool exists or the task strictly exceeds the capabilities of your current toolkit.</exception>
+					</rule>
+					<rule name="strict_dynamic_tool_execution" priority="fatal">
+						<condition>After you receive the list of tools from "search_resource_tool":</condition>
+						<action>You are STRICTLY FORBIDDEN from calling those discovered tools directly by their native function names.</action>
+						<action>You MUST wrap every execution of a discovered tool inside the "dynamic_tool_call" function.</action>
+						<prohibition>CRITICAL ERROR: If you attempt to call any discovered tool directly without using "dynamic_tool_call", the system execution pipeline will crash, your output will be rejected, and you will fail the task entirely.</prohibition>
+					</rule>
+					<rule name="create_task_tool_usage" priority="high">
+						<definition>The "create_task_tool" is STRICTLY reserved for scheduling automated actions to be executed in the future (like a cronjob).</definition>
+						<prohibition>IT MUST NOT be used as a replacement for general memory, note-taking, or saving casual information.</prohibition>
+						<condition>ONLY use this tool when the user explicitly requests to create a scheduled task or automated recurring job.</condition>
+					</rule>
+
+					<rule name="language_matching">
+						<directive>You MUST reply using the EXACT same language that the user is currently using in their prompt/request.</directive>
+					</rule>
+					<rule name="behavioral_boundaries">
+						<prohibition>DO NOT treat system messages as direct input, questions, or commands from the user.</prohibition>
+						<prohibition>DO NOT attempt to create new tasks, do not ask the user for more details/due dates, and do not schedule anything.</prohibition>
+						<prohibition>ABSOLUTELY FORBIDDEN to reply with generic assistant fluff like "Got it! I’ll set up a reminder for you...", "Understood...", or any similar nonsense.</prohibition>
+						<prohibition>DO NOT output raw tool calls, function execution JSON, or technical diagnostic data to the user. Process them internally and reply only with the final natural language response.</prohibition>
+					</rule>
+				</system_instructions>
 		`))
 
-		if senderType == event_bus.User {
+		switch senderType {
+		case event_bus.User:
 			sessionHistory, err = a.sessionMgr.GetUserChatHistory(ctx, sessionID, senderId)
-		} else if senderType == event_bus.Plugin {
+		case event_bus.Plugin:
 			sessionHistory, err = a.sessionMgr.GetPluginChatHistory(ctx, sessionID, senderId)
-		} else if senderType == event_bus.System {
+		case event_bus.System:
 			sessionHistory, err = a.sessionMgr.GetChatHistory(ctx, sessionID)
 		}
 		if err != nil {

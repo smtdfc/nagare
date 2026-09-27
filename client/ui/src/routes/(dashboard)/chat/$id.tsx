@@ -11,16 +11,19 @@ import { useChat } from "#/hooks/use-chat.ts";
 import { type UIEvent, useEffect, useState, useRef, useCallback } from "react";
 
 import { ChatService } from "@nagare-app/services";
-import { type Message as ChatMessage } from "@nagare-app/messages";
+import { MessageType, type Message as ChatMessage } from "@nagare-app/messages";
 import {
   getMessageRole,
   isAgentCompletedMessage,
+  isAgentErrorMessage,
   isTextMessage,
+  isToolCallMessage,
 } from "#/lib/message";
 import { Spinner } from "#/components/ui/spinner";
 import ChatMessageItem from "#/components/chat-message-item.tsx";
 import { Button } from "@/components/ui/button";
 import { HistoryIcon } from "lucide-react";
+import { showToastError } from "#/lib/toast";
 
 const HISTORY_PAGE_SIZE = 20;
 
@@ -30,6 +33,7 @@ export const Route = createFileRoute("/(dashboard)/chat/$id")({
 
 function RouteComponent() {
   const { id } = useParams({ from: "/(dashboard)/chat/$id" });
+  const [statusText, setStatusText] = useState("Processing...");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [canLoadOlderHistory, setCanLoadOlderHistory] = useState(false);
@@ -77,6 +81,15 @@ function RouteComponent() {
         setIsProcessing(false);
       }
 
+      if (isToolCallMessage(chunk)) {
+        setStatusText(`Using ${chunk.name}`);
+      }
+
+      if (isAgentErrorMessage(chunk)) {
+        setIsProcessing(false);
+        showToastError(new Error(chunk.error));
+      }
+
       return prev;
     });
   }, []);
@@ -115,14 +128,18 @@ function RouteComponent() {
 
       historyCursorRef.current = history.nextCursor;
       setCanLoadOlderHistory(Boolean(history.nextCursor));
-      setMessages((prev) => {
-        const existingMessageIds = new Set(prev.map((message) => message.id));
-        const olderMessages = history.messages.filter(
-          (message) => !existingMessageIds.has(message.id),
-        );
 
-        return [...olderMessages, ...prev];
+      const existingMessageIds = new Set(messages.map((message) => message.id));
+      const olderMessages = history.messages.filter(
+        (message) =>
+          !existingMessageIds.has(message.id) &&
+          message.type === MessageType.TextMessageType,
+      );
+
+      [...olderMessages, ...messagesRef.current].forEach((message) => {
+        handleMessage(message);
       });
+
       requestAnimationFrame(() => {
         const currentViewport = viewportRef.current;
         if (!currentViewport) return;
@@ -183,6 +200,7 @@ function RouteComponent() {
 
     const fetchData = async () => {
       try {
+        setStatusText("Processing...");
         const session = await ChatService.getChatSession(id);
         if (!isMounted) return;
         setChatSession(session);
@@ -289,8 +307,9 @@ function RouteComponent() {
               ))}
 
               {isProcessing && (
-                <div className="flex w-full justify-start">
+                <div className="flex w-full justify-start items-center gap-1.5">
                   <Spinner />
+                  <span className="text-sm">{statusText}</span>
                 </div>
               )}
             </MessageScrollerContent>

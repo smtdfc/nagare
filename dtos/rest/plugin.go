@@ -1,18 +1,18 @@
 package rest
 
 type Plugin struct {
-	ID       string   `json:"id"`
-	PluginID string   `json:"pluginID"`
-	Name     string   `json:"name"`
-	Author   string   `json:"author"`
-	Features []string `json:"features"`
-	Version  string   `json:"version"`
-	IsActive bool     `json:"isActive"`
+	ID          string   `json:"id"`
+	PackageName string   `json:"packageName"`
+	Name        string   `json:"name"`
+	Author      string   `json:"author"`
+	Features    []string `json:"features"`
+	Version     string   `json:"version"`
+	IsActive    bool     `json:"isActive"`
 }
 
 type PluginStatus struct {
 	PID         string  `json:"pid"`
-	PluginID    string  `json:"pluginID"`
+	PackageName string  `json:"packageName"`
 	Name        string  `json:"name"`
 	Version     string  `json:"version"`
 	CPUPercent  float64 `json:"cpuPercent"`

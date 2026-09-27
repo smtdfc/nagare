@@ -28,8 +28,8 @@ func (p *PluginClient) Handshake(ctx context.Context) error {
 		plugin_dtos.HandshakeEvent,
 		plugin_dtos.HandshakeEventPayload{
 			ID:          requestID,
-			PluginID:    p.Metadata.ID,
-			ConnectCode: p.Config.ConnectCode,
+			PackageName: p.Metadata.PackageName,
+			ConnectCode: p.ConnectConfig.ConnectCode,
 		},
 		requestID,
 	)
