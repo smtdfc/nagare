@@ -19,9 +19,11 @@ const (
 type EventType string
 
 var (
-	SendEvent        EventType = "CHAT_SEND_EVENT"
-	ChunkEvent       EventType = "CHAT_CHUNK_EVENT"
-	RefreshTaskEvent EventType = "REFRESH_TASK_EVENT"
+	SendEvent                 EventType = "event:send"
+	ChunkEvent                EventType = "event:chunk"
+	RefreshTaskEvent          EventType = "event:refresh_task"
+	PluginToolCallEvent       EventType = "event:plugin_tool_call"
+	PluginToolCallResultEvent EventType = "event:plugin_tool_call_result"
 )
 
 type EventPayload interface {
@@ -67,6 +69,27 @@ type RefreshTaskEventPayload struct {
 
 func (c *RefreshTaskEventPayload) GetEventType() EventType {
 	return RefreshTaskEvent
+}
+
+type PluginToolCallEventPayload struct {
+	RequestID string
+	PluginID  string
+	Name      string
+	Args      string
+}
+
+func (c *PluginToolCallEventPayload) GetEventType() EventType {
+	return PluginToolCallEvent
+}
+
+type PluginToolCallResultEventPayload struct {
+	RequestID string
+	Result    string
+	Error     string
+}
+
+func (c *PluginToolCallResultEventPayload) GetEventType() EventType {
+	return PluginToolCallResultEvent
 }
 
 type CoreEventBus struct {

@@ -70,10 +70,11 @@ func (a *AgentInvoker) Invoke(
 			}
 		}
 
-		toolCategories := a.toolMgr.GetCategoriesString()
+		toolCategories := a.toolMgr.GetCategoriesPrompt()
+		fmt.Println(toolCategories)
 		history := make([]messages.Message, 0)
 		history = append(history, messages.NewTextMessage(
-			messages.DEVELOPER,
+			messages.SYSTEM,
 			fmt.Sprintf(`
 				<system_instructions>
 					<metadata>
@@ -81,36 +82,83 @@ func (a *AgentInvoker) Invoke(
 						<attr key="description">Virtual assistant operating on the computer</attr>
 					</metadata>
 					<rule name="tool_routing">
-						<description>Automated process for discovering, selecting, and executing tools when a request lacks the necessary handling capability.</description>
-						<conditions>
-							<condition>Activate only when the user request exceeds current capabilities and requires external tool assistance.</condition>
-							<condition>Input categories (%s) must be thoroughly analyzed to precisely match the functionality of the tools.</condition>
-						</conditions>
+						<description>
+							Deterministic procedure for discovering, selecting, and executing
+							tools required to fulfill a user request.
+						</description>
 
+						<constraints>
+							<constraint>
+								Any request that requires an external tool MUST enter this routing process.
+							</constraint>
+
+							<constraint>
+								The assistant MUST NOT claim that a suitable tool is unavailable
+								before executing "find_tool_by_categories".
+							</constraint>
+
+							<constraint>
+								The assistant MUST NOT skip the discovery step for a tool-dependent request.
+							</constraint>
+						</constraints>
+						<categories>
+							%s
+						</categories>
 						<steps>
-							<step n="1">
-								<action>Analyze syntax and semantics of the user request.</action>
-								<details>Determine the exact category or domain from the permitted set: %s.</details>
+							<step id="analyze_request">
+								<action>Determine relevant tool categories.</action>
+								<details>
+									Analyze the user's intent and select one or more categories from the available set.
+								</details>
 							</step>
 
-							<step n="2">
-								<action>Invoke the system discovery tool.</action>
-								<details>Execute the "find_tool_by_categories" function with the determined category from Step 1 as a parameter to retrieve a list of available tools.</details>
+							<step id="discover_tools">
+								<action>Discover available tools.</action>
+								<details>
+									MUST execute "find_tool_by_categories" using the categories
+									determined in the previous step.
+								</details>
 							</step>
 
-							<step n="3">
-								<action>Evaluate and select the optimal tool.</action>
-								<details>Carefully review the returned list, compare the features of each tool, and select the most appropriate one matching the user's intent. If no matching tool is found, halt the process and notify the user.</details>
+							<step id="select_tool">
+								<action>Select the appropriate tool.</action>
+								<details>
+									Review the tools returned by "find_tool_by_categories"
+									and select the tool that best matches the user's intent.
+
+									If multiple tools are required, determine the appropriate
+									execution order.
+
+									If no suitable tool is returned, report that the requested
+									capability is unavailable.
+								</details>
 							</step>
 
-							<step n="4">
-								<action>Configure parameters and execute.</action>
-								<details>Prepare all required parameters according to the selected tool's schema, then call the "execute_tool" function to run it. Ensure no parameter is missing or of the wrong data type to prevent system errors.</details>
+							<step id="execute_tool">
+								<action>Configure and execute the selected tool.</action>
+								<details>
+									Construct the required parameters according to the selected
+									tool's schema, then execute "execute_tool".
+
+									Ensure that all required parameters are present and that
+									their values match the expected data types.
+								</details>
 							</step>
 						</steps>
-						
+
 						<fallback>
-							If "execute_tool" returns an error due to invalid parameters, the system must automatically review the parameter structure in Step 4, correct the error, and retry execution at most once before reporting an error to the user.
+							<condition>
+								"execute_tool" returns an error caused by invalid parameters.
+							</condition>
+
+							<action>
+								Re-check the selected tool's schema, correct the invalid
+								parameters, and retry execution once.
+							</action>
+
+							<failure>
+								If the retry fails, report the execution error to the user.
+							</failure>
 						</fallback>
 					</rule>
 					<rule name="response_language">
@@ -133,7 +181,7 @@ func (a *AgentInvoker) Invoke(
 						</constraints>
 					</rule>
 				</system_instructions>
-			`, toolCategories, toolCategories,
+			`, toolCategories,
 			),
 		))
 
