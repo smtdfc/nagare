@@ -155,7 +155,7 @@ func (o *OpenAICompatibleAdapter) Send(ctx context.Context, model string, listMe
 				OfInputItemList: inputs,
 			},
 			Tools:       listTool,
-			Temperature: param.NewOpt(0.2),
+			Temperature: param.NewOpt(0.1),
 			TopP:        param.NewOpt(0.9),
 		})
 
