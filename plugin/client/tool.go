@@ -123,10 +123,14 @@ func (p *PluginClient) RegisterPluginTool(ctx context.Context, tool PluginTool) 
 		return errors.New(resp.Error.Cause)
 	}
 
+	p.mu.Lock()
+	p.tools = append(p.tools, tool)
+	p.mu.Unlock()
+
 	return nil
 }
 
-func (p *PluginClient) RegisterToolCategories(ctx context.Context, categories []string) error {
+func (p *PluginClient) RegisterToolCategories(ctx context.Context, categories map[string]string) error {
 	payload := plugin_dtos.RegisterToolCategoriesEventPayload{
 		Categories: categories,
 	}

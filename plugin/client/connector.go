@@ -12,14 +12,17 @@ import (
 )
 
 type Connector struct {
-	conn    net.Conn
-	mu      sync.Mutex
-	onEvent func(*websocket.Payload[any])
+	conn     net.Conn
+	mu       sync.Mutex
+	onEvent  func(*websocket.Payload[any])
+	done     chan struct{}
+	doneOnce sync.Once
 }
 
 func NewConnector(onEvent func(*websocket.Payload[any])) *Connector {
 	return &Connector{
 		onEvent: onEvent,
+		done:    make(chan struct{}),
 	}
 }
 
@@ -35,7 +38,10 @@ func (c *Connector) Connect(ctx context.Context, url string) error {
 }
 
 func (c *Connector) listenLoop() {
-	defer c.Close()
+	defer func() {
+		c.Close()
+		c.doneOnce.Do(func() { close(c.done) })
+	}()
 
 	for {
 		msg, _, err := wsutil.ReadServerData(c.conn)
@@ -49,6 +55,15 @@ func (c *Connector) listenLoop() {
 			}
 			c.onEvent(&payload)
 		}
+	}
+}
+
+func (c *Connector) Wait(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-c.done:
+		return nil
 	}
 }
 
