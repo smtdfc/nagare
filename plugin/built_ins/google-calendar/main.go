@@ -3,11 +3,14 @@ package main
 import (
 	"context"
 	_ "embed"
+	"fmt"
 
 	"github.com/smtdfc/nagare/plugin/client"
 )
 
-var categories = []string{"google_calendar"}
+var googleCalendarToolCategories = map[string]string{
+	"google_calendar": "Google Calendar Tools",
+}
 
 //go:embed metadata.json
 var metadata string
@@ -31,7 +34,7 @@ var findTaskTool = client.DefineTool(
 			TaskName: taskName,
 		}, nil
 	},
-	categories,
+	[]string{"google_calendar"},
 )
 
 type CreateReminderInput struct {
@@ -50,18 +53,34 @@ var createReminderTool = client.DefineTool(
 	func(ctx *context.Context, args *CreateReminderInput) (*CreateReminderOutput, error) {
 		// Simulate creating a reminder (replace with actual logic)
 		reminderID := "3432432565758745" // Replace with actual reminder ID returned from Google Calendar
-
+		fmt.Println("called")
 		return &CreateReminderOutput{
 			ReminderID: reminderID,
 		}, nil
 	},
-	categories,
+	[]string{"google_calendar"},
 )
 
 func OnStart(ctx context.Context, pluginClient *client.PluginClient) {
-	pluginClient.RegisterToolCategories(ctx, categories)
-	pluginClient.RegisterPluginTool(ctx, findTaskTool)
-	pluginClient.RegisterPluginTool(ctx, createReminderTool)
+	// Register the tools with the plugin client
+	err := pluginClient.RegisterPluginTool(ctx, findTaskTool)
+	if err != nil {
+		pluginClient.Logger.Error("Failed to register find task tool", "error", err)
+		return
+	}
+
+	err = pluginClient.RegisterPluginTool(ctx, createReminderTool)
+	if err != nil {
+		pluginClient.Logger.Error("Failed to register create reminder tool", "error", err)
+		return
+	}
+
+	// Register the tool categories with the plugin client
+	err = pluginClient.RegisterToolCategories(ctx, googleCalendarToolCategories)
+	if err != nil {
+		pluginClient.Logger.Error("Failed to register tool categories", "error", err)
+		return
+	}
 }
 
 func main() {
