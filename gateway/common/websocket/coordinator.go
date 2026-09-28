@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -60,7 +61,7 @@ func BroadcastToRoom[T any](w *Coordinator, roomID string, event websocket_dtos.
 
 	clients, exists := w.rooms[roomID]
 	if !exists || len(clients) == 0 {
-		return nil
+		return fmt.Errorf("websocket room %q has no clients", roomID)
 	}
 
 	raw, err := helpers.MarshalJson(&websocket_dtos.Payload[T]{
@@ -74,14 +75,17 @@ func BroadcastToRoom[T any](w *Coordinator, roomID string, event websocket_dtos.
 
 	msgBytes := []byte(raw)
 
+	var writeErrors []error
 	for client := range clients {
 		if exclude != nil && client == exclude {
 			continue
 		}
-		_ = client.Write(msgBytes)
+		if err := client.Write(msgBytes); err != nil {
+			writeErrors = append(writeErrors, fmt.Errorf("write to websocket client: %w", err))
+		}
 	}
 
-	return nil
+	return errors.Join(writeErrors...)
 }
 
 func (w *Coordinator) parseMessage(msg []byte) (*websocket_dtos.Payload[any], error) {

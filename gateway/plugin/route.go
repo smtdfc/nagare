@@ -35,5 +35,7 @@ func NewRouteInitializer(
 		ws.On(plugin_dtos.ResetChatChannelEvent, websocketHandler.OnResetChatChannel)
 		ws.On(plugin_dtos.RegisterToolCategoriesEvent, websocketHandler.OnRegisterToolCategories)
 		ws.On(plugin_dtos.RegisterPluginToolEvent, websocketHandler.OnRegisterTool)
+		ws.On(plugin_dtos.PluginToolCallResultEvent, websocketHandler.OnPluginToolCallResult)
+		go websocketHandler.ForwardPluginToolCalls(ws)
 	}
 }

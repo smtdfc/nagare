@@ -235,6 +235,7 @@ func (w *PluginWebsocketHandler) OnRegisterTool(s *melody.Session, ws *websocket
 		data.Tool.Categories,
 		auth.TargetID,
 		true,
+		w.chatEventBus,
 	)
 
 	_ = websocket2.SendMessage(s, plugin_dtos.RegisterPluginToolSuccessEvent, &plugin_dtos.RegisterPluginToolSuccessEventPayload{}, message.RequestID)
@@ -266,6 +267,47 @@ func (w *PluginWebsocketHandler) OnRegisterToolCategories(s *melody.Session, ws 
 	w.toolMgr.AddPluginToolCategories(auth.TargetID, data.Categories)
 	w.logger.Info("Registered plugin tool categories", "categories", data.Categories, "pluginID", auth.TargetID)
 	_ = websocket2.SendMessage(s, plugin_dtos.RegisterToolCategoriesSuccessEvent, &plugin_dtos.RegisterToolCategoriesSuccessEventPayload{}, message.RequestID)
+}
+
+func (w *PluginWebsocketHandler) OnPluginToolCallResult(s *melody.Session, _ *websocket2.Coordinator, message *websocket.Payload[any]) {
+	auth, err := w.getPluginAuth(s)
+	if err != nil {
+		return
+	}
+
+	data, err := websocket2.GetData[plugin_dtos.PluginToolCallResultEventPayload](message)
+	if err != nil {
+		return
+	}
+
+	w.chatEventBus.Publish(context.Background(), event_bus.PluginToolCallResultEvent, &event_bus.PluginToolCallResultEventPayload{
+		RequestID: message.RequestID,
+		Result:    data.Result,
+		Error:     data.Error,
+	})
+	w.logger.Debug("Plugin tool result received", "pluginID", auth.TargetID, "requestID", message.RequestID)
+}
+
+func (w *PluginWebsocketHandler) ForwardPluginToolCalls(ws *websocket2.Coordinator) {
+	channel, unsubscribe := w.chatEventBus.Subscribe(event_bus.PluginToolCallEvent)
+	defer unsubscribe()
+
+	for payload := range channel {
+		call, ok := payload.(*event_bus.PluginToolCallEventPayload)
+		if !ok {
+			continue
+		}
+		roomID := fmt.Sprintf("plugin:%s:chat", call.PluginID)
+		err := websocket2.BroadcastToRoom(ws, roomID, plugin_dtos.PluginToolCallEvent, plugin_dtos.PluginToolCallEventPayload{
+			Name: call.Name,
+			Args: call.Args,
+		}, call.RequestID, nil)
+		if err != nil {
+			w.logger.Error("Failed to forward plugin tool call", "error", err, "roomID", roomID, "pluginID", call.PluginID, "requestID", call.RequestID)
+			continue
+		}
+		w.logger.Info("Forwarded plugin tool call", "roomID", roomID, "pluginID", call.PluginID, "requestID", call.RequestID)
+	}
 }
 
 func (w *PluginWebsocketHandler) getPluginAuth(s *melody.Session) (*websocket2.AuthData, error) {
