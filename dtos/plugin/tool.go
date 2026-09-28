@@ -10,6 +10,8 @@ const (
 	RegisterToolCategoriesEvent        websocket.Event = "plugin:register_tool_categories"
 	RegisterToolCategoriesSuccessEvent websocket.Event = "plugin:register_tool_categories:success"
 	RegisterToolCategoriesFailedEvent  websocket.Event = "plugin:register_tool_categories:failed"
+	PluginToolCallEvent                websocket.Event = "plugin:tool_call"
+	PluginToolCallResultEvent          websocket.Event = "plugin:tool_call_result"
 )
 
 type PluginTool struct {
@@ -31,7 +33,7 @@ type RegisterPluginToolFailedEventPayload struct {
 }
 
 type RegisterToolCategoriesEventPayload struct {
-	Categories []string `json:"categories"`
+	Categories map[string]string `json:"categories"`
 }
 
 type RegisterToolCategoriesSuccessEventPayload struct {
@@ -39,4 +41,14 @@ type RegisterToolCategoriesSuccessEventPayload struct {
 
 type RegisterToolCategoriesFailedEventPayload struct {
 	Cause string `json:"cause"`
+}
+
+type PluginToolCallEventPayload struct {
+	Name string `json:"name"`
+	Args string `json:"args"`
+}
+
+type PluginToolCallResultEventPayload struct {
+	Result string `json:"result"`
+	Error  string `json:"error,omitempty"`
 }
