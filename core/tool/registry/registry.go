@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/tool"
 	declarations "github.com/smtdfc/nagare/core/tool/builtins"
 	"github.com/smtdfc/nagare/core/tool/plugin"
@@ -24,10 +25,10 @@ func RegisterTool(tool tool.Tool, requiresRouter bool) {
 	}
 }
 
-func RegisterPluginTool(name string, args string, description string, categories []string, pluginID string, requiresRouter bool) {
+func RegisterPluginTool(name string, args string, description string, categories []string, pluginID string, requiresRouter bool, eventBus *event_bus.CoreEventBus) {
 	Registry[name] = ToolItem{
 		RequiresRouter: requiresRouter,
-		Tool:           plugin.NewPluginTool(name, args, description, categories, pluginID),
+		Tool:           plugin.NewPluginTool(name, args, description, categories, pluginID, eventBus),
 		IsPluginTool:   true,
 		PluginID:       pluginID,
 	}

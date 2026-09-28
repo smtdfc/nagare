@@ -22,8 +22,8 @@ type ToolManager struct {
 	taskMgr    *task_manager.TaskManager
 	eventBus   *event_bus.CoreEventBus
 
-	toolCategories       []string
-	pluginToolCategories map[string][]string
+	toolCategories       map[string]string
+	pluginToolCategories map[string]map[string]string
 }
 
 func (t *ToolManager) createBindings() *ToolBindings {
@@ -108,62 +108,50 @@ func (t *ToolManager) FindToolsByKeywords(ctx context2.Context, keywords []strin
 	return list, nil
 }
 
-func (t *ToolManager) GetCategoriesString() string {
+func (t *ToolManager) GetCategoriesPrompt() string {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 
-	allCategories := make([]string, len(t.toolCategories))
-	copy(allCategories, t.toolCategories)
-
-	for _, pluginCategories := range t.pluginToolCategories {
-		allCategories = append(allCategories, pluginCategories...)
+	var prompt strings.Builder
+	for category, description := range t.toolCategories {
+		prompt.WriteString("<category name=\"")
+		prompt.WriteString(category)
+		prompt.WriteString("\">")
+		prompt.WriteString(description)
+		prompt.WriteString("</category>")
 	}
 
-	categorySet := make(map[string]struct{})
-	for _, category := range allCategories {
-		categorySet[category] = struct{}{}
-	}
-
-	uniqueCategories := make([]string, 0, len(categorySet))
-	for category := range categorySet {
-		uniqueCategories = append(uniqueCategories, category)
-	}
-
-	return strings.Join(uniqueCategories, ", ")
-}
-
-func (t *ToolManager) GetPluginToolCategoriesString(pluginID string) string {
-	t.mu.RLock()
-	defer t.mu.RUnlock()
-
-	if categories, exists := t.pluginToolCategories[pluginID]; exists {
-		return strings.Join(categories, ", ")
-	}
-	return strings.Join(t.toolCategories, ", ")
-}
-
-func (t *ToolManager) AddCategory(category string) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
-	for _, existingCategory := range t.toolCategories {
-		if existingCategory == category {
-			return
+	for pluginID, categories := range t.pluginToolCategories {
+		for categoryName, categoryDescription := range categories {
+			prompt.WriteString("<category name=\"")
+			prompt.WriteString(categoryName)
+			prompt.WriteString("\" plugin_id=\"")
+			prompt.WriteString(pluginID)
+			prompt.WriteString("\">")
+			prompt.WriteString(categoryDescription)
+			prompt.WriteString("</category>")
 		}
 	}
 
-	t.toolCategories = append(t.toolCategories, category)
+	return prompt.String()
 }
 
-func (t *ToolManager) AddPluginToolCategories(pluginID string, categories []string) {
+func (t *ToolManager) AddCategory(category string, description string) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	if _, exists := t.pluginToolCategories[pluginID]; exists {
-		t.pluginToolCategories[pluginID] = append(t.pluginToolCategories[pluginID], categories...)
-	} else {
-		t.pluginToolCategories[pluginID] = categories
+	t.toolCategories[category] = description
+}
+
+func (t *ToolManager) AddPluginToolCategories(pluginID string, categories map[string]string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if t.pluginToolCategories == nil {
+		t.pluginToolCategories = make(map[string]map[string]string)
 	}
+
+	t.pluginToolCategories[pluginID] = categories
 }
 
 // @Injectable
@@ -172,18 +160,18 @@ func NewToolManager(logger *logger.BaseLogger, taskMgr *task_manager.TaskManager
 		logger:   logger.With("module", "tool-manager"),
 		taskMgr:  taskMgr,
 		eventBus: eventBus,
-		toolCategories: []string{
-			tool.ProcessManagementCategory,
-			tool.PowerManagementCategory,
-			tool.AudioManagementCategory,
-			tool.FilesystemCategory,
-			tool.BrowserCategory,
-			tool.WeatherCategory,
-			tool.NetworkingCategory,
-			tool.TaskManagementCategory,
-			tool.ToolRoutingCategory,
-			tool.TimingCategory,
+		toolCategories: map[string]string{
+			tool.ProcessManagementCategory: "Process Management",
+			tool.PowerManagementCategory:   "Power Management",
+			tool.AudioManagementCategory:   "Audio Management",
+			tool.FilesystemCategory:        "Filesystem",
+			tool.BrowserCategory:           "Browser",
+			tool.WeatherCategory:           "Weather",
+			tool.NetworkingCategory:        "Networking",
+			tool.TaskManagementCategory:    "Task Management",
+			tool.ToolRoutingCategory:       "Tool Routing",
+			tool.TimingCategory:            "Timing",
 		},
-		pluginToolCategories: make(map[string][]string),
+		pluginToolCategories: make(map[string]map[string]string),
 	}
 }

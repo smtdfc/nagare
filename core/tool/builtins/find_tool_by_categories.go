@@ -1,6 +1,8 @@
 package declarations
 
 import (
+	"fmt"
+
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/tool"
 )
@@ -21,6 +23,8 @@ var FindToolByCategories = tool.DefineTool(
 		if err != nil {
 			return nil, err
 		}
+
+		fmt.Printf("found %d tools for categories %v", len(foundTools), args.Categories)
 
 		return &FindToolByCategoriesOutput{
 			Tools: foundTools,

@@ -1,9 +1,13 @@
 package plugin
 
 import (
-	"fmt"
+	"errors"
+	"time"
 
-	"github.com/smtdfc/nagare/core/context"
+	"github.com/google/uuid"
+
+	core_context "github.com/smtdfc/nagare/core/context"
+	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/tool"
 )
 
@@ -13,13 +17,45 @@ type PluginTool struct {
 	Description string
 	Categories  []string
 	PluginID    string
+	eventBus    *event_bus.CoreEventBus
 }
 
 // Execute implements [tool.Tool].
-func (p *PluginTool) Execute(ctx *context.ExecuteContext, args string) (string, error) {
-	fmt.Println("Called", p.Name, "with args:", args)
+func (p *PluginTool) Execute(ctx *core_context.ExecuteContext, args string) (string, error) {
+	requestID := uuid.NewString()
+	resultChannel, unsubscribe := p.eventBus.Subscribe(event_bus.PluginToolCallResultEvent)
+	defer unsubscribe()
 
-	return "{}", nil
+	p.eventBus.Publish(ctx, event_bus.PluginToolCallEvent, &event_bus.PluginToolCallEventPayload{
+		RequestID: requestID,
+		PluginID:  p.PluginID,
+		Name:      p.Name,
+		Args:      args,
+	})
+
+	timer := time.NewTimer(60 * time.Second)
+	defer timer.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return "{}", ctx.Err()
+		case <-timer.C:
+			return "{}", errors.New("plugin tool call timed out")
+		case payload, ok := <-resultChannel:
+			if !ok {
+				return "{}", errors.New("plugin tool result subscription closed")
+			}
+			result, ok := payload.(*event_bus.PluginToolCallResultEventPayload)
+			if !ok || result.RequestID != requestID {
+				continue
+			}
+			if result.Error != "" {
+				return "{}", errors.New(result.Error)
+			}
+			return result.Result, nil
+		}
+	}
 }
 
 // GetArgsSchema implements [tool.Tool].
@@ -52,12 +88,13 @@ func (p *PluginTool) WithBindings(bindings tool.Bindings) tool.Tool {
 	return p
 }
 
-func NewPluginTool(name string, args string, description string, categories []string, pluginID string) *PluginTool {
+func NewPluginTool(name string, args string, description string, categories []string, pluginID string, eventBus *event_bus.CoreEventBus) *PluginTool {
 	return &PluginTool{
 		Name:        name,
 		Args:        args,
 		Description: description,
 		Categories:  categories,
 		PluginID:    pluginID,
+		eventBus:    eventBus,
 	}
 }
