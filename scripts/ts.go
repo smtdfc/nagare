@@ -26,7 +26,7 @@ func main() {
 		}
 
 		_ = golang.IncludeCustom(map[string]string{
-			"chan github.com/smtdfc/nagare/shared/messages.Message": "any",
+			"chan github.com/smtdfc/nagare/pkgs/messages.Message": "any",
 		})
 		golang.PreserveComments()
 
