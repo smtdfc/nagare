@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
-import { NavActions } from "#/components/nav-actions.tsx";
+import { ChatNavActions } from "#/components/chat-nav-actions";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -70,7 +70,7 @@ function RouteComponent() {
         </div>
         {chatSession ? (
           <div className="ml-auto px-3">
-            <NavActions />
+            <ChatNavActions />
           </div>
         ) : (
           ""
@@ -81,11 +81,15 @@ function RouteComponent() {
         <div className="flex-1 min-h-0 overflow-hidden px-4 py-10 flex flex-col gap-4">
           <Outlet />
         </div>
-        <ChatInput
-          onSend={onSend}
-          currentChatData={chatData}
-          disabled={isProcessing}
-        />
+        {chatSession?.isArchive ? (
+          "Chat has been archived"
+        ) : (
+          <ChatInput
+            onSend={onSend}
+            currentChatData={chatData}
+            disabled={isProcessing}
+          />
+        )}
       </div>
     </div>
   );
