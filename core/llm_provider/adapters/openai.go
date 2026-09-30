@@ -212,6 +212,11 @@ func (o *OpenAICompatibleAdapter) Send(ctx context.Context, model string, listMe
 					"429",
 					fmt.Sprintf("Quota exceed: %s", err.Error()),
 				)
+			} else if strings.Contains(err.Error(), "402") {
+				outputChannel <- messages.NewResponseFailedMessage(
+					"402",
+					fmt.Sprintf("Payment required: %s", err.Error()),
+				)
 			} else {
 				outputChannel <- messages.NewResponseFailedMessage(
 					"400",

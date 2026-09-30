@@ -6,6 +6,7 @@ var (
 	ErrModelNotSupportedByProvider    = NewNagareCoreError("MODEL_NOT_SUPPORTED", "Model not supported by provider")
 	ErrGetListModelFailed             = NewNagareCoreError("GET_LIST_MODEL_FAILED", "Failed to get list of models")
 	ErrModelQuotaExceed               = NewNagareCoreError("MODEL_QUOTA_EXCEED", "Model quota exceeded")
+	ErrModelPaymentRequired           = NewNagareCoreError("MODEL_PAYMENT_REQUIRED", "Model payment required")
 	ErrIncorrectToolArgs              = NewNagareCoreError("INCORRECT_TOOL_ARGS", "Incorrect tool arguments")
 	ErrMarshalToolResultFailed        = NewNagareCoreError("MARSHAL_TOOL_RESULT_FAILED", "Failed to marshal tool result")
 	ErrCreateSessionFailed            = NewNagareCoreError("CREATE_SESSION_FAILED", "Failed to create session")

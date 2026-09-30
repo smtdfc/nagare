@@ -38,6 +38,14 @@ func (a *Executor) HandleError(message *messages.ResponseFailedMessage) error {
 	switch message.Code {
 	case "429":
 		return custom_errors.ErrModelQuotaExceed
+	case "402":
+		return custom_errors.ErrModelPaymentRequired
+	case "500":
+		return custom_errors.ErrLLMProviderAdapter
+	case "503":
+		return custom_errors.ErrLLMProviderAdapter
+	case "504":
+		return custom_errors.ErrLLMProviderAdapter
 	}
 
 	return custom_errors.ErrUnknown
