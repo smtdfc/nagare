@@ -18,8 +18,9 @@ func toSessionDTO(s *session.SessionInfo) *rest.Session {
 	}
 
 	return &rest.Session{
-		ID:    s.ID.String(),
-		Title: s.Title,
+		ID:        s.ID.String(),
+		Title:     s.Title,
+		IsArchive: s.IsArchive,
 	}
 }
 
