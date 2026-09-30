@@ -6,9 +6,8 @@ import (
 	"net"
 	"sync"
 
-	"github.com/gobwas/ws"
-	"github.com/gobwas/ws/wsutil"
 	"github.com/smtdfc/nagare/dtos/websocket"
+	"github.com/smtdfc/nagare/pkgs/ipc"
 )
 
 type Connector struct {
@@ -26,8 +25,8 @@ func NewConnector(onEvent func(*websocket.Payload[any])) *Connector {
 	}
 }
 
-func (c *Connector) Connect(ctx context.Context, url string) error {
-	conn, _, _, err := ws.DefaultDialer.Dial(ctx, url)
+func (c *Connector) Connect(ctx context.Context, path string) error {
+	conn, err := ipc.Dial(ctx, path)
 	if err != nil {
 		return err
 	}
@@ -44,7 +43,7 @@ func (c *Connector) listenLoop() {
 	}()
 
 	for {
-		msg, _, err := wsutil.ReadServerData(c.conn)
+		msg, err := ipc.ReadMessage(c.conn)
 		if err != nil {
 			break
 		}
@@ -52,6 +51,7 @@ func (c *Connector) listenLoop() {
 		if c.onEvent != nil {
 			var payload websocket.Payload[any]
 			if err := json.Unmarshal(msg, &payload); err != nil {
+				continue
 			}
 			c.onEvent(&payload)
 		}
@@ -86,7 +86,7 @@ func (c *Connector) Send(eventType websocket.Event, data any, requestID string) 
 		return ErrCreatePayloadFailed
 	}
 
-	return wsutil.WriteClientText(c.conn, payloadBytes)
+	return ipc.WriteMessage(c.conn, payloadBytes)
 }
 
 func (c *Connector) Close() error {
