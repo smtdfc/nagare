@@ -8,7 +8,7 @@ import (
 	"github.com/smtdfc/nagare/core/mappers"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"github.com/smtdfc/nagare/core/session"
-	"github.com/smtdfc/nagare/shared/messages"
+	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
 type SessionManager struct {

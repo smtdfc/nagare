@@ -5,7 +5,7 @@ import (
 
 	"github.com/smtdfc/nagare/core/llm_provider"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
-	"github.com/smtdfc/nagare/shared/helpers"
+	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
 type LLMProviderMapper struct {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/smtdfc/nagare/shared/security"
+	"github.com/smtdfc/nagare/pkgs/security"
 )
 
 const SERVICE_NAME = "nagare.security.keyring"

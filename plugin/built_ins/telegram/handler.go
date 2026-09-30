@@ -4,8 +4,8 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/smtdfc/nagare/shared/helpers"
-	"github.com/smtdfc/nagare/shared/messages"
+	"github.com/smtdfc/nagare/pkgs/helpers"
+	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
 func (tp *TelegramPlugin) OnReceivedChatMessage(sessionID, channelID, chunk string) {

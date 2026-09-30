@@ -6,7 +6,7 @@ import (
 	"github.com/invopop/jsonschema"
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/custom_errors"
-	"github.com/smtdfc/nagare/shared/helpers"
+	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
 type BaseToolCallback[I any, O any] func(ctx *context.ExecuteContext, args *I, bindings Bindings) (*O, error)

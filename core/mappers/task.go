@@ -3,7 +3,7 @@ package mappers
 import (
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/task"
-	"github.com/smtdfc/nagare/shared/helpers"
+	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
 type TaskMapper struct {

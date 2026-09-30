@@ -14,8 +14,8 @@ import (
 	"github.com/smtdfc/nagare/core/logger"
 	message "github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/tool"
-	"github.com/smtdfc/nagare/shared/helpers"
-	"github.com/smtdfc/nagare/shared/messages"
+	"github.com/smtdfc/nagare/pkgs/helpers"
+	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
 type OpenAICompatibleAdapter struct {

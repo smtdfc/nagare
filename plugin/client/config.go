@@ -1,6 +1,6 @@
 package client
 
 type ConnectConfig struct {
-	Port        string
+	SocketPath  string
 	ConnectCode string
 }

@@ -1,6 +1,6 @@
 package messages
 
-import "github.com/smtdfc/nagare/shared/helpers"
+import "github.com/smtdfc/nagare/pkgs/helpers"
 
 type ResponseStartedMessage struct {
 	ID   string      `json:"id"`

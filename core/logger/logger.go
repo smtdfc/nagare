@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/smtdfc/nagare/shared/paths"
+	"github.com/smtdfc/nagare/pkgs/paths"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 

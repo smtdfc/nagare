@@ -6,6 +6,7 @@ import (
 	"github.com/smtdfc/nagare/core/agent"
 	"github.com/smtdfc/nagare/core/chat"
 	"github.com/smtdfc/nagare/core/logger"
+	"github.com/smtdfc/nagare/core/plugin/host"
 	"github.com/smtdfc/nagare/core/plugin/manager"
 	task_manager "github.com/smtdfc/nagare/core/task/manager"
 	task_workers "github.com/smtdfc/nagare/core/task/workers"
@@ -14,13 +15,14 @@ import (
 type CoreSetup struct {
 	agentPool         *agent.Pool
 	pluginMgr         *manager.PluginManager
+	pluginHost        *host.PluginHost
 	chatWorker        *chat.ChatWorker
 	taskCronJobWorker *task_workers.CronJobWorker
 	taskMgr           *task_manager.TaskManager
 	logger            *logger.BaseLogger
 }
 
-func (c *CoreSetup) Setup(port string) error {
+func (c *CoreSetup) Setup() error {
 	ctx := context.Background()
 
 	c.logger.Info("Starting chat worker")
@@ -30,13 +32,16 @@ func (c *CoreSetup) Setup(port string) error {
 	c.taskCronJobWorker.Do()
 
 	c.logger.Info("Starting plugin host")
-	c.pluginMgr.SetPluginHostPort(port)
+	err := c.pluginHost.Start(ctx)
+	if err != nil {
+		return err
+	}
 
 	c.logger.Info("Preparing agent pool")
 	c.agentPool.Seed(agent.NAGARE_AGENT_POOL_SIZE)
 
 	c.logger.Info("Starting all plugins")
-	err := c.pluginMgr.StartAllPlugin(ctx)
+	err = c.pluginMgr.StartAllPlugin(ctx)
 	if err != nil {
 		return err
 	}
@@ -60,6 +65,13 @@ func (c *CoreSetup) Teardown(ctx context.Context) error {
 	}
 	c.logger.Info("all plugins stopped")
 
+	c.logger.Info("stopping plugin host")
+	err = c.pluginHost.Stop(ctx)
+	if err != nil {
+		c.logger.Error("failed to stop plugin host", "err", err)
+	}
+	c.logger.Info("plugin host stopped")
+
 	return nil
 }
 
@@ -67,6 +79,7 @@ func (c *CoreSetup) Teardown(ctx context.Context) error {
 func NewCoreSetup(
 	agentPool *agent.Pool,
 	pluginMgr *manager.PluginManager,
+	pluginHost *host.PluginHost,
 	chatWorker *chat.ChatWorker,
 	taskCronJobWorker *task_workers.CronJobWorker,
 	taskMgr *task_manager.TaskManager,
@@ -75,6 +88,7 @@ func NewCoreSetup(
 	return &CoreSetup{
 		agentPool:         agentPool,
 		pluginMgr:         pluginMgr,
+		pluginHost:        pluginHost,
 		chatWorker:        chatWorker,
 		taskCronJobWorker: taskCronJobWorker,
 		taskMgr:           taskMgr,

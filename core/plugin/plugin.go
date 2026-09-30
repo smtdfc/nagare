@@ -45,12 +45,11 @@ type Plugin struct {
 }
 
 func (p *Plugin) ToFeaturesString() string {
-	var s strings.Builder
-	for _, f := range p.Features {
-		s.WriteString(f.ToString())
+	strs := make([]string, len(p.Features))
+	for i, f := range p.Features {
+		strs[i] = f.ToString()
 	}
-
-	return s.String()
+	return strings.Join(strs, ",")
 }
 
 type PluginStatus struct {

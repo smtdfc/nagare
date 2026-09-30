@@ -3,7 +3,7 @@ package guards
 import (
 	"github.com/smtdfc/nagare/gateway/common/config"
 	"github.com/smtdfc/nagare/gateway/common/custom_errors"
-	"github.com/smtdfc/nagare/shared/security"
+	"github.com/smtdfc/nagare/pkgs/security"
 )
 
 type AuthGuard struct {

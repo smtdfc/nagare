@@ -21,8 +21,8 @@ import (
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/plugin/metadata"
-	"github.com/smtdfc/nagare/shared/helpers"
-	"github.com/smtdfc/nagare/shared/paths"
+	"github.com/smtdfc/nagare/pkgs/helpers"
+	"github.com/smtdfc/nagare/pkgs/paths"
 )
 
 func unpackPlugin(archivePath, destDir string) error {
@@ -125,7 +125,7 @@ type PluginManager struct {
 	pluginRepo   *repositories.PluginRepository
 	pluginMapper *mappers.PluginMapper
 	connectCodes map[string]string
-	hostPort     string
+	socketPath   string
 	logger       *logger.BaseLogger
 }
 
@@ -184,10 +184,14 @@ func (p *PluginManager) StartPlugin(ctx context.Context, plugin *plugin.Plugin) 
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
+	socketPath := p.socketPath
+	if socketPath == "" {
+		socketPath = paths.PluginSocketPath
+	}
 	cmd.Env = append(
 		os.Environ(),
 		fmt.Sprintf("NAGARE_PLUGIN_CONNECT_CODE=%s", connectCode),
-		fmt.Sprintf("NAGARE_PLUGIN_HOST_PORT=%s", p.hostPort),
+		fmt.Sprintf("NAGARE_PLUGIN_SOCKET_PATH=%s", socketPath),
 		fmt.Sprintf("NAGARE_PLUGIN_LOG_FILE=%s", filepath.Join(paths.PluginLogDir, plugin.PackageName+".log")),
 		fmt.Sprintf("NAGARE_PLUGIN_CONFIG_DIR=%s", filepath.Join(paths.PluginConfigDir, plugin.PackageName)),
 	)
@@ -302,8 +306,16 @@ func (p *PluginManager) StartAllPlugin(ctx context.Context) error {
 	return nil
 }
 
-func (p *PluginManager) SetPluginHostPort(port string) {
-	p.hostPort = port
+func (p *PluginManager) SetPluginSocketPath(path string) {
+	p.socketPath = path
+}
+
+func (p *PluginManager) GetPluginSocketPath() string {
+	return p.socketPath
+}
+
+func (p *PluginManager) SetConnectCode(packageName string, code string) {
+	p.connectCodes[packageName] = code
 }
 
 func (p *PluginManager) StopAllPlugin(ctx context.Context) error {
@@ -505,5 +517,6 @@ func NewPluginManager(
 		pluginMapper: pluginMapper,
 		logger:       logger.With("module", "plugin-manager"),
 		connectCodes: make(map[string]string),
+		socketPath:   paths.PluginSocketPath,
 	}
 }

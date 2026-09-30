@@ -22,7 +22,7 @@ type RunStats struct {
 // @Injectable
 // @Root
 func StartApp(app *App, coreSetup *setup.CoreSetup, _ *Routes, chatWorker *chat.ChatWorker, pluginMgr *manager.PluginManager) *RunStats {
-	err := coreSetup.Setup(app.config.Port)
+	err := coreSetup.Setup()
 	if err != nil {
 		return &RunStats{
 			IsError: true,

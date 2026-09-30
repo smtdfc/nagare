@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/shared/event_bus"
-	"github.com/smtdfc/nagare/shared/messages"
+	"github.com/smtdfc/nagare/pkgs/event_bus"
+	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
 type SenderType string

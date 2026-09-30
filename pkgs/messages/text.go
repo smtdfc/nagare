@@ -1,6 +1,6 @@
 package messages
 
-import "github.com/smtdfc/nagare/shared/helpers"
+import "github.com/smtdfc/nagare/pkgs/helpers"
 
 type TextMessage struct {
 	ID      string      `json:"id"`

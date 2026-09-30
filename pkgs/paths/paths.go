@@ -5,8 +5,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 
-	"github.com/smtdfc/nagare/shared/helpers"
+	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
 var UserHomeDir = ""
@@ -20,6 +21,7 @@ var PluginDir = ""
 var PluginConfigDir = ""
 var DatabaseDir = ""
 var TempDir = ""
+var PluginSocketPath = ""
 
 func init() {
 	home, err := os.UserHomeDir()
@@ -37,6 +39,11 @@ func init() {
 	PluginConfigDir = filepath.Join(ConfigDir, "plugins")
 	ConfigFile = filepath.Join(DataDir, "config.json")
 	GatewayBinFile = filepath.Join("/opt", "nagare", "nagare-gateway")
+	if runtime.GOOS == "windows" {
+		PluginSocketPath = `\\.\pipe\nagare-plugin`
+	} else {
+		PluginSocketPath = filepath.Join(DataDir, "nagare.sock")
+	}
 	paths := []string{
 		DataDir,
 		ConfigDir,

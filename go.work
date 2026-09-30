@@ -5,14 +5,19 @@ use (
 	./core
 	./dtos
 	./gateway
+	./pkgs/event_bus
+	./pkgs/helpers
+	./pkgs/ipc
+	./pkgs/logger
+	./pkgs/messages
+	./pkgs/paths
+	./pkgs/security
 	./pkgs/system
 	./plugin/builder
 	./plugin/built_ins/example
 	./plugin/built_ins/google-calendar
+	./plugin/built_ins/telegram
 	./plugin/client
 	./plugin/metadata
-
-	./shared
-	plugin/built_ins/telegram
-	scripts
+	./scripts
 )

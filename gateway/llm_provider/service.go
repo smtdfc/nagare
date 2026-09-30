@@ -6,7 +6,7 @@ import (
 	"github.com/smtdfc/nagare/core/llm_provider"
 	llm_provider_mgr "github.com/smtdfc/nagare/core/llm_provider/manager"
 	"github.com/smtdfc/nagare/dtos/rest"
-	"github.com/smtdfc/nagare/shared/helpers"
+	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
 func toLLMProviderDTO(domain *llm_provider.LLMProviderConfig) *rest.LLMProvider {

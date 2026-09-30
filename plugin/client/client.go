@@ -12,6 +12,7 @@ import (
 	plugin_dtos "github.com/smtdfc/nagare/dtos/plugin"
 	"github.com/smtdfc/nagare/dtos/websocket"
 	"github.com/smtdfc/nagare/plugin/metadata"
+	"github.com/smtdfc/nagare/pkgs/ipc"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -28,10 +29,17 @@ type PluginClient struct {
 }
 
 func (p *PluginClient) Start(ctx context.Context, onStart func()) error {
-	p.ConnectConfig.Port = os.Getenv("NAGARE_PLUGIN_HOST_PORT")
-	p.ConnectConfig.ConnectCode = os.Getenv("NAGARE_PLUGIN_CONNECT_CODE")
+	if p.ConnectConfig.SocketPath == "" {
+		p.ConnectConfig.SocketPath = os.Getenv("NAGARE_PLUGIN_SOCKET_PATH")
+	}
+	if p.ConnectConfig.SocketPath == "" {
+		p.ConnectConfig.SocketPath = ipc.GetDefaultSocketPath()
+	}
+	if p.ConnectConfig.ConnectCode == "" {
+		p.ConnectConfig.ConnectCode = os.Getenv("NAGARE_PLUGIN_CONNECT_CODE")
+	}
 
-	err := p.connector.Connect(ctx, fmt.Sprintf("ws://127.0.0.1:%s/ws", p.ConnectConfig.Port))
+	err := p.connector.Connect(ctx, p.ConnectConfig.SocketPath)
 	if err != nil {
 		p.Logger.Error("Start plugin error", "error", err)
 		return err

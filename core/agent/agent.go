@@ -8,7 +8,7 @@ import (
 	"github.com/smtdfc/nagare/core/logger"
 	message "github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/tool/manager"
-	"github.com/smtdfc/nagare/shared/messages"
+	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
 type InvokeOption struct {

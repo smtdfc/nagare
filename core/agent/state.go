@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/smtdfc/nagare/core/tool"
-	"github.com/smtdfc/nagare/shared/messages"
+	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
 type State struct {

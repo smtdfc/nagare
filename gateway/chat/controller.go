@@ -8,7 +8,7 @@ import (
 	"github.com/smtdfc/nagare/dtos/rest"
 	"github.com/smtdfc/nagare/gateway/common/custom_errors"
 	"github.com/smtdfc/nagare/gateway/utils"
-	"github.com/smtdfc/nagare/shared/security"
+	"github.com/smtdfc/nagare/pkgs/security"
 )
 
 type ChatController struct {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/invopop/jsonschema"
 	plugin_dtos "github.com/smtdfc/nagare/dtos/plugin"
-	"github.com/smtdfc/nagare/shared/helpers"
+	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
 type PluginTool interface {

@@ -1,6 +1,6 @@
 package tool
 
-import "github.com/smtdfc/nagare/shared/messages"
+import "github.com/smtdfc/nagare/pkgs/messages"
 
 type Result struct {
 	callID    string

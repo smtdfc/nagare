@@ -12,7 +12,7 @@ import (
 	task_manager "github.com/smtdfc/nagare/core/task/manager"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/core/tool/registry"
-	"github.com/smtdfc/nagare/shared/helpers"
+	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
 type ToolManager struct {

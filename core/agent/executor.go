@@ -11,8 +11,8 @@ import (
 	message "github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/core/tool/manager"
-	"github.com/smtdfc/nagare/shared/helpers"
-	"github.com/smtdfc/nagare/shared/messages"
+	"github.com/smtdfc/nagare/pkgs/helpers"
+	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
 const MAX_AGENT_LOOP_COUNT = 20
