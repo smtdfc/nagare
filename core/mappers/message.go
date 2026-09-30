@@ -6,8 +6,8 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
-	"github.com/smtdfc/nagare/shared/helpers"
-	"github.com/smtdfc/nagare/shared/messages"
+	"github.com/smtdfc/nagare/pkgs/helpers"
+	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
 type MessageMapper struct {

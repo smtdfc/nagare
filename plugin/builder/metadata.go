@@ -7,7 +7,7 @@ import (
 	"runtime"
 
 	"github.com/smtdfc/nagare/plugin/metadata"
-	"github.com/smtdfc/nagare/shared/helpers"
+	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
 func loadMetadata(metadataFile string) (*metadata.PluginMetadata, error) {

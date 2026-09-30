@@ -5,7 +5,7 @@ import (
 
 	"github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/tool"
-	"github.com/smtdfc/nagare/shared/messages"
+	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
 type LLMProviderAdapter interface {

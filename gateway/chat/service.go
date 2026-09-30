@@ -9,7 +9,7 @@ import (
 	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/core/session/manager"
 	"github.com/smtdfc/nagare/dtos/rest"
-	"github.com/smtdfc/nagare/shared/helpers"
+	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
 func toSessionDTO(s *session.SessionInfo) *rest.Session {

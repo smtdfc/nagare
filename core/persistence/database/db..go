@@ -5,7 +5,7 @@ import (
 
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
-	"github.com/smtdfc/nagare/shared/paths"
+	"github.com/smtdfc/nagare/pkgs/paths"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )

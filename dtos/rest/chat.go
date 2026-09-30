@@ -1,6 +1,6 @@
 package rest
 
-import "github.com/smtdfc/nagare/shared/messages"
+import "github.com/smtdfc/nagare/pkgs/messages"
 
 const (
 	SendChatMessageEndpoint   = "/api/v1/user/chat/send"

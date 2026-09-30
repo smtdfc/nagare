@@ -8,7 +8,7 @@ import (
 
 	"github.com/olahol/melody"
 	websocket_dtos "github.com/smtdfc/nagare/dtos/websocket"
-	"github.com/smtdfc/nagare/shared/helpers"
+	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
 type EventHandler func(s *melody.Session, w *Coordinator, payload *websocket_dtos.Payload[any])

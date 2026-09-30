@@ -2,7 +2,7 @@ package session
 
 import (
 	"github.com/google/uuid"
-	"github.com/smtdfc/nagare/shared/messages"
+	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
 type SessionHistory struct {

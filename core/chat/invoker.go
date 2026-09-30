@@ -15,7 +15,7 @@ import (
 	"github.com/smtdfc/nagare/core/session"
 	session_mgr "github.com/smtdfc/nagare/core/session/manager"
 	tool_mgr "github.com/smtdfc/nagare/core/tool/manager"
-	"github.com/smtdfc/nagare/shared/messages"
+	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
 type AgentInvoker struct {

@@ -6,10 +6,9 @@ import (
 
 	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/gateway/common/websocket"
-	"github.com/smtdfc/nagare/shared/helpers"
-	"github.com/smtdfc/nagare/shared/messages"
+	"github.com/smtdfc/nagare/pkgs/helpers"
+	"github.com/smtdfc/nagare/pkgs/messages"
 
 	websocket_dtos "github.com/smtdfc/nagare/dtos/websocket"
 )
@@ -48,25 +47,6 @@ func (c *ChatWorker) HandleChunkMessage(sessionID string, job *SessionJob) {
 	if err != nil {
 		c.logger.Error("Failed to broadcast chunk event: ", "requestID", job.RequestID, "error", err)
 		return
-	}
-
-	if job.SessionOwnerID != "" && job.SessionOwnerType == string(session.PLUGIN) {
-		err := websocket.BroadcastToRoom(
-			c.ws,
-			fmt.Sprintf("plugin:%s:chat", job.SessionOwnerID),
-			websocket_dtos.ReceivedChatMessageEvent,
-			&websocket_dtos.ReceivedChatMessageEventPayload{
-				SessionID: sessionID,
-				Message:   chunkJson,
-				ChannelID: job.ChannelID,
-			},
-			job.RequestID,
-			nil,
-		)
-		if err != nil {
-			c.logger.Error("Failed to broadcast chunk event: ", "requestID", job.RequestID, "error", err)
-			return
-		}
 	}
 }
 

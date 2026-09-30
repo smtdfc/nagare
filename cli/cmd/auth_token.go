@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	cli_helpers "github.com/smtdfc/nagare/cli/helpers"
-	"github.com/smtdfc/nagare/shared/security"
+	"github.com/smtdfc/nagare/pkgs/security"
 	"github.com/spf13/cobra"
 )
 
