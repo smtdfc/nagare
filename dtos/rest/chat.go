@@ -11,8 +11,9 @@ const (
 )
 
 type Session struct {
-	ID    string `json:"id"`
-	Title string `json:"title"`
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	IsArchive bool   `json:"isArchive"`
 }
 
 type SendChatMessageRequest struct {
