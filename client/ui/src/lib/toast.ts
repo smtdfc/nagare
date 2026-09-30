@@ -9,5 +9,19 @@ export function showToastError(err: unknown) {
       priority: "high",
       description: err.apiError.message,
     });
+  } else if (err instanceof Error) {
+    toast.add({
+      title: "Error",
+      type: "error",
+      priority: "high",
+      description: err.message,
+    });
+  } else {
+    toast.add({
+      title: "Error",
+      type: "error",
+      priority: "high",
+      description: "An unknown error occurred.",
+    });
   }
 }

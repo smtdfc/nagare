@@ -113,6 +113,7 @@ function RouteComponent() {
 
       if (isAgentErrorMessage(chunk)) {
         setIsProcessing(false);
+        console.error("Agent error:", chunk.error);
         showToastError(new Error(chunk.error));
       }
 
