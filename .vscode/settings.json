@@ -9,6 +9,7 @@
     "jsonschema",
     "Meteo",
     "Nagare",
+    "Responsestruct",
     "smtdfc",
     "wincred"
   ]

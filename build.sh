@@ -9,6 +9,11 @@ PLATFORMS=(
     "darwin/arm64"
 )
 
+if [ -d dist ]; then
+    echo "Cleaning dist directory..."
+    rm -rf dist
+    exit 0
+fi
 
 for platform in "${PLATFORMS[@]}"; do
     GOOS=${platform%/*}
@@ -28,12 +33,12 @@ for platform in "${PLATFORMS[@]}"; do
     echo "Building CLI..."
     GOOS=$GOOS GOARCH=$GOARCH go build -o "$OUT_DIR/nagare$EXT" ./cli
 
-    echo "Building Gateway..."
-    cd gateway
-    dix wire  --workspace
-    cd ..
+    echo "Running wire for Gateway..."
+    (cd gateway && dix wire --workspace)
 
-    GOOS=$GOOS GOARCH=$GOARCH go build -o "../$OUT_DIR/nagare-gateway$EXT" ./gateway
+    echo "Building Gateway..."
+    GOOS=$GOOS GOARCH=$GOARCH go build -o "$OUT_DIR/nagare-gateway$EXT" ./gateway
+
     echo "Done: $platform"
 done
 
