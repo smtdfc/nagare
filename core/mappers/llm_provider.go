@@ -34,6 +34,14 @@ func (l *LLMProviderMapper) ToEntity(domain *llm_provider.LLMProviderConfig) *en
 	}
 }
 
+func (l *LLMProviderMapper) ToProviderInfo(entity *entities.LLMProvider) *llm_provider.LLMProviderInfo {
+	return &llm_provider.LLMProviderInfo{
+		ID:         entity.ID,
+		Name:       entity.Name,
+		Compatible: llm_provider.GetCompatibleFromString(entity.Compatible),
+	}
+}
+
 func (l *LLMProviderMapper) ToDomains(entities []*entities.LLMProvider) []*llm_provider.LLMProviderConfig {
 	return helpers.SliceMap(entities, l.ToDomain)
 }
