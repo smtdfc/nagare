@@ -3,9 +3,10 @@ package messages
 import "github.com/smtdfc/nagare/pkgs/helpers"
 
 type ReasoningMessage struct {
-	ID      string      `json:"id"`
-	Type    MessageType `json:"type"`
-	Content string      `json:"content"`
+	ID       string      `json:"id"`
+	Type     MessageType `json:"type"`
+	InvokeID string      `json:"invoke_id"`
+	Content  string      `json:"content"`
 }
 
 func (m *ReasoningMessage) GetMessageID() string {
@@ -14,6 +15,14 @@ func (m *ReasoningMessage) GetMessageID() string {
 
 func (m *ReasoningMessage) GetMessageType() MessageType {
 	return m.Type
+}
+
+func (m *ReasoningMessage) GetInvokeID() string {
+	return m.InvokeID
+}
+
+func (m *ReasoningMessage) SetInvokeID(invokeID string) {
+	m.InvokeID = invokeID
 }
 
 func NewReasoningMessage(content string) *ReasoningMessage {

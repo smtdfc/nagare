@@ -3,8 +3,9 @@ package messages
 import "github.com/smtdfc/nagare/pkgs/helpers"
 
 type ResponseStartedMessage struct {
-	ID   string      `json:"id"`
-	Type MessageType `json:"type"`
+	ID       string      `json:"id"`
+	Type     MessageType `json:"type"`
+	InvokeID string      `json:"invoke_id"`
 }
 
 func (m *ResponseStartedMessage) GetMessageID() string {
@@ -15,6 +16,14 @@ func (m *ResponseStartedMessage) GetMessageType() MessageType {
 	return m.Type
 }
 
+func (m *ResponseStartedMessage) GetInvokeID() string {
+	return m.InvokeID
+}
+
+func (m *ResponseStartedMessage) SetInvokeID(invokeID string) {
+	m.InvokeID = invokeID
+}
+
 func NewResponseStartedMessage() *ResponseStartedMessage {
 	return &ResponseStartedMessage{
 		ID:   helpers.GenerateUUID(),
@@ -23,8 +32,9 @@ func NewResponseStartedMessage() *ResponseStartedMessage {
 }
 
 type ResponseCompletedMessage struct {
-	ID   string      `json:"id"`
-	Type MessageType `json:"type"`
+	ID       string      `json:"id"`
+	Type     MessageType `json:"type"`
+	InvokeID string      `json:"invoke_id"`
 }
 
 func (m *ResponseCompletedMessage) GetMessageID() string {
@@ -35,6 +45,14 @@ func (m *ResponseCompletedMessage) GetMessageType() MessageType {
 	return m.Type
 }
 
+func (m *ResponseCompletedMessage) GetInvokeID() string {
+	return m.InvokeID
+}
+
+func (m *ResponseCompletedMessage) SetInvokeID(invokeID string) {
+	m.InvokeID = invokeID
+}
+
 func NewResponseCompletedMessage() *ResponseCompletedMessage {
 	return &ResponseCompletedMessage{
 		ID:   helpers.GenerateUUID(),
@@ -43,10 +61,11 @@ func NewResponseCompletedMessage() *ResponseCompletedMessage {
 }
 
 type ResponseFailedMessage struct {
-	ID    string      `json:"id"`
-	Type  MessageType `json:"type"`
-	Code  string      `json:"code"`
-	Cause string      `json:"cause"`
+	ID       string      `json:"id"`
+	Type     MessageType `json:"type"`
+	InvokeID string      `json:"invoke_id"`
+	Code     string      `json:"code"`
+	Cause    string      `json:"cause"`
 }
 
 func (m *ResponseFailedMessage) GetMessageID() string {
@@ -55,6 +74,14 @@ func (m *ResponseFailedMessage) GetMessageID() string {
 
 func (m *ResponseFailedMessage) GetMessageType() MessageType {
 	return m.Type
+}
+
+func (m *ResponseFailedMessage) GetInvokeID() string {
+	return m.InvokeID
+}
+
+func (m *ResponseFailedMessage) SetInvokeID(invokeID string) {
+	m.InvokeID = invokeID
 }
 
 func NewResponseFailedMessage(code string, cause string) *ResponseFailedMessage {

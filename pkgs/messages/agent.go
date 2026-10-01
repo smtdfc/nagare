@@ -3,8 +3,9 @@ package messages
 import "github.com/smtdfc/nagare/pkgs/helpers"
 
 type AgentStartedMessage struct {
-	ID   string      `json:"id"`
-	Type MessageType `json:"type"`
+	ID       string      `json:"id"`
+	Type     MessageType `json:"type"`
+	InvokeID string      `json:"invoke_id"`
 }
 
 func (m *AgentStartedMessage) GetMessageID() string {
@@ -13,6 +14,14 @@ func (m *AgentStartedMessage) GetMessageID() string {
 
 func (m *AgentStartedMessage) GetMessageType() MessageType {
 	return m.Type
+}
+
+func (m *AgentStartedMessage) GetInvokeID() string {
+	return m.InvokeID
+}
+
+func (m *AgentStartedMessage) SetInvokeID(invokeID string) {
+	m.InvokeID = invokeID
 }
 
 func NewAgentStartedMessage() *AgentStartedMessage {
@@ -25,6 +34,7 @@ func NewAgentStartedMessage() *AgentStartedMessage {
 type AgentCompletedMessage struct {
 	ID       string      `json:"id"`
 	Type     MessageType `json:"type"`
+	InvokeID string      `json:"invoke_id"`
 	Success  bool        `json:"success"`
 	Cancel   bool        `json:"cancel"`
 	Duration float64     `json:"duration"`
@@ -38,6 +48,14 @@ func (m *AgentCompletedMessage) GetMessageType() MessageType {
 	return m.Type
 }
 
+func (m *AgentCompletedMessage) GetInvokeID() string {
+	return m.InvokeID
+}
+
+func (m *AgentCompletedMessage) SetInvokeID(invokeID string) {
+	m.InvokeID = invokeID
+}
+
 func NewAgentCompletedMessage(isSuccess bool, isCancel bool, duration float64) *AgentCompletedMessage {
 	return &AgentCompletedMessage{
 		ID:       helpers.GenerateUUID(),
@@ -49,10 +67,11 @@ func NewAgentCompletedMessage(isSuccess bool, isCancel bool, duration float64) *
 }
 
 type AgentErrorMessage struct {
-	ID    string      `json:"id"`
-	Type  MessageType `json:"type"`
-	Code  string      `json:"code"`
-	Error string      `json:"error"`
+	ID       string      `json:"id"`
+	Type     MessageType `json:"type"`
+	InvokeID string      `json:"invoke_id"`
+	Code     string      `json:"code"`
+	Error    string      `json:"error"`
 }
 
 func (m *AgentErrorMessage) GetMessageID() string {
@@ -61,6 +80,14 @@ func (m *AgentErrorMessage) GetMessageID() string {
 
 func (m *AgentErrorMessage) GetMessageType() MessageType {
 	return m.Type
+}
+
+func (m *AgentErrorMessage) GetInvokeID() string {
+	return m.InvokeID
+}
+
+func (m *AgentErrorMessage) SetInvokeID(invokeID string) {
+	m.InvokeID = invokeID
 }
 
 func NewAgentErrorMessage(err string, code string) *AgentErrorMessage {

@@ -3,11 +3,12 @@ package messages
 import "github.com/smtdfc/nagare/pkgs/helpers"
 
 type ToolCallMessage struct {
-	ID     string      `json:"id"`
-	Type   MessageType `json:"type"`
-	CallID string      `json:"call_id"`
-	Name   string      `json:"name"`
-	Args   string      `json:"args"`
+	ID       string      `json:"id"`
+	Type     MessageType `json:"type"`
+	InvokeID string      `json:"invoke_id"`
+	CallID   string      `json:"call_id"`
+	Name     string      `json:"name"`
+	Args     string      `json:"args"`
 }
 
 func (m *ToolCallMessage) GetMessageID() string {
@@ -16,6 +17,14 @@ func (m *ToolCallMessage) GetMessageID() string {
 
 func (m *ToolCallMessage) GetMessageType() MessageType {
 	return m.Type
+}
+
+func (m *ToolCallMessage) GetInvokeID() string {
+	return m.InvokeID
+}
+
+func (m *ToolCallMessage) SetInvokeID(invokeID string) {
+	m.InvokeID = invokeID
 }
 
 func NewToolCallMessage(callID string, name string, args string) *ToolCallMessage {
@@ -29,11 +38,12 @@ func NewToolCallMessage(callID string, name string, args string) *ToolCallMessag
 }
 
 type ToolResultMessage struct {
-	ID     string      `json:"id"`
-	Type   MessageType `json:"type"`
-	CallID string      `json:"call_id"`
-	Name   string      `json:"name"`
-	Result string      `json:"result"`
+	ID       string      `json:"id"`
+	Type     MessageType `json:"type"`
+	InvokeID string      `json:"invoke_id"`
+	CallID   string      `json:"call_id"`
+	Name     string      `json:"name"`
+	Result   string      `json:"result"`
 }
 
 func (m *ToolResultMessage) GetMessageID() string {
@@ -42,6 +52,14 @@ func (m *ToolResultMessage) GetMessageID() string {
 
 func (m *ToolResultMessage) GetMessageType() MessageType {
 	return m.Type
+}
+
+func (m *ToolResultMessage) GetInvokeID() string {
+	return m.InvokeID
+}
+
+func (m *ToolResultMessage) SetInvokeID(invokeID string) {
+	m.InvokeID = invokeID
 }
 
 func NewToolResultMessage(callID string, name string, result string) *ToolResultMessage {
