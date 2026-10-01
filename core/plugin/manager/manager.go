@@ -20,9 +20,9 @@ import (
 	"github.com/smtdfc/nagare/core/mappers"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"github.com/smtdfc/nagare/core/plugin"
-	"github.com/smtdfc/nagare/plugin/metadata"
 	"github.com/smtdfc/nagare/pkgs/helpers"
 	"github.com/smtdfc/nagare/pkgs/paths"
+	"github.com/smtdfc/nagare/plugin/metadata"
 )
 
 func unpackPlugin(archivePath, destDir string) error {
@@ -129,6 +129,19 @@ type PluginManager struct {
 	logger       *logger.BaseLogger
 }
 
+func (p *PluginManager) getPluginByID(ctx context.Context, id string) (*plugin.Plugin, error) {
+	pluginEntity, err := p.pluginRepo.FindById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if pluginEntity == nil {
+		return nil, custom_errors.ErrPluginNotFound
+	}
+
+	return p.pluginMapper.ToDomain(pluginEntity), nil
+}
+
 func (p *PluginManager) GetListPlugin(ctx context.Context) ([]*plugin.Plugin, error) {
 	ents, err := p.pluginRepo.FindAll(ctx)
 	if err != nil {
@@ -211,15 +224,15 @@ func (p *PluginManager) StartPlugin(ctx context.Context, plugin *plugin.Plugin) 
 	return nil
 }
 
-func (p *PluginManager) Install(ctx context.Context, pluginPath string) error {
+func (p *PluginManager) Install(ctx context.Context, pluginPath string) (*plugin.Plugin, error) {
 	_, err := os.Stat(pluginPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return custom_errors.ErrPluginNotFound
+			return nil, custom_errors.ErrPluginNotFound
 		}
 
 		p.logger.Error("Install plugin failed", "error", err, "plugin", pluginPath)
-		return custom_errors.ErrInstallPluginFailed
+		return nil, custom_errors.ErrInstallPluginFailed
 	}
 
 	id := uuid.New().String()
@@ -227,7 +240,7 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) error {
 	metadataFile := filepath.Join(tempDir, "metadata.json")
 	err = os.MkdirAll(tempDir, 0775)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = unpackPlugin(
@@ -236,37 +249,37 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) error {
 	)
 	if err != nil {
 		p.logger.Error("Install plugin failed", "error", err, "plugin", pluginPath)
-		return custom_errors.ErrUnpackPluginFailed
+		return nil, custom_errors.ErrUnpackPluginFailed
 	}
 
 	pluginMetadata, err := loadMetadata(metadataFile)
 	if err != nil {
 		p.logger.Error("Install plugin failed", "error", err, "plugin", pluginPath)
-		return custom_errors.ErrLoadPluginMetadataFailed
+		return nil, custom_errors.ErrLoadPluginMetadataFailed
 	}
 
 	err = pluginMetadata.Validate()
 	if err != nil {
 		p.logger.Error("Install plugin failed", "error", err, "plugin", pluginPath)
-		return custom_errors.ErrPluginMetadataInvalid
+		return nil, custom_errors.ErrPluginMetadataInvalid
 	}
 
 	pluginDir := filepath.Join(paths.PluginDir, pluginMetadata.PackageName)
 	binFile, isExist := pluginMetadata.Bin[runtime.GOOS]
 	if !isExist {
-		return custom_errors.ErrPluginBinaryMissing
+		return nil, custom_errors.ErrPluginBinaryMissing
 	}
 
 	err = helpers.CopyDir(tempDir, pluginDir)
 	if err != nil {
 		p.logger.Error("Install plugin failed", "error", err, "plugin", pluginPath)
-		return custom_errors.ErrInstallPluginFailed
+		return nil, custom_errors.ErrInstallPluginFailed
 	}
 
 	binFile = filepath.Join(pluginDir, binFile)
 	if err := os.Chmod(binFile, 0755); err != nil {
 		p.logger.Error("Install plugin failed", "error", err, "plugin", pluginPath)
-		return custom_errors.ErrInstallPluginFailed
+		return nil, custom_errors.ErrInstallPluginFailed
 	}
 
 	fmt.Println("features", pluginMetadata.Features)
@@ -283,10 +296,17 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) error {
 	_, err = p.pluginRepo.CreateOrUpdate(ctx, p.pluginMapper.ToEntity(&newPlugin))
 	if err != nil {
 		p.logger.Error("Install plugin failed", "error", err, "plugin", pluginPath)
-		return custom_errors.ErrInstallPluginFailed
+		return nil, custom_errors.ErrInstallPluginFailed
 	}
 
-	return p.StartPlugin(ctx, &newPlugin)
+	err = p.StartPlugin(ctx, &newPlugin)
+	if err != nil {
+		p.logger.Error("Install plugin failed", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrStartPluginFailed
+	}
+
+	return &newPlugin, nil
+
 }
 
 func (p *PluginManager) StartAllPlugin(ctx context.Context) error {
@@ -358,24 +378,23 @@ func (p *PluginManager) ValidConnect(cxt context.Context, packageName string, co
 }
 
 func (p *PluginManager) Uninstall(ctx context.Context, id string) error {
-	pluginEntity, err := p.pluginRepo.FindById(ctx, id)
+	plugin, err := p.getPluginByID(ctx, id)
 	if err != nil {
+		if err == custom_errors.ErrPluginNotFound {
+			return err
+		}
+
 		return custom_errors.ErrUninstallPluginFailed
 	}
 
-	if pluginEntity == nil {
-		return custom_errors.ErrPluginNotFound
-	}
-	plugin := p.pluginMapper.ToDomain(pluginEntity)
+	p.logger.Info("Uninstalling plugin", "packageName", plugin.PackageName, "name", plugin.Name, "version", plugin.Version)
 
-	p.logger.Info("Uninstalling plugin", "packageName", pluginEntity.PackageName, "name", pluginEntity.Name, "version", pluginEntity.Version)
-
-	p.logger.Info("Stopping plugin before uninstall", "packageName", pluginEntity.PackageName)
+	p.logger.Info("Stopping plugin before uninstall", "packageName", plugin.PackageName)
 	err = p.StopPlugin(ctx, plugin)
 	if err != nil {
-		p.logger.Logger.Error("Failed to stop plugin before uninstall", "error", err, "packageName", pluginEntity.PackageName)
+		p.logger.Logger.Error("Failed to stop plugin before uninstall", "error", err, "packageName", plugin.PackageName)
 	} else {
-		p.logger.Info("Plugin stopped successfully", "packageName", pluginEntity.PackageName)
+		p.logger.Info("Plugin stopped successfully", "packageName", plugin.PackageName)
 	}
 
 	err = p.pluginRepo.DeleteById(ctx, plugin.ID.String())
@@ -386,52 +405,50 @@ func (p *PluginManager) Uninstall(ctx context.Context, id string) error {
 	pluginDir := filepath.Join(paths.PluginDir, plugin.PackageName)
 	err = os.RemoveAll(pluginDir)
 	if err != nil {
-		p.logger.Error("Failed to remove plugin directory", "error", err, "packageName", pluginEntity.PackageName)
+		p.logger.Error("Failed to remove plugin directory", "error", err, "packageName", plugin.PackageName)
 	}
 
-	p.logger.Info("Uninstall plugin completed", "packageName", pluginEntity.PackageName, "name", pluginEntity.Name, "version", pluginEntity.Version)
+	p.logger.Info("Uninstall plugin completed", "packageName", plugin.PackageName, "name", plugin.Name, "version", plugin.Version)
 	return nil
 }
 
 func (p *PluginManager) Activate(ctx context.Context, id string) error {
-	pluginEntity, err := p.pluginRepo.FindById(ctx, id)
+	plugin, err := p.getPluginByID(ctx, id)
 	if err != nil {
+		if err == custom_errors.ErrPluginNotFound {
+			return err
+		}
+
 		return custom_errors.ErrActivatePluginFailed
 	}
 
-	if pluginEntity == nil {
-		return custom_errors.ErrPluginNotFound
-	}
+	p.logger.Info("Activating plugin", "packageName", plugin.PackageName, "name", plugin.Name, "version", plugin.Version)
 
-	p.logger.Info("Activating plugin", "packageName", pluginEntity.PackageName, "name", pluginEntity.Name, "version", pluginEntity.Version)
-	plg := p.pluginMapper.ToDomain(pluginEntity)
-
-	if plg.IsActive {
+	if plugin.IsActive {
 		return custom_errors.ErrPluginAlreadyActive
 	}
 
-	plg.IsActive = true
-	err = p.pluginRepo.Update(ctx, p.pluginMapper.ToEntity(plg))
+	plugin.IsActive = true
+	err = p.pluginRepo.Update(ctx, p.pluginMapper.ToEntity(plugin))
 	if err != nil {
 		return custom_errors.ErrActivatePluginFailed
 	}
 
-	p.logger.Info("Plugin activated successfully", "packageName", plg.PackageName, "name", plg.Name, "version", plg.Version)
-	return p.StartPlugin(ctx, plg)
+	p.logger.Info("Plugin activated successfully", "packageName", plugin.PackageName, "name", plugin.Name, "version", plugin.Version)
+	return p.StartPlugin(ctx, plugin)
 }
 
 func (p *PluginManager) Deactivate(ctx context.Context, id string) error {
-	pluginEntity, err := p.pluginRepo.FindById(ctx, id)
+	plugin, err := p.getPluginByID(ctx, id)
 	if err != nil {
+		if err == custom_errors.ErrPluginNotFound {
+			return err
+		}
+
 		return custom_errors.ErrDeactivatePluginFailed
 	}
 
-	if pluginEntity == nil {
-		return custom_errors.ErrPluginNotFound
-	}
-
-	p.logger.Info("Deactivating plugin", "packageName", pluginEntity.PackageName, "name", pluginEntity.Name, "version", pluginEntity.Version)
-	plugin := p.pluginMapper.ToDomain(pluginEntity)
+	p.logger.Info("Deactivating plugin", "packageName", plugin.PackageName, "name", plugin.Name, "version", plugin.Version)
 	if !plugin.IsActive {
 		return custom_errors.ErrPluginNotActive
 	}
@@ -451,16 +468,15 @@ func (p *PluginManager) Deactivate(ctx context.Context, id string) error {
 }
 
 func (p *PluginManager) GetPluginStatus(ctx context.Context, id string) (*plugin.PluginStatus, error) {
-	pluginEntity, err := p.pluginRepo.FindById(ctx, id)
+	pluginDomain, err := p.getPluginByID(ctx, id)
 	if err != nil {
+		if err == custom_errors.ErrPluginNotFound {
+			return nil, err
+		}
+
 		return nil, custom_errors.ErrGetPluginStatusFailed
 	}
 
-	if pluginEntity == nil {
-		return nil, custom_errors.ErrPluginNotFound
-	}
-
-	pluginDomain := p.pluginMapper.ToDomain(pluginEntity)
 	pidPath := pluginDomain.Bin + ".pid"
 	data, err := os.ReadFile(pidPath)
 	if err != nil {
