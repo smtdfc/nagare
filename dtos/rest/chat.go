@@ -23,6 +23,10 @@ type SendChatMessageRequest struct {
 	Text      string `json:"text"`
 }
 
+type SendChatMessageResponse struct {
+	InvokeID string `json:"invokeID"`
+}
+
 type CreateChatSessionRequest struct {
 	Title              string `json:"title"`
 	CurrentLLMProvider string `json:"currentLLMProvider"`
