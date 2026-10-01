@@ -64,7 +64,7 @@ func (s *SessionManager) CreateUserSession(ctx context.Context, title string, ow
 			return nil, custom_errors.ErrCreateSessionFailed
 		}
 	} else {
-		llmProviderId, _, err = s.getDefaultLLMSettings(ctx)
+		llmProviderId, llmModel, err = s.getDefaultLLMSettings(ctx)
 		if err != nil {
 			if errors.Is(err, custom_errors.ErrMissingDefaultProvider) {
 				return nil, err
