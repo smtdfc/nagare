@@ -3,6 +3,8 @@ package manager
 import (
 	"context"
 
+	"github.com/google/uuid"
+	config_mgr "github.com/smtdfc/nagare/core/config/manager"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/mappers"
@@ -18,14 +20,67 @@ type SessionManager struct {
 	messageRepo   *repositories.MessageRepository
 	sessionMapper *mappers.SessionMapper
 	messageMapper *mappers.MessageMapper
+	configMgr     *config_mgr.ConfigManager
 }
 
-func (s *SessionManager) CreateUserSession(ctx context.Context, title string, ownerID string) (*session.SessionInfo, error) {
+func (s *SessionManager) getDefaultLLMSettings(ctx context.Context) (uuid.UUID, string, error) {
+	generalConf, err := s.configMgr.GetGeneralConfig(ctx)
+	if err != nil {
+		return uuid.Nil, "", err
+	}
+
+	if generalConf == nil || generalConf.DefaultLLMProvider == "" {
+		return uuid.Nil, "", custom_errors.ErrMissingDefaultProvider
+	}
+
+	providerID, err := uuid.Parse(generalConf.DefaultLLMProvider)
+	if err != nil {
+		return uuid.Nil, "", err
+	}
+
+	return providerID, generalConf.DefaultLLMModel, nil
+}
+
+func newSessionState(sessionDomain *session.SessionInfo, messageDomains messages.ListMessage) *session.SessionState {
+	return &session.SessionState{
+		OwnerType:          sessionDomain.OwnerType,
+		OwnerID:            sessionDomain.OwnerID,
+		SessionID:          sessionDomain.ID,
+		ChannelID:          sessionDomain.ChannelID,
+		CurrentModel:       sessionDomain.CurrentLLMModel,
+		CurrentLLMProvider: sessionDomain.LLMProviderID,
+		Messages:           messageDomains,
+	}
+}
+
+func (s *SessionManager) CreateUserSession(ctx context.Context, title string, ownerID string, llmProvider string, llmModel string) (*session.SessionInfo, error) {
+	var llmProviderId = uuid.Nil
+	var err error
+
+	if llmProvider != "" {
+		llmProviderId, err = uuid.Parse(llmProvider)
+		if err != nil {
+			return nil, custom_errors.ErrCreateSessionFailed
+		}
+	} else {
+		llmProviderId, _, err = s.getDefaultLLMSettings(ctx)
+		if err != nil {
+			if err == custom_errors.ErrMissingDefaultProvider {
+				return nil, err
+			}
+
+			s.logger.Error("Failed to get general config", "err", err)
+			return nil, custom_errors.ErrCreateSessionFailed
+		}
+	}
+
 	sessionInfo := &session.SessionInfo{
-		Title:     title,
-		OwnerID:   ownerID,
-		OwnerType: session.USER,
-		IsArchive: false,
+		Title:           title,
+		OwnerID:         ownerID,
+		OwnerType:       session.USER,
+		IsArchive:       false,
+		LLMProviderID:   llmProviderId,
+		CurrentLLMModel: llmModel,
 	}
 
 	newSession, err := s.sessionRepo.Create(ctx, s.sessionMapper.ToEntity(sessionInfo))
@@ -68,7 +123,7 @@ func (s *SessionManager) GetUserSession(ctx context.Context, sessionID string, o
 	return s.sessionMapper.ToDomain(userSession), nil
 }
 
-func (s *SessionManager) GetUserChatHistory(ctx context.Context, sessionID string, ownerID string) (*session.SessionHistory, error) {
+func (s *SessionManager) GetUserChatState(ctx context.Context, sessionID string, ownerID string) (*session.SessionState, error) {
 	chatSession, err := s.sessionRepo.FindUserSessionWithMessages(ctx, sessionID, ownerID)
 	if err != nil {
 		s.logger.Error("failed to get chat history", "session_id", sessionID, "err", err)
@@ -85,16 +140,10 @@ func (s *SessionManager) GetUserChatHistory(ctx context.Context, sessionID strin
 		return nil, custom_errors.ErrGetChatHistoryFailed
 	}
 
-	return &session.SessionHistory{
-		OwnerType: sessionDomain.OwnerType,
-		OwnerID:   sessionDomain.OwnerID,
-		SessionID: sessionDomain.ID,
-		ChannelID: sessionDomain.ChannelID,
-		Messages:  domains,
-	}, nil
+	return newSessionState(sessionDomain, domains), nil
 }
 
-func (s *SessionManager) GetUserChatHistoryPage(ctx context.Context, sessionID string, ownerID string, beforeID string, limit int) (*session.SessionHistory, error) {
+func (s *SessionManager) GetUserChatStatePage(ctx context.Context, sessionID string, ownerID string, beforeID string, limit int) (*session.SessionState, error) {
 	chatSession, err := s.sessionRepo.FindUserSession(ctx, sessionID, ownerID)
 	if err != nil {
 		s.logger.Error("failed to get chat history page", "session_id", sessionID, "err", err)
@@ -111,20 +160,17 @@ func (s *SessionManager) GetUserChatHistoryPage(ctx context.Context, sessionID s
 		return nil, custom_errors.ErrGetChatHistoryFailed
 	}
 
-	messages, err := s.messageMapper.ToDomains(domains)
+	messageDomains, err := s.messageMapper.ToDomains(domains)
 	if err != nil {
 		s.logger.Error("failed to map chat history page", "session_id", sessionID, "err", err)
 		return nil, custom_errors.ErrGetChatHistoryFailed
 	}
+
 	sessionDomain := s.sessionMapper.ToDomain(chatSession)
-	return &session.SessionHistory{
-		OwnerType:  sessionDomain.OwnerType,
-		OwnerID:    sessionDomain.OwnerID,
-		SessionID:  sessionDomain.ID,
-		ChannelID:  sessionDomain.ChannelID,
-		Messages:   messages,
-		NextCursor: nextCursor,
-	}, nil
+	state := newSessionState(sessionDomain, messageDomains)
+	state.NextCursor = nextCursor
+
+	return state, nil
 }
 
 func (s *SessionManager) PreparePluginSession(ctx context.Context, channelID string, targetID string) (*session.SessionInfo, error) {
@@ -149,12 +195,24 @@ func (s *SessionManager) PreparePluginSession(ctx context.Context, channelID str
 	}
 
 	if sessionEntity == nil {
+		llmProviderID, defaultModel, err := s.getDefaultLLMSettings(ctx)
+		if err != nil {
+			if err == custom_errors.ErrMissingDefaultProvider {
+				return nil, err
+			}
+
+			s.logger.Error("Failed to get general config", "err", err)
+			return nil, custom_errors.ErrPreparePluginSessionFailed
+		}
+
 		sessionInfo := &session.SessionInfo{
-			Title:     channelID,
-			OwnerID:   plugin.ID.String(),
-			OwnerType: session.PLUGIN,
-			IsArchive: false,
-			ChannelID: channelID,
+			Title:           channelID,
+			OwnerID:         plugin.ID.String(),
+			OwnerType:       session.PLUGIN,
+			IsArchive:       false,
+			ChannelID:       channelID,
+			LLMProviderID:   llmProviderID,
+			CurrentLLMModel: defaultModel,
 		}
 
 		sessionEntity, err = s.sessionRepo.Create(ctx, s.sessionMapper.ToEntity(sessionInfo))
@@ -189,7 +247,7 @@ func (s *SessionManager) GetPluginSession(ctx context.Context, sessionID string,
 	return s.sessionMapper.ToDomain(sessionEntity), nil
 }
 
-func (s *SessionManager) GetChatHistory(ctx context.Context, sessionID string) (*session.SessionHistory, error) {
+func (s *SessionManager) GetChatState(ctx context.Context, sessionID string) (*session.SessionState, error) {
 	chatSession, err := s.sessionRepo.FindSessionWithMessages(ctx, sessionID)
 	if err != nil {
 		s.logger.Error("failed to get chat history", "session_id", sessionID, "err", err)
@@ -207,20 +265,18 @@ func (s *SessionManager) GetChatHistory(ctx context.Context, sessionID string) (
 		return nil, custom_errors.ErrGetChatHistoryFailed
 	}
 
-	return &session.SessionHistory{
-		OwnerType: sessionDomain.OwnerType,
-		OwnerID:   sessionDomain.OwnerID,
-		SessionID: sessionDomain.ID,
-		ChannelID: sessionDomain.ChannelID,
-		Messages:  domains,
-	}, nil
+	return newSessionState(sessionDomain, domains), nil
 }
 
-func (s *SessionManager) GetPluginChatHistory(ctx context.Context, sessionID string, pluginID string) (*session.SessionHistory, error) {
+func (s *SessionManager) GetPluginChatState(ctx context.Context, sessionID string, pluginID string) (*session.SessionState, error) {
 	plugin, err := s.pluginRepo.FindById(ctx, pluginID)
 	if err != nil {
 		s.logger.Error("failed to get session", "session_id", sessionID, "plugin_id", pluginID, "err", err)
 		return nil, custom_errors.ErrGetSessionFailed
+	}
+
+	if plugin == nil {
+		return nil, custom_errors.ErrPluginNotFound
 	}
 
 	chatSession, err := s.sessionRepo.FindPluginSessionWithMessages(ctx, sessionID, plugin.ID.String())
@@ -239,13 +295,7 @@ func (s *SessionManager) GetPluginChatHistory(ctx context.Context, sessionID str
 		return nil, custom_errors.ErrGetChatHistoryFailed
 	}
 
-	return &session.SessionHistory{
-		OwnerType: sessionDomain.OwnerType,
-		OwnerID:   sessionDomain.OwnerID,
-		SessionID: sessionDomain.ID,
-		ChannelID: sessionDomain.ChannelID,
-		Messages:  domains,
-	}, nil
+	return newSessionState(sessionDomain, domains), nil
 }
 
 func (s *SessionManager) SaveHistory(ctx context.Context, sessionID string, pendingMessage messages.ListMessage) error {
@@ -281,9 +331,13 @@ func (s *SessionManager) ResetChatChannel(ctx context.Context, channelID string,
 		return custom_errors.ErrPluginNotFound
 	}
 
+	if plugin == nil {
+		return custom_errors.ErrPluginNotFound
+	}
+
 	chatSession, err := s.sessionRepo.FindByChannelID(ctx, session.PLUGIN.ToString(), plugin.ID.String(), channelID)
 	if err != nil {
-		s.logger.Error("failed to reset session", "session_id", chatSession.ID.String(), "err", err)
+		s.logger.Error("failed to reset session", "channel_id", channelID, "err", err)
 		return custom_errors.ErrResetSessionFailed
 	}
 
@@ -308,6 +362,7 @@ func NewSessionManager(
 	messageRepo *repositories.MessageRepository,
 	messageMapper *mappers.MessageMapper,
 	pluginRepo *repositories.PluginRepository,
+	configMgr *config_mgr.ConfigManager,
 ) *SessionManager {
 	return &SessionManager{
 		sessionRepo:   sessionRepo,
@@ -316,5 +371,6 @@ func NewSessionManager(
 		logger:        logger.With("module", "session-manager"),
 		messageMapper: messageMapper,
 		pluginRepo:    pluginRepo,
+		configMgr:     configMgr,
 	}
 }

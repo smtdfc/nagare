@@ -1,6 +1,9 @@
 package session
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"github.com/smtdfc/nagare/core/llm_provider"
+)
 
 type OwnerType string
 
@@ -35,4 +38,8 @@ type SessionInfo struct {
 	OwnerType OwnerType
 	ChannelID string
 	IsArchive bool
+
+	CurrentLLMModel string
+	LLMProviderID   uuid.UUID
+	LLMProvider     *llm_provider.LLMProviderInfo
 }
