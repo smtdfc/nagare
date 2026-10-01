@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.10.0](https://github.com/smtdfc/nagare/compare/nagare-v1.9.1...nagare-v1.10.0) (2026-10-01)
+
+
+### Features
+
+* **core/chat:** refactor Invoke method to accept multiple input messages and add InvokeID handling ([bf82dd1](https://github.com/smtdfc/nagare/commit/bf82dd15f41937693e90f49776a279c98ab26ad3))
+* **core/chat:** update handleSendChatMessage to use ListMessage for message formatting ([81ea274](https://github.com/smtdfc/nagare/commit/81ea274f27a884a031104d1f5d80caf14d3d02ce))
+* **core/llm_provider:** remove unused slices import and comment out model support check ([9158957](https://github.com/smtdfc/nagare/commit/91589572b732b67d50569d9eda9f08408bad094e))
+* **dtos:** add InvokeID field to SendChatMessageResponse ([162b223](https://github.com/smtdfc/nagare/commit/162b223ce7d9b95632200b405e0f8475a946707c))
+* **gateway/chat:** update SendMessage to return response with InvokeID and publish message event ([5af3387](https://github.com/smtdfc/nagare/commit/5af33877fa1e5e6ebddbf36a9f1e89d391e8888a))
+* **pkgs/messages:** add InvokeID field and corresponding methods to message types ([9efc276](https://github.com/smtdfc/nagare/commit/9efc276df580b213f7f0907d4df0ffe6392ec3f0))
+* update TypeScript configurations and import paths across services ([25e9c04](https://github.com/smtdfc/nagare/commit/25e9c04c336529b872e20cd6addb1e17906dc0cf))
+
 ## [1.9.1](https://github.com/smtdfc/nagare/compare/nagare-v1.9.0...nagare-v1.9.1) (2026-10-01)
 
 
