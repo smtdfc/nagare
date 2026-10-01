@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "#/components/ui/select.tsx";
 import { Skeleton } from "#/components/ui/skeleton";
-import { Separator } from "#/components/ui/separator";
 import { SettingsHeader } from "#/components/settings-header";
 
 export const Route = createFileRoute("/(dashboard)/settings/general/")({
@@ -43,9 +42,9 @@ function RouteComponent() {
       setSettings(generalSettings);
       setProviders(providerList);
 
-      if (generalSettings?.currentProvider) {
+      if (generalSettings?.defaultLLMProvider) {
         const providerModels = await LLMProviderService.getModels({
-          id: generalSettings.currentProvider,
+          id: generalSettings.defaultLLMProvider,
         });
         setModels(providerModels);
       }
@@ -63,7 +62,7 @@ function RouteComponent() {
   const handleProviderChange = async (providerId: string | null) => {
     if (!providerId) return;
     setSettings((prev) =>
-      prev ? { ...prev, currentProvider: providerId, currentModel: "" } : prev,
+      prev ? { ...prev, defaultLLMProvider: providerId, defaultLLMModel: "" } : prev,
     );
     setModels([]);
 
@@ -82,7 +81,7 @@ function RouteComponent() {
 
   const handleModelChange = (model: string | null) => {
     setSettings((prev) =>
-      prev ? { ...prev, currentModel: model ?? "" } : prev,
+      prev ? { ...prev, defaultLLMModel: model ?? "" } : prev,
     );
   };
 
@@ -121,18 +120,18 @@ function RouteComponent() {
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium">
-                Current LLM provider
+                Default LLM provider
               </label>
               <p className="text-xs text-muted-foreground">
                 Select the active LLM provider to use for conversations.
               </p>
               <Select
-                value={settings?.currentProvider ?? ""}
+                value={settings?.defaultLLMProvider ?? ""}
                 onValueChange={handleProviderChange}
               >
                 <SelectTrigger className="w-full mt-1.5">
                   <SelectValue placeholder="Select a provider">
-                    {providers.find((p) => p.id === settings?.currentProvider)
+                    {providers.find((p) => p.id === settings?.defaultLLMProvider)
                       ?.name ?? "Select a provider"}
                   </SelectValue>
                 </SelectTrigger>
@@ -149,7 +148,7 @@ function RouteComponent() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium">Current model</label>
+              <label className="text-sm font-medium">Default LLM model</label>
               <p className="text-xs text-muted-foreground">
                 Select the default model for the chosen provider.
               </p>
@@ -158,7 +157,7 @@ function RouteComponent() {
                   <Loader2 className="absolute right-8 top-2.5 w-4 h-4 animate-spin text-muted-foreground z-10" />
                 )}
                 <Select
-                  value={settings?.currentModel ?? ""}
+                  value={settings?.defaultLLMModel ?? ""}
                   disabled={isLoadingModels || models.length === 0}
                   onValueChange={handleModelChange}
                 >
