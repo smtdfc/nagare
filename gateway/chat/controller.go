@@ -36,12 +36,12 @@ func (c *ChatController) SendMessage(ctx fiber.Ctx) error {
 		return err
 	}
 
-	err = c.chatService.SendMessage(ctx, ownerID, request)
+	data, err := c.chatService.SendMessage(ctx, ownerID, request)
 	if err != nil {
 		return err
 	}
 
-	return utils.ResponseSuccess(ctx, 0, 200)
+	return utils.ResponseSuccess(ctx, data, 200)
 }
 
 func (c *ChatController) CreateSession(ctx fiber.Ctx) error {

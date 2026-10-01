@@ -11,6 +11,7 @@ import (
 	"github.com/smtdfc/nagare/core/session/manager"
 	"github.com/smtdfc/nagare/dtos/rest"
 	"github.com/smtdfc/nagare/pkgs/helpers"
+	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
 func toSessionDTO(s *session.SessionInfo) *rest.Session {
@@ -41,20 +42,27 @@ type ChatService struct {
 	logger       *logger.BaseLogger
 }
 
-func (c *ChatService) SendMessage(ctx context.Context, ownerID string, request *rest.SendChatMessageRequest) error {
+func (c *ChatService) SendMessage(ctx context.Context, ownerID string, request *rest.SendChatMessageRequest) (*rest.SendChatMessageResponse, error) {
+	invokeID := uuid.New().String()
 	_, err := c.sessionMgr.GetUserSession(ctx, request.SessionID, ownerID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	c.chatEventBus.Publish(ctx, event_bus.SendEvent, &event_bus.SendMessageEventPayload{
-		RequestID:  uuid.New().String(),
-		SessionID:  request.SessionID,
-		Text:       request.Text,
+		InvokeID:  invokeID,
+		RequestID: uuid.New().String(),
+		SessionID: request.SessionID,
+		Messages: messages.ListMessage{
+			messages.NewTextMessage(messages.USER, request.Text),
+		},
 		SenderType: event_bus.User,
 		SenderID:   ownerID,
 	})
-	return nil
+
+	return &rest.SendChatMessageResponse{
+		InvokeID: invokeID,
+	}, nil
 }
 
 func (c *ChatService) CreateSession(ctx context.Context, ownerID string, request *rest.CreateChatSessionRequest) (*rest.CreateChatSessionResponse, error) {
