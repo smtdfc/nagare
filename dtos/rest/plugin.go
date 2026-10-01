@@ -20,12 +20,14 @@ type PluginStatus struct {
 }
 
 const (
-	GetListPluginEndpoint      = "/api/v1/user/plugins/list"
-	InstallLocalPluginEndpoint = "/api/v1/user/plugins/install-local"
-	UninstallPluginEndpoint    = "/api/v1/user/plugins/uninstall"
-	ActivatePluginEndpoint     = "/api/v1/user/plugins/activate"
-	DeactivatePluginEndpoint   = "/api/v1/user/plugins/deactivate"
-	GetPluginStatusEndpoint    = "/api/v1/user/plugins/status"
+	GetListPluginEndpoint               = "/api/v1/user/plugins/list"
+	InstallLocalPluginEndpoint          = "/api/v1/user/plugins/install-local"
+	InstallPluginFromAttachmentEndpoint = "/api/v1/user/plugins/install-attachment"
+	UninstallPluginEndpoint             = "/api/v1/user/plugins/uninstall"
+	ActivatePluginEndpoint              = "/api/v1/user/plugins/activate"
+	DeactivatePluginEndpoint            = "/api/v1/user/plugins/deactivate"
+	GetPluginStatusEndpoint             = "/api/v1/user/plugins/status"
+	UploadPluginEndpoint                = "/api/v1/user/plugins/upload"
 )
 
 type GetListPluginResponse struct {
@@ -34,6 +36,10 @@ type GetListPluginResponse struct {
 
 type InstallLocalPluginRequest struct {
 	Path string `json:"path"`
+}
+
+type InstallLocalPluginResponse struct {
+	Plugin *Plugin `json:"plugin"`
 }
 
 type UninstallPluginRequest struct {
@@ -54,4 +60,16 @@ type GetPluginStatusRequest struct {
 
 type GetPluginStatusResponse struct {
 	Status *PluginStatus `json:"status"`
+}
+
+type UploadPluginResponse struct {
+	AttachmentID string `json:"attachmentId"`
+}
+
+type InstallPluginFromAttachmentRequest struct {
+	AttachmentID string `json:"attachmentId"`
+}
+
+type InstallPluginFromAttachmentResponse struct {
+	Plugin *Plugin `json:"plugin"`
 }

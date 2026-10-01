@@ -6,8 +6,8 @@ const (
 )
 
 type GeneralSettings struct {
-	CurrentModel    string `json:"currentModel"`
-	CurrentProvider string `json:"currentProvider"`
+	DefaultLLMModel    string `json:"defaultLLMModel"`
+	DefaultLLMProvider string `json:"defaultLLMProvider"`
 }
 
 type GetGeneralSettingsResponse struct {

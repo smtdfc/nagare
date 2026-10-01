@@ -11,9 +11,11 @@ const (
 )
 
 type Session struct {
-	ID        string `json:"id"`
-	Title     string `json:"title"`
-	IsArchive bool   `json:"isArchive"`
+	ID                 string           `json:"id"`
+	Title              string           `json:"title"`
+	IsArchive          bool             `json:"isArchive"`
+	CurrentLLMModel    string           `json:"currentLLMModel,omitempty"`
+	CurrentLLMProvider *LLMProviderInfo `json:"currentLLMProvider,omitempty"`
 }
 
 type SendChatMessageRequest struct {
@@ -22,7 +24,9 @@ type SendChatMessageRequest struct {
 }
 
 type CreateChatSessionRequest struct {
-	Title string `json:"title"`
+	Title              string `json:"title"`
+	CurrentLLMProvider string `json:"currentLLMProvider"`
+	CurrentLLMModel    string `json:"currentLLMModel"`
 }
 
 type CreateChatSessionResponse struct {

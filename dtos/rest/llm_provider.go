@@ -8,6 +8,12 @@ const (
 	GetLLMProviderModelsEndpoint  = "/api/v1/user/llm-providers/models"
 )
 
+type LLMProviderInfo struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Compatible string `json:"compatible"`
+}
+
 type LLMProvider struct {
 	ID         string   `json:"id"`
 	Name       string   `json:"name"`
