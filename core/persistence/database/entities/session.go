@@ -19,6 +19,10 @@ type Session struct {
 
 	Messages []*Message `gorm:"foreignKey:SessionID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"messages,omitempty"`
 
+	CurrentModel  string       `gorm:"type:varchar(255);" json:"current_model"`
+	LLMProviderID uuid.UUID    `gorm:"type:varchar(255);" json:"llm_provider_id"`
+	LLMProvider   *LLMProvider `gorm:"foreignKey:LLMProviderID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"llm_provider,omitempty"`
+
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }

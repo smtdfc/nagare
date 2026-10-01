@@ -14,6 +14,7 @@ import (
 func InitDatabase(logger *logger.BaseLogger) (*gorm.DB, error) {
 	var databaseLogger = logger.With("module", "database")
 	var err error
+
 	db, err := gorm.Open(sqlite.Open(filepath.Join(paths.DatabaseDir, "nagare.db")), &gorm.Config{})
 	if err != nil {
 		databaseLogger.Error("Failed to init database", "error", err)

@@ -21,6 +21,7 @@ func (s *SessionRepository) FindByID(ctx context.Context, id string) (*entities.
 	var session entities.Session
 	err := s.db.WithContext(ctx).
 		Where("id = ?", id).
+		Preload("LLMProvider").
 		First(&session).Error
 
 	if err != nil {
@@ -97,6 +98,7 @@ func (s *SessionRepository) FindByChannelID(ctx context.Context, ownerType strin
 	var session *entities.Session
 	err := s.db.WithContext(ctx).
 		Where("owner_type = ? AND owner_id = ? AND channel_id = ?", ownerType, ownerID, channelID).
+		Preload("LLMProvider").
 		First(&session).Error
 
 	if err != nil {
@@ -153,6 +155,7 @@ func (s *SessionRepository) FindUserSession(ctx context.Context, sessionId strin
 	var session entities.Session
 	err := s.db.WithContext(ctx).
 		Where("owner_type = ? AND owner_id = ? AND id = ?", "user", ownerID, sessionId).
+		Preload("LLMProvider").
 		First(&session).Error
 
 	if err != nil {
@@ -171,6 +174,7 @@ func (s *SessionRepository) FindPluginSession(ctx context.Context, sessionId str
 	var session entities.Session
 	err := s.db.WithContext(ctx).
 		Where("owner_type = ? AND owner_id= ? AND id = ?", "plugin", pluginId, sessionId).
+		Preload("LLMProvider").
 		First(&session).Error
 
 	if err != nil {
@@ -189,6 +193,7 @@ func (s *SessionRepository) FindSessionWithMessages(ctx context.Context, session
 	var session entities.Session
 
 	err := s.db.WithContext(ctx).
+		Preload("LLMProvider").
 		Preload("Messages", func(db *gorm.DB) *gorm.DB {
 			return db.Order("created_at ASC, rowid ASC")
 		}).
@@ -209,6 +214,7 @@ func (s *SessionRepository) FindUserSessionWithMessages(ctx context.Context, ses
 	var session entities.Session
 
 	err := s.db.WithContext(ctx).
+		Preload("LLMProvider").
 		Preload("Messages", func(db *gorm.DB) *gorm.DB {
 			return db.Order("created_at ASC, rowid ASC")
 		}).
@@ -229,6 +235,7 @@ func (s *SessionRepository) FindPluginSessionWithMessages(ctx context.Context, s
 	var session entities.Session
 
 	err := s.db.WithContext(ctx).
+		Preload("LLMProvider").
 		Preload("Messages", func(db *gorm.DB) *gorm.DB {
 			return db.Order("created_at ASC, rowid ASC")
 		}).
