@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	config_mgr "github.com/smtdfc/nagare/core/config/manager"
 	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/session"
@@ -16,15 +17,25 @@ func toSessionDTO(s *session.SessionInfo) *rest.Session {
 	if s == nil {
 		return nil
 	}
-
+	var llmProvider *rest.LLMProviderInfo
+	if s.LLMProvider != nil {
+		llmProvider = &rest.LLMProviderInfo{
+			ID:         s.LLMProvider.ID.String(),
+			Name:       s.LLMProvider.Name,
+			Compatible: s.LLMProvider.Compatible.ToString(),
+		}
+	}
 	return &rest.Session{
-		ID:        s.ID.String(),
-		Title:     s.Title,
-		IsArchive: s.IsArchive,
+		ID:                 s.ID.String(),
+		Title:              s.Title,
+		IsArchive:          s.IsArchive,
+		CurrentLLMModel:    s.CurrentLLMModel,
+		CurrentLLMProvider: llmProvider,
 	}
 }
 
 type ChatService struct {
+	configMgr    *config_mgr.ConfigManager
 	chatEventBus *event_bus.CoreEventBus
 	sessionMgr   *manager.SessionManager
 	logger       *logger.BaseLogger
@@ -47,7 +58,7 @@ func (c *ChatService) SendMessage(ctx context.Context, ownerID string, request *
 }
 
 func (c *ChatService) CreateSession(ctx context.Context, ownerID string, request *rest.CreateChatSessionRequest) (*rest.CreateChatSessionResponse, error) {
-	chatSession, err := c.sessionMgr.CreateUserSession(ctx, request.Title, ownerID)
+	chatSession, err := c.sessionMgr.CreateUserSession(ctx, request.Title, ownerID, request.CurrentLLMProvider, request.CurrentLLMModel)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +87,7 @@ func (c *ChatService) ListSessions(ctx context.Context, ownerID string, offset i
 }
 
 func (c *ChatService) GetHistory(ctx context.Context, ownerID string, sessionID string) (*rest.GetChatHistoryResponse, error) {
-	sessionHistory, err := c.sessionMgr.GetUserChatHistory(ctx, sessionID, ownerID)
+	sessionHistory, err := c.sessionMgr.GetUserChatState(ctx, sessionID, ownerID)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +103,7 @@ func (c *ChatService) GetHistoryPage(ctx context.Context, ownerID string, sessio
 		limit = 50
 	}
 
-	sessionHistory, err := c.sessionMgr.GetUserChatHistoryPage(ctx, sessionID, ownerID, beforeID, limit)
+	sessionHistory, err := c.sessionMgr.GetUserChatStatePage(ctx, sessionID, ownerID, beforeID, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -115,8 +126,9 @@ func (c *ChatService) GetSession(ctx context.Context, ownerID string, sessionID 
 }
 
 // @Injectable
-func NewService(sessionMgr *manager.SessionManager, chatEventBus *event_bus.CoreEventBus, logger *logger.BaseLogger) *ChatService {
+func NewService(sessionMgr *manager.SessionManager, configMgr *config_mgr.ConfigManager, chatEventBus *event_bus.CoreEventBus, logger *logger.BaseLogger) *ChatService {
 	return &ChatService{
+		configMgr:    configMgr,
 		chatEventBus: chatEventBus,
 		sessionMgr:   sessionMgr,
 		logger:       logger.With("module", "gateway:chat:service"),

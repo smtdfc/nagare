@@ -70,10 +70,15 @@ func (c *ChatWorker) Do() {
 		defer unsubscribe()
 
 		for evt := range ch {
+
 			switch evt.GetEventType() {
 			case event_bus.ChunkEvent:
 				chunkPayload, ok := evt.(*event_bus.ChatChunkEventPayload)
 				if !ok {
+					continue
+				}
+
+				if chunkPayload.SenderType == event_bus.Plugin {
 					continue
 				}
 
