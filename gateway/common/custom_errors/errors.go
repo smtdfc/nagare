@@ -7,7 +7,7 @@ var (
 	ErrValidationFailed   = NewGatewayError("VALIDATION_FAILED", "Request data validation failed", 400)
 	ErrUnauthorized       = NewGatewayError("UNAUTHORIZED", "Unauthorized access", 401)
 	ErrForbidden          = NewGatewayError("FORBIDDEN", "Access forbidden", 403)
-
+	ErrBadRequest         = NewGatewayError("BAD_REQUEST", "Request body is invalid", 400)
 	ErrInternalServer     = NewGatewayError("INTERNAL_SERVER_ERROR", "Internal server error", 500)
 	ErrServiceUnavailable = NewGatewayError("SERVICE_UNAVAILABLE", "Service temporarily unavailable", 503)
 )
