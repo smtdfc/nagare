@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 	config_mgr "github.com/smtdfc/nagare/core/config/manager"
@@ -65,7 +66,7 @@ func (s *SessionManager) CreateUserSession(ctx context.Context, title string, ow
 	} else {
 		llmProviderId, _, err = s.getDefaultLLMSettings(ctx)
 		if err != nil {
-			if err == custom_errors.ErrMissingDefaultProvider {
+			if errors.Is(err, custom_errors.ErrMissingDefaultProvider) {
 				return nil, err
 			}
 
@@ -197,7 +198,7 @@ func (s *SessionManager) PreparePluginSession(ctx context.Context, channelID str
 	if sessionEntity == nil {
 		llmProviderID, defaultModel, err := s.getDefaultLLMSettings(ctx)
 		if err != nil {
-			if err == custom_errors.ErrMissingDefaultProvider {
+			if errors.Is(err, custom_errors.ErrMissingDefaultProvider) {
 				return nil, err
 			}
 

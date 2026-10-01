@@ -1,8 +1,9 @@
-name: release-publish.yml
+name: release-publish
+
 on:
-  release:
-    types:
-      - published
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   upload:
