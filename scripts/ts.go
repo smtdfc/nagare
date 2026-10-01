@@ -13,9 +13,9 @@ func main() {
 	cmd, _ := os.Getwd()
 
 	dtoMapping := map[string]string{
-		filepath.Join(cmd, "dtos", "rest"):       filepath.Join(cmd, "client", "dtos", "src", "rest.generated.ts"),
-		filepath.Join(cmd, "dtos", "websocket"):  filepath.Join(cmd, "client", "dtos", "src", "websocket.generated.ts"),
-		filepath.Join(cmd, "shared", "messages"): filepath.Join(cmd, "client", "messages", "src", "messages.generated.ts"),
+		filepath.Join(cmd, "dtos", "rest"):      filepath.Join(cmd, "client", "dtos", "src", "rest.generated.ts"),
+		filepath.Join(cmd, "dtos", "websocket"): filepath.Join(cmd, "client", "dtos", "src", "websocket.generated.ts"),
+		filepath.Join(cmd, "pkgs", "messages"):  filepath.Join(cmd, "client", "messages", "src", "messages.generated.ts"),
 	}
 
 	for goPath, tsFile := range dtoMapping {
