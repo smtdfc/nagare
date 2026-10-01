@@ -27,6 +27,7 @@ func NewApp(
 	m.Config.MaxMessageSize = 10 * 1024 * 1024 // 10MB
 	fiberApp := fiber.New(fiber.Config{
 		ErrorHandler: ErrorHandler,
+		BodyLimit:    150 * 1024 * 1024,
 	})
 
 	fiberApp.Use(cors.New())
