@@ -1,5 +1,68 @@
 # Changelog
 
+## [1.9.0](https://github.com/smtdfc/nagare/compare/nagare-v1.8.0...nagare-v1.9.0) (2026-10-01)
+
+
+### Features
+
+* Add dynamic tool registration and search capabilities ([06bba47](https://github.com/smtdfc/nagare/commit/06bba477a0d977ffb9f7d93cf51c4f009111f0a9))
+* add event bus implementation with subscription and publishing capabilities ([fe85c4a](https://github.com/smtdfc/nagare/commit/fe85c4af12265441afbc6a6198f61fc252108a03))
+* **client/services:** add plugin settings and provider services ([472b71b](https://github.com/smtdfc/nagare/commit/472b71b10d3e3876951671a2ff972bbe67964de3))
+* **client/ui:** add plugin and settings screens ([9e6a67d](https://github.com/smtdfc/nagare/commit/9e6a67d5ff68ccc449d5db995394aeb258477605))
+* **client/ui:** enhance MarkdownDisplay component with custom styling for various elements; update message handling in chat route ([5adff30](https://github.com/smtdfc/nagare/commit/5adff30a4f75f04a6af07fb9989bf4829fe649a8))
+* **client/ui:** enhance message handling and rendering logic ([3d825f5](https://github.com/smtdfc/nagare/commit/3d825f578cb5cba1f6aee4a0ff5379e685579012))
+* **client/ui:** implement session listing and chat message display with pagination ([e60761a](https://github.com/smtdfc/nagare/commit/e60761aee6820490c772196bc80b600cc43ae352))
+* **client/ui:** replace NavActions with ChatNavActions and update chat input handling ([80e5646](https://github.com/smtdfc/nagare/commit/80e5646576a53035d1db7c49c07764c34f250508))
+* **core/chat:** enhance system instructions for tool invocation with aggressive iterative search rules ([3dde43e](https://github.com/smtdfc/nagare/commit/3dde43e8325d3e6b4b5f10f051d07255cdd900ef))
+* **core/chat:** enhance tool management and update system instructions for tool routing ([d64e9d1](https://github.com/smtdfc/nagare/commit/d64e9d17aeae42d8c6c48d004648735da47d49b0))
+* **core/chat:** update tool category handling and refine system instructions for tool routing ([47ef43b](https://github.com/smtdfc/nagare/commit/47ef43b7bcdcaadcc7dcf8f22a68d14c6b288546))
+* **core/database:** add missing Plugin entity to AutoMigrate in InitDatabase ([dc7c6f7](https://github.com/smtdfc/nagare/commit/dc7c6f78b51f420b53a3bfe65f2355590eec5626))
+* **core/event_bus:** add plugin tool call and result event payloads for enhanced event handling ([47ef43b](https://github.com/smtdfc/nagare/commit/47ef43b7bcdcaadcc7dcf8f22a68d14c6b288546))
+* **core/llm-adapters:** adjust temperature setting for model input from 0.2 to 0.1 ([08c84b6](https://github.com/smtdfc/nagare/commit/08c84b642a7bb006bf8e07db9141edfc6d1c5ce5))
+* **core/llm-provider:** add provider metadata ([a18c6ef](https://github.com/smtdfc/nagare/commit/a18c6ef55d8a62467a0c45881d8fed3ed8c05974))
+* **core/mappers:** add message ID parsing in ToEntity method ([379af2d](https://github.com/smtdfc/nagare/commit/379af2dd2d690577048c5c0f54b0f4ee9e5e49a8))
+* **core/media:** add media upload support ([685a55e](https://github.com/smtdfc/nagare/commit/685a55e08db45a44c09f4382f6a205a3e3ca7aa3))
+* **core/repositories:** add pagination support for session and message retrieval ([1bfb47d](https://github.com/smtdfc/nagare/commit/1bfb47d8a5dceda695e5f839949a7bb51da0dd29))
+* **core/session:** add pagination support for user sessions and chat history retrieval ([4c84da5](https://github.com/smtdfc/nagare/commit/4c84da50c2ac4867cb2f538f31dcd87b9f3c4363))
+* **core/tool:** add category management for tools and implement FindToolByCategories functionality ([2853b1c](https://github.com/smtdfc/nagare/commit/2853b1c1a03c86e764e08daa80d24116e845d6d8))
+* **core/tool:** add file and directory management tools including create, read, write, delete, and list functionalities ([48d4fac](https://github.com/smtdfc/nagare/commit/48d4fac44ad1b2b94186eec47d660a0deb6a5104))
+* **core/tool:** add OpenBrowser tool to launch URLs in the default browser ([8c6f966](https://github.com/smtdfc/nagare/commit/8c6f9665be824abaef24a7ecacb665cc679d42dc))
+* **core/tool:** enhance tool management and plugin execution with event bus integration ([a820973](https://github.com/smtdfc/nagare/commit/a820973ed60eef4b9e7adb6631d4ac4762f83c75))
+* **core/tool:** refactor tool management and search capabilities, replace dynamic tool call with new execute and find tools ([ff817e5](https://github.com/smtdfc/nagare/commit/ff817e525370c549396ccd89fbaf240c16aa3c38))
+* create helper functions for type casting, file operations, and JSON handling ([fe85c4a](https://github.com/smtdfc/nagare/commit/fe85c4af12265441afbc6a6198f61fc252108a03))
+* define message structures and types for agent and response handling ([fe85c4a](https://github.com/smtdfc/nagare/commit/fe85c4af12265441afbc6a6198f61fc252108a03))
+* **dtos/chat:** add IsArchive field to Session struct ([7a3906c](https://github.com/smtdfc/nagare/commit/7a3906cf214c1b8b80cd679abe4df48e81dead4c))
+* **dtos/rest:** update REST API models ([3023795](https://github.com/smtdfc/nagare/commit/30237953bffdcabf885efef4581d7c7a847e0342))
+* **dtos:** enhance chat history request and response structures ([9076750](https://github.com/smtdfc/nagare/commit/9076750dc97e860fcb8085d145bd47cdba244fb7))
+* **dtos:** update event payloads for tool registration and call results ([164c51c](https://github.com/smtdfc/nagare/commit/164c51c3a3f9e521c73faafc9628065ddefc369c))
+* enhance error handling for payment and server issues in executor and OpenAI adapter ([02f9bdf](https://github.com/smtdfc/nagare/commit/02f9bdf9187a7566fe524f31f814913e84d28153))
+* establish a logging mechanism with file output ([fe85c4a](https://github.com/smtdfc/nagare/commit/fe85c4af12265441afbc6a6198f61fc252108a03))
+* **gateway/chat:** include IsArchive in session DTO conversion ([52ffb8b](https://github.com/smtdfc/nagare/commit/52ffb8b3522f544bc6c621243640a10807c4f1d2))
+* **gateway/plugin:** add handling for plugin tool call results and forward calls to chat ([001f596](https://github.com/smtdfc/nagare/commit/001f5969d45535b21819417bde995eacd3440efd))
+* **gateway/plugin:** add plugin tool registration and category management functionality ([b7b8923](https://github.com/smtdfc/nagare/commit/b7b892390eb98f93e4a38c06578bcc67fb51816d))
+* **gateway/plugin:** update plugin endpoints ([94e9d5a](https://github.com/smtdfc/nagare/commit/94e9d5a8ad112ea428c55a1cf9f48205bdd7399d))
+* **gateway/plugin:** update websocket event handlers for tool registration and categories ([04dc5ae](https://github.com/smtdfc/nagare/commit/04dc5ae07d520d986053a05da5679010caa5dc83))
+* **gateway/settings:** add settings endpoints ([eab4cf1](https://github.com/smtdfc/nagare/commit/eab4cf18d17ba8f52ed1c0efbda98bf6b6c2db72))
+* **gateway:** implement pagination for session listing and chat history retrieval ([51c5d8b](https://github.com/smtdfc/nagare/commit/51c5d8b493eecc516410cdf677dde22a6ce8cd26))
+* implement IPC (Inter-Process Communication) with Unix and Windows support ([fe85c4a](https://github.com/smtdfc/nagare/commit/fe85c4af12265441afbc6a6198f61fc252108a03))
+* improve error handling in toast notifications and log agent errors ([b7818f8](https://github.com/smtdfc/nagare/commit/b7818f8c0891ac9eecf233c06a32b357e270fefb))
+* introduce security features including RSA key generation and JWT token management ([fe85c4a](https://github.com/smtdfc/nagare/commit/fe85c4af12265441afbc6a6198f61fc252108a03))
+* **pkgs/system:** add OpenBrowser function to launch URLs in default browser ([8575137](https://github.com/smtdfc/nagare/commit/8575137b75db681c839a7bf51517ce19dd5dc7f1))
+* **pkgs/system:** add UserDirectories struct and functions to resolve user directories ([1ddb42f](https://github.com/smtdfc/nagare/commit/1ddb42f70263732f3b9ccf3de60c9845ed94473a))
+* **pkgs/system:** implement Start method to launch processes with command and arguments ([11fc38d](https://github.com/smtdfc/nagare/commit/11fc38ded895297f0526e3093b48b6fa756ebabd))
+* **plugin/client:** implement plugin tool call handling and enhance connector wait functionality ([e939638](https://github.com/smtdfc/nagare/commit/e9396380cc05cb0248f6b59c62af492fc8118069))
+* **plugin/client:** refactor chat session handling and enhance tool registration logic ([ac3d827](https://github.com/smtdfc/nagare/commit/ac3d8275aca8fbaec1b39fdc75c0673e6d46d896))
+* **plugin/client:** update connection handling and refactor configuration ([419adbe](https://github.com/smtdfc/nagare/commit/419adbe7142213829cd2f09faa8f61ad80dc0006))
+* **plugin/google-calendar:** enhance tool registration and update category handling ([cdba064](https://github.com/smtdfc/nagare/commit/cdba064599ad5afb859b1987e8b4163461a51a9a))
+* **plugin/google-calendar:** update tool registration and metadata features ([483165f](https://github.com/smtdfc/nagare/commit/483165f1ba38e473851223ffb1fc78151fcfaaa3))
+* **shared/helpers:** improve ContainsAnyWord function to match keywords more accurately ([5d2e9a4](https://github.com/smtdfc/nagare/commit/5d2e9a4bb1786795906f54ef40173da73b478029))
+* **shared/messages:** add GetMessageID method to message types and refactor GetMessageType ([cdcf6c5](https://github.com/smtdfc/nagare/commit/cdcf6c53cc4d426ed6145d75ae0353b077e6853b))
+
+
+### Bug Fixes
+
+* **plugin/builder:** correct package directory name in prepareDirectories function ([3b07d09](https://github.com/smtdfc/nagare/commit/3b07d09ad7f72821a6f1ecdea187f5af3a87d5fb))
+
 ## [1.8.0](https://github.com/smtdfc/nagare/compare/nagare-v1.7.0...nagare-v1.8.0) (2026-09-25)
 
 
