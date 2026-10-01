@@ -11,3 +11,6 @@ export * from "./env";
 export * from "./lib/errors";
 export * from "./chat";
 export * from "./lib/websocket";
+export * from "./llm-provider";
+export * from "./plugin";
+export * from "./settings";
