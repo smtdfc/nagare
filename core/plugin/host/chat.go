@@ -9,6 +9,7 @@ import (
 	core_plugin "github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/dtos/plugin"
 	"github.com/smtdfc/nagare/dtos/websocket"
+	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
 func (h *PluginHost) handlePrepareChatSession(conn *PluginConnection, payload *websocket.Payload[any]) {
@@ -86,9 +87,11 @@ func (h *PluginHost) handleSendChatMessage(conn *PluginConnection, payload *webs
 	}
 
 	h.chatEventBus.Publish(ctx, event_bus.SendEvent, &event_bus.SendMessageEventPayload{
-		RequestID:  uuid.New().String(),
-		SessionID:  data.SessionID,
-		Text:       data.Text,
+		RequestID: uuid.New().String(),
+		SessionID: data.SessionID,
+		Messages: messages.ListMessage{
+			messages.NewTextMessage(messages.USER, data.Text),
+		},
 		SenderID:   conn.pluginID,
 		SenderType: event_bus.Plugin,
 	})
