@@ -22,6 +22,7 @@ var PluginConfigDir = ""
 var DatabaseDir = ""
 var TempDir = ""
 var PluginSocketPath = ""
+var UploadDir = ""
 
 func init() {
 	home, err := os.UserHomeDir()
@@ -30,6 +31,7 @@ func init() {
 	}
 
 	DataDir = filepath.Join(home, ".nagare")
+	UploadDir = filepath.Join(DataDir, "uploads")
 	ConfigDir = filepath.Join(DataDir, "configs")
 	DatabaseDir = filepath.Join(DataDir, "databases")
 	LogDir = filepath.Join(DataDir, "logs")
@@ -47,6 +49,7 @@ func init() {
 	paths := []string{
 		DataDir,
 		ConfigDir,
+		UploadDir,
 		DatabaseDir,
 		LogDir,
 		PluginLogDir,
