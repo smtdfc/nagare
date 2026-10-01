@@ -49,12 +49,12 @@ const data = {
   navSecondary: [
     {
       title: "Settings",
-      url: "#",
+      url: "/settings",
       icon: <Settings2Icon />,
     },
     {
       title: "Plugins",
-      url: "#",
+      url: "/settings/plugins",
       icon: <PlugIcon />,
     },
     {
