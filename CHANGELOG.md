@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.9.1](https://github.com/smtdfc/nagare/compare/nagare-v1.9.0...nagare-v1.9.1) (2026-10-01)
+
+
+### Bug Fixes
+
+* **client/ui:** update settings to use defaultLLMProvider and defaultLLMModel instead of currentProvider and currentModel ([db58f35](https://github.com/smtdfc/nagare/commit/db58f35ef014cbc0675dee90ed8e6f9c9fd0247f))
+* **core/session:** update CreateUserSession to retrieve llmModel from default settings ([83b957e](https://github.com/smtdfc/nagare/commit/83b957e8c01b49fbbbce52556009de99bcfae9ba))
+* **gateway/settings:** correct DefaultLLMProvider and DefaultLLMModel assignment in SetGeneralSettings ([3dbff02](https://github.com/smtdfc/nagare/commit/3dbff02c9a57bfaeb33a94c205f420cbcb6d73c4))
+
 ## [1.9.0](https://github.com/smtdfc/nagare/compare/nagare-v1.8.0...nagare-v1.9.0) (2026-10-01)
 
 
