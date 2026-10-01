@@ -79,3 +79,7 @@ func copyFile(src, dst string) error {
 
 	return destFile.Sync()
 }
+
+func CopyFile(p string, path string) error {
+	return copyFile(p, path)
+}
