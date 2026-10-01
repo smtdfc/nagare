@@ -1,4 +1,4 @@
-import { instance } from "#/lib/axios.ts";
+import { instance } from "./lib/axios.js";
 import {
   type ApiResponse,
   CreateChatSessionEndpoint,
@@ -15,9 +15,10 @@ import {
   type RegisterChatListenerSuccessEventEventPayload,
   type RegisterChatMessageListenerEventPayload,
   SendChatMessageEndpoint,
+  type SendChatMessageResponse,
   type Session,
 } from "@nagare-app/dtos";
-import { catchError } from "#/lib/errors.ts";
+import { catchError } from "./lib/errors.js";
 import type { Message } from "@nagare-app/messages";
 import { websocket } from "./lib/websocket";
 import { Event as AppEvent } from "@nagare-app/dtos";
@@ -113,12 +114,13 @@ export class ChatService {
     }
   }
 
-  static async sendMessage(id: string, text: string) {
+  static async sendMessage(id: string, text: string){
     try {
-      await instance.post<ApiResponse<any>>(SendChatMessageEndpoint, {
+      const response = await instance.post<ApiResponse<SendChatMessageResponse>>(SendChatMessageEndpoint, {
         sessionID: id,
         text,
       });
+      return response.data.data;
     } catch (error) {
       catchError(error);
     }

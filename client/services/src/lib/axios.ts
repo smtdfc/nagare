@@ -1,5 +1,5 @@
 import axios from "axios";
-import { envConfig } from "#/env.ts";
+import { envConfig } from "../env";
 
 export function createAxiosWithCurrentEnv() {
   const instance = axios.create({

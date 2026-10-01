@@ -1,4 +1,4 @@
-import { instance } from "#/lib/axios.ts";
+import { instance } from "./lib/axios";
 import {
   type ApiResponse,
   type AuthEventPayload,
@@ -8,7 +8,7 @@ import {
   type CheckAuthStateResponse,
 } from "@nagare-app/dtos";
 import { Event as AppEvent } from "@nagare-app/dtos";
-import { catchError } from "#/lib/errors.ts";
+import { catchError } from "./lib/errors";
 import { websocket } from "./lib/websocket";
 
 export class AuthService {

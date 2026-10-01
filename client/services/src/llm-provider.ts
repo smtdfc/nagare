@@ -1,4 +1,4 @@
-import { instance } from "#/lib/axios.ts";
+import { instance } from "./lib/axios";
 import {
   type ApiResponse,
   type AddLLMProviderRequest,
@@ -15,7 +15,7 @@ import {
   GetLLMProviderModelsEndpoint,
   type LLMProvider,
 } from "@nagare-app/dtos";
-import { catchError } from "#/lib/errors.ts";
+import { catchError } from "./lib/errors";
 
 export class LLMProviderService {
   static async list() {

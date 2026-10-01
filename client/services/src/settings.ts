@@ -1,4 +1,4 @@
-import { instance } from "#/lib/axios.ts";
+import { instance } from "./lib/axios";
 import {
   type ApiResponse,
   type GeneralSettings,
@@ -7,14 +7,15 @@ import {
   type SetGeneralSettingsRequest,
   SetGeneralSettings,
 } from "@nagare-app/dtos";
-import { catchError } from "#/lib/errors.ts";
+import { catchError } from "./lib/errors";
 
 export class SettingsService {
   static async getGeneralSettings() {
     try {
-      const response = await instance.get<ApiResponse<GetGeneralSettingsResponse>>(
-        GetGeneralSettings,
-      );
+      const response =
+        await instance.get<ApiResponse<GetGeneralSettingsResponse>>(
+          GetGeneralSettings,
+        );
       return response.data.data.generalSettings!;
     } catch (e) {
       catchError(e);

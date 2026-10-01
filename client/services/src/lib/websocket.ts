@@ -1,4 +1,4 @@
-import { envConfig } from "#/env";
+import { envConfig } from "../env";
 import type { Event as AppEvent, Payload } from "@nagare-app/dtos";
 import { WebsocketApiError } from "./errors";
 

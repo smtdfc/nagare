@@ -1,4 +1,4 @@
-import { refreshInstance } from "#/lib/axios.ts";
+import { refreshInstance } from "./lib/axios";
 import { refreshWebsocket } from "./lib/websocket";
 
 export function refresh() {
