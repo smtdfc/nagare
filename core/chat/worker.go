@@ -30,13 +30,14 @@ func (w *ChatWorker) Do() {
 }
 
 func (w *ChatWorker) HandleSendMessageEvent(payload *event_bus.SendMessageEventPayload) {
-	output, err := w.agentInvoker.Invoke(
-		payload.SessionID,
-		payload.Text,
-		payload.SenderType,
-		payload.SenderID,
-		true,
-	)
+	output, err := w.agentInvoker.Invoke(&AgentInvokeParams{
+		SessionID:        payload.SessionID,
+		InputMessages:    payload.Messages,
+		SenderType:       payload.SenderType,
+		SenderID:         payload.SenderID,
+		SendIntoEventBus: true,
+		InvokeID:         payload.InvokeID,
+	})
 	if err != nil {
 		return
 	}

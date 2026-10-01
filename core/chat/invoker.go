@@ -30,19 +30,35 @@ type AgentInvoker struct {
 	logger         *logger.BaseLogger
 }
 
-func (a *AgentInvoker) Invoke(
-	sessionID string,
-	text string,
-	senderType event_bus.SenderType,
-	senderId string,
-	sendIntoEventBus bool,
-) (message.ReadOnlyChannel, error) {
+type AgentInvokeParams struct {
+	SessionID        string
+	InputMessages    messages.ListMessage
+	SenderType       event_bus.SenderType
+	SenderID         string
+	SendIntoEventBus bool
+	InvokeID         string
+}
+
+func (a *AgentInvoker) Invoke(params *AgentInvokeParams) (message.ReadOnlyChannel, error) {
+	if params == nil {
+		return nil, errors.New("agent invoke params cannot be nil")
+	}
+
 	output := make(chan messages.Message)
 	ctx := context.Background()
+	sessionID := params.SessionID
+	inputMessages := params.InputMessages
+	senderType := params.SenderType
+	senderID := params.SenderID
+	sendIntoEventBus := params.SendIntoEventBus
 	channelID := ""
 	sessionOwnerType := ""
 	sessionOwnerID := ""
 	var sessionState *session.SessionState
+	invokeID := params.InvokeID
+	if invokeID == "" {
+		invokeID = uuid.New().String()
+	}
 
 	extractErrorDetails := func(err error) (string, string) {
 		var coreErr *custom_errors.NagareCoreError
@@ -56,6 +72,9 @@ func (a *AgentInvoker) Invoke(
 		defer close(output)
 
 		emit := func(msg messages.Message) {
+			if msg != nil {
+				msg.SetInvokeID(invokeID)
+			}
 			output <- msg
 			if sendIntoEventBus && a.eventBus != nil {
 				a.eventBus.Publish(ctx, event_bus.ChunkEvent, &event_bus.ChatChunkEventPayload{
@@ -63,7 +82,7 @@ func (a *AgentInvoker) Invoke(
 					ChannelID:        channelID,
 					Chunk:            msg,
 					SenderType:       senderType,
-					SenderID:         senderId,
+					SenderID:         senderID,
 					SessionOwnerID:   sessionOwnerID,
 					SessionOwnerType: sessionOwnerType,
 				})
@@ -81,15 +100,15 @@ func (a *AgentInvoker) Invoke(
 			return
 		}
 
-		history := messages.ListMessage{
-			messages.NewTextMessage(messages.SYSTEM, systemPrompt),
-		}
+		systemMessage := messages.NewTextMessage(messages.SYSTEM, systemPrompt)
+		systemMessage.SetInvokeID(invokeID)
+		history := messages.ListMessage{systemMessage}
 
 		switch senderType {
 		case event_bus.User:
-			sessionState, err = a.sessionMgr.GetUserChatState(ctx, sessionID, senderId)
+			sessionState, err = a.sessionMgr.GetUserChatState(ctx, sessionID, senderID)
 		case event_bus.Plugin:
-			sessionState, err = a.sessionMgr.GetPluginChatState(ctx, sessionID, senderId)
+			sessionState, err = a.sessionMgr.GetPluginChatState(ctx, sessionID, senderID)
 		case event_bus.System:
 			sessionState, err = a.sessionMgr.GetChatState(ctx, sessionID)
 		}
@@ -136,10 +155,12 @@ func (a *AgentInvoker) Invoke(
 		}
 
 		currentAgent := a.agentPool.Get().WithContext(history).WithLLMAdapter(adapter)
-		agentOutput, err := currentAgent.Invoke(ctx, messages.NewTextMessage(
-			messages.USER,
-			text,
-		), currentLLMModel, &agent.InvokeOption{
+		for _, msg := range inputMessages {
+			if msg != nil {
+				msg.SetInvokeID(invokeID)
+			}
+		}
+		agentOutput, err := currentAgent.Invoke(ctx, inputMessages, currentLLMModel, &agent.InvokeOption{
 			SessionID: sessionID,
 		})
 		if err != nil {
@@ -158,6 +179,11 @@ func (a *AgentInvoker) Invoke(
 		}()
 
 		currentState := currentAgent.DumpState()
+		for _, msg := range currentState.PendingMessage {
+			if msg != nil {
+				msg.SetInvokeID(invokeID)
+			}
+		}
 		err = a.sessionMgr.SaveHistory(ctx, sessionID, currentState.PendingMessage)
 		if err != nil {
 			code, details := extractErrorDetails(err)

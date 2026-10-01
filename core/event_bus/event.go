@@ -37,9 +37,10 @@ type TaskInfo struct {
 
 type SendMessageEventPayload struct {
 	RequestID  string
+	InvokeID   string
 	SessionID  string
 	ChannelID  string
-	Text       string
+	Messages   messages.ListMessage
 	SenderType SenderType
 	SenderID   string
 	Task       *TaskInfo

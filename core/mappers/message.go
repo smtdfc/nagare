@@ -62,10 +62,16 @@ func (m *MessageMapper) ToEntity(domain messages.Message, sessionID string) (*en
 		return nil, err
 	}
 
+	invokeID, err := uuid.Parse(domain.GetInvokeID())
+	if err != nil {
+		return nil, err
+	}
+
 	return &entities.Message{
 		ID:          messageID,
 		MessageKind: domain.GetMessageType().ToString(),
 		Content:     raw,
+		InvokeID:    invokeID,
 		SessionID:   id,
 	}, nil
 }

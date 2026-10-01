@@ -41,11 +41,15 @@ func (a *Agent) WithContext(messages messages.ListMessage) *Agent {
 	return a
 }
 
-func (a *Agent) Invoke(ctx context.Context, msg messages.Message, model string, options *InvokeOption) (message.Channel, error) {
+func (a *Agent) Invoke(ctx context.Context, inputMessages messages.ListMessage, model string, options *InvokeOption) (message.Channel, error) {
 	a.logger.Info("Start invoke agent")
 	output := make(chan messages.Message)
 	go (func() {
-		a.state.AppendMessage(msg)
+		for _, msg := range inputMessages {
+			if msg != nil {
+				a.state.AppendMessage(msg)
+			}
+		}
 		ectx := &context2.ExecuteContext{
 			Context: ctx,
 		}

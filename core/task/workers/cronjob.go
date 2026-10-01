@@ -11,6 +11,7 @@ import (
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/task"
 	task_manager "github.com/smtdfc/nagare/core/task/manager"
+	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
 type CronJobWorker struct {
@@ -100,14 +101,16 @@ func (c *CronJobWorker) ExecuteTask(taskID uuid.UUID, task *task.Task) {
 	c.eventBus.Publish(ctx, event_bus.SendEvent, &event_bus.SendMessageEventPayload{
 		RequestID: uuid.New().String(),
 		SessionID: task.SessionID.String(),
-		Text: fmt.Sprintf(`
+		Messages: messages.ListMessage{
+			messages.NewTextMessage(messages.SYSTEM, fmt.Sprintf(`
 			<task>
 				<id>%s</id>
 				<request>%s</request>
 				<note>Add \"[Task: %s] triggered\" before the text response.</note>
 				<constraint>You MUST reply using the EXACT same language that the user is currently using in their prompt/request.</constraint>
 			</task>
-		`, taskID, task.Prompt, taskID),
+		`, taskID, task.Prompt, taskID)),
+		},
 		SenderType: event_bus.System,
 		SenderID:   "",
 	})
