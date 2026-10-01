@@ -27,16 +27,16 @@ func (c *ConfigManager) GetGeneralConfig(ctx context.Context) (*config.GeneralCo
 	}
 
 	kvMap := c.kvMapper.ToDomains(kvs)
-	conf.CurrentModel = kvMap["CurrentModel"]
-	conf.CurrentProvider = kvMap["CurrentProvider"]
+	conf.DefaultLLMProvider = kvMap["DefaultLLMProvider"]
+	conf.DefaultLLMModel = kvMap["DefaultLLMModel"]
 
 	return &conf, nil
 }
 
 func (c *ConfigManager) SetGeneralConfig(ctx context.Context, conf *config.GeneralConfig) error {
 	var kvMap = map[string]string{
-		"CurrentModel":    conf.CurrentModel,
-		"CurrentProvider": conf.CurrentProvider,
+		"DefaultLLMProvider": conf.DefaultLLMProvider,
+		"DefaultLLMModel":    conf.DefaultLLMModel,
 	}
 	err := c.kvRepo.Upsert(ctx, c.kvMapper.ToEntities(kvMap, GeneralConfigScopeName))
 	if err != nil {

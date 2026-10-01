@@ -1,6 +1,6 @@
 package config
 
 type GeneralConfig struct {
-	CurrentModel    string
-	CurrentProvider string
+	DefaultLLMProvider string
+	DefaultLLMModel    string
 }
