@@ -3,6 +3,8 @@ package plugin
 import (
 	"context"
 
+	"github.com/smtdfc/nagare/core/custom_errors"
+	"github.com/smtdfc/nagare/core/media/upload"
 	"github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/core/plugin/manager"
 	"github.com/smtdfc/nagare/dtos/rest"
@@ -28,6 +30,7 @@ func toPluginDTO(domain *plugin.Plugin) *rest.Plugin {
 
 type PluginService struct {
 	pluginMgr *manager.PluginManager
+	uploadMgr *upload.UploadManager
 }
 
 func (p *PluginService) ListPlugins(ctx context.Context) (*rest.GetListPluginResponse, error) {
@@ -41,8 +44,22 @@ func (p *PluginService) ListPlugins(ctx context.Context) (*rest.GetListPluginRes
 	}, nil
 }
 
-func (p *PluginService) InstallLocalPlugin(ctx context.Context, request *rest.InstallLocalPluginRequest) error {
-	return p.pluginMgr.Install(ctx, request.Path)
+func (p *PluginService) UploadPlugin(ctx context.Context, savePath string) (*rest.UploadPluginResponse, error) {
+	id, err := p.uploadMgr.AddAttachment(savePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rest.UploadPluginResponse{AttachmentID: id}, nil
+}
+
+func (p *PluginService) InstallLocalPlugin(ctx context.Context, request *rest.InstallLocalPluginRequest) (*rest.InstallLocalPluginResponse, error) {
+	plugin, err := p.pluginMgr.Install(ctx, request.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rest.InstallLocalPluginResponse{Plugin: toPluginDTO(plugin)}, nil
 }
 
 func (p *PluginService) UninstallPlugin(ctx context.Context, request *rest.UninstallPluginRequest) error {
@@ -75,11 +92,29 @@ func (p *PluginService) GetPluginStatus(ctx context.Context, request *rest.GetPl
 	}, nil
 }
 
+func (p *PluginService) InstallPluginFromAttachment(ctx context.Context, request *rest.InstallPluginFromAttachmentRequest) (*rest.InstallPluginFromAttachmentResponse, error) {
+	attachmentPath, exists := p.uploadMgr.GetAttachmentPath(request.AttachmentID)
+	if !exists {
+		return nil, custom_errors.ErrPluginNotFound
+	}
+
+	plugin, err := p.pluginMgr.Install(ctx, attachmentPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rest.InstallPluginFromAttachmentResponse{
+		Plugin: toPluginDTO(plugin),
+	}, nil
+}
+
 // @Injectable
 func NewPluginService(
 	pluginMgr *manager.PluginManager,
+	uploadMgr *upload.UploadManager,
 ) *PluginService {
 	return &PluginService{
 		pluginMgr: pluginMgr,
+		uploadMgr: uploadMgr,
 	}
 }
