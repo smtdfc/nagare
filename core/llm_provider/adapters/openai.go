@@ -3,7 +3,6 @@ package adapters
 import (
 	"context"
 	"fmt"
-	"slices"
 	"strings"
 
 	"github.com/openai/openai-go/v3"
@@ -115,9 +114,9 @@ func (o *OpenAICompatibleAdapter) TransformToolDeclarations(tools tool.ListTool)
 }
 
 func (o *OpenAICompatibleAdapter) Send(ctx context.Context, model string, listMessage messages.ListMessage, tools tool.ListTool) (message.ReadOnlyChannel, error) {
-	if !slices.Contains(o.Models, model) {
-		return nil, custom_errors.ErrModelNotSupportedByProvider
-	}
+	// if !slices.Contains(o.Models, model) {
+	// 	return nil, custom_errors.ErrModelNotSupportedByProvider
+	// }
 
 	inputs := responses.ResponseInputParam{}
 	listTool, err := o.TransformToolDeclarations(tools)
