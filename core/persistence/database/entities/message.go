@@ -13,7 +13,7 @@ type Message struct {
 	MessageKind string    `gorm:"type:varchar(50);not null" json:"message_kind"`
 	Content     string    `gorm:"type:text;not null" json:"content"`
 
-	InvokeID  uuid.UUID `gorm:"index;not null default:''" json:"invoke_id"`
+	InvokeID  uuid.UUID `gorm:"index;not null default:''" json:"invokeID"`
 	SessionID uuid.UUID `gorm:" index;not null" json:"session_id"`
 	Session   *Session  `gorm:"foreignKey:SessionID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"session,omitempty"`
 

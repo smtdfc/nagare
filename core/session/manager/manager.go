@@ -7,21 +7,24 @@ import (
 	"github.com/google/uuid"
 	config_mgr "github.com/smtdfc/nagare/core/config/manager"
 	"github.com/smtdfc/nagare/core/custom_errors"
+	llm_provider_mgr "github.com/smtdfc/nagare/core/llm_provider/manager"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/mappers"
+	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
 type SessionManager struct {
-	logger        *logger.BaseLogger
-	pluginRepo    *repositories.PluginRepository
-	sessionRepo   *repositories.SessionRepository
-	messageRepo   *repositories.MessageRepository
-	sessionMapper *mappers.SessionMapper
-	messageMapper *mappers.MessageMapper
-	configMgr     *config_mgr.ConfigManager
+	logger         *logger.BaseLogger
+	pluginRepo     *repositories.PluginRepository
+	sessionRepo    *repositories.SessionRepository
+	messageRepo    *repositories.MessageRepository
+	sessionMapper  *mappers.SessionMapper
+	messageMapper  *mappers.MessageMapper
+	configMgr      *config_mgr.ConfigManager
+	llmProviderMgr *llm_provider_mgr.LLMProviderManager
 }
 
 func (s *SessionManager) getDefaultLLMSettings(ctx context.Context) (uuid.UUID, string, error) {
@@ -119,6 +122,116 @@ func (s *SessionManager) GetUserSession(ctx context.Context, sessionID string, o
 
 	if userSession == nil {
 		return nil, custom_errors.ErrSessionNotFound
+	}
+
+	return s.sessionMapper.ToDomain(userSession), nil
+}
+
+func (s *SessionManager) DeleteUserSession(ctx context.Context, sessionID string, ownerID string) error {
+	userSession, err := s.sessionRepo.FindUserSession(ctx, sessionID, ownerID)
+	if err != nil {
+		return custom_errors.ErrDeleteSessionFailed
+	}
+	if userSession == nil {
+		return custom_errors.ErrSessionNotFound
+	}
+
+	if err := s.sessionRepo.Delete(ctx, sessionID); err != nil {
+		return custom_errors.ErrDeleteSessionFailed
+	}
+	return nil
+}
+
+func (s *SessionManager) ArchiveUserSession(ctx context.Context, sessionID string, ownerID string, isArchive bool) (*session.SessionInfo, error) {
+	userSession, err := s.sessionRepo.FindUserSession(ctx, sessionID, ownerID)
+	if err != nil {
+		return nil, custom_errors.ErrArchiveSessionFailed
+	}
+	if userSession == nil {
+		return nil, custom_errors.ErrSessionNotFound
+	}
+
+	userSession.IsArchive = isArchive
+	if err := s.sessionRepo.Update(ctx, userSession); err != nil {
+		return nil, custom_errors.ErrArchiveSessionFailed
+	}
+	return s.sessionMapper.ToDomain(userSession), nil
+}
+
+func (s *SessionManager) DuplicateUserSession(ctx context.Context, sessionID string, ownerID string) (*session.SessionInfo, error) {
+	original, err := s.sessionRepo.FindUserSessionWithMessages(ctx, sessionID, ownerID)
+	if err != nil {
+		return nil, custom_errors.ErrDuplicateSessionFailed
+	}
+	if original == nil {
+		return nil, custom_errors.ErrSessionNotFound
+	}
+
+	duplicate := &entities.Session{
+		ID:            uuid.New(),
+		Title:         original.Title + " (Copy)",
+		OwnerID:       original.OwnerID,
+		OwnerType:     original.OwnerType,
+		IsArchive:     false,
+		CurrentModel:  original.CurrentModel,
+		LLMProviderID: original.LLMProviderID,
+	}
+	created, err := s.sessionRepo.Create(ctx, duplicate)
+	if err != nil {
+		return nil, custom_errors.ErrDuplicateSessionFailed
+	}
+
+	messageCopies := make([]*entities.Message, 0, len(original.Messages))
+	for _, message := range original.Messages {
+		messageCopies = append(messageCopies, &entities.Message{
+			ID:          uuid.New(),
+			MessageKind: message.MessageKind,
+			Content:     message.Content,
+			InvokeID:    message.InvokeID,
+			SessionID:   created.ID,
+		})
+	}
+	if err := s.messageRepo.CreateBatch(ctx, messageCopies, 200); err != nil {
+		_ = s.sessionRepo.Delete(ctx, created.ID.String())
+		return nil, custom_errors.ErrDuplicateSessionFailed
+	}
+
+	duplicated, err := s.sessionRepo.FindUserSession(ctx, created.ID.String(), ownerID)
+	if err != nil || duplicated == nil {
+		return nil, custom_errors.ErrDuplicateSessionFailed
+	}
+
+	return s.sessionMapper.ToDomain(duplicated), nil
+}
+
+func (s *SessionManager) UpdateUserSessionLLMSettings(ctx context.Context, sessionID string, ownerID string, providerID string, model string) (*session.SessionInfo, error) {
+	if providerID == "" || model == "" {
+		return nil, custom_errors.ErrUpdateSessionLLMFailed
+	}
+
+	provider, err := s.llmProviderMgr.GetProviderByID(ctx, providerID)
+	if err != nil {
+		return nil, err
+	}
+
+	if provider == nil {
+		return nil, custom_errors.ErrLLMProviderNotFound
+	}
+
+	userSession, err := s.sessionRepo.FindUserSession(ctx, sessionID, ownerID)
+	if err != nil {
+		s.logger.Error("failed to get session for update", "session_id", sessionID, "err", err)
+		return nil, custom_errors.ErrGetSessionFailed
+	}
+
+	if userSession == nil {
+		return nil, custom_errors.ErrSessionNotFound
+	}
+
+	userSession.LLMProviderID = provider.ID
+	userSession.CurrentModel = model
+	if err := s.sessionRepo.Update(ctx, userSession); err != nil {
+		return nil, custom_errors.ErrUpdateSessionLLMFailed
 	}
 
 	return s.sessionMapper.ToDomain(userSession), nil
@@ -364,14 +477,16 @@ func NewSessionManager(
 	messageMapper *mappers.MessageMapper,
 	pluginRepo *repositories.PluginRepository,
 	configMgr *config_mgr.ConfigManager,
+	llmProviderMgr *llm_provider_mgr.LLMProviderManager,
 ) *SessionManager {
 	return &SessionManager{
-		sessionRepo:   sessionRepo,
-		sessionMapper: sessionMapper,
-		messageRepo:   messageRepo,
-		logger:        logger.With("module", "session-manager"),
-		messageMapper: messageMapper,
-		pluginRepo:    pluginRepo,
-		configMgr:     configMgr,
+		sessionRepo:    sessionRepo,
+		sessionMapper:  sessionMapper,
+		messageRepo:    messageRepo,
+		logger:         logger.With("module", "session-manager"),
+		messageMapper:  messageMapper,
+		pluginRepo:     pluginRepo,
+		configMgr:      configMgr,
+		llmProviderMgr: llmProviderMgr,
 	}
 }
