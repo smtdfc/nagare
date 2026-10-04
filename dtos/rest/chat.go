@@ -3,11 +3,15 @@ package rest
 import "github.com/smtdfc/nagare/pkgs/messages"
 
 const (
-	SendChatMessageEndpoint   = "/api/v1/user/chat/send"
-	CreateChatSessionEndpoint = "/api/v1/user/chat/session/create"
-	ListChatSessionsEndpoint  = "/api/v1/user/chat/session/list"
-	GetChatSessionEndpoint    = "/api/v1/user/chat/session/:id"
-	GetChatHistoryEndpoint    = "/api/v1/user/chat/session/:id/history"
+	SendChatMessageEndpoint              = "/api/v1/user/chat/send"
+	CreateChatSessionEndpoint            = "/api/v1/user/chat/session/create"
+	ListChatSessionsEndpoint             = "/api/v1/user/chat/session/list"
+	GetChatSessionEndpoint               = "/api/v1/user/chat/session/:id"
+	UpdateChatSessionLLMSettingsEndpoint = "/api/v1/user/chat/session/:id/settings"
+	GetChatHistoryEndpoint               = "/api/v1/user/chat/session/:id/history"
+	DeleteChatSessionEndpoint            = "/api/v1/user/chat/session/:id"
+	ArchiveChatSessionEndpoint           = "/api/v1/user/chat/session/:id/archive"
+	DuplicateChatSessionEndpoint         = "/api/v1/user/chat/session/:id/duplicate"
 )
 
 type Session struct {
@@ -59,5 +63,26 @@ type GetChatHistoryResponse struct {
 }
 
 type GetChatSessionResponse struct {
+	Session *Session `json:"session"`
+}
+
+type UpdateChatSessionLLMSettingsRequest struct {
+	CurrentLLMProvider string `json:"currentLLMProvider"`
+	CurrentLLMModel    string `json:"currentLLMModel"`
+}
+
+type UpdateChatSessionLLMSettingsResponse struct {
+	Session *Session `json:"session"`
+}
+
+type ArchiveChatSessionRequest struct {
+	IsArchive bool `json:"isArchive"`
+}
+
+type ArchiveChatSessionResponse struct {
+	Session *Session `json:"session"`
+}
+
+type DuplicateChatSessionResponse struct {
 	Session *Session `json:"session"`
 }
