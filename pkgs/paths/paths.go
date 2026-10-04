@@ -13,6 +13,7 @@ import (
 var UserHomeDir = ""
 var DataDir = ""
 var ConfigFile = ""
+var GatewayPIDFile = ""
 var ConfigDir = ""
 var GatewayBinFile = ""
 var LogDir = ""
@@ -40,6 +41,7 @@ func init() {
 	TempDir = filepath.Join(DataDir, "temp")
 	PluginConfigDir = filepath.Join(ConfigDir, "plugins")
 	ConfigFile = filepath.Join(DataDir, "config.json")
+	GatewayPIDFile = filepath.Join(DataDir, ".gateway.pid")
 	GatewayBinFile = filepath.Join("/opt", "nagare", "nagare-gateway")
 	if runtime.GOOS == "windows" {
 		PluginSocketPath = `\\.\pipe\nagare-plugin`
