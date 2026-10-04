@@ -13,11 +13,8 @@ import (
 
 var tokenCmd = &cobra.Command{
 	Use:   "token",
-	Short: "Generate a token",
-	Long: `Generate a secure JWT token signed with an RSA private key. 
-This command automatically checks the system keyring for existing RSA keys. 
-If no keys are found, it generates a new 4096-bit RSA key pair, stores them securely, 
-and uses them to issue a new authentication token with a predefined user payload.`,
+	Short: "Generate an authentication token",
+	Long:  "Generate a JWT signed with the RSA key pair stored in the system keyring. Create a new 4096-bit key pair when no keys exist.",
 	Run: func(cmd *cobra.Command, args []string) {
 		_, privateKey, err := cli_helpers.GetRSAKey()
 		if err != nil {
