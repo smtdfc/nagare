@@ -7,7 +7,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "cli",
+	Use:   "nagare",
 	Short: "Command-line tools for managing Nagare",
 	Long:  "Nagare CLI provides commands for authentication, gateway management, and plugin development.",
 }
