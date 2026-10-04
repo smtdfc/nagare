@@ -33,5 +33,6 @@ func TryStartGateway(isDebugMode bool) error {
 	cmd.Stdin = os.Stdin
 
 	cmd.Env = append(cmd.Environ(), fmt.Sprintf("NAGARE_GATEWAY_PUBLIC_KEY=%s", publicKey))
-	return cmd.Run()
+
+	return runGateway(cmd)
 }
