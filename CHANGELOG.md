@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.10.0](https://github.com/smtdfc/nagare/compare/nagare-v1.9.1...nagare-v1.10.0) (2026-10-04)
+
+
+### Features
+
+* **cli:** enhance command descriptions and improve gateway start functionality; add debug mode support for gateway ([b7142d6](https://github.com/smtdfc/nagare/commit/b7142d678dcc5d3c2d764bc145b7194bd7552d41))
+* **client/ui:** add methods for updating, deleting, archiving, and duplicating chat sessions; enhance chat session management in UI components ([8b86973](https://github.com/smtdfc/nagare/commit/8b86973ea21b90bf67569c0f55787b152ed7c22f))
+* **cli:** implement gateway stop command and enhance gateway process management ([b2801a1](https://github.com/smtdfc/nagare/commit/b2801a146acb2da226d3895aef14fb9989e65048))
+* **core/chat:** refactor Invoke method to accept multiple input messages and add InvokeID handling ([bf82dd1](https://github.com/smtdfc/nagare/commit/bf82dd15f41937693e90f49776a279c98ab26ad3))
+* **core/chat:** update handleSendChatMessage to use ListMessage for message formatting ([81ea274](https://github.com/smtdfc/nagare/commit/81ea274f27a884a031104d1f5d80caf14d3d02ce))
+* **core/llm_provider:** remove unused slices import and comment out model support check ([9158957](https://github.com/smtdfc/nagare/commit/91589572b732b67d50569d9eda9f08408bad094e))
+* **core/session:** add methods for updating, deleting, archiving, and duplicating user sessions; update error handling for session operations ([07a554d](https://github.com/smtdfc/nagare/commit/07a554dc1043401ce599fb3904e059e311219bb0))
+* **dtos:** add InvokeID field to SendChatMessageResponse ([162b223](https://github.com/smtdfc/nagare/commit/162b223ce7d9b95632200b405e0f8475a946707c))
+* **dtos:** add request and response types for updating, archiving, and duplicating chat sessions ([54cf138](https://github.com/smtdfc/nagare/commit/54cf138c5372859ffeb2c04b1970a4305d152a92))
+* **gateway/chat:** update SendMessage to return response with InvokeID and publish message event ([5af3387](https://github.com/smtdfc/nagare/commit/5af33877fa1e5e6ebddbf36a9f1e89d391e8888a))
+* **gateway:** add methods for updating, deleting, archiving, and duplicating chat sessions ([db12531](https://github.com/smtdfc/nagare/commit/db12531429fbaf302bc06ff4cc2f1d5d5d7516ba))
+* **pkgs/messages:** add InvokeID field and corresponding methods to message types ([9efc276](https://github.com/smtdfc/nagare/commit/9efc276df580b213f7f0907d4df0ffe6392ec3f0))
+* **pkgs/paths:** add GatewayPIDFile path initialization in the init function ([12799c5](https://github.com/smtdfc/nagare/commit/12799c5fce7583ba99c005655dbd2e7336fecd1b))
+* update TypeScript configurations and import paths across services ([25e9c04](https://github.com/smtdfc/nagare/commit/25e9c04c336529b872e20cd6addb1e17906dc0cf))
+
+
+### Bug Fixes
+
+* **cli:** update root command usage from 'cli' to 'nagare' ([db909fa](https://github.com/smtdfc/nagare/commit/db909fa6bf2249f659e05ce09032d4eb8bedda68))
+* **pkg/messages:** update InvokeID JSON field naming to camelCase across message types ([4550c01](https://github.com/smtdfc/nagare/commit/4550c015d2bacad8eadfec1fff7b76736937f800))
+
 ## [1.9.1](https://github.com/smtdfc/nagare/compare/nagare-v1.9.0...nagare-v1.9.1) (2026-10-01)
 
 
