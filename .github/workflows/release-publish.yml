@@ -1,18 +1,31 @@
-name: release-publish
+name: Nagare Bot - Release Publish
 
 on:
-  release:
-    types:
-      - published
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to upload binaries to"
+        required: true
+        type: string
+
+permissions:
+  contents: write
 
 jobs:
-  upload:
+  build-and-publish:
+    name: Build and Publish
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/setup-go@v5
+      - name: Checkout Nagare Bot
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          go-version: '1.27'
-      - name: "Install Dix"
+          go-version: "1.27"
+
+      - name: Install Dix
         run: go install github.com/smtdfc/dix@latest
 
       - name: Build
@@ -21,6 +34,7 @@ jobs:
       - name: Archive binaries
         run: |
           mkdir -p packed
+
           for dir in dist/*; do
             if [ -d "$dir" ]; then
               platform=$(basename "$dir")
@@ -31,6 +45,4 @@ jobs:
       - name: Upload binaries to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: packed/*.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ inputs.tag }}
