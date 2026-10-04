@@ -113,6 +113,71 @@ func (c *ChatController) GetSession(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
+func (c *ChatController) UpdateLLMSettings(ctx fiber.Ctx) error {
+	ownerID, err := authenticatedUserID(ctx)
+	if err != nil {
+		return err
+	}
+
+	request, err := utils.ParseBody[*rest.UpdateChatSessionLLMSettingsRequest](ctx)
+	if err != nil {
+		return err
+	}
+
+	data, err := c.chatService.UpdateLLMSettings(ctx, ownerID, ctx.Params("id"), request)
+	if err != nil {
+		return err
+	}
+
+	return utils.ResponseSuccess(ctx, data, 200)
+}
+
+func (c *ChatController) DeleteSession(ctx fiber.Ctx) error {
+	ownerID, err := authenticatedUserID(ctx)
+	if err != nil {
+		return err
+	}
+
+	if err := c.chatService.DeleteSession(ctx, ownerID, ctx.Params("id")); err != nil {
+		return err
+	}
+
+	return utils.ResponseSuccess(ctx, struct{}{}, 200)
+}
+
+func (c *ChatController) ArchiveSession(ctx fiber.Ctx) error {
+	ownerID, err := authenticatedUserID(ctx)
+	if err != nil {
+		return err
+	}
+
+	request, err := utils.ParseBody[*rest.ArchiveChatSessionRequest](ctx)
+	if err != nil {
+		return err
+	}
+
+	data, err := c.chatService.ArchiveSession(ctx, ownerID, ctx.Params("id"), request)
+	if err != nil {
+		return err
+	}
+
+	return utils.ResponseSuccess(ctx, data, 200)
+}
+
+func (c *ChatController) DuplicateSession(ctx fiber.Ctx) error {
+	ownerID, err := authenticatedUserID(ctx)
+	if err != nil {
+		return err
+	}
+
+	data, err := c.chatService.DuplicateSession(ctx, ownerID, ctx.Params("id"))
+	if err != nil {
+		return err
+	}
+
+	return utils.ResponseSuccess(ctx, data, 200)
+}
+
 // @Injectable
 func NewController(chatService *ChatService, logger *logger.BaseLogger) *ChatController {
 	return &ChatController{

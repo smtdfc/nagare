@@ -133,6 +133,49 @@ func (c *ChatService) GetSession(ctx context.Context, ownerID string, sessionID 
 	}, nil
 }
 
+func (c *ChatService) UpdateLLMSettings(ctx context.Context, ownerID string, sessionID string, request *rest.UpdateChatSessionLLMSettingsRequest) (*rest.UpdateChatSessionLLMSettingsResponse, error) {
+	chatSession, err := c.sessionMgr.UpdateUserSessionLLMSettings(
+		ctx,
+		sessionID,
+		ownerID,
+		request.CurrentLLMProvider,
+		request.CurrentLLMModel,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rest.UpdateChatSessionLLMSettingsResponse{
+		Session: toSessionDTO(chatSession),
+	}, nil
+}
+
+func (c *ChatService) DeleteSession(ctx context.Context, ownerID string, sessionID string) error {
+	return c.sessionMgr.DeleteUserSession(ctx, sessionID, ownerID)
+}
+
+func (c *ChatService) ArchiveSession(ctx context.Context, ownerID string, sessionID string, request *rest.ArchiveChatSessionRequest) (*rest.ArchiveChatSessionResponse, error) {
+	chatSession, err := c.sessionMgr.ArchiveUserSession(ctx, sessionID, ownerID, request.IsArchive)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rest.ArchiveChatSessionResponse{
+		Session: toSessionDTO(chatSession),
+	}, nil
+}
+
+func (c *ChatService) DuplicateSession(ctx context.Context, ownerID string, sessionID string) (*rest.DuplicateChatSessionResponse, error) {
+	chatSession, err := c.sessionMgr.DuplicateUserSession(ctx, sessionID, ownerID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rest.DuplicateChatSessionResponse{
+		Session: toSessionDTO(chatSession),
+	}, nil
+}
+
 // @Injectable
 func NewService(sessionMgr *manager.SessionManager, configMgr *config_mgr.ConfigManager, chatEventBus *event_bus.CoreEventBus, logger *logger.BaseLogger) *ChatService {
 	return &ChatService{
