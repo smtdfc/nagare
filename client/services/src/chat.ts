@@ -3,6 +3,12 @@ import {
   type ApiResponse,
   CreateChatSessionEndpoint,
   type CreateChatSessionResponse,
+  ArchiveChatSessionEndpoint,
+  type ArchiveChatSessionRequest,
+  type ArchiveChatSessionResponse,
+  DeleteChatSessionEndpoint,
+  DuplicateChatSessionEndpoint,
+  type DuplicateChatSessionResponse,
   GetChatHistoryEndpoint,
   type GetChatHistoryResponse,
   GetChatSessionEndpoint,
@@ -17,6 +23,9 @@ import {
   SendChatMessageEndpoint,
   type SendChatMessageResponse,
   type Session,
+  UpdateChatSessionLLMSettingsEndpoint,
+  type UpdateChatSessionLLMSettingsRequest,
+  type UpdateChatSessionLLMSettingsResponse,
 } from "@nagare-app/dtos";
 import { catchError } from "./lib/errors.js";
 import type { Message } from "@nagare-app/messages";
@@ -59,6 +68,53 @@ export class ChatService {
       return body.data.sessions! as Session[];
     } catch (e) {
       catchError(e);
+    }
+  }
+
+  static async updateChatSessionLLMSettings(
+    id: string,
+    payload: UpdateChatSessionLLMSettingsRequest,
+  ) {
+    try {
+      const response = await instance.post<
+        ApiResponse<UpdateChatSessionLLMSettingsResponse>
+      >(UpdateChatSessionLLMSettingsEndpoint.replace(":id", id), payload);
+      return response.data.data.session!;
+    } catch (error) {
+      catchError(error);
+    }
+  }
+
+  static async deleteChatSession(id: string) {
+    try {
+      await instance.delete(DeleteChatSessionEndpoint.replace(":id", id));
+    } catch (error) {
+      catchError(error);
+    }
+  }
+
+  static async archiveChatSession(
+    id: string,
+    payload: ArchiveChatSessionRequest,
+  ) {
+    try {
+      const response = await instance.post<
+        ApiResponse<ArchiveChatSessionResponse>
+      >(ArchiveChatSessionEndpoint.replace(":id", id), payload);
+      return response.data.data.session!;
+    } catch (error) {
+      catchError(error);
+    }
+  }
+
+  static async duplicateChatSession(id: string) {
+    try {
+      const response = await instance.post<
+        ApiResponse<DuplicateChatSessionResponse>
+      >(DuplicateChatSessionEndpoint.replace(":id", id));
+      return response.data.data.session!;
+    } catch (error) {
+      catchError(error);
     }
   }
 
@@ -114,9 +170,11 @@ export class ChatService {
     }
   }
 
-  static async sendMessage(id: string, text: string){
+  static async sendMessage(id: string, text: string) {
     try {
-      const response = await instance.post<ApiResponse<SendChatMessageResponse>>(SendChatMessageEndpoint, {
+      const response = await instance.post<
+        ApiResponse<SendChatMessageResponse>
+      >(SendChatMessageEndpoint, {
         sessionID: id,
         text,
       });

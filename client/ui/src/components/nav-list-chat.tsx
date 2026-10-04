@@ -24,9 +24,12 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import type { Session } from "@nagare-app/dtos";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Spinner } from "#/components/ui/spinner";
-import { envConfig, Environment } from "@nagare-app/services";
+import { ChatService, envConfig, Environment } from "@nagare-app/services";
+import { useChat } from "#/hooks/use-chat";
+import { showToastError } from "#/lib/toast";
+import { ArchiveIcon, CopyIcon } from "lucide-react";
 
 type NavListChatProps = {
   sessions: Session[];
@@ -36,6 +39,55 @@ type NavListChatProps = {
 export function NavListChat({ sessions, isLoading = false }: NavListChatProps) {
   const { isMobile } = useSidebar();
   const pathname = useLocation({ select: (location) => location.pathname });
+  const navigate = useNavigate();
+  const setSessions = useChat((state) => state.setSessions);
+
+  const updateSession = (updatedSession: Session) => {
+    setSessions(
+      useChat
+        .getState()
+        .sessions.map((session) =>
+          session.id === updatedSession.id ? updatedSession : session,
+        ),
+    );
+  };
+
+  const handleDuplicate = async (session: Session) => {
+    try {
+      const duplicatedSession = await ChatService.duplicateChatSession(
+        session.id,
+      );
+      setSessions([duplicatedSession, ...useChat.getState().sessions]);
+      await navigate({ to: `/chat/${duplicatedSession.id}` });
+    } catch (error) {
+      showToastError(error);
+    }
+  };
+
+  const handleArchive = async (session: Session) => {
+    try {
+      const updatedSession = await ChatService.archiveChatSession(session.id, {
+        isArchive: !session.isArchive,
+      });
+      updateSession(updatedSession);
+    } catch (error) {
+      showToastError(error);
+    }
+  };
+
+  const handleDelete = async (session: Session) => {
+    try {
+      await ChatService.deleteChatSession(session.id);
+      setSessions(
+        useChat.getState().sessions.filter((item) => item.id !== session.id),
+      );
+      if (pathname === `/chat/${session.id}`) {
+        await navigate({ to: "/chat/new" });
+      }
+    } catch (error) {
+      showToastError(error);
+    }
+  };
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -94,8 +146,20 @@ export function NavListChat({ sessions, isLoading = false }: NavListChatProps) {
                     ""
                   )}
 
+                  <DropdownMenuItem onClick={() => void handleDuplicate(item)}>
+                    <CopyIcon className="text-muted-foreground" />
+                    <span>Duplicate</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void handleArchive(item)}>
+                    <ArchiveIcon className="text-muted-foreground" />
+                    <span>{item.isArchive ? "Unarchive" : "Archive"}</span>
+                  </DropdownMenuItem>
+
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-red-600">
+                  <DropdownMenuItem
+                    className="text-red-600"
+                    onClick={() => void handleDelete(item)}
+                  >
                     <Trash2Icon />
                     <span>Delete</span>
                   </DropdownMenuItem>

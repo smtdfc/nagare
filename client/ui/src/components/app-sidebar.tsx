@@ -134,8 +134,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent onScroll={handleSessionsScroll}>
         <NavListChat sessions={sessions} isLoading={isLoadingSessions} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
+      <NavSecondary items={data.navSecondary} className="mt-auto" />
       <SidebarRail />
     </Sidebar>
   );

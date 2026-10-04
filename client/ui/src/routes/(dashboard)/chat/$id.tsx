@@ -281,7 +281,19 @@ function RouteComponent() {
         if (firstMessage && isTextMessage(firstMessage)) {
           setMessages((prev) => [...prev, firstMessage]);
           setStatusText("Processing...");
-          await ChatService.sendMessage(id, firstMessage.content);
+          const response = await ChatService.sendMessage(
+            id,
+            firstMessage.content,
+          );
+          if (response?.invokeID) {
+            setMessages((prev) =>
+              prev.map((message) =>
+                message.id === firstMessage.id
+                  ? { ...message, invokeID: response.invokeID }
+                  : message,
+              ),
+            );
+          }
           setIsProcessing(true);
           setPendingMessages(pendingMessages.slice(1));
         }

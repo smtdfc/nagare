@@ -26,10 +26,35 @@ function RouteComponent() {
   });
   const isProcessing = useChat((c) => c.isProcessing);
   const chatSession = useChat((c) => c.chatSession);
+  const setChatSession = useChat((c) => c.setChatSession);
   const setPendingMessages = useChat((c) => c.setPendingMessages);
   const setIsConnected = useChat((c) => c.setIsConnected);
   const sessions = useChat((c) => c.sessions);
   const setSessions = useChat((c) => c.setSessions);
+
+  const handleSessionUpdated = (
+    updatedSession: NonNullable<typeof chatSession>,
+  ) => {
+    setChatSession(updatedSession);
+    setSessions(
+      sessions.map((session) =>
+        session.id === updatedSession.id ? updatedSession : session,
+      ),
+    );
+  };
+
+  const handleSessionDeleted = () => {
+    if (!chatSession) return;
+    setSessions(sessions.filter((session) => session.id !== chatSession.id));
+    void navigate({ to: "/chat/new" });
+  };
+
+  const handleSessionDuplicated = (
+    duplicatedSession: NonNullable<typeof chatSession>,
+  ) => {
+    setSessions([duplicatedSession, ...sessions]);
+    void navigate({ to: `/chat/${duplicatedSession.id}` });
+  };
 
   const onSend = async (data: ChatData) => {
     setPendingMessages([
@@ -37,6 +62,7 @@ function RouteComponent() {
         id: crypto.randomUUID(),
         role: Role.USER,
         type: MessageType.TextMessageType,
+        invokeID: "",
         content: data.text,
       },
     ]);
@@ -70,7 +96,12 @@ function RouteComponent() {
         </div>
         {chatSession ? (
           <div className="ml-auto px-3">
-            <ChatNavActions />
+            <ChatNavActions
+              session={chatSession}
+              onSessionUpdated={handleSessionUpdated}
+              onSessionDeleted={handleSessionDeleted}
+              onSessionDuplicated={handleSessionDuplicated}
+            />
           </div>
         ) : (
           ""
