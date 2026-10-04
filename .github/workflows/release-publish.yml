@@ -1,4 +1,4 @@
-name: Nagare Bot - Release Publish
+name: Release Publish
 
 on:
   workflow_dispatch:
