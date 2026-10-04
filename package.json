@@ -13,8 +13,14 @@
   },
   "scripts": {
     "gateway:start": "cd ./cli && go run -tags debug . gateway start -d",
+    "gateway:stop": "cd ./cli && go run -tags debug . gateway stop",
     "build": "./build.sh",
-    "cli:run": "cd ./cli && go run -tags debug . "
+    "cli:run": "cd ./cli && go run -tags debug . ",
+    "web:start": "pnpm --filter ./client/web dev ",
+    "web:build": "pnpm --filter ./client/web build ",
+    "web:lint": "pnpm  --filter ./client/web lint ",
+    "web:format": "pnpm --filter ./client/web format ",
+    "web:preview": "pnpm --filter ./client/web preview"
   },
   "packageManager": "pnpm@12.4.1",
   "type": "module"
