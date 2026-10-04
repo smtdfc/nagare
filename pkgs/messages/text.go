@@ -5,7 +5,7 @@ import "github.com/smtdfc/nagare/pkgs/helpers"
 type TextMessage struct {
 	ID       string      `json:"id"`
 	Type     MessageType `json:"type"`
-	InvokeID string      `json:"invoke_id"`
+	InvokeID string      `json:"invokeID"`
 	Role     Role        `json:"role"`
 	Content  string      `json:"content"`
 }

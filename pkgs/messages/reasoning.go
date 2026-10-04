@@ -5,7 +5,7 @@ import "github.com/smtdfc/nagare/pkgs/helpers"
 type ReasoningMessage struct {
 	ID       string      `json:"id"`
 	Type     MessageType `json:"type"`
-	InvokeID string      `json:"invoke_id"`
+	InvokeID string      `json:"invokeID"`
 	Content  string      `json:"content"`
 }
 

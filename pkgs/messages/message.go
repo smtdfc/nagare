@@ -11,7 +11,7 @@ type ListMessage []Message
 type AnyMessage struct {
 	ID       string      `json:"id"`
 	Type     MessageType `json:"type"`
-	InvokeID string      `json:"invoke_id"`
+	InvokeID string      `json:"invokeID"`
 }
 
 func (a *AnyMessage) GetMessageID() string {

@@ -5,7 +5,7 @@ import "github.com/smtdfc/nagare/pkgs/helpers"
 type ToolCallMessage struct {
 	ID       string      `json:"id"`
 	Type     MessageType `json:"type"`
-	InvokeID string      `json:"invoke_id"`
+	InvokeID string      `json:"invokeID"`
 	CallID   string      `json:"call_id"`
 	Name     string      `json:"name"`
 	Args     string      `json:"args"`
@@ -40,7 +40,7 @@ func NewToolCallMessage(callID string, name string, args string) *ToolCallMessag
 type ToolResultMessage struct {
 	ID       string      `json:"id"`
 	Type     MessageType `json:"type"`
-	InvokeID string      `json:"invoke_id"`
+	InvokeID string      `json:"invokeID"`
 	CallID   string      `json:"call_id"`
 	Name     string      `json:"name"`
 	Result   string      `json:"result"`

@@ -5,7 +5,7 @@ import "github.com/smtdfc/nagare/pkgs/helpers"
 type ResponseStartedMessage struct {
 	ID       string      `json:"id"`
 	Type     MessageType `json:"type"`
-	InvokeID string      `json:"invoke_id"`
+	InvokeID string      `json:"invokeID"`
 }
 
 func (m *ResponseStartedMessage) GetMessageID() string {
@@ -34,7 +34,7 @@ func NewResponseStartedMessage() *ResponseStartedMessage {
 type ResponseCompletedMessage struct {
 	ID       string      `json:"id"`
 	Type     MessageType `json:"type"`
-	InvokeID string      `json:"invoke_id"`
+	InvokeID string      `json:"invokeID"`
 }
 
 func (m *ResponseCompletedMessage) GetMessageID() string {
@@ -63,7 +63,7 @@ func NewResponseCompletedMessage() *ResponseCompletedMessage {
 type ResponseFailedMessage struct {
 	ID       string      `json:"id"`
 	Type     MessageType `json:"type"`
-	InvokeID string      `json:"invoke_id"`
+	InvokeID string      `json:"invokeID"`
 	Code     string      `json:"code"`
 	Cause    string      `json:"cause"`
 }
