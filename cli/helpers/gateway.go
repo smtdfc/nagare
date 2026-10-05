@@ -9,9 +9,13 @@ import (
 	"os/exec"
 )
 
-func TryStartGateway(isDebugMode bool) error {
+func TryStartGateway(isDebugMode bool, host string) error {
 	cmd := exec.Command("nagare-gateway")
 	cmd.Env = append(os.Environ(), "NAGARE_GATEWAY_MODE=prod")
+
+	if host != "" {
+		cmd.Env = append(cmd.Environ(), fmt.Sprintf("NAGARE_GATEWAY_HOST=%s", host))
+	}
 
 	publicKey, _, err := GetRSAKey()
 	if err != nil {

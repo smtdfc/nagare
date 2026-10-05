@@ -11,16 +11,22 @@ import (
 	"path/filepath"
 )
 
-func TryStartGateway(isDebugMode bool) error {
+func TryStartGateway(isDebugMode bool, host string) error {
 	var cmd *exec.Cmd
+
 	if isDebugMode {
 		workingDir, _ := os.Getwd()
 		cmd = exec.Command("dix", "run", ".", "--workspace")
 		cmd.Dir = filepath.Join(workingDir, "../gateway")
+
 		cmd.Env = append(os.Environ(), "NAGARE_GATEWAY_MODE=debug")
 	} else {
 		cmd = exec.Command("nagare-gateway")
 		cmd.Env = append(os.Environ(), "NAGARE_GATEWAY_MODE=prod")
+	}
+
+	if host != "" {
+		cmd.Env = append(cmd.Environ(), fmt.Sprintf("NAGARE_GATEWAY_HOST=%s", host))
 	}
 
 	publicKey, _, err := GetRSAKey()
