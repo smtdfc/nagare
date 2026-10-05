@@ -7,13 +7,23 @@ PLATFORMS=(
     "windows/amd64"
     "darwin/amd64"
     "darwin/arm64"
+    "android/arm64"
 )
 
 if [ -d dist ]; then
     echo "Cleaning dist directory..."
     rm -rf dist
-    exit 0
 fi
+
+echo "Generating code..."
+go run ./scripts/ts.go
+
+
+echo "Building Web UI..."
+pnpm web:build
+rm -rf ./cli/helpers/web_dist/*
+mkdir -p ./cli/helpers/web_dist
+cp -r client/web/dist/* cli/helpers/web_dist/
 
 for platform in "${PLATFORMS[@]}"; do
     GOOS=${platform%/*}
