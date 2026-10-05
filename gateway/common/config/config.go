@@ -7,6 +7,7 @@ import (
 
 type Config struct {
 	Port      string
+	Host      string
 	DebugMode bool
 	PublicKey string
 }
@@ -15,6 +16,12 @@ type Config struct {
 func ResolveConfig() (*Config, error) {
 	conf := &Config{
 		Port: "9832",
+	}
+
+	if host := os.Getenv("NAGARE_GATEWAY_HOST"); host != "" {
+		conf.Host = host
+	} else {
+		conf.Host = "localhost"
 	}
 
 	if port := os.Getenv("NAGARE_GATEWAY_PORT"); port != "" {

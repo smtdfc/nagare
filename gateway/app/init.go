@@ -37,7 +37,7 @@ func StartApp(app *App, coreSetup *setup.CoreSetup, _ *Routes, chatWorker *chat.
 	serverErrors := make(chan error, 1)
 
 	go func() {
-		addr := fmt.Sprintf("localhost:%s", app.config.Port)
+		addr := fmt.Sprintf("%s:%s", app.config.Host, app.config.Port)
 		if err := app.fiberApp.Listen(addr); err != nil {
 			serverErrors <- err
 		}
