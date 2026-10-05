@@ -6,6 +6,8 @@ export enum Environment {
 export interface EnvBindings {
   getToken(): Promise<string | null>;
   setToken: (token: string | null) => void;
+  loadConfig: () => Promise<void>;
+  saveConfig: () => Promise<void>;
 }
 
 export const envConfig = {

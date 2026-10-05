@@ -37,6 +37,7 @@ function RouteComponent() {
       await AuthService.websocketAuth();
       if (isAuth) {
         setAuth(true);
+        window.bindings.saveConfig();
         await redirect();
       } else {
         setAuth(false);
