@@ -24,6 +24,7 @@ var DatabaseDir = ""
 var TempDir = ""
 var PluginSocketPath = ""
 var UploadDir = ""
+var CredentialsDir = ""
 
 func init() {
 	home, err := os.UserHomeDir()
@@ -43,6 +44,7 @@ func init() {
 	ConfigFile = filepath.Join(DataDir, "config.json")
 	GatewayPIDFile = filepath.Join(DataDir, ".gateway.pid")
 	GatewayBinFile = filepath.Join("/opt", "nagare", "nagare-gateway")
+	CredentialsDir = filepath.Join(DataDir, "credentials")
 	if runtime.GOOS == "windows" {
 		PluginSocketPath = `\\.\pipe\nagare-plugin`
 	} else {
@@ -58,6 +60,7 @@ func init() {
 		PluginDir,
 		TempDir,
 		PluginConfigDir,
+		CredentialsDir,
 	}
 
 	for _, p := range paths {
