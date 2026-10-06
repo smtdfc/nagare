@@ -12,9 +12,21 @@ permissions:
   contents: write
 
 jobs:
-  build-and-publish:
-    name: Build and Publish
-    runs-on: ubuntu-latest
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-amd64
+            archive: tar.gz
+          - os: macos-latest
+            target: darwin-amd64
+            archive: tar.gz
+          - os: windows-latest
+            target: windows-amd64
+            archive: zip
 
     steps:
       - name: Checkout Nagare Bot
@@ -25,24 +37,68 @@ jobs:
         with:
           go-version: "1.27"
 
+      - name: Setup Rust Toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@vv1
+        with:
+          toolchain: stable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install
+
       - name: Install Dix
         run: go install github.com/smtdfc/dix@latest
 
       - name: Build
         run: ./build.sh
+        shell: bash
 
       - name: Archive binaries
+        shell: bash
         run: |
           mkdir -p packed
+          if [ "${{ matrix.archive }}" = "zip" ]; then
+            cd dist
+            zip -r "../packed/nagare-${{ matrix.target }}.zip" .
+            cd -
+          else
+            tar -czvf "packed/nagare-${{ matrix.target }}.tar.gz" -C dist .
+          fi
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.target }}
+          path: packed/*.${{ matrix.archive }}
 
-          for dir in dist/*; do
-            if [ -d "$dir" ]; then
-              platform=$(basename "$dir")
-              tar -czvf "packed/nagare-$platform.tar.gz" -C "$dir" .
-            fi
-          done
+  release:
+    needs: build
+    name: Publish Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: downloaded-artifacts
+
+      - name: Prepare files for release
+        run: |
+          mkdir -p final-packed
+          find downloaded-artifacts -type f -name "*.tar.gz" -exec cp {} final-packed/ \;
+          ls -la final-packed/
 
       - name: Upload binaries to Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.tag }}
+          tag_name: ${{ github.ref_name }}
+          files: |
+            final-packed/*

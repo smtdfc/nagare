@@ -19,11 +19,12 @@ go run ./scripts/ts.go
 
 echo "Building Nagare Web UI..."
 cd client/web
-vite build
+pnpm install --frozen-lockfile
+pnpm build
 cd - > /dev/null
 
 rm -rf "$CLI_WEB_DIST_DIR"
-rm -rf $WEB_DIR
+rm -rf "$WEB_DIR"
 cp -r "$WEB_DIST_DIR" "$CLI_WEB_DIST_DIR"
 cp -r "$WEB_DIST_DIR" "$WEB_DIR"
 
