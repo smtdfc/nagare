@@ -67,13 +67,8 @@ jobs:
         shell: bash
         run: |
           mkdir -p packed
-          if [ "${{ matrix.archive }}" = "zip" ]; then
-            cd dist
-            zip -r "../packed/nagare-${{ matrix.target }}.zip" .
-            cd -
-          else
-            tar -czvf "packed/nagare-${{ matrix.target }}.tar.gz" -C dist .
-          fi
+          tar -czvf "packed/nagare-${{ matrix.target }}.tar.gz" -C dist .
+      
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
