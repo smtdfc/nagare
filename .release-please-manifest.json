@@ -1,8 +1,3 @@
 {
-  "packages": {
-    ".": {
-      "release-type": "go",
-      "draft": true
-    }
-  }
+  ".": "1.11.0"
 }

@@ -1,7 +1,8 @@
 {
   "packages": {
     ".": {
-      "release-type": "simple"
+      "release-type": "go",
+      "draft": true
     }
   }
 }
