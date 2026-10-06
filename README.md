@@ -1,7 +1,7 @@
 <p align="center">
   <h1 align="center">🌊 Nagare</h1>
   <p align="center">
-    <strong>A lightweight, local-first autonomous AI daemon and plugin runtime for desktop automation.</strong>
+    <strong>A lightweight, local AI desktop assistant that lives on your machine.</strong>
   </p>
   <p align="center">
     <a href="https://github.com/smtdfc/nagare/releases"><img src="https://img.shields.io/github/v/release/smtdfc/nagare?color=blue&style=flat-square" alt="Release" /></a>
@@ -16,41 +16,24 @@
 
 ## What is Nagare?
 
-**Nagare** (流れ - _flow_) is an extensible, privacy-preserving AI assistant daemon engineered to bridge large language models with your local operating system.
+**Nagare** (流れ - _flow_) is a personal AI assistant built directly for your desktop.
 
-Unlike heavy cloud-centric orchestrators or bloated multi-process frameworks, Nagare runs as a compact, self-contained background service on Linux, macOS, and Windows. It gives autonomous agents real hands on your machine: executing system tasks, scheduling background jobs, managing memory through hardware-accelerated vector storage, and extending capabilities through decoupled out-of-process plugins.
+It runs quietly in the background on your computer (Linux, macOS, Windows), helping you automate daily workflows, control system tasks, schedule reminders and cron jobs, and interact seamlessly via an embedded web interface or chat channels like Telegram—all while keeping your conversations, memories, and secrets 100% local on your machine.
 
 ---
 
 ## Why Nagare?
 
-- 🔒 **Local-First & Private:** Your session history, vector memory, credentials, and execution logs live on your device. Zero telemetry, zero cloud lock-in.
-- ⚡ **Microkernel Plugin Runtime:** Plugins run as isolated, separate processes communicating over low-latency binary IPC (Unix Domain Sockets & Windows Named Pipes). A crashed plugin will never bring down the host.
-- 🦀 **PureGo Rust FFI:** Vector search and memory quantization are powered by native Rust SIMD kernels, dynamically linked without the cross-compilation baggage of CGO.
-- ⚙️ **System-Level Control:** Out of the box, Nagare can manage processes, inspect user directories, manipulate system volume, execute scheduled cron jobs, and interface with external platforms like Telegram and Google Calendar.
-- 🌐 **Modern Embedded Web Dashboard:** Includes a clean, real-time React 19 UI served straight from the CLI with bidirectional token streaming.
-
----
-
-## Core Capabilities
-
-### Autonomous ReAct Execution Loop
-
-Nagare features a resilient **ReAct (Reasoning + Acting)** execution engine. The agent dynamically discovers tool categories, binds appropriate handlers, evaluates multi-turn tool outputs, and automatically recovers from model quirks—all backed by strict iteration limits and graceful `context.Context` cancellation.
-
-### Out-of-Process Plugin Ecosystem
-
-Plugins are compiled standalone executables (`.nagare_plugin`) that integrate via a length-prefixed binary framing protocol. Plugins can inject dynamic tools, stream messages, and bridge external event streams (e.g., chat services, notification webhooks) into Nagare's unified core event bus.
-
-### Hardware-Accelerated Vector Memory
-
-Built for fast semantic memory retrieval without spinning up heavyweight vector databases. Nagare embeds a custom native library built on top of Rust's `turbovec`—offering 2–4 bit quantization and SIMD-accelerated similarity searches with near-zero RAM overhead.
+- 🖐️ **Hands on Your OS:** Nagare isn't just a text bot. Out of the box, it can manage files, check system volume, launch processes, inspect system status, and run scheduled tasks.
+- ⚡ **Lightweight Plugin System:** Write extensions in separate processes communicating over fast local IPC (Unix Sockets & Windows Named Pipes). A plugin crash never takes down your assistant.
+- 🦀 **Fast Local Memory:** Semantic search and long-term memory are powered by native Rust SIMD kernels via zero-CGO FFI, keeping RAM usage tiny without needing heavy external vector databases.
+- 🖥️ **Built-in Web Interface:** Includes a clean, responsive React 19 chat dashboard accessible right from your browser.
 
 ---
 
 ## Quick Start
 
-### 1. Installation
+### 1. Install Nagare
 
 #### Linux & macOS
 
@@ -66,15 +49,15 @@ irm https://raw.githubusercontent.com/smtdfc/nagare/main/installers/window/insta
 
 ---
 
-### 2. Running the Gateway Daemon
+### 2. Start the Gateway Service
 
-Start the Nagare Gateway in the background:
+Start the Nagare Gateway:
 
 ```bash
-nagare gateway start -d
+nagare gateway start
 ```
 
-To stop the background gateway:
+To stop it at any time:
 
 ```bash
 nagare gateway stop
@@ -82,31 +65,31 @@ nagare gateway stop
 
 ---
 
-### 3. Launching the Web Dashboard
+### 3. Open the Web Dashboard
 
-Nagare comes with an embedded web interface:
+Launch the embedded web UI:
 
 ```bash
 nagare web
 ```
 
-Open [http://localhost:3005](http://localhost:3005) in your browser to configure your LLM providers (OpenAI-compatible endpoints), manage chat sessions, and monitor active plugins.
+Then visit [http://localhost:3005](http://localhost:3005) to configure your API keys, chat with your assistant, and manage plugins.
 
 ---
 
-### 4. Generating Client Credentials
+### 4. Create an Auth Token
 
-Generate an authentication token for external API or CLI access:
+Generate a token for local API or script access:
 
 ```bash
-nagare auth token
+nagare auth token --name "my-laptop"
 ```
 
 ---
 
-## Developing Plugins
+## Creating Custom Tools & Plugins
 
-Nagare makes building extensions straightforward. Because plugins communicate via IPC, you can write them using the provided Go SDK or implement the framing protocol in any language.
+Nagare is designed to be easily extensible. Plugins run as independent executables (`.nagare_plugin`) and connect to Nagare via local IPC:
 
 ```go
 package main
@@ -117,14 +100,15 @@ import (
 )
 
 func main() {
-	plugin := client.NewPlugin("weather-extension", "1.0.0")
+	plugin := client.NewPlugin("system-helper", "1.0.0")
 
+	// Register a new tool the AI assistant can call
 	plugin.RegisterTool(
-		"get_forecast",
-		"Fetch real-time weather information for a specific city",
-		func(ctx context.Context, args ForecastInput) (ForecastOutput, error) {
-			// Implementation logic
-			return ForecastOutput{Temp: 24, Condition: "Sunny"}, nil
+		"get_battery_status",
+		"Check the current battery level of the laptop",
+		func(ctx context.Context, args struct{}) (string, error) {
+			// Query OS battery status...
+			return "Battery is at 85%, discharging", nil
 		},
 	)
 
@@ -132,7 +116,7 @@ func main() {
 }
 ```
 
-Compile the plugin using the CLI:
+Build your plugin with the CLI:
 
 ```bash
 nagare plugin build
@@ -142,6 +126,6 @@ nagare plugin build
 
 ## License
 
-Distributed under the **MIT License**. See [`LICENSE`](./LICENSE) for more information.
+Distributed under the **MIT License**. See [`LICENSE`](./LICENSE) for details.
 
-Maintained with craft by [@smtdfc](https://github.com/smtdfc).
+Crafted with care by [@smtdfc](https://github.com/smtdfc).
