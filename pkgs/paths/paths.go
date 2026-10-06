@@ -25,6 +25,9 @@ var TempDir = ""
 var PluginSocketPath = ""
 var UploadDir = ""
 var CredentialsDir = ""
+var ModulesDir = ""
+var MemoryDir = ""
+var VectorIndexFile = ""
 
 func init() {
 	home, err := os.UserHomeDir()
@@ -33,6 +36,8 @@ func init() {
 	}
 
 	DataDir = filepath.Join(home, ".nagare")
+	ModulesDir = filepath.Join(DataDir, "modules")
+	MemoryDir = filepath.Join(DataDir, "memory")
 	UploadDir = filepath.Join(DataDir, "uploads")
 	ConfigDir = filepath.Join(DataDir, "configs")
 	DatabaseDir = filepath.Join(DataDir, "databases")
@@ -45,6 +50,7 @@ func init() {
 	GatewayPIDFile = filepath.Join(DataDir, ".gateway.pid")
 	GatewayBinFile = filepath.Join("/opt", "nagare", "nagare-gateway")
 	CredentialsDir = filepath.Join(DataDir, "credentials")
+	VectorIndexFile = filepath.Join(MemoryDir, "vector_index.tvim")
 	if runtime.GOOS == "windows" {
 		PluginSocketPath = `\\.\pipe\nagare-plugin`
 	} else {
@@ -53,6 +59,8 @@ func init() {
 	paths := []string{
 		DataDir,
 		ConfigDir,
+		MemoryDir,
+		ModulesDir,
 		UploadDir,
 		DatabaseDir,
 		LogDir,

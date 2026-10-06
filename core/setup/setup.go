@@ -6,10 +6,12 @@ import (
 	"github.com/smtdfc/nagare/core/agent"
 	"github.com/smtdfc/nagare/core/chat"
 	"github.com/smtdfc/nagare/core/logger"
+	"github.com/smtdfc/nagare/core/memory"
 	"github.com/smtdfc/nagare/core/plugin/host"
 	"github.com/smtdfc/nagare/core/plugin/manager"
 	task_manager "github.com/smtdfc/nagare/core/task/manager"
 	task_workers "github.com/smtdfc/nagare/core/task/workers"
+	"github.com/smtdfc/nagare/pkgs/paths"
 )
 
 type CoreSetup struct {
@@ -19,6 +21,7 @@ type CoreSetup struct {
 	chatWorker        *chat.ChatWorker
 	taskCronJobWorker *task_workers.CronJobWorker
 	taskMgr           *task_manager.TaskManager
+	vectorMemory      *memory.VectorMemory
 	logger            *logger.BaseLogger
 }
 
@@ -46,6 +49,17 @@ func (c *CoreSetup) Setup() error {
 		return err
 	}
 
+	c.logger.Info("Loading vector index")
+	err = c.vectorMemory.Load(paths.VectorIndexFile)
+	if err != nil {
+		c.logger.Warn("Failed to load vector index, creating a new one", "err", err)
+		err = c.vectorMemory.Create(1536, 4)
+		if err != nil {
+			return err
+		}
+	}
+	c.logger.Info("Vector index loaded successfully")
+
 	return nil
 }
 
@@ -72,6 +86,14 @@ func (c *CoreSetup) Teardown(ctx context.Context) error {
 	}
 	c.logger.Info("plugin host stopped")
 
+	c.logger.Info("syncing vector index")
+	err = c.vectorMemory.Sync(paths.VectorIndexFile)
+	if err != nil {
+		c.logger.Error("failed to sync vector index", "err", err)
+		return err
+	}
+	c.logger.Info("vector index synced successfully")
+
 	return nil
 }
 
@@ -83,6 +105,7 @@ func NewCoreSetup(
 	chatWorker *chat.ChatWorker,
 	taskCronJobWorker *task_workers.CronJobWorker,
 	taskMgr *task_manager.TaskManager,
+	vectorMemory *memory.VectorMemory,
 	logger *logger.BaseLogger,
 ) *CoreSetup {
 	return &CoreSetup{
@@ -92,6 +115,7 @@ func NewCoreSetup(
 		chatWorker:        chatWorker,
 		taskCronJobWorker: taskCronJobWorker,
 		taskMgr:           taskMgr,
+		vectorMemory:      vectorMemory,
 		logger:            logger.With("module", "system"),
 	}
 }
