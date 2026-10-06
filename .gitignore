@@ -6,3 +6,4 @@ node_modules
 dist
 routeTree.gen.ts
 *.generated.ts
+target

@@ -1,54 +1,69 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
 set -e
-PLATFORMS=(
-    "linux/amd64"
-    "linux/arm64"
-    "windows/amd64"
-    "darwin/amd64"
-    "darwin/arm64"
-    "android/arm64"
+
+WEB_DIST_DIR="client/web/dist"
+CLI_WEB_DIST_DIR="cli/helpers/web_dist"
+DIST_DIR="dist"
+MODULES_DIR="$DIST_DIR/modules"
+WEB_DIR="$DIST_DIR/web"
+RUST_MODULES=(
+    "crates/nagare_vector"
 )
 
-if [ -d dist ]; then
-    echo "Cleaning dist directory..."
-    rm -rf dist
-fi
+mkdir -p "$DIST_DIR"
+mkdir -p "$MODULES_DIR"
+mkdir -p "$WEB_DIR"
 
-echo "Generating code..."
+echo "Generating TypeScript code..."
 go run ./scripts/ts.go
 
+echo "Building Nagare Web UI..."
+cd client/web
+vite build
+cd - > /dev/null
 
-echo "Building Web UI..."
-pnpm web:build
-rm -rf ./cli/helpers/web_dist/*
-mkdir -p ./cli/helpers/web_dist
-cp -r client/web/dist/* cli/helpers/web_dist/
+rm -rf "$CLI_WEB_DIST_DIR"
+rm -rf $WEB_DIR
+cp -r "$WEB_DIST_DIR" "$CLI_WEB_DIST_DIR"
+cp -r "$WEB_DIST_DIR" "$WEB_DIR"
 
-for platform in "${PLATFORMS[@]}"; do
-    GOOS=${platform%/*}
-    GOARCH=${platform#*/}
-    
-    echo "----------------------------------------"
-    echo "Building: GOOS=$GOOS, GOARCH=$GOARCH"
+echo "Building Rust modules..."
+for module in "${RUST_MODULES[@]}"; do
+    cargo build \
+        --release \
+        --manifest-path "$module/Cargo.toml"
 
-    EXT=""
-    if [ "$GOOS" = "windows" ]; then
-        EXT=".exe"
-    fi
+    module_name="$(basename "$module")"
 
-    OUT_DIR="dist/${GOOS}-${GOARCH}"
-    mkdir -p "$OUT_DIR"
+    case "$(uname -s)" in
+        Linux*)
+            library_name="lib${module_name}.so"
+            ;;
+        Darwin*)
+            library_name="lib${module_name}.dylib"
+            ;;
+        MINGW*|MSYS*|CYGWIN*)
+            library_name="${module_name}.dll"
+            ;;
+        *)
+            echo "Unsupported platform: $(uname -s)"
+            exit 1
+            ;;
+    esac
 
-    echo "Building CLI..."
-    GOOS=$GOOS GOARCH=$GOARCH go build -o "$OUT_DIR/nagare$EXT" ./cli
-
-    echo "Running wire for Gateway..."
-    (cd gateway && dix wire --workspace)
-
-    echo "Building Gateway..."
-    GOOS=$GOOS GOARCH=$GOARCH go build -o "$OUT_DIR/nagare-gateway$EXT" ./gateway
-    
-    echo "Done: $platform"
+    cp "target/release/$library_name" \
+        "$MODULES_DIR/$library_name"
 done
 
+echo "Building Nagare CLI..."
+cd cli
+go build -o "../$DIST_DIR/nagare"
+cd - > /dev/null
+
+echo "Building Nagare Gateway..."
+cd gateway
+dix wire --workspace
+go build -o "../$DIST_DIR/nagare-gateway"
+cd - > /dev/null
+
+echo "Build complete!"
