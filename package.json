@@ -22,7 +22,6 @@
     "web:format": "pnpm --filter ./client/web format ",
     "web:preview": "pnpm --filter ./client/web preview"
   },
-  "packageManager": "pnpm@12.4.1",
   "type": "module",
   "dependencies": {
     "react": "^19.3.0"
