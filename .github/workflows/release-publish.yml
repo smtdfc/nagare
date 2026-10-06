@@ -38,7 +38,7 @@ jobs:
           go-version: "1.27"
 
       - name: Setup Rust Toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@vv1
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
 
