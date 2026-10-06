@@ -14,6 +14,18 @@ mkdir -p "$DIST_DIR"
 mkdir -p "$MODULES_DIR"
 mkdir -p "$WEB_DIR"
 
+case "$(uname -s)" in
+    Linux*|Darwin*)
+        exe_ext=""
+        ;;
+    MINGW*|MSYS*|CYGWIN*)
+        exe_ext=".exe"
+        ;;
+    *)
+        exe_ext=""
+        ;;
+esac
+
 echo "Generating TypeScript code..."
 go run ./scripts/ts.go
 
@@ -58,13 +70,13 @@ done
 
 echo "Building Nagare CLI..."
 cd cli
-go build -o "../$DIST_DIR/nagare"
+go build -o "../$DIST_DIR/nagare${exe_ext}"
 cd - > /dev/null
 
 echo "Building Nagare Gateway..."
 cd gateway
 dix wire --workspace
-go build -o "../$DIST_DIR/nagare-gateway"
+go build -o "../$DIST_DIR/nagare-gateway${exe_ext}"
 cd - > /dev/null
 
 echo "Build complete!"
