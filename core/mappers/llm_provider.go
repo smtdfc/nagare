@@ -3,50 +3,61 @@ package mappers
 import (
 	"strings"
 
-	"github.com/smtdfc/nagare/core/llm_provider"
+	"github.com/smtdfc/nagare/core/credential"
+	"github.com/smtdfc/nagare/core/llm/provider"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
 type LLMProviderMapper struct {
+	credentialMapper *CredentialMapper
 }
 
-func (l *LLMProviderMapper) ToDomain(entity *entities.LLMProvider) *llm_provider.LLMProviderConfig {
-	return &llm_provider.LLMProviderConfig{
-		ID:         entity.ID,
-		Name:       entity.Name,
-		Compatible: llm_provider.GetCompatibleFromString(entity.Compatible),
-		ApiKey:     entity.ApiKey,
-		Models:     strings.Split(entity.Models, ","),
-		BaseURL:    entity.BaseURL,
+func (l *LLMProviderMapper) ToDomain(entity *entities.LLMProvider) *provider.LLMProviderConfig {
+	var credentialValue *credential.Credential
+	if entity != nil && entity.Credential != nil {
+		credentialValue = l.credentialMapper.ToDomain(entity.Credential)
+	}
+
+	return &provider.LLMProviderConfig{
+		ID:           entity.ID,
+		Name:         entity.Name,
+		Compatible:   provider.GetCompatibleFromString(entity.Compatible),
+		ApiKey:       entity.ApiKey,
+		Models:       strings.Split(entity.Models, ","),
+		BaseURL:      entity.BaseURL,
+		CredentialID: entity.CredentialID,
+		Credential:   credentialValue,
 	}
 }
 
-func (l *LLMProviderMapper) ToEntity(domain *llm_provider.LLMProviderConfig) *entities.LLMProvider {
-
+func (l *LLMProviderMapper) ToEntity(domain *provider.LLMProviderConfig) *entities.LLMProvider {
 	return &entities.LLMProvider{
-		ID:         domain.ID,
-		Name:       domain.Name,
-		Compatible: domain.Compatible.ToString(),
-		ApiKey:     domain.ApiKey,
-		Models:     strings.Join(domain.Models, ","),
-		BaseURL:    domain.BaseURL,
+		ID:           domain.ID,
+		Name:         domain.Name,
+		Compatible:   domain.Compatible.ToString(),
+		ApiKey:       domain.ApiKey,
+		Models:       strings.Join(domain.Models, ","),
+		BaseURL:      domain.BaseURL,
+		CredentialID: domain.CredentialID,
 	}
 }
 
-func (l *LLMProviderMapper) ToProviderInfo(entity *entities.LLMProvider) *llm_provider.LLMProviderInfo {
-	return &llm_provider.LLMProviderInfo{
+func (l *LLMProviderMapper) ToProviderInfo(entity *entities.LLMProvider) *provider.LLMProviderInfo {
+	return &provider.LLMProviderInfo{
 		ID:         entity.ID,
 		Name:       entity.Name,
-		Compatible: llm_provider.GetCompatibleFromString(entity.Compatible),
+		Compatible: provider.GetCompatibleFromString(entity.Compatible),
 	}
 }
 
-func (l *LLMProviderMapper) ToDomains(entities []*entities.LLMProvider) []*llm_provider.LLMProviderConfig {
+func (l *LLMProviderMapper) ToDomains(entities []*entities.LLMProvider) []*provider.LLMProviderConfig {
 	return helpers.SliceMap(entities, l.ToDomain)
 }
 
 // @Injectable
-func NewLLMProviderMapper() *LLMProviderMapper {
-	return &LLMProviderMapper{}
+func NewLLMProviderMapper(credentialMapper *CredentialMapper) *LLMProviderMapper {
+	return &LLMProviderMapper{
+		credentialMapper: credentialMapper,
+	}
 }

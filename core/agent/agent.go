@@ -4,7 +4,7 @@ import (
 	"context"
 
 	context2 "github.com/smtdfc/nagare/core/context"
-	"github.com/smtdfc/nagare/core/llm_provider"
+	"github.com/smtdfc/nagare/core/llm/provider"
 	"github.com/smtdfc/nagare/core/logger"
 	message "github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/tool/manager"
@@ -18,7 +18,7 @@ type InvokeOption struct {
 type Agent struct {
 	toolMgr    *manager.ToolManager
 	model      string
-	llmAdapter llm_provider.LLMProviderAdapter
+	llmAdapter provider.LLMProviderAdapter
 	executor   *Executor
 	state      *State
 	logger     *logger.BaseLogger
@@ -31,7 +31,7 @@ func (a *Agent) Reset() *Agent {
 	return a
 }
 
-func (a *Agent) WithLLMAdapter(adapter llm_provider.LLMProviderAdapter) *Agent {
+func (a *Agent) WithLLMAdapter(adapter provider.LLMProviderAdapter) *Agent {
 	a.llmAdapter = adapter
 	return a
 }

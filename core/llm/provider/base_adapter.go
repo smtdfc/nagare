@@ -1,4 +1,4 @@
-package llm_provider
+package provider
 
 import (
 	"context"

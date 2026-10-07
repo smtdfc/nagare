@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/smtdfc/nagare/core/custom_errors"
-	"github.com/smtdfc/nagare/core/llm_provider"
-	"github.com/smtdfc/nagare/core/llm_provider/adapters"
+	llm_provider "github.com/smtdfc/nagare/core/llm/provider"
+	"github.com/smtdfc/nagare/core/llm/provider/adapters"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/mappers"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
@@ -13,6 +13,7 @@ import (
 
 type LLMProviderManager struct {
 	llmProviderRepo   *repositories.LLMProviderRepository
+	credentialRepo    *repositories.CredentialRepository
 	llmProviderMapper *mappers.LLMProviderMapper
 	logger            *logger.BaseLogger
 	adapterLogger     *logger.BaseLogger
@@ -40,13 +41,23 @@ func (l *LLMProviderManager) GetProviderByID(ctx context.Context, id string) (*l
 	return l.llmProviderMapper.ToDomain(provider), nil
 }
 
-func (l *LLMProviderManager) AddProvider(ctx context.Context, name, baseURL, compatible, apiKeys string, models []string) (*llm_provider.LLMProviderConfig, error) {
+func (l *LLMProviderManager) AddProvider(ctx context.Context, name, baseURL, compatible, apiKey, credential string, models []string) (*llm_provider.LLMProviderConfig, error) {
 	conf := &llm_provider.LLMProviderConfig{
 		Name:       name,
 		Compatible: llm_provider.GetCompatibleFromString(compatible),
-		ApiKey:     apiKeys,
+		ApiKey:     apiKey,
 		Models:     models,
 		BaseURL:    baseURL,
+	}
+	if credential != "" {
+		credentialEntity, err := l.credentialRepo.FindByID(ctx, credential)
+		if err != nil {
+			return nil, custom_errors.ErrAddLLMProviderFailed
+		}
+		if credentialEntity == nil {
+			return nil, custom_errors.ErrCredentialNotFound
+		}
+		conf.CredentialID = credentialEntity.ID
 	}
 
 	provider, err := l.llmProviderRepo.Add(ctx, l.llmProviderMapper.ToEntity(conf))
@@ -96,9 +107,14 @@ func (l *LLMProviderManager) FetchAvailableModels(ctx context.Context, id string
 func (l *LLMProviderManager) GetAdapter(provider *llm_provider.LLMProviderConfig) (llm_provider.LLMProviderAdapter, error) {
 	switch provider.Compatible {
 	case llm_provider.OpenAICompatible:
+		apiKey := provider.ApiKey
+		if provider.ApiKey == "" && provider.Credential != nil {
+			apiKey = provider.Credential.ApiKey
+		}
+
 		return adapters.NewOpenAICompatibleAdapter(
 			provider.BaseURL,
-			provider.ApiKey,
+			apiKey,
 			provider.Models,
 			l.adapterLogger.Clone(),
 		), nil
@@ -107,9 +123,10 @@ func (l *LLMProviderManager) GetAdapter(provider *llm_provider.LLMProviderConfig
 }
 
 // @Injectable
-func NewLLMProviderManager(llmProviderRepo *repositories.LLMProviderRepository, llmProviderMapper *mappers.LLMProviderMapper, logger *logger.BaseLogger) *LLMProviderManager {
+func NewLLMProviderManager(llmProviderRepo *repositories.LLMProviderRepository, credentialRepo *repositories.CredentialRepository, llmProviderMapper *mappers.LLMProviderMapper, logger *logger.BaseLogger) *LLMProviderManager {
 	return &LLMProviderManager{
 		llmProviderRepo:   llmProviderRepo,
+		credentialRepo:    credentialRepo,
 		logger:            logger.With("module", "llm-manager"),
 		llmProviderMapper: llmProviderMapper,
 		adapterLogger:     logger.Clone(),

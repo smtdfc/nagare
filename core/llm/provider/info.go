@@ -1,6 +1,8 @@
-package llm_provider
+package provider
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+)
 
 type LLMProviderInfo struct {
 	ID         uuid.UUID             `json:"id"`

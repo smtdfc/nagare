@@ -1,6 +1,9 @@
-package llm_provider
+package provider
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"github.com/smtdfc/nagare/core/credential"
+)
 
 type LLMProviderCompatible string
 
@@ -29,4 +32,7 @@ type LLMProviderConfig struct {
 	ApiKey     string
 	Models     []string
 	BaseURL    string
+
+	CredentialID uuid.UUID
+	Credential   *credential.Credential
 }

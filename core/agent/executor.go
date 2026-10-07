@@ -6,7 +6,7 @@ import (
 
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/custom_errors"
-	"github.com/smtdfc/nagare/core/llm_provider"
+	"github.com/smtdfc/nagare/core/llm/provider"
 	"github.com/smtdfc/nagare/core/logger"
 	message "github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/tool"
@@ -51,7 +51,7 @@ func (a *Executor) HandleError(message *messages.ResponseFailedMessage) error {
 	return custom_errors.ErrUnknown
 }
 
-func (a *Executor) Execute(ctx *context.ExecuteContext, model string, llmAdapter llm_provider.LLMProviderAdapter, output message.WriteOnlyChannel) {
+func (a *Executor) Execute(ctx *context.ExecuteContext, model string, llmAdapter provider.LLMProviderAdapter, output message.WriteOnlyChannel) {
 	defer close(output)
 
 	isError := false

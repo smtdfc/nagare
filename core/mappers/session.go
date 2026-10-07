@@ -1,7 +1,7 @@
 package mappers
 
 import (
-	"github.com/smtdfc/nagare/core/llm_provider"
+	"github.com/smtdfc/nagare/core/llm/provider"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/pkgs/helpers"
@@ -22,7 +22,7 @@ func (s *SessionMapper) ToDomain(entity *entities.Session) *session.SessionInfo 
 	if entity == nil {
 		return nil
 	}
-	var providerInfo *llm_provider.LLMProviderInfo
+	var providerInfo *provider.LLMProviderInfo
 	if entity.LLMProvider != nil {
 		providerInfo = s.llmProviderMapper.ToProviderInfo(entity.LLMProvider)
 	}

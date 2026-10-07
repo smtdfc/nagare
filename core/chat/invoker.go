@@ -9,7 +9,7 @@ import (
 	config_mgr "github.com/smtdfc/nagare/core/config/manager"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/event_bus"
-	llm_provider_mgr "github.com/smtdfc/nagare/core/llm_provider/manager"
+	llm_provider_mgr "github.com/smtdfc/nagare/core/llm/manager"
 	"github.com/smtdfc/nagare/core/logger"
 	message "github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/prompt"
