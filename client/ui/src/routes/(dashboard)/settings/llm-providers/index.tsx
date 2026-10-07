@@ -3,10 +3,14 @@ import { Plus, Brain } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "#/components/ui/button.tsx";
 import { Skeleton } from "#/components/ui/skeleton.tsx";
-import { LLMProviderService } from "@nagare-app/services";
+import { CredentialService, LLMProviderService } from "@nagare-app/services";
 import { showToastError } from "#/lib/toast.ts";
 import { toast } from "#/components/ui/toast.tsx";
-import type { LLMProvider, AddLLMProviderRequest } from "@nagare-app/dtos";
+import type {
+  Credential,
+  LLMProvider,
+  AddLLMProviderRequest,
+} from "@nagare-app/dtos";
 import { LLMProviderSheet } from "#/components/llm-provider-sheet.tsx";
 import { LLMProviderCard } from "#/components/llm-provider-card";
 import { EmptyState } from "#/components/empty-state";
@@ -23,12 +27,15 @@ const emptyForm = (): AddLLMProviderRequest => ({
   name: "",
   compatible: "OpenAI",
   apiKey: "",
+  credentialId: "",
   models: [],
   baseUrl: "",
 });
 
 function RouteComponent() {
   const [providers, setProviders] = useState<LLMProvider[]>([]);
+  const [credentials, setCredentials] = useState<Credential[]>([]);
+  const [isCredentialsLoading, setIsCredentialsLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [form, setForm] = useState<AddLLMProviderRequest>(emptyForm());
@@ -46,12 +53,24 @@ function RouteComponent() {
     }
   }, []);
 
+  const loadCredentials = useCallback(async () => {
+    setIsCredentialsLoading(true);
+    try {
+      setCredentials((await CredentialService.list()) ?? []);
+    } catch (e) {
+      showToastError(e);
+    } finally {
+      setIsCredentialsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     void loadProviders();
-  }, [loadProviders]);
+    void loadCredentials();
+  }, [loadCredentials, loadProviders]);
 
   const handleSave = async () => {
-    if (!form.name.trim()) return;
+    if (!form.name.trim() || (!form.credentialId && !form.apiKey)) return;
     setIsSaving(true);
     try {
       const created = await LLMProviderService.add(form);
@@ -132,6 +151,8 @@ function RouteComponent() {
           setForm={setForm}
           onSave={handleSave}
           isSaving={isSaving}
+          credentials={credentials}
+          isCredentialsLoading={isCredentialsLoading}
           mode="add"
         />
       </div>

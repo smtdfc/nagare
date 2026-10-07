@@ -17,6 +17,8 @@ import {
 } from "@nagare-app/dtos";
 import { catchError } from "./lib/errors";
 
+export type AddLLMProviderPayload = AddLLMProviderRequest;
+
 export class LLMProviderService {
   static async list() {
     try {
@@ -40,7 +42,7 @@ export class LLMProviderService {
     }
   }
 
-  static async add(payload: AddLLMProviderRequest) {
+  static async add(payload: AddLLMProviderPayload) {
     try {
       const response = await instance.post<ApiResponse<AddLLMProviderResponse>>(
         AddLLMProviderEndpoint,

@@ -7,6 +7,7 @@ import {
   Brain,
   Database,
   FileText,
+  KeyRound,
 } from "lucide-react";
 
 export const Route = createFileRoute("/(dashboard)/settings/")({
@@ -26,6 +27,17 @@ const settingSections: SettingSection[] = [
         icon: Settings,
         href: "/settings/general",
       },
+    ],
+  },
+  {
+    category: "Providers & Credentials",
+    items: [
+      {
+        title: "Credentials",
+        description: "Store and manage reusable provider API keys.",
+        icon: KeyRound,
+        href: "/settings/credentials",
+      },
       {
         title: "LLM Providers",
         description:
@@ -36,7 +48,7 @@ const settingSections: SettingSection[] = [
     ],
   },
   {
-    category: "Plugins & Integrations   ",
+    category: "Plugins & Integrations",
     items: [
       {
         title: "Plugins",

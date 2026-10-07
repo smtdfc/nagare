@@ -16,8 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select.tsx";
-import type { AddLLMProviderRequest } from "@nagare-app/dtos";
-import { useState } from "react";
+import type { AddLLMProviderRequest, Credential } from "@nagare-app/dtos";
+import { useEffect, useState } from "react";
 
 const COMPATIBLE_OPTIONS = [{ value: "OpenAI", label: "OpenAI" }];
 
@@ -28,6 +28,8 @@ interface LLMProviderSheetProps {
   setForm: React.Dispatch<React.SetStateAction<AddLLMProviderRequest>>;
   onSave: () => void;
   isSaving: boolean;
+  credentials: Credential[];
+  isCredentialsLoading: boolean;
   mode?: "add" | "edit";
 }
 
@@ -38,9 +40,14 @@ export function LLMProviderSheet({
   setForm,
   onSave,
   isSaving,
+  credentials,
+  isCredentialsLoading,
   mode = "add",
 }: LLMProviderSheetProps) {
   const [modelInput, setModelInput] = useState("");
+  const [authMode, setAuthMode] = useState<"apiKey" | "credential">(
+    "credential",
+  );
 
   const handleAddModel = () => {
     const trimmed = modelInput.trim();
@@ -62,6 +69,25 @@ export function LLMProviderSheet({
   };
 
   const isEdit = mode === "edit";
+  const selectedCredential = credentials.find(
+    (credential) => credential.id === form.credentialId,
+  );
+
+  useEffect(() => {
+    if (open) {
+      setAuthMode(form.credentialId ? "credential" : "apiKey");
+    }
+  }, [open]);
+
+  const handleAuthModeChange = (value: string | null) => {
+    if (value !== "apiKey" && value !== "credential") return;
+    setAuthMode(value);
+    setForm((prev) => ({
+      ...prev,
+      apiKey: value === "apiKey" ? prev.apiKey : "",
+      credentialId: value === "credential" ? prev.credentialId : "",
+    }));
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -109,16 +135,72 @@ export function LLMProviderSheet({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">API Key</label>
-            <Input
-              type="password"
-              placeholder="sk-..."
-              value={form.apiKey}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, apiKey: e.target.value }))
-              }
-            />
+            <label className="text-sm font-medium">Authentication</label>
+            <Select value={authMode} onValueChange={handleAuthModeChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select authentication method">
+                  {authMode === "credential"
+                    ? "Use saved credential"
+                    : "Enter API key directly"}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="credential">Use saved credential</SelectItem>
+                <SelectItem value="apiKey">Enter API key directly</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
+          {authMode === "credential" ? (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium">Credential *</label>
+              <Select
+                value={form.credentialId}
+                onValueChange={(value) => {
+                  if (value) {
+                    setForm((prev) => ({ ...prev, credentialId: value }));
+                  }
+                }}
+                disabled={isCredentialsLoading || credentials.length === 0}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue
+                    placeholder={
+                      isCredentialsLoading
+                        ? "Loading credentials..."
+                        : "Select a credential"
+                    }
+                  >
+                    {selectedCredential?.name}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {credentials.map((credential) => (
+                    <SelectItem key={credential.id} value={credential.id}>
+                      {credential.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!isCredentialsLoading && credentials.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Add a credential before creating a provider.
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium">API Key *</label>
+              <Input
+                type="password"
+                placeholder="sk-..."
+                value={form.apiKey}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, apiKey: event.target.value }))
+                }
+              />
+            </div>
+          )}
 
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium">Base URL</label>
@@ -187,7 +269,15 @@ export function LLMProviderSheet({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={onSave} disabled={isSaving || !form.name.trim()}>
+          <Button
+            onClick={onSave}
+            disabled={
+              isSaving ||
+              !form.name.trim() ||
+              (authMode === "credential" && !form.credentialId) ||
+              (authMode === "apiKey" && !form.apiKey)
+            }
+          >
             {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
             {isEdit ? "Save Changes" : "Save Provider"}
           </Button>
