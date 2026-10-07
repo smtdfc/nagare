@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/smtdfc/nagare/gateway/auth"
 	"github.com/smtdfc/nagare/gateway/chat"
+	"github.com/smtdfc/nagare/gateway/credential"
 	"github.com/smtdfc/nagare/gateway/llm_provider"
 	"github.com/smtdfc/nagare/gateway/plugin"
 	"github.com/smtdfc/nagare/gateway/settings"
@@ -26,12 +27,14 @@ func SetupRoutes(
 	app *App,
 	chatRoutes chat.ChatRouteInitializer,
 	authRoutes auth.AuthRouteInitializer,
+	credentialRoutes credential.CredentialRouteInitializer,
 	llmProviderRoutes llm_provider.LLMProviderRouteInitializer,
 	pluginRoutes plugin.PluginRouteInitializer,
 	settingsRoutes settings.SettingsRouteInitializer,
 ) *Routes {
 
 	chatRoutes(app.fiberApp, app.wsCoordinator)
+	credentialRoutes(app.fiberApp, app.wsCoordinator)
 	llmProviderRoutes(app.fiberApp, app.wsCoordinator)
 	pluginRoutes(app.fiberApp, app.wsCoordinator)
 	settingsRoutes(app.fiberApp, app.wsCoordinator)
