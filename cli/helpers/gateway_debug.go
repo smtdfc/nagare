@@ -1,4 +1,3 @@
-// go:build debug
 //go:build debug
 // +build debug
 
@@ -13,16 +12,28 @@ import (
 
 func TryStartGateway(isDebugMode bool, host string) error {
 	var cmd *exec.Cmd
+	workingDir, _ := os.Getwd()
+	gatewayDir := filepath.Join(workingDir, "../gateway")
 
 	if isDebugMode {
-		workingDir, _ := os.Getwd()
-		cmd = exec.Command("dix", "run", ".", "--workspace")
-		cmd.Dir = filepath.Join(workingDir, "../gateway")
 
+		wireCmd := exec.Command("dix", "wire", ".", "--workspace")
+		wireCmd.Dir = gatewayDir
+		wireCmd.Stdout = os.Stdout
+		wireCmd.Stderr = os.Stderr
+		wireCmd.Stdin = os.Stdin
+
+		if err := wireCmd.Run(); err != nil {
+			return fmt.Errorf("dix wire failed: %w", err)
+		}
+
+		cmd = exec.Command("go", "run", "-race", "main.go")
+		cmd.Dir = gatewayDir
 		cmd.Env = append(os.Environ(), "NAGARE_GATEWAY_MODE=debug")
-	} else {
-		cmd = exec.Command("nagare-gateway")
-		cmd.Env = append(os.Environ(), "NAGARE_GATEWAY_MODE=prod")
+	}
+
+	if cmd == nil {
+		return fmt.Errorf("gateway command is not initialized")
 	}
 
 	if host != "" {
