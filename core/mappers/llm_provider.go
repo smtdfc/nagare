@@ -15,7 +15,11 @@ type LLMProviderMapper struct {
 
 func (l *LLMProviderMapper) ToDomain(entity *entities.LLMProvider) *provider.LLMProviderConfig {
 	var credentialValue *credential.Credential
-	if entity != nil && entity.Credential != nil {
+	if entity == nil {
+		return nil
+	}
+
+	if entity.Credential != nil {
 		credentialValue = l.credentialMapper.ToDomain(entity.Credential)
 	}
 
