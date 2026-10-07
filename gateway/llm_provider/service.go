@@ -3,20 +3,29 @@ package llm_provider
 import (
 	"context"
 
-	"github.com/smtdfc/nagare/core/llm_provider"
-	llm_provider_mgr "github.com/smtdfc/nagare/core/llm_provider/manager"
+	llm_provider_mgr "github.com/smtdfc/nagare/core/llm/manager"
+	"github.com/smtdfc/nagare/core/llm/provider"
 	"github.com/smtdfc/nagare/dtos/rest"
 	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
-func toLLMProviderDTO(domain *llm_provider.LLMProviderConfig) *rest.LLMProvider {
+func toLLMProviderDTO(domain *provider.LLMProviderConfig) *rest.LLMProvider {
+	var credentialDTO *rest.Credential
+	if domain.Credential != nil {
+		credentialDTO = &rest.Credential{
+			ID:   domain.Credential.ID.String(),
+			Name: domain.Credential.Name,
+		}
+
+	}
+
 	return &rest.LLMProvider{
 		ID:         domain.ID.String(),
 		Name:       domain.Name,
 		Compatible: domain.Compatible.ToString(),
-		ApiKey:     "",
 		Models:     domain.Models,
 		BaseURL:    domain.BaseURL,
+		Credential: credentialDTO,
 	}
 }
 
@@ -53,6 +62,7 @@ func (l *LLMProviderService) AddProvider(ctx context.Context, request *rest.AddL
 		request.BaseURL,
 		request.Compatible,
 		request.ApiKey,
+		request.CredentialID,
 		request.Models,
 	)
 
