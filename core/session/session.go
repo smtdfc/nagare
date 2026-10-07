@@ -2,7 +2,7 @@ package session
 
 import (
 	"github.com/google/uuid"
-	"github.com/smtdfc/nagare/core/llm_provider"
+	"github.com/smtdfc/nagare/core/llm/provider"
 )
 
 type OwnerType string
@@ -41,5 +41,5 @@ type SessionInfo struct {
 
 	CurrentLLMModel string
 	LLMProviderID   uuid.UUID
-	LLMProvider     *llm_provider.LLMProviderInfo
+	LLMProvider     *provider.LLMProviderInfo
 }

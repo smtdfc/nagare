@@ -16,6 +16,9 @@ type LLMProvider struct {
 	Models     string
 	BaseURL    string
 
+	CredentialID uuid.UUID   `json:"credential_id"`
+	Credential   *Credential `gorm:"foreignKey:CredentialID;references:ID" json:"credential"`
+
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }

@@ -27,7 +27,7 @@ func (l *LLMProviderRepository) FindAll(ctx context.Context) ([]*entities.LLMPro
 
 func (l *LLMProviderRepository) FindByID(ctx context.Context, id string) (*entities.LLMProvider, error) {
 	var provider entities.LLMProvider
-	err := l.db.Where("id = ?", id).WithContext(ctx).First(&provider).Error
+	err := l.db.Where("id = ?", id).WithContext(ctx).First(&provider).Preload("Credential").Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil

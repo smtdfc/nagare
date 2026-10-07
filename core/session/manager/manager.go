@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	config_mgr "github.com/smtdfc/nagare/core/config/manager"
 	"github.com/smtdfc/nagare/core/custom_errors"
-	llm_provider_mgr "github.com/smtdfc/nagare/core/llm_provider/manager"
+	llm_provider_mgr "github.com/smtdfc/nagare/core/llm/manager"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/mappers"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
@@ -228,13 +228,16 @@ func (s *SessionManager) UpdateUserSessionLLMSettings(ctx context.Context, sessi
 		return nil, custom_errors.ErrSessionNotFound
 	}
 
-	userSession.LLMProviderID = provider.ID
-	userSession.CurrentModel = model
-	if err := s.sessionRepo.Update(ctx, userSession); err != nil {
+	if err := s.sessionRepo.UpdateLLMSettings(ctx, sessionID, provider.ID, model); err != nil {
 		return nil, custom_errors.ErrUpdateSessionLLMFailed
 	}
 
-	return s.sessionMapper.ToDomain(userSession), nil
+	updatedSession, err := s.sessionRepo.FindUserSession(ctx, sessionID, ownerID)
+	if err != nil || updatedSession == nil {
+		return nil, custom_errors.ErrUpdateSessionLLMFailed
+	}
+
+	return s.sessionMapper.ToDomain(updatedSession), nil
 }
 
 func (s *SessionManager) GetUserChatState(ctx context.Context, sessionID string, ownerID string) (*session.SessionState, error) {

@@ -137,6 +137,25 @@ func (s *SessionRepository) Update(ctx context.Context, session *entities.Sessio
 	return nil
 }
 
+func (s *SessionRepository) UpdateLLMSettings(ctx context.Context, sessionID string, providerID uuid.UUID, model string) error {
+	result := s.db.WithContext(ctx).
+		Model(&entities.Session{}).
+		Where("id = ?", sessionID).
+		Updates(map[string]any{
+			"llm_provider_id": providerID,
+			"current_model":   model,
+		})
+	if result.Error != nil {
+		s.logger.Error("failed to update session LLM settings", "id", sessionID, "error", result.Error)
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errors.New("session not found to update LLM settings")
+	}
+
+	return nil
+}
+
 func (s *SessionRepository) Delete(ctx context.Context, id string) error {
 	result := s.db.WithContext(ctx).Where("id = ?", id).Delete(&entities.Session{})
 	if result.Error != nil {
