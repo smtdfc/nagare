@@ -43,7 +43,7 @@ func (w *ChatWorker) HandleSendMessageEvent(payload *event_bus.SendMessageEventP
 	}
 
 	go func() {
-		for _ = range output {
+		for range output {
 		}
 	}()
 }
