@@ -15,12 +15,12 @@ type LLMProviderInfo struct {
 }
 
 type LLMProvider struct {
-	ID         string   `json:"id"`
-	Name       string   `json:"name"`
-	Compatible string   `json:"compatible"`
-	ApiKey     string   `json:"apiKey"`
-	Models     []string `json:"models"`
-	BaseURL    string   `json:"baseUrl"`
+	ID         string      `json:"id"`
+	Name       string      `json:"name"`
+	Compatible string      `json:"compatible"`
+	Models     []string    `json:"models"`
+	BaseURL    string      `json:"baseUrl"`
+	Credential *Credential `json:"credential,omitempty"`
 }
 
 type GetListLLMProviderResponse struct {
@@ -32,11 +32,12 @@ type GetLLMProviderDetailsResponse struct {
 }
 
 type AddLLMProviderRequest struct {
-	Name       string   `json:"name"`
-	Compatible string   `json:"compatible"`
-	ApiKey     string   `json:"apiKey"`
-	Models     []string `json:"models"`
-	BaseURL    string   `json:"baseUrl"`
+	Name         string   `json:"name"`
+	Compatible   string   `json:"compatible"`
+	ApiKey       string   `json:"apiKey"`
+	Models       []string `json:"models"`
+	BaseURL      string   `json:"baseUrl"`
+	CredentialID string   `json:"credentialId"`
 }
 
 type AddLLMProviderResponse struct {
