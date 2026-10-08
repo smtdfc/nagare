@@ -94,17 +94,17 @@ func (c *ChatService) ListSessions(ctx context.Context, ownerID string, offset i
 	}, nil
 }
 
-func (c *ChatService) GetHistory(ctx context.Context, ownerID string, sessionID string) (*rest.GetChatHistoryResponse, error) {
-	sessionHistory, err := c.sessionMgr.GetUserChatState(ctx, sessionID, ownerID)
-	if err != nil {
-		return nil, err
-	}
+// func (c *ChatService) GetHistory(ctx context.Context, ownerID string, sessionID string) (*rest.GetChatHistoryResponse, error) {
+// 	sessionHistory, err := c.sessionMgr.GetUserChatState(ctx, sessionID, ownerID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return &rest.GetChatHistoryResponse{
-		SessionID: sessionID,
-		Messages:  sessionHistory.Messages,
-	}, nil
-}
+// 	return &rest.GetChatHistoryResponse{
+// 		SessionID: sessionID,
+// 		Messages:  sessionHistory.Messages,
+// 	}, nil
+// }
 
 func (c *ChatService) GetHistoryPage(ctx context.Context, ownerID string, sessionID string, beforeID string, limit int) (*rest.GetChatHistoryResponse, error) {
 	if limit <= 0 || limit > 100 {

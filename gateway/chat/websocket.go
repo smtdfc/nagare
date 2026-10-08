@@ -80,7 +80,8 @@ func (c *ChatWebsocketHandler) OnListenMessage(s *melody.Session, w *websocket2.
 		return
 	}
 
-	if _, err := websocket2.GetAuth(s, "user"); err != nil {
+	auth, err := websocket2.GetAuth(s, "user")
+	if err != nil {
 		err := websocket2.SendMessage(s, websocket.RegisterChatListenerFailEvent, &websocket.RegisterChatListenerFailEventPayload{
 			ID:    "",
 			Cause: err.Error(),
@@ -88,11 +89,6 @@ func (c *ChatWebsocketHandler) OnListenMessage(s *melody.Session, w *websocket2.
 		if err != nil {
 			return
 		}
-		return
-	}
-
-	auth, err := websocket2.GetAuth(s, "user")
-	if err != nil {
 		return
 	}
 
