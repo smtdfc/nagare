@@ -58,6 +58,8 @@ func SetupRoutes(
 	app.fiberApp.Get("/ws", adaptor.HTTPHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := app.melody.HandleRequest(w, r)
 		if err != nil {
+			app.logger.Error("failed to handle websocket upgrade", "err", err)
+			http.Error(w, "WebSocket upgrade failed", http.StatusBadRequest)
 			return
 		}
 	}))
