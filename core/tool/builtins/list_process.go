@@ -8,6 +8,8 @@ import (
 	"github.com/smtdfc/nagare/pkg/system"
 )
 
+var procMgr = system.NewProcessManager()
+
 type ListProcessInput struct {
 	MinMemoryMB   float32 `json:"min_memory_mb,omitempty"`   // Filter processes consuming RAM >= this amount (MB)
 	MinCPUPercent float64 `json:"min_cpu_percent,omitempty"` // Filter processes consuming CPU >= this percentage (%)
@@ -33,7 +35,6 @@ var ListProcessTool = tool.DefineTool(
 	"list_process_tool",
 	"List and filter running processes by memory, CPU, name inclusion, or name exclusion with sorting and limits",
 	func(ctx *context.ExecuteContext, args *ListProcessInput, _ tool.Bindings) (*ListProcessOutput, error) {
-		procMgr := system.NewProcessManager()
 
 		var query *system.ProcessQuery
 		if args != nil {

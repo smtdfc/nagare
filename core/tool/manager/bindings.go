@@ -5,6 +5,8 @@ import (
 	"slices"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/task"
@@ -85,7 +87,7 @@ func (t ToolBindings) GetTaskManager() *task_manager.TaskManager {
 
 func (t ToolBindings) CallTool(ctx *context.ExecuteContext, toolName string, args string) *tool.Result {
 	return t.toolMgr.Call(ctx, &tool.ToolCall{
-		CallID: time.Now().Format("20060102150405"),
+		CallID: uuid.New().String(),
 		Name:   toolName,
 		Args:   args,
 	})
