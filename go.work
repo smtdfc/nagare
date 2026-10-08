@@ -8,7 +8,6 @@ use (
 	./pkgs/event_bus
 	./pkgs/helpers
 	./pkgs/ipc
-	./pkgs/logger
 	./pkgs/messages
 	./pkgs/paths
 	./pkgs/security
