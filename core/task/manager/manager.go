@@ -96,9 +96,10 @@ func (t *TaskManager) CancelAllTaskQueued(ctx context.Context) error {
 }
 
 // @Injectable
-func NewTaskManager(taskRepo *repositories.TaskRepository, logger *logger.BaseLogger) *TaskManager {
+func NewTaskManager(taskMapper *mappers.TaskMapper, taskRepo *repositories.TaskRepository, logger *logger.BaseLogger) *TaskManager {
 	return &TaskManager{
-		taskRepo: taskRepo,
-		logger:   logger.With("module", "task-manager"),
+		taskRepo:   taskRepo,
+		taskMapper: taskMapper,
+		logger:     logger.With("module", "task-manager"),
 	}
 }
