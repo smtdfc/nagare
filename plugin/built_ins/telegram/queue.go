@@ -96,6 +96,7 @@ func (tp *TelegramPlugin) handleSingleMessage(ctx context.Context, update *teleg
 	err := tp.pluginClient.SendChatMessage(ctx, sessionID, update.Message.Text)
 	if err != nil {
 		_ = tp.sendTextMessage(ctx, chatIntID, "Oops! Error while sending messages")
+		tp.finishProcessing(chatID, sessionID)
 		return
 	}
 }
