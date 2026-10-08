@@ -6,7 +6,7 @@ func UnmarshalJson[T any](raw string) (*T, error) {
 	var data T
 	err := json.Unmarshal([]byte(raw), &data)
 	if err != nil {
-		return &data, err
+		return nil, err
 	}
 
 	return &data, nil
