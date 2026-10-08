@@ -27,6 +27,9 @@ func (b *BaseEventBus[T]) Subscribe(eventName string) (<-chan T, func()) {
 	defer b.mu.Unlock()
 
 	ch := make(chan T, 1000)
+	closeChan := sync.OnceFunc(func() {
+		close(ch)
+	})
 	b.subscribers[eventName] = append(b.subscribers[eventName], ch)
 
 	unsub := func() {
@@ -37,7 +40,7 @@ func (b *BaseEventBus[T]) Subscribe(eventName string) (<-chan T, func()) {
 		for i, sub := range subs {
 			if sub == ch {
 				b.subscribers[eventName] = append(subs[:i], subs[i+1:]...)
-				close(ch)
+				closeChan()
 				break
 			}
 		}
@@ -45,6 +48,7 @@ func (b *BaseEventBus[T]) Subscribe(eventName string) (<-chan T, func()) {
 
 	return ch, unsub
 }
+
 func (b *BaseEventBus[T]) Publish(ctx context.Context, eventName string, payload T) {
 	b.mu.RLock()
 	subs := b.subscribers[eventName]
