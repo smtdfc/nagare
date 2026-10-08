@@ -3,6 +3,7 @@
 package ipc
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -16,8 +17,8 @@ func Listen(path string) (net.Listener, error) {
 	}
 
 	// Remove stale socket if it exists
-	if _, err := os.Stat(path); err == nil {
-		_ = os.Remove(path)
+	if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return nil, fmt.Errorf("failed to remove stale socket: %w", err)
 	}
 
 	listener, err := net.Listen("unix", path)
