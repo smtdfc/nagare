@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"uuid"
 
+	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/dtos/websocket"
 )
 

@@ -11,8 +11,8 @@ import (
 
 	plugin_dtos "github.com/smtdfc/nagare/dtos/plugin"
 	"github.com/smtdfc/nagare/dtos/websocket"
-	"github.com/smtdfc/nagare/plugin/metadata"
 	"github.com/smtdfc/nagare/pkgs/ipc"
+	"github.com/smtdfc/nagare/plugin/metadata"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -86,8 +86,13 @@ func (p *PluginClient) handleEvent(payload *websocket.Payload[any]) {
 		go p.handlePluginToolCall(payload)
 		return
 	case websocket.ReceivedChatMessageEvent:
-		d, _ := GetData[websocket.ReceivedChatMessageEventPayload](payload)
+		d, err := GetData[websocket.ReceivedChatMessageEventPayload](payload)
+		if err != nil || d == nil {
+			p.Logger.Warn("failed to parse ReceivedChatMessageEvent", "error", err)
+			return
+		}
 		p.OnReceivedChatMessage(d.SessionID, d.ChannelID, d.Message)
+
 	default:
 		p.Logger.Warn("Unknown event", "event", payload.Event)
 	}

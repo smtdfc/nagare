@@ -26,6 +26,7 @@ type BaseTool[I any, O any] struct {
 	Description string
 	Callback    BaseToolCallback[I, O]
 	Categories  []string
+	SchemaCache string
 }
 
 // Execute implements [Tool].
@@ -50,18 +51,23 @@ func (b *BaseTool[I, O]) Execute(ctx *context.Context, argRaw string) (string, e
 
 // GetArgsSchema implements [Tool].
 func (b *BaseTool[I, O]) GetArgsSchema() string {
+	if b.SchemaCache != "" {
+		return b.SchemaCache
+	}
+
 	var r I
 	reflector := &jsonschema.Reflector{
 		DoNotReference: true,
 	}
 	schema := reflector.Reflect(&r)
-
 	data, err := json.Marshal(schema)
+	schemaStr := string(data)
 	if err != nil {
-		return "{}"
+		schemaStr = "{}"
 	}
+	b.SchemaCache = schemaStr
 
-	return string(data)
+	return schemaStr
 }
 
 // GetDescription implements [Tool].
