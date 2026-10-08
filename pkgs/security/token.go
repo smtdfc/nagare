@@ -32,10 +32,9 @@ func GenerateRSAToken[T any](payload T, privateKeyBytes []byte, duration time.Du
 }
 
 func VerifyRSAToken[T any](tokenString string, publicKeyBytes []byte) (*T, error) {
-	var zero = new(T)
 	publicKey, err := jwt.ParseRSAPublicKeyFromPEM(publicKeyBytes)
 	if err != nil {
-		return zero, fmt.Errorf("failed to parse public key: %w", err)
+		return nil, fmt.Errorf("failed to parse public key: %w", err)
 	}
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
@@ -47,27 +46,27 @@ func VerifyRSAToken[T any](tokenString string, publicKeyBytes []byte) (*T, error
 	})
 
 	if err != nil {
-		return zero, err
+		return nil, err
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
-		return zero, errors.New("invalid token")
+		return nil, errors.New("invalid token")
 	}
 
 	userPayload, ok := claims["user"]
 	if !ok {
-		return zero, errors.New("user payload not found in token")
+		return nil, errors.New("user payload not found in token")
 	}
 
 	jsonBytes, err := helpers.MarshalJson(userPayload)
 	if err != nil {
-		return zero, fmt.Errorf("failed to marshal payload: %w", err)
+		return nil, fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
 	payload, err := helpers.UnmarshalJson[T](jsonBytes)
 	if err != nil {
-		return zero, fmt.Errorf("failed to unmarshal into target type: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal into target type: %w", err)
 	}
 
 	return payload, nil
