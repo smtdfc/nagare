@@ -15,7 +15,7 @@ import (
 
 type SessionJob struct {
 	Chunk            messages.Message
-	RequestID        string
+	InvokeID         string
 	ChannelID        string
 	SessionOwnerID   string
 	SessionOwnerType string
@@ -41,11 +41,11 @@ func (c *Worker) HandleChunkMessage(sessionID string, job *SessionJob) {
 			Message:   chunkJson,
 			ChannelID: job.ChannelID,
 		},
-		job.RequestID,
+		job.InvokeID,
 		nil,
 	)
 	if err != nil {
-		c.logger.Error("Failed to broadcast chunk event: ", "requestID", job.RequestID, "error", err)
+		c.logger.Warn("Failed to broadcast chunk event: ", "requestID", job.InvokeID, "error", err)
 		return
 	}
 }
@@ -96,7 +96,7 @@ func (c *Worker) Do() {
 
 				sessionChan <- SessionJob{
 					Chunk:            chunkPayload.Chunk,
-					RequestID:        chunkPayload.RequestID,
+					InvokeID:         chunkPayload.RequestID,
 					ChannelID:        chunkPayload.ChannelID,
 					SessionOwnerType: chunkPayload.SessionOwnerType,
 					SessionOwnerID:   chunkPayload.SessionOwnerID,
