@@ -1,5 +1,39 @@
 # Changelog
 
+## [1.12.0](https://github.com/smtdfc/nagare/compare/v1.11.0...v1.12.0) (2026-10-09)
+
+
+### Features
+
+* **cli:** add 'doctor' command to check Nagare environment and dependencies ([5c249e6](https://github.com/smtdfc/nagare/commit/5c249e68c04b2db8c2b7ee47ea993b5a33ec7357))
+* **client/ui:** implement credential management service and UI components ([7495d39](https://github.com/smtdfc/nagare/commit/7495d3990e3cc43157d29352c08a5a3db997b118))
+* **core/memory:** implement VectorMemory and associated functions for vector index management ([3703a4d](https://github.com/smtdfc/nagare/commit/3703a4d59a59f52f82c601619f29b9ec9d60f343))
+* **core:** add Credential entity and repository for managing credentials ([be49757](https://github.com/smtdfc/nagare/commit/be49757a309c83a4e652b93540b8098d4ddfa380))
+* **core:** add EmbeddingProvider entity with credential association ([994df2a](https://github.com/smtdfc/nagare/commit/994df2a83f25bc4aff3e79031153e8548b3c01ac))
+* **core:** add UpdateLLMSettings method to SessionRepository ([be49757](https://github.com/smtdfc/nagare/commit/be49757a309c83a4e652b93540b8098d4ddfa380))
+* **core:** refactor LLM provider structure and add credential management ([803813f](https://github.com/smtdfc/nagare/commit/803813fff3d48852e33f1f0046f8767aafe387c9))
+* **core:** update LLMProvider to include Credential association ([be49757](https://github.com/smtdfc/nagare/commit/be49757a309c83a4e652b93540b8098d4ddfa380))
+* **crates/nagare_vector:** initialize nagare_vector crate with VectorIndex struct and associated functions ([c952bde](https://github.com/smtdfc/nagare/commit/c952bdeb3dd58e600d1c25965630a34376fa16b1))
+* **dtos:** add credential DTOs and endpoints for managing user credentials ([9d66a50](https://github.com/smtdfc/nagare/commit/9d66a5006fc88a9259b562eb24feff69962bfdc9))
+* **gateway:** add credential routes to SetupRoutes function ([6188531](https://github.com/smtdfc/nagare/commit/6188531430da8a58fb6a0705b2e499ee9ba72689))
+* **gateway:** implement CredentialController, service, and route for managing credentials ([158ce32](https://github.com/smtdfc/nagare/commit/158ce3275f0a55f9d55fbedb79b57e662344a34a))
+* **pkgs/paths:** add new paths for modules, memory, and vector index file ([3703a4d](https://github.com/smtdfc/nagare/commit/3703a4d59a59f52f82c601619f29b9ec9d60f343))
+
+
+### Bug Fixes
+
+* **core/mappers:** handle nil entity case in ToDomain method of LLMProviderMapper ([c39126b](https://github.com/smtdfc/nagare/commit/c39126bc78dd89c2a61d73f195652c354a70f1d1))
+* **core:** preload Credential in LLMProviderRepository FindByID method ([be49757](https://github.com/smtdfc/nagare/commit/be49757a309c83a4e652b93540b8098d4ddfa380))
+* **gateway:** log error and return bad request on WebSocket upgrade failure ([d4cfff7](https://github.com/smtdfc/nagare/commit/d4cfff767df09e31b0e0c622df73c2aa5443ca01))
+* **gateway:** simplify range loop in HandleSendMessageEvent function ([a8f5181](https://github.com/smtdfc/nagare/commit/a8f5181c32837da633923e26a0853e6af02f13b4))
+* **installer:** update LOCAL_DIST path to simplify local installation ([f59d733](https://github.com/smtdfc/nagare/commit/f59d733b0c079881833ab8cd14fb0fee6645954f))
+* **pkgs/event_bus:** ensure proper closure of subscriber channels on unsubscribe ([3b794c1](https://github.com/smtdfc/nagare/commit/3b794c10e629c9f7109d88c50f7dfebf0daee88a))
+* **pkgs/helpers:** return nil instead of data on error in UnmarshalJson ([10c92ea](https://github.com/smtdfc/nagare/commit/10c92ea20d906d2d35778c334dc38ad5b51949ad))
+* **pkgs/security:** return nil instead of zero value on errors in VerifyRSAToken ([c90f03a](https://github.com/smtdfc/nagare/commit/c90f03ae6ce090aa112f161a4a3dd033cb47aba6))
+* **pkgs/system:** correct JSON schema description for action field ([b935f8d](https://github.com/smtdfc/nagare/commit/b935f8d391e82b39dd5488c8dc8a18a40061d37e))
+* **plugin/client:** improve error handling in handleEvent and optimize GetArgsSchema caching ([bbb9491](https://github.com/smtdfc/nagare/commit/bbb9491a773ae5b7b1675a616d01c130c40a1c88))
+* **plugin/telegram:** ensure session processing is finished on message send error ([33a819c](https://github.com/smtdfc/nagare/commit/33a819c430b23761b4822342ed15a7a2f9c11bc4))
+
 ## [1.11.0](https://github.com/smtdfc/nagare/compare/v1.10.0...v1.11.0) (2026-10-05)
 
 
