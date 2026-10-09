@@ -21,7 +21,7 @@ type SessionJob struct {
 	SessionOwnerType string
 }
 
-type ChatWorker struct {
+type Worker struct {
 	mu           sync.RWMutex
 	chatEventBus *event_bus.CoreEventBus
 	logger       *logger.BaseLogger
@@ -30,7 +30,7 @@ type ChatWorker struct {
 	sessionChans map[string]chan SessionJob
 }
 
-func (c *ChatWorker) HandleChunkMessage(sessionID string, job *SessionJob) {
+func (c *Worker) HandleChunkMessage(sessionID string, job *SessionJob) {
 	chunkJson, _ := helpers.MarshalJson(job.Chunk)
 	err := websocket.BroadcastToRoom(
 		c.ws,
@@ -50,7 +50,7 @@ func (c *ChatWorker) HandleChunkMessage(sessionID string, job *SessionJob) {
 	}
 }
 
-func (c *ChatWorker) runHandleSessionMessageWorker(sessionID string, ch chan SessionJob) {
+func (c *Worker) runHandleSessionMessageWorker(sessionID string, ch chan SessionJob) {
 	defer func() {
 		c.mu.Lock()
 		delete(c.sessionChans, sessionID)
@@ -64,7 +64,7 @@ func (c *ChatWorker) runHandleSessionMessageWorker(sessionID string, ch chan Ses
 	}
 }
 
-func (c *ChatWorker) Do() {
+func (c *Worker) Do() {
 	go func() {
 		ch, unsubscribe := c.chatEventBus.Subscribe(event_bus.ChunkEvent)
 		defer unsubscribe()
@@ -107,8 +107,8 @@ func (c *ChatWorker) Do() {
 }
 
 // @Injectable
-func NewWorker(logger *logger.BaseLogger, chatEventBus *event_bus.CoreEventBus, ws *websocket.Coordinator) *ChatWorker {
-	return &ChatWorker{
+func NewWorker(logger *logger.BaseLogger, chatEventBus *event_bus.CoreEventBus, ws *websocket.Coordinator) *Worker {
+	return &Worker{
 		chatEventBus: chatEventBus,
 		mu:           sync.RWMutex{},
 		ws:           ws,

@@ -21,15 +21,15 @@ type ToolBindings struct {
 	eventBus *event_bus.CoreEventBus
 }
 
-func (t *ToolBindings) FindToolsByKeywords(ctx *context.ExecuteContext, keywords []string) ([]tool.ToolMetadata, error) {
-	return t.toolMgr.FindToolsByKeywords(ctx.Context, keywords)
+func (t *ToolBindings) FindToolsByKeywords(keywords []string) ([]tool.Metadata, error) {
+	return t.toolMgr.FindToolsByKeywords(keywords)
 }
 
-func (t ToolBindings) RefreshTask(ctx *context.ExecuteContext) {
+func (t *ToolBindings) RefreshTask(ctx *context.ExecuteContext) {
 	t.eventBus.Publish(ctx, event_bus.RefreshTaskEvent, &event_bus.RefreshTaskEventPayload{})
 }
 
-func (t ToolBindings) CreateTask(ctx *context.ExecuteContext, sessionID, name, prompt string, triggerBy string, repeat bool, repeatRule string, startTime string, endTime string) (string, error) {
+func (t *ToolBindings) CreateTask(ctx *context.ExecuteContext, sessionID, name, prompt string, triggerBy string, repeat bool, repeatRule string, startTime string, endTime string) (string, error) {
 	var triggerSources = []string{"scheduled"}
 	var repeatRules = []string{"no_repeat", "daily"}
 	if !slices.Contains(triggerSources, triggerBy) {
@@ -68,7 +68,7 @@ func (t ToolBindings) CreateTask(ctx *context.ExecuteContext, sessionID, name, p
 		parsedEndTime = &tEnd
 	}
 
-	task, err := t.taskMgr.Create(ctx, name, sessionID, prompt, &task.TaskTriggerRule{
+	newTask, err := t.taskMgr.Create(ctx, name, sessionID, prompt, &task.TriggerRule{
 		By:        task.MapTaskTriggerSourceToTaskSource(triggerBy),
 		StartTime: parsedStartTime,
 		EndTime:   parsedEndTime,
@@ -78,23 +78,23 @@ func (t ToolBindings) CreateTask(ctx *context.ExecuteContext, sessionID, name, p
 		return "", err
 	}
 
-	return task.ID.String(), nil
+	return newTask.ID.String(), nil
 }
 
-func (t ToolBindings) GetTaskManager() *task_manager.TaskManager {
+func (t *ToolBindings) GetTaskManager() *task_manager.TaskManager {
 	return t.taskMgr
 }
 
-func (t ToolBindings) CallTool(ctx *context.ExecuteContext, toolName string, args string) *tool.Result {
-	return t.toolMgr.Call(ctx, &tool.ToolCall{
+func (t *ToolBindings) CallTool(ctx *context.ExecuteContext, toolName string, args string) *tool.Result {
+	return t.toolMgr.Call(ctx, &tool.Call{
 		CallID: uuid.New().String(),
 		Name:   toolName,
 		Args:   args,
 	})
 }
 
-func (t ToolBindings) FindToolsByCategories(ctx *context.ExecuteContext, categories []string) ([]tool.ToolMetadata, error) {
-	list := make([]tool.ToolMetadata, 0)
+func (t *ToolBindings) FindToolsByCategories(_ *context.ExecuteContext, categories []string) ([]tool.Metadata, error) {
+	list := make([]tool.Metadata, 0)
 	for _, item := range registry.Registry {
 		if !item.RequiresRouter {
 			continue
@@ -109,7 +109,7 @@ func (t ToolBindings) FindToolsByCategories(ctx *context.ExecuteContext, categor
 		}
 
 		if categoriesMatch {
-			list = append(list, tool.ToolMetadata{
+			list = append(list, tool.Metadata{
 				Name:        item.Tool.GetName(),
 				Description: item.Tool.GetDescription(),
 				Args:        item.Tool.GetArgsSchema(),

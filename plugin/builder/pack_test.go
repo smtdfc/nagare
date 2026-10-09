@@ -46,7 +46,9 @@ func TestPackAndSignPlugin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to open generated zip file: %v", err)
 	}
-	defer zipReader.Close()
+	defer func(zipReader *zip.ReadCloser) {
+		_ = zipReader.Close()
+	}(zipReader)
 
 	if len(zipReader.File) == 0 {
 		t.Fatalf("expected packed zip to contain files")

@@ -18,7 +18,7 @@ type TaskManager struct {
 	logger     *logger.BaseLogger
 }
 
-func (t *TaskManager) Create(ctx context.Context, name string, sessionID string, prompt string, rule *task.TaskTriggerRule) (*task.Task, error) {
+func (t *TaskManager) Create(ctx context.Context, name string, sessionID string, prompt string, rule *task.TriggerRule) (*task.Task, error) {
 	sessionUUID, err := uuid.Parse(sessionID)
 	if err != nil {
 		t.logger.Error("failed to parse session UUID", "sessionID", sessionID, "error", err)
@@ -49,10 +49,10 @@ func (t *TaskManager) Create(ctx context.Context, name string, sessionID string,
 	return t.taskMapper.ToDomain(taskEntity), nil
 }
 
-func (t *TaskManager) GetUpcomingTasks(ctx context.Context) ([]*task.Task, error) {
+func (t *TaskManager) GetUpcomingTasks() ([]*task.Task, error) {
 	now := time.Now()
 	nextHour := now.Add(3 * time.Hour)
-	taskEntities, err := t.taskRepo.GetUpcomingScheduledTasks(ctx, now, nextHour)
+	taskEntities, err := t.taskRepo.GetUpcomingScheduledTasks(now, nextHour)
 	if err != nil {
 		return nil, custom_errors.ErrGetUpcomingTaskFailed
 	}

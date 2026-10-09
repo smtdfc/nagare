@@ -10,12 +10,12 @@ import (
 	"github.com/smtdfc/nagare/pkgs/paths"
 )
 
-type UploadManager struct {
+type Manager struct {
 	logger      *logger.BaseLogger
 	attachments map[string]string
 }
 
-func (um *UploadManager) AddAttachment(p string) (string, error) {
+func (um *Manager) AddAttachment(p string) (string, error) {
 	id := helpers.GenerateUUID()
 	dir := path.Join(paths.UploadDir, "contents")
 	if err := os.MkdirAll(dir, 0755); err != nil {
@@ -39,19 +39,19 @@ func (um *UploadManager) AddAttachment(p string) (string, error) {
 	return id, nil
 }
 
-func (um *UploadManager) GetAttachmentPath(id string) (string, bool) {
+func (um *Manager) GetAttachmentPath(id string) (string, bool) {
 	p, exists := um.attachments[id]
 	return p, exists
 }
 
-func (um *UploadManager) RemoveAttachment(id string) {
+func (um *Manager) RemoveAttachment(id string) {
 	delete(um.attachments, id)
 	um.logger.Info("Attachment removed", "id", id)
 }
 
 // @Injectable
-func NewUploadManager(logger *logger.BaseLogger) *UploadManager {
-	return &UploadManager{
+func NewUploadManager(logger *logger.BaseLogger) *Manager {
+	return &Manager{
 		logger: logger.With("module", "upload-manager"),
 	}
 }

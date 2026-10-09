@@ -23,7 +23,7 @@ type LLMProvider struct {
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
 
-func (p *LLMProvider) BeforeCreate(tx *gorm.DB) (err error) {
+func (p *LLMProvider) BeforeCreate(*gorm.DB) (err error) {
 	if p.ID == uuid.Nil {
 		p.ID = uuid.New()
 	}

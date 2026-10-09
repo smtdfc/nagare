@@ -11,7 +11,7 @@ func compileSource(binFile string) error {
 
 	stderrPipe, err := cmd.StderrPipe()
 	if err != nil {
-		return fmt.Errorf("Failed to create stderr pipe: %w", err)
+		return fmt.Errorf("failed to create stderr pipe: %w", err)
 	}
 
 	if err := cmd.Start(); err != nil {

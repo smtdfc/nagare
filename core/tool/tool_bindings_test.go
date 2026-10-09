@@ -8,17 +8,17 @@ import (
 
 type mockBindings struct{}
 
-func (m *mockBindings) RefreshTask(ctx *context2.ExecuteContext) {}
+func (m *mockBindings) RefreshTask(*context2.ExecuteContext) {}
 
-func (m *mockBindings) CreateTask(ctx *context2.ExecuteContext, sessionID string, name string, prompt string, triggerBy string, repeat bool, repeatRule string, startTime string, endTime string) (string, error) {
+func (m *mockBindings) CreateTask(*context2.ExecuteContext, string, string, string, string, bool, string, string, string) (string, error) {
 	return "task-1", nil
 }
 
-func (m *mockBindings) FindToolsByCategories(ctx *context2.ExecuteContext, categories []string) ([]ToolMetadata, error) {
-	return []ToolMetadata{{Name: "mock_tool"}}, nil
+func (m *mockBindings) FindToolsByCategories(*context2.ExecuteContext, []string) ([]Metadata, error) {
+	return []Metadata{{Name: "mock_tool"}}, nil
 }
 
-func (m *mockBindings) CallTool(ctx *context2.ExecuteContext, toolName string, args string) *Result {
+func (m *mockBindings) CallTool(_ *context2.ExecuteContext, toolName string, _ string) *Result {
 	return NewToolResultBuilder("call-1", toolName).Success("ok").Build()
 }
 

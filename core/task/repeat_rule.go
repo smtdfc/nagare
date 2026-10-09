@@ -1,18 +1,18 @@
 package task
 
-type TaskRepeatRule string
+type RepeatRule string
 
 const (
-	NoRepeat TaskRepeatRule = "no_repeat"
-	Daily    TaskRepeatRule = "daily"
-	Hourly   TaskRepeatRule = "hourly"
+	NoRepeat RepeatRule = "no_repeat"
+	Daily    RepeatRule = "daily"
+	Hourly   RepeatRule = "hourly"
 )
 
-func (t TaskRepeatRule) ToString() string {
+func (t RepeatRule) ToString() string {
 	return string(t)
 }
 
-func MapTaskRepeatRuleToTaskRepeatRule(s string) TaskRepeatRule {
+func MapTaskRepeatRuleToTaskRepeatRule(s string) RepeatRule {
 	switch s {
 	case "no_repeat":
 		return NoRepeat

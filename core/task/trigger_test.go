@@ -18,7 +18,7 @@ func TestMapTaskTriggerSourceToTaskSource(t *testing.T) {
 	// Verify mapping of string to TaskTriggerSource
 	tests := []struct {
 		input    string
-		expected TaskTriggerSource
+		expected TriggerSource
 	}{
 		{"scheduled", Scheduled},
 		{"event", Event},

@@ -22,11 +22,11 @@ func toCredentialDTO(value *core_credential.Credential) *rest.Credential {
 	}
 }
 
-type CredentialService struct {
+type Service struct {
 	credentialManager *credential_manager.CredentialManager
 }
 
-func (c *CredentialService) ListCredentials(ctx context.Context) (*rest.GetListCredentialResponse, error) {
+func (c *Service) ListCredentials(ctx context.Context) (*rest.GetListCredentialResponse, error) {
 	credentials, err := c.credentialManager.GetAll(ctx)
 	if err != nil {
 		return nil, custom_errors.ErrGetAllCredentialFailed
@@ -37,7 +37,7 @@ func (c *CredentialService) ListCredentials(ctx context.Context) (*rest.GetListC
 	}, nil
 }
 
-func (c *CredentialService) GetCredentialDetails(ctx context.Context, id string) (*rest.GetCredentialDetailsResponse, error) {
+func (c *Service) GetCredentialDetails(ctx context.Context, id string) (*rest.GetCredentialDetailsResponse, error) {
 	credentialValue, err := c.credentialManager.GetByID(ctx, id)
 	if err != nil {
 		return nil, custom_errors.ErrGetCredentialFailed
@@ -51,7 +51,7 @@ func (c *CredentialService) GetCredentialDetails(ctx context.Context, id string)
 	}, nil
 }
 
-func (c *CredentialService) AddCredential(ctx context.Context, request *rest.AddCredentialRequest) (*rest.AddCredentialResponse, error) {
+func (c *Service) AddCredential(ctx context.Context, request *rest.AddCredentialRequest) (*rest.AddCredentialResponse, error) {
 	credentialValue, err := c.credentialManager.Create(ctx, &core_credential.Credential{
 		Name:   request.Name,
 		ApiKey: request.ApiKey,
@@ -65,7 +65,7 @@ func (c *CredentialService) AddCredential(ctx context.Context, request *rest.Add
 	}, nil
 }
 
-func (c *CredentialService) UpdateCredential(ctx context.Context, request *rest.UpdateCredentialRequest) (*rest.UpdateCredentialResponse, error) {
+func (c *Service) UpdateCredential(ctx context.Context, request *rest.UpdateCredentialRequest) (*rest.UpdateCredentialResponse, error) {
 	id, err := uuid.Parse(request.ID)
 	if err != nil {
 		return nil, custom_errors.ErrUpdateCredentialFailed
@@ -85,7 +85,7 @@ func (c *CredentialService) UpdateCredential(ctx context.Context, request *rest.
 	}, nil
 }
 
-func (c *CredentialService) DeleteCredential(ctx context.Context, request *rest.DeleteCredentialRequest) error {
+func (c *Service) DeleteCredential(ctx context.Context, request *rest.DeleteCredentialRequest) error {
 	if err := c.credentialManager.Delete(ctx, request.ID); err != nil {
 		return custom_errors.ErrDeleteCredentialFailed
 	}
@@ -94,8 +94,8 @@ func (c *CredentialService) DeleteCredential(ctx context.Context, request *rest.
 }
 
 // @Injectable
-func NewCredentialService(credentialManager *credential_manager.CredentialManager) *CredentialService {
-	return &CredentialService{
+func NewCredentialService(credentialManager *credential_manager.CredentialManager) *Service {
+	return &Service{
 		credentialManager: credentialManager,
 	}
 }

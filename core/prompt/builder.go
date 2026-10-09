@@ -5,20 +5,20 @@ import (
 	"text/template"
 )
 
-type PromptTemplate struct {
+type Template struct {
 	template *template.Template
 }
 
-func NewPromptTemplate(name string, content string) (PromptTemplate, error) {
+func NewPromptTemplate(name string, content string) (Template, error) {
 	parsedTemplate, err := template.New(name).Parse(content)
 	if err != nil {
-		return PromptTemplate{}, err
+		return Template{}, err
 	}
 
-	return PromptTemplate{template: parsedTemplate}, nil
+	return Template{template: parsedTemplate}, nil
 }
 
-func MustNewPromptTemplate(name string, content string) PromptTemplate {
+func MustNewPromptTemplate(name string, content string) Template {
 	promptTemplate, err := NewPromptTemplate(name, content)
 	if err != nil {
 		panic(err)
@@ -27,7 +27,7 @@ func MustNewPromptTemplate(name string, content string) PromptTemplate {
 	return promptTemplate
 }
 
-func (p PromptTemplate) Build(params any) (string, error) {
+func (p Template) Build(params any) (string, error) {
 	var output bytes.Buffer
 	if err := p.template.Execute(&output, params); err != nil {
 		return "", err

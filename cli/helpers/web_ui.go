@@ -35,20 +35,26 @@ func (h *spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "index.html not found", http.StatusInternalServerError)
 			return
 		}
-		defer indexFile.Close()
+		defer func(indexFile http.File) {
+			_ = indexFile.Close()
+		}(indexFile)
 
 		stat, _ := indexFile.Stat()
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		http.ServeContent(w, r, "index.html", stat.ModTime(), indexFile)
 		return
 	}
-	defer f.Close()
+	defer func(f http.File) {
+		_ = f.Close()
+	}(f)
 
 	stat, err := f.Stat()
 	if err == nil && stat.IsDir() {
 		indexPath := path.Join(fsPath, "index.html")
 		if idxF, err := h.fs.Open(indexPath); err == nil {
-			defer idxF.Close()
+			defer func(idxF http.File) {
+				_ = idxF.Close()
+			}(idxF)
 			idxStat, _ := idxF.Stat()
 			http.ServeContent(w, r, "index.html", idxStat.ModTime(), idxF)
 			return
@@ -56,7 +62,9 @@ func (h *spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		indexFile, err := h.fs.Open("index.html")
 		if err == nil {
-			defer indexFile.Close()
+			defer func(indexFile http.File) {
+				_ = indexFile.Close()
+			}(indexFile)
 			idxStat, _ := indexFile.Stat()
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			http.ServeContent(w, r, "index.html", idxStat.ModTime(), indexFile)

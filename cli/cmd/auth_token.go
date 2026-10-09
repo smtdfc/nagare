@@ -18,7 +18,7 @@ var tokenCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		_, privateKey, err := cli_helpers.GetRSAKey()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error generating RSA token: %v\n", err)
+			_, _ = fmt.Fprintf(os.Stderr, "Error generating RSA token: %v\n", err)
 			return
 		}
 
@@ -34,7 +34,7 @@ var tokenCmd = &cobra.Command{
 			[]byte(privateKey), 60*time.Hour,
 		)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error generating RSA token: %v\n", err)
+			_, _ = fmt.Fprintf(os.Stderr, "Error generating RSA token: %v\n", err)
 			return
 		}
 

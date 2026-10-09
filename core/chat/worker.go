@@ -5,13 +5,13 @@ import (
 	"github.com/smtdfc/nagare/core/logger"
 )
 
-type ChatWorker struct {
+type Worker struct {
 	chatEventBus *event_bus.CoreEventBus
 	agentInvoker *AgentInvoker
 	logger       *logger.BaseLogger
 }
 
-func (c *ChatWorker) Handle(evt event_bus.EventPayload) {
+func (c *Worker) Handle(evt event_bus.EventPayload) {
 	switch evt.GetEventType() {
 	case event_bus.SendEvent:
 		payload := evt.(*event_bus.SendMessageEventPayload)
@@ -19,18 +19,18 @@ func (c *ChatWorker) Handle(evt event_bus.EventPayload) {
 	}
 }
 
-func (w *ChatWorker) Do() {
+func (c *Worker) Do() {
 	go func() {
-		ch, unsubscribe := w.chatEventBus.Subscribe(event_bus.SendEvent)
+		ch, unsubscribe := c.chatEventBus.Subscribe(event_bus.SendEvent)
 		defer unsubscribe()
 		for chunkEventPayload := range ch {
-			go w.Handle(chunkEventPayload)
+			go c.Handle(chunkEventPayload)
 		}
 	}()
 }
 
-func (w *ChatWorker) HandleSendMessageEvent(payload *event_bus.SendMessageEventPayload) {
-	output, err := w.agentInvoker.Invoke(&AgentInvokeParams{
+func (c *Worker) HandleSendMessageEvent(payload *event_bus.SendMessageEventPayload) {
+	output, err := c.agentInvoker.Invoke(&AgentInvokeParams{
 		SessionID:        payload.SessionID,
 		InputMessages:    payload.Messages,
 		SenderType:       payload.SenderType,
@@ -49,8 +49,8 @@ func (w *ChatWorker) HandleSendMessageEvent(payload *event_bus.SendMessageEventP
 }
 
 // @Injectable
-func NewChatWorker(eventBus *event_bus.CoreEventBus, agentInvoker *AgentInvoker, logger *logger.BaseLogger) *ChatWorker {
-	return &ChatWorker{
+func NewChatWorker(eventBus *event_bus.CoreEventBus, agentInvoker *AgentInvoker, logger *logger.BaseLogger) *Worker {
+	return &Worker{
 		chatEventBus: eventBus,
 		agentInvoker: agentInvoker,
 		logger:       logger.With("worker", "core:chat"),

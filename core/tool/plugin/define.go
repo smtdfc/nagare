@@ -11,7 +11,7 @@ import (
 	"github.com/smtdfc/nagare/core/tool"
 )
 
-type PluginTool struct {
+type Tool struct {
 	Name        string
 	Args        string
 	Description string
@@ -21,7 +21,7 @@ type PluginTool struct {
 }
 
 // Execute implements [tool.Tool].
-func (p *PluginTool) Execute(ctx *core_context.ExecuteContext, args string) (string, error) {
+func (p *Tool) Execute(ctx *core_context.ExecuteContext, args string) (string, error) {
 	requestID := uuid.NewString()
 	resultChannel, unsubscribe := p.eventBus.Subscribe(event_bus.PluginToolCallResultEvent)
 	defer unsubscribe()
@@ -59,37 +59,37 @@ func (p *PluginTool) Execute(ctx *core_context.ExecuteContext, args string) (str
 }
 
 // GetArgsSchema implements [tool.Tool].
-func (p *PluginTool) GetArgsSchema() string {
+func (p *Tool) GetArgsSchema() string {
 	return p.Args
 }
 
 // GetBindings implements [tool.Tool].
-func (p *PluginTool) GetBindings() tool.Bindings {
+func (p *Tool) GetBindings() tool.Bindings {
 	return nil
 }
 
 // GetCategories implements [tool.Tool].
-func (p *PluginTool) GetCategories() []string {
+func (p *Tool) GetCategories() []string {
 	return p.Categories
 }
 
 // GetDescription implements [tool.Tool].
-func (p *PluginTool) GetDescription() string {
+func (p *Tool) GetDescription() string {
 	return p.Description
 }
 
 // GetName implements [tool.Tool].
-func (p *PluginTool) GetName() string {
+func (p *Tool) GetName() string {
 	return p.Name
 }
 
 // WithBindings implements [tool.Tool].
-func (p *PluginTool) WithBindings(bindings tool.Bindings) tool.Tool {
+func (p *Tool) WithBindings(tool.Bindings) tool.Tool {
 	return p
 }
 
-func NewPluginTool(name string, args string, description string, categories []string, pluginID string, eventBus *event_bus.CoreEventBus) *PluginTool {
-	return &PluginTool{
+func NewPluginTool(name string, args string, description string, categories []string, pluginID string, eventBus *event_bus.CoreEventBus) *Tool {
+	return &Tool{
 		Name:        name,
 		Args:        args,
 		Description: description,

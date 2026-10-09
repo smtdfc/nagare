@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 func TestConnectorSendWithoutConnection(t *testing.T) {
 	connector := NewConnector(func(p *websocket.Payload[any]) {})
 	err := connector.Send("test.event", "data", "req-1")
-	if err != ErrConnectionNotReady {
+	if !errors.Is(err, ErrConnectionNotReady) {
 		t.Fatalf("expected ErrConnectionNotReady, got %v", err)
 	}
 
@@ -27,7 +28,7 @@ func TestConnectorWaitCancelled(t *testing.T) {
 	defer cancel()
 
 	err := connector.Wait(ctx)
-	if err != context.DeadlineExceeded {
+	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("expected context.DeadlineExceeded, got %v", err)
 	}
 }

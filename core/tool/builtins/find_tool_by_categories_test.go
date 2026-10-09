@@ -11,8 +11,8 @@ type mockFindBindings struct {
 	mockTaskBindings
 }
 
-func (m *mockFindBindings) FindToolsByCategories(ctx *core_context.ExecuteContext, categories []string) ([]tool.ToolMetadata, error) {
-	return []tool.ToolMetadata{
+func (m *mockFindBindings) FindToolsByCategories(*core_context.ExecuteContext, []string) ([]tool.Metadata, error) {
+	return []tool.Metadata{
 		{Name: "time_tool", Description: "Get time"},
 	}, nil
 }
@@ -22,7 +22,7 @@ func TestFindToolByCategories_Metadata(t *testing.T) {
 	if FindToolByCategories.GetName() != "find_tool_by_categories" {
 		t.Errorf("expected 'find_tool_by_categories', got '%s'", FindToolByCategories.GetName())
 	}
-	if len(FindToolByCategories.GetCategories()) != 1 || FindToolByCategories.GetCategories()[0] != tool.ToolRoutingCategory {
+	if len(FindToolByCategories.GetCategories()) != 1 || FindToolByCategories.GetCategories()[0] != tool.RoutingCategory {
 		t.Errorf("expected ToolRoutingCategory, got %v", FindToolByCategories.GetCategories())
 	}
 }

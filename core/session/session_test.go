@@ -50,7 +50,7 @@ func TestSessionInfo_Construction(t *testing.T) {
 	// Verify SessionInfo struct fields
 	id := uuid.New()
 	providerID := uuid.New()
-	info := &SessionInfo{
+	info := &Info{
 		ID:              id,
 		Title:           "Test Session",
 		OwnerID:         "user-123",

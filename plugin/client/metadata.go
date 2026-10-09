@@ -1,8 +1,8 @@
 package client
 
 import (
-	mt "github.com/smtdfc/nagare/plugin/metadata"
 	"github.com/smtdfc/nagare/pkgs/helpers"
+	mt "github.com/smtdfc/nagare/plugin/metadata"
 )
 
 func (p *PluginClient) LoadMetadata(raw string) (*mt.PluginMetadata, error) {

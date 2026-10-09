@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"testing"
 )
 
@@ -52,7 +53,7 @@ func TestDefineToolAndExecution(t *testing.T) {
 
 	// Test execution with invalid json arguments
 	_, err = tool.Execute(&ctx, `{invalid_json`)
-	if err != ErrIncorrectToolArgs {
+	if !errors.Is(err, ErrIncorrectToolArgs) {
 		t.Fatalf("expected ErrIncorrectToolArgs on malformed json, got %v", err)
 	}
 }

@@ -3,6 +3,7 @@ package declarations
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -69,7 +70,9 @@ var WeatherTool = tool.DefineTool(
 		if err != nil {
 			return nil, err
 		}
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			_ = Body.Close()
+		}(resp.Body)
 
 		var weatherData OpenMeteoApiResponse
 		if err := json.NewDecoder(resp.Body).Decode(&weatherData); err != nil {

@@ -8,7 +8,7 @@ import (
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/llm/provider"
 	"github.com/smtdfc/nagare/core/logger"
-	message "github.com/smtdfc/nagare/core/message"
+	"github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/core/tool/manager"
 	"github.com/smtdfc/nagare/pkgs/helpers"
@@ -23,7 +23,7 @@ type Executor struct {
 	logger  *logger.BaseLogger
 }
 
-func (a *Executor) ExecuteTool(ctx *context.ExecuteContext, toolCall *tool.ToolCall) *tool.Result {
+func (a *Executor) ExecuteTool(ctx *context.ExecuteContext, toolCall *tool.Call) *tool.Result {
 	result := a.toolMgr.Call(ctx, toolCall)
 	if !result.IsSuccess {
 		a.logger.Error("Failed to execute tool", "tool", toolCall.Name, "error", result.Result)

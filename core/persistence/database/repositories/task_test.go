@@ -39,7 +39,7 @@ func TestTaskRepository_CRUD(t *testing.T) {
 	// GetUpcomingScheduledTasks
 	fromTime := now.Add(-time.Hour)
 	toTime := now.Add(time.Hour)
-	tasks, err := repo.GetUpcomingScheduledTasks(ctx, fromTime, toTime)
+	tasks, err := repo.GetUpcomingScheduledTasks(fromTime, toTime)
 	if err != nil {
 		t.Fatalf("unexpected error getting upcoming tasks: %v", err)
 	}

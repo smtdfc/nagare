@@ -9,6 +9,6 @@ const (
 	WeatherCategory           = "weather"
 	NetworkingCategory        = "networking"
 	TaskManagementCategory    = "task_management"
-	ToolRoutingCategory       = "tool_routing"
+	RoutingCategory           = "tool_routing"
 	TimingCategory            = "timing"
 )

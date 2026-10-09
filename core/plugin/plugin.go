@@ -9,8 +9,8 @@ import (
 type Feature string
 
 const (
-	ChatFeature       Feature = "chat"
-	PluginToolFeature Feature = "plugin_tool"
+	ChatFeature Feature = "chat"
+	ToolFeature Feature = "plugin_tool"
 )
 
 func (p Feature) ToString() string {
@@ -25,8 +25,8 @@ func ParseFeatureString(raw string) []Feature {
 		switch p {
 		case string(ChatFeature):
 			features = append(features, ChatFeature)
-		case string(PluginToolFeature):
-			features = append(features, PluginToolFeature)
+		case string(ToolFeature):
+			features = append(features, ToolFeature)
 		}
 	}
 
@@ -52,7 +52,7 @@ func (p *Plugin) ToFeaturesString() string {
 	return strings.Join(strs, ",")
 }
 
-type PluginStatus struct {
+type Status struct {
 	PID         string
 	PackageName string
 	Name        string

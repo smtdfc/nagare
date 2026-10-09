@@ -6,7 +6,7 @@ import (
 	context2 "github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/llm/provider"
 	"github.com/smtdfc/nagare/core/logger"
-	message "github.com/smtdfc/nagare/core/message"
+	"github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/tool/manager"
 	"github.com/smtdfc/nagare/pkgs/messages"
 )

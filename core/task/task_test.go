@@ -20,7 +20,7 @@ func TestTask_Construction(t *testing.T) {
 		IsActive:  true,
 		Prompt:    "Delete temporary files",
 		Status:    Pending,
-		TriggerRule: &TaskTriggerRule{
+		TriggerRule: &TriggerRule{
 			By:     Scheduled,
 			Repeat: Daily,
 		},

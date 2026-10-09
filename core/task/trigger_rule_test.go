@@ -10,7 +10,7 @@ func TestTaskTriggerRule_Construction(t *testing.T) {
 	now := time.Now()
 	later := now.Add(time.Hour)
 
-	rule := TaskTriggerRule{
+	rule := TriggerRule{
 		By:        Scheduled,
 		EventName: "on_boot",
 		StartTime: &now,

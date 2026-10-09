@@ -45,18 +45,18 @@ func (l *LLMProviderService) ListProviders(ctx context.Context) (*rest.GetListLL
 }
 
 func (l *LLMProviderService) GetProviderDetails(ctx context.Context, providerID string) (*rest.GetLLMProviderDetailsResponse, error) {
-	provider, err := l.llmProviderMgr.GetProviderByID(ctx, providerID)
+	llmProvider, err := l.llmProviderMgr.GetProviderByID(ctx, providerID)
 	if err != nil {
 		return nil, err
 	}
 
 	return &rest.GetLLMProviderDetailsResponse{
-		Provider: toLLMProviderDTO(provider),
+		Provider: toLLMProviderDTO(llmProvider),
 	}, nil
 }
 
 func (l *LLMProviderService) AddProvider(ctx context.Context, request *rest.AddLLMProviderRequest) (*rest.AddLLMProviderResponse, error) {
-	provider, err := l.llmProviderMgr.AddProvider(
+	llmProvider, err := l.llmProviderMgr.AddProvider(
 		ctx,
 		request.Name,
 		request.BaseURL,
@@ -71,7 +71,7 @@ func (l *LLMProviderService) AddProvider(ctx context.Context, request *rest.AddL
 	}
 
 	return &rest.AddLLMProviderResponse{
-		Provider: toLLMProviderDTO(provider),
+		Provider: toLLMProviderDTO(llmProvider),
 	}, nil
 }
 

@@ -2,6 +2,7 @@ package ipc
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"os"
 	"testing"
@@ -34,7 +35,7 @@ func TestTransportFraming(t *testing.T) {
 	// Test message exceeding MaxMessageSize
 	oversizedMsg := make([]byte, MaxMessageSize+1)
 	err = WriteMessage(&buf, oversizedMsg)
-	if err != ErrMessageTooLarge {
+	if !errors.Is(err, ErrMessageTooLarge) {
 		t.Fatalf("expected ErrMessageTooLarge, got %v", err)
 	}
 

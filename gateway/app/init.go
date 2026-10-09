@@ -21,7 +21,7 @@ type RunStats struct {
 
 // @Injectable
 // @Root
-func StartApp(app *App, coreSetup *setup.CoreSetup, _ *Routes, chatWorker *chat.ChatWorker, pluginMgr *manager.PluginManager) *RunStats {
+func StartApp(app *App, coreSetup *setup.CoreSetup, _ *Routes, chatWorker *chat.Worker, _ *manager.PluginManager) *RunStats {
 	err := coreSetup.Setup()
 	if err != nil {
 		return &RunStats{

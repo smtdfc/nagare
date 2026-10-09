@@ -24,7 +24,7 @@ func (t *TaskRepository) Create(ctx context.Context, task *entities.Task) (*enti
 	return task, nil
 }
 
-func (t *TaskRepository) GetUpcomingScheduledTasks(ctx context.Context, fromTime, toTime time.Time) ([]*entities.Task, error) {
+func (t *TaskRepository) GetUpcomingScheduledTasks(fromTime, toTime time.Time) ([]*entities.Task, error) {
 	var tasks []*entities.Task
 
 	err := t.db.Where(

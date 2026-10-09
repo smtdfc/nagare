@@ -34,5 +34,5 @@ var ExecuteTool = tool.DefineTool(
 			Result: result,
 		}, nil
 	},
-	[]string{tool.ToolRoutingCategory},
+	[]string{tool.RoutingCategory},
 )

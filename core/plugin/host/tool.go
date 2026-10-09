@@ -27,7 +27,7 @@ func (h *PluginHost) handleRegisterPluginTool(conn *PluginConnection, payload *w
 		return
 	}
 
-	if !slices.Contains(conn.scopes, core_plugin.PluginToolFeature.ToString()) {
+	if !slices.Contains(conn.scopes, core_plugin.ToolFeature.ToString()) {
 		_ = conn.Send(plugin.RegisterPluginToolFailedEvent, &plugin.RegisterPluginToolFailedEventPayload{
 			Cause: "Plugin not supported this feature",
 		}, payload.RequestID)
@@ -64,7 +64,7 @@ func (h *PluginHost) handleRegisterToolCategories(conn *PluginConnection, payloa
 		return
 	}
 
-	if !slices.Contains(conn.scopes, core_plugin.PluginToolFeature.ToString()) {
+	if !slices.Contains(conn.scopes, core_plugin.ToolFeature.ToString()) {
 		_ = conn.Send(plugin.RegisterToolCategoriesFailedEvent, &plugin.RegisterToolCategoriesFailedEventPayload{
 			Cause: "Plugin not supported this feature",
 		}, payload.RequestID)

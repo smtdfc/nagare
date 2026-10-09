@@ -14,7 +14,7 @@ import (
 	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
-func toSessionDTO(s *session.SessionInfo) *rest.Session {
+func toSessionDTO(s *session.Info) *rest.Session {
 	if s == nil {
 		return nil
 	}
@@ -35,14 +35,14 @@ func toSessionDTO(s *session.SessionInfo) *rest.Session {
 	}
 }
 
-type ChatService struct {
+type Service struct {
 	configMgr    *config_mgr.ConfigManager
 	chatEventBus *event_bus.CoreEventBus
 	sessionMgr   *manager.SessionManager
 	logger       *logger.BaseLogger
 }
 
-func (c *ChatService) SendMessage(ctx context.Context, ownerID string, request *rest.SendChatMessageRequest) (*rest.SendChatMessageResponse, error) {
+func (c *Service) SendMessage(ctx context.Context, ownerID string, request *rest.SendChatMessageRequest) (*rest.SendChatMessageResponse, error) {
 	invokeID := uuid.New().String()
 	_, err := c.sessionMgr.GetUserSession(ctx, request.SessionID, ownerID)
 	if err != nil {
@@ -65,7 +65,7 @@ func (c *ChatService) SendMessage(ctx context.Context, ownerID string, request *
 	}, nil
 }
 
-func (c *ChatService) CreateSession(ctx context.Context, ownerID string, request *rest.CreateChatSessionRequest) (*rest.CreateChatSessionResponse, error) {
+func (c *Service) CreateSession(ctx context.Context, ownerID string, request *rest.CreateChatSessionRequest) (*rest.CreateChatSessionResponse, error) {
 	chatSession, err := c.sessionMgr.CreateUserSession(ctx, request.Title, ownerID, request.CurrentLLMProvider, request.CurrentLLMModel)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (c *ChatService) CreateSession(ctx context.Context, ownerID string, request
 	}, nil
 }
 
-func (c *ChatService) ListSessions(ctx context.Context, ownerID string, offset int, limit int) (*rest.ListChatSessionsResponse, error) {
+func (c *Service) ListSessions(ctx context.Context, ownerID string, offset int, limit int) (*rest.ListChatSessionsResponse, error) {
 	if limit <= 0 || limit > 100 {
 		limit = 50
 	}
@@ -106,7 +106,7 @@ func (c *ChatService) ListSessions(ctx context.Context, ownerID string, offset i
 // 	}, nil
 // }
 
-func (c *ChatService) GetHistoryPage(ctx context.Context, ownerID string, sessionID string, beforeID string, limit int) (*rest.GetChatHistoryResponse, error) {
+func (c *Service) GetHistoryPage(ctx context.Context, ownerID string, sessionID string, beforeID string, limit int) (*rest.GetChatHistoryResponse, error) {
 	if limit <= 0 || limit > 100 {
 		limit = 50
 	}
@@ -122,7 +122,7 @@ func (c *ChatService) GetHistoryPage(ctx context.Context, ownerID string, sessio
 		NextCursor: sessionHistory.NextCursor,
 	}, nil
 }
-func (c *ChatService) GetSession(ctx context.Context, ownerID string, sessionID string) (*rest.GetChatSessionResponse, error) {
+func (c *Service) GetSession(ctx context.Context, ownerID string, sessionID string) (*rest.GetChatSessionResponse, error) {
 	s, err := c.sessionMgr.GetUserSession(ctx, sessionID, ownerID)
 	if err != nil {
 		return nil, err
@@ -133,7 +133,7 @@ func (c *ChatService) GetSession(ctx context.Context, ownerID string, sessionID 
 	}, nil
 }
 
-func (c *ChatService) UpdateLLMSettings(ctx context.Context, ownerID string, sessionID string, request *rest.UpdateChatSessionLLMSettingsRequest) (*rest.UpdateChatSessionLLMSettingsResponse, error) {
+func (c *Service) UpdateLLMSettings(ctx context.Context, ownerID string, sessionID string, request *rest.UpdateChatSessionLLMSettingsRequest) (*rest.UpdateChatSessionLLMSettingsResponse, error) {
 	chatSession, err := c.sessionMgr.UpdateUserSessionLLMSettings(
 		ctx,
 		sessionID,
@@ -150,11 +150,11 @@ func (c *ChatService) UpdateLLMSettings(ctx context.Context, ownerID string, ses
 	}, nil
 }
 
-func (c *ChatService) DeleteSession(ctx context.Context, ownerID string, sessionID string) error {
+func (c *Service) DeleteSession(ctx context.Context, ownerID string, sessionID string) error {
 	return c.sessionMgr.DeleteUserSession(ctx, sessionID, ownerID)
 }
 
-func (c *ChatService) ArchiveSession(ctx context.Context, ownerID string, sessionID string, request *rest.ArchiveChatSessionRequest) (*rest.ArchiveChatSessionResponse, error) {
+func (c *Service) ArchiveSession(ctx context.Context, ownerID string, sessionID string, request *rest.ArchiveChatSessionRequest) (*rest.ArchiveChatSessionResponse, error) {
 	chatSession, err := c.sessionMgr.ArchiveUserSession(ctx, sessionID, ownerID, request.IsArchive)
 	if err != nil {
 		return nil, err
@@ -165,7 +165,7 @@ func (c *ChatService) ArchiveSession(ctx context.Context, ownerID string, sessio
 	}, nil
 }
 
-func (c *ChatService) DuplicateSession(ctx context.Context, ownerID string, sessionID string) (*rest.DuplicateChatSessionResponse, error) {
+func (c *Service) DuplicateSession(ctx context.Context, ownerID string, sessionID string) (*rest.DuplicateChatSessionResponse, error) {
 	chatSession, err := c.sessionMgr.DuplicateUserSession(ctx, sessionID, ownerID)
 	if err != nil {
 		return nil, err
@@ -177,8 +177,8 @@ func (c *ChatService) DuplicateSession(ctx context.Context, ownerID string, sess
 }
 
 // @Injectable
-func NewService(sessionMgr *manager.SessionManager, configMgr *config_mgr.ConfigManager, chatEventBus *event_bus.CoreEventBus, logger *logger.BaseLogger) *ChatService {
-	return &ChatService{
+func NewService(sessionMgr *manager.SessionManager, configMgr *config_mgr.ConfigManager, chatEventBus *event_bus.CoreEventBus, logger *logger.BaseLogger) *Service {
+	return &Service{
 		configMgr:    configMgr,
 		chatEventBus: chatEventBus,
 		sessionMgr:   sessionMgr,

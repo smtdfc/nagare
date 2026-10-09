@@ -10,7 +10,6 @@ import (
 	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
-var UserHomeDir = ""
 var DataDir = ""
 var ConfigFile = ""
 var GatewayPIDFile = ""

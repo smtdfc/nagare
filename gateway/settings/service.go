@@ -10,12 +10,12 @@ import (
 	"github.com/smtdfc/nagare/gateway/common/custom_errors"
 )
 
-type SettingsService struct {
+type Service struct {
 	configMgr *manager.ConfigManager
 	logger    *slog.Logger
 }
 
-func (s *SettingsService) SetGeneralSettings(ctx context.Context, request *rest.SetGeneralSettingsRequest) error {
+func (s *Service) SetGeneralSettings(ctx context.Context, request *rest.SetGeneralSettingsRequest) error {
 	if request.GeneralSettings == nil {
 		return custom_errors.ErrInvalidBody
 	}
@@ -33,7 +33,7 @@ func (s *SettingsService) SetGeneralSettings(ctx context.Context, request *rest.
 	return nil
 }
 
-func (s *SettingsService) GetGeneralSettings(ctx context.Context) (*rest.GetGeneralSettingsResponse, error) {
+func (s *Service) GetGeneralSettings(ctx context.Context) (*rest.GetGeneralSettingsResponse, error) {
 
 	generalConfig, err := s.configMgr.GetGeneralConfig(ctx)
 	if err != nil {
@@ -49,8 +49,8 @@ func (s *SettingsService) GetGeneralSettings(ctx context.Context) (*rest.GetGene
 }
 
 // @Injectable
-func NewSettingsService(configMgr *manager.ConfigManager) *SettingsService {
-	return &SettingsService{
+func NewSettingsService(configMgr *manager.ConfigManager) *Service {
+	return &Service{
 		configMgr: configMgr,
 	}
 }

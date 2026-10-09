@@ -12,7 +12,7 @@ type FindToolByCategoriesInput struct {
 }
 
 type FindToolByCategoriesOutput struct {
-	Tools []tool.ToolMetadata `json:"tools"`
+	Tools []tool.Metadata `json:"tools"`
 }
 
 var FindToolByCategories = tool.DefineTool(
@@ -30,5 +30,5 @@ var FindToolByCategories = tool.DefineTool(
 			Tools: foundTools,
 		}, nil
 	},
-	[]string{tool.ToolRoutingCategory},
+	[]string{tool.RoutingCategory},
 )

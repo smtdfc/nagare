@@ -16,7 +16,7 @@ type Credential struct {
 	UpdatedAt int64 `gorm:"autoUpdateTime"`
 }
 
-func (p *Credential) BeforeCreate(tx *gorm.DB) (err error) {
+func (p *Credential) BeforeCreate(*gorm.DB) (err error) {
 	if p.ID == uuid.Nil {
 		p.ID = uuid.New()
 	}

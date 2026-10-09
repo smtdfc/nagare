@@ -6,11 +6,11 @@ import (
 	"github.com/smtdfc/nagare/gateway/utils"
 )
 
-type CredentialController struct {
-	credentialService *CredentialService
+type Controller struct {
+	credentialService *Service
 }
 
-func (c *CredentialController) List(ctx fiber.Ctx) error {
+func (c *Controller) List(ctx fiber.Ctx) error {
 	data, err := c.credentialService.ListCredentials(ctx)
 	if err != nil {
 		return err
@@ -19,7 +19,7 @@ func (c *CredentialController) List(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (c *CredentialController) Details(ctx fiber.Ctx) error {
+func (c *Controller) Details(ctx fiber.Ctx) error {
 	data, err := c.credentialService.GetCredentialDetails(ctx, ctx.Query("credential"))
 	if err != nil {
 		return err
@@ -28,7 +28,7 @@ func (c *CredentialController) Details(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (c *CredentialController) Add(ctx fiber.Ctx) error {
+func (c *Controller) Add(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.AddCredentialRequest](ctx)
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func (c *CredentialController) Add(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (c *CredentialController) Update(ctx fiber.Ctx) error {
+func (c *Controller) Update(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.UpdateCredentialRequest](ctx)
 	if err != nil {
 		return err
@@ -56,7 +56,7 @@ func (c *CredentialController) Update(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (c *CredentialController) Delete(ctx fiber.Ctx) error {
+func (c *Controller) Delete(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.DeleteCredentialRequest](ctx)
 	if err != nil {
 		return err
@@ -70,8 +70,8 @@ func (c *CredentialController) Delete(ctx fiber.Ctx) error {
 }
 
 // @Injectable
-func NewCredentialController(credentialService *CredentialService) *CredentialController {
-	return &CredentialController{
+func NewCredentialController(credentialService *Service) *Controller {
+	return &Controller{
 		credentialService: credentialService,
 	}
 }

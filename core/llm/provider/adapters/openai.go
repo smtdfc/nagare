@@ -11,7 +11,7 @@ import (
 	"github.com/openai/openai-go/v3/responses"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
-	message "github.com/smtdfc/nagare/core/message"
+	"github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/pkgs/helpers"
 	"github.com/smtdfc/nagare/pkgs/messages"

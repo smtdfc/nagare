@@ -12,7 +12,7 @@ import (
 type AuthMiddleware fiber.Handler
 
 func AuthMiddlewareProvider(
-	appConfig *config.Config,
+	_ *config.Config,
 	authGuard *guards.AuthGuard,
 ) fiber.Handler {
 	return func(ctx fiber.Ctx) error {

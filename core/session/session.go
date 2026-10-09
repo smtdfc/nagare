@@ -31,7 +31,7 @@ func GetOwnerType(raw string) OwnerType {
 	}
 }
 
-type SessionInfo struct {
+type Info struct {
 	ID        uuid.UUID
 	Title     string
 	OwnerID   string

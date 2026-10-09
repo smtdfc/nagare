@@ -19,10 +19,10 @@ func (a *State) GetFullMessage() messages.ListMessage {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	messages := make(messages.ListMessage, 0, len(a.CurrentMessage)+len(a.PendingMessage))
-	messages = append(messages, a.CurrentMessage...)
-	messages = append(messages, a.PendingMessage...)
-	return messages
+	list := make(messages.ListMessage, 0, len(a.CurrentMessage)+len(a.PendingMessage))
+	list = append(list, a.CurrentMessage...)
+	list = append(list, a.PendingMessage...)
+	return list
 }
 
 func (a *State) SetMessages(messages messages.ListMessage) {
@@ -57,7 +57,7 @@ func (a *State) Reset() {
 	a.LoopCounter = 0
 }
 
-func (a *State) AddToolCall(toolCall *tool.ToolCall) {
+func (a *State) AddToolCall(toolCall *tool.Call) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 

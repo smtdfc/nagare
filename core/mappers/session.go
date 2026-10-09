@@ -18,7 +18,7 @@ func NewSessionMapper(llmProviderMapper *LLMProviderMapper) *SessionMapper {
 	}
 }
 
-func (s *SessionMapper) ToDomain(entity *entities.Session) *session.SessionInfo {
+func (s *SessionMapper) ToDomain(entity *entities.Session) *session.Info {
 	if entity == nil {
 		return nil
 	}
@@ -27,7 +27,7 @@ func (s *SessionMapper) ToDomain(entity *entities.Session) *session.SessionInfo 
 		providerInfo = s.llmProviderMapper.ToProviderInfo(entity.LLMProvider)
 	}
 
-	return &session.SessionInfo{
+	return &session.Info{
 		ID:              entity.ID,
 		Title:           entity.Title,
 		OwnerID:         entity.OwnerID,
@@ -40,7 +40,7 @@ func (s *SessionMapper) ToDomain(entity *entities.Session) *session.SessionInfo 
 	}
 }
 
-func (s *SessionMapper) ToEntity(domain *session.SessionInfo) *entities.Session {
+func (s *SessionMapper) ToEntity(domain *session.Info) *entities.Session {
 	return &entities.Session{
 		ID:            domain.ID,
 		Title:         domain.Title,
@@ -53,6 +53,6 @@ func (s *SessionMapper) ToEntity(domain *session.SessionInfo) *entities.Session 
 	}
 }
 
-func (s *SessionMapper) ToDomains(entities []*entities.Session) []*session.SessionInfo {
+func (s *SessionMapper) ToDomains(entities []*entities.Session) []*session.Info {
 	return helpers.SliceMap(entities, s.ToDomain)
 }

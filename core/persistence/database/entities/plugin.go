@@ -24,7 +24,7 @@ type Plugin struct {
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
 
-func (p *Plugin) BeforeCreate(tx *gorm.DB) (err error) {
+func (p *Plugin) BeforeCreate(*gorm.DB) (err error) {
 	if p.ID == uuid.Nil {
 		p.ID = uuid.New()
 	}

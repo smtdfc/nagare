@@ -21,7 +21,7 @@ func TestMapStringToTaskStatus(t *testing.T) {
 	// Verify string to TaskStatus mapping
 	tests := []struct {
 		input    string
-		expected TaskStatus
+		expected Status
 	}{
 		{"pending", Pending},
 		{"running", Running},

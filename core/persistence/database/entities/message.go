@@ -21,7 +21,7 @@ type Message struct {
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
 
-func (p *Message) BeforeCreate(tx *gorm.DB) (err error) {
+func (p *Message) BeforeCreate(*gorm.DB) (err error) {
 	if p.ID == uuid.Nil {
 		p.ID = uuid.New()
 	}

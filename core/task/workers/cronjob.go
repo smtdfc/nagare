@@ -43,7 +43,7 @@ func (c *CronJobWorker) Do() {
 }
 
 func (c *CronJobWorker) FetchAndScheduleTasks(ctx context.Context) error {
-	upcoming, err := c.taskMgr.GetUpcomingTasks(ctx)
+	upcoming, err := c.taskMgr.GetUpcomingTasks()
 	if err != nil {
 		c.logger.Error("Failed to get upcoming task", "err", err)
 		return err

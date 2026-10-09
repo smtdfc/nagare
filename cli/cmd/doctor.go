@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -118,7 +119,9 @@ func checkGatewayHTTP() checkResult {
 		r.detail = fmt.Sprintf("cannot reach %s — %v", url, err)
 		return r
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
 
 	// Any response (incl. 426 Upgrade Required) means the gateway is serving.
 	r.ok = true
@@ -144,7 +147,10 @@ func checkPluginSocket() checkResult {
 		r.detail = fmt.Sprintf("socket exists but not connectable: %v", err)
 		return r
 	}
-	conn.Close()
+	err = conn.Close()
+	if err != nil {
+		return checkResult{}
+	}
 
 	r.ok = true
 	r.detail = socketPath
@@ -163,7 +169,9 @@ func checkDatabase() checkResult {
 		r.detail = fmt.Sprintf("cannot open database: %v", err)
 		return r
 	}
-	defer f.Close()
+	defer func(f *os.File) {
+		_ = f.Close()
+	}(f)
 
 	header := make([]byte, 16)
 	if _, err := f.Read(header); err != nil {

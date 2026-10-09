@@ -12,12 +12,12 @@ import (
 	"github.com/smtdfc/nagare/pkgs/paths"
 )
 
-type PluginController struct {
+type Controller struct {
 	logger        *logger.BaseLogger
-	pluginService *PluginService
+	pluginService *Service
 }
 
-func (p *PluginController) List(ctx fiber.Ctx) error {
+func (p *Controller) List(ctx fiber.Ctx) error {
 	data, err := p.pluginService.ListPlugins(ctx)
 	if err != nil {
 		return err
@@ -26,7 +26,7 @@ func (p *PluginController) List(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (p *PluginController) InstallLocal(ctx fiber.Ctx) error {
+func (p *Controller) InstallLocal(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.InstallLocalPluginRequest](ctx)
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (p *PluginController) InstallLocal(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (p *PluginController) Uninstall(ctx fiber.Ctx) error {
+func (p *Controller) Uninstall(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.UninstallPluginRequest](ctx)
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func (p *PluginController) Uninstall(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, struct{}{}, 200)
 }
 
-func (p *PluginController) Activate(ctx fiber.Ctx) error {
+func (p *Controller) Activate(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.ActivatePluginRequest](ctx)
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func (p *PluginController) Activate(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, struct{}{}, 200)
 }
 
-func (p *PluginController) Deactivate(ctx fiber.Ctx) error {
+func (p *Controller) Deactivate(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.DeactivatePluginRequest](ctx)
 	if err != nil {
 		return err
@@ -82,7 +82,7 @@ func (p *PluginController) Deactivate(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, struct{}{}, 200)
 }
 
-func (p *PluginController) Status(ctx fiber.Ctx) error {
+func (p *Controller) Status(ctx fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.GetPluginStatusRequest](ctx)
 	if err != nil {
 		return err
@@ -96,7 +96,7 @@ func (p *PluginController) Status(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (p *PluginController) Upload(c fiber.Ctx) error {
+func (p *Controller) Upload(c fiber.Ctx) error {
 	file, err := c.FormFile("file")
 	if err != nil {
 		p.logger.Error("Failed to get file from form file", "err", err)
@@ -128,7 +128,7 @@ func (p *PluginController) Upload(c fiber.Ctx) error {
 	return utils.ResponseSuccess(c, data, 200)
 }
 
-func (p *PluginController) InstallFromAttachment(c fiber.Ctx) error {
+func (p *Controller) InstallFromAttachment(c fiber.Ctx) error {
 	request, err := utils.ParseBody[*rest.InstallPluginFromAttachmentRequest](c)
 	if err != nil {
 		return err
@@ -143,8 +143,8 @@ func (p *PluginController) InstallFromAttachment(c fiber.Ctx) error {
 }
 
 // @Injectable
-func NewPluginController(pluginService *PluginService, logger *logger.BaseLogger) *PluginController {
-	return &PluginController{
+func NewPluginController(pluginService *Service, logger *logger.BaseLogger) *Controller {
+	return &Controller{
 		pluginService: pluginService,
 		logger:        logger.With("module", "plugin-controller"),
 	}

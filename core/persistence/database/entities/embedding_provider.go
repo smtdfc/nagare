@@ -22,7 +22,7 @@ type EmbeddingProvider struct {
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
 
-func (p *EmbeddingProvider) BeforeCreate(tx *gorm.DB) (err error) {
+func (p *EmbeddingProvider) BeforeCreate(*gorm.DB) (err error) {
 	if p.ID == uuid.Nil {
 		p.ID = uuid.New()
 	}

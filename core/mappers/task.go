@@ -17,7 +17,7 @@ func (t *TaskMapper) ToDomain(entity *entities.Task) *task.Task {
 		Prompt:    entity.Prompt,
 		SessionID: entity.SessionID,
 		Status:    task.MapStringToTaskStatus(entity.Status),
-		TriggerRule: &task.TaskTriggerRule{
+		TriggerRule: &task.TriggerRule{
 			By:        task.MapTaskTriggerSourceToTaskSource(entity.TriggerBy),
 			StartTime: entity.StartTime,
 			EndTime:   entity.EndTime,

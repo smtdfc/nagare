@@ -31,7 +31,7 @@ type Task struct {
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
 
-func (p *Task) BeforeCreate(tx *gorm.DB) (err error) {
+func (p *Task) BeforeCreate(*gorm.DB) (err error) {
 	if p.ID == uuid.Nil {
 		p.ID = uuid.New()
 	}

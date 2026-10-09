@@ -28,12 +28,12 @@ func toPluginDTO(domain *plugin.Plugin) *rest.Plugin {
 	}
 }
 
-type PluginService struct {
+type Service struct {
 	pluginMgr *manager.PluginManager
-	uploadMgr *upload.UploadManager
+	uploadMgr *upload.Manager
 }
 
-func (p *PluginService) ListPlugins(ctx context.Context) (*rest.GetListPluginResponse, error) {
+func (p *Service) ListPlugins(ctx context.Context) (*rest.GetListPluginResponse, error) {
 	plugins, err := p.pluginMgr.GetListPlugin(ctx)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (p *PluginService) ListPlugins(ctx context.Context) (*rest.GetListPluginRes
 	}, nil
 }
 
-func (p *PluginService) UploadPlugin(ctx context.Context, savePath string) (*rest.UploadPluginResponse, error) {
+func (p *Service) UploadPlugin(_ context.Context, savePath string) (*rest.UploadPluginResponse, error) {
 	id, err := p.uploadMgr.AddAttachment(savePath)
 	if err != nil {
 		return nil, err
@@ -53,28 +53,28 @@ func (p *PluginService) UploadPlugin(ctx context.Context, savePath string) (*res
 	return &rest.UploadPluginResponse{AttachmentID: id}, nil
 }
 
-func (p *PluginService) InstallLocalPlugin(ctx context.Context, request *rest.InstallLocalPluginRequest) (*rest.InstallLocalPluginResponse, error) {
-	plugin, err := p.pluginMgr.Install(ctx, request.Path)
+func (p *Service) InstallLocalPlugin(ctx context.Context, request *rest.InstallLocalPluginRequest) (*rest.InstallLocalPluginResponse, error) {
+	plg, err := p.pluginMgr.Install(ctx, request.Path)
 	if err != nil {
 		return nil, err
 	}
 
-	return &rest.InstallLocalPluginResponse{Plugin: toPluginDTO(plugin)}, nil
+	return &rest.InstallLocalPluginResponse{Plugin: toPluginDTO(plg)}, nil
 }
 
-func (p *PluginService) UninstallPlugin(ctx context.Context, request *rest.UninstallPluginRequest) error {
+func (p *Service) UninstallPlugin(ctx context.Context, request *rest.UninstallPluginRequest) error {
 	return p.pluginMgr.Uninstall(ctx, request.ID)
 }
 
-func (p *PluginService) ActivatePlugin(ctx context.Context, request *rest.ActivatePluginRequest) error {
+func (p *Service) ActivatePlugin(ctx context.Context, request *rest.ActivatePluginRequest) error {
 	return p.pluginMgr.Activate(ctx, request.ID)
 }
 
-func (p *PluginService) DeactivatePlugin(ctx context.Context, request *rest.DeactivatePluginRequest) error {
+func (p *Service) DeactivatePlugin(ctx context.Context, request *rest.DeactivatePluginRequest) error {
 	return p.pluginMgr.Deactivate(ctx, request.ID)
 }
 
-func (p *PluginService) GetPluginStatus(ctx context.Context, request *rest.GetPluginStatusRequest) (*rest.GetPluginStatusResponse, error) {
+func (p *Service) GetPluginStatus(ctx context.Context, request *rest.GetPluginStatusRequest) (*rest.GetPluginStatusResponse, error) {
 	status, err := p.pluginMgr.GetPluginStatus(ctx, request.ID)
 	if err != nil {
 		return nil, err
@@ -92,28 +92,28 @@ func (p *PluginService) GetPluginStatus(ctx context.Context, request *rest.GetPl
 	}, nil
 }
 
-func (p *PluginService) InstallPluginFromAttachment(ctx context.Context, request *rest.InstallPluginFromAttachmentRequest) (*rest.InstallPluginFromAttachmentResponse, error) {
+func (p *Service) InstallPluginFromAttachment(ctx context.Context, request *rest.InstallPluginFromAttachmentRequest) (*rest.InstallPluginFromAttachmentResponse, error) {
 	attachmentPath, exists := p.uploadMgr.GetAttachmentPath(request.AttachmentID)
 	if !exists {
 		return nil, custom_errors.ErrPluginNotFound
 	}
 
-	plugin, err := p.pluginMgr.Install(ctx, attachmentPath)
+	plg, err := p.pluginMgr.Install(ctx, attachmentPath)
 	if err != nil {
 		return nil, err
 	}
 
 	return &rest.InstallPluginFromAttachmentResponse{
-		Plugin: toPluginDTO(plugin),
+		Plugin: toPluginDTO(plg),
 	}, nil
 }
 
 // @Injectable
 func NewPluginService(
 	pluginMgr *manager.PluginManager,
-	uploadMgr *upload.UploadManager,
-) *PluginService {
-	return &PluginService{
+	uploadMgr *upload.Manager,
+) *Service {
+	return &Service{
 		pluginMgr: pluginMgr,
 		uploadMgr: uploadMgr,
 	}

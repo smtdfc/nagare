@@ -13,20 +13,20 @@ type mockTaskBindings struct {
 	refreshed bool
 }
 
-func (m *mockTaskBindings) RefreshTask(ctx *core_context.ExecuteContext) {
+func (m *mockTaskBindings) RefreshTask(*core_context.ExecuteContext) {
 	m.refreshed = true
 }
 
-func (m *mockTaskBindings) CreateTask(ctx *core_context.ExecuteContext, sessionID string, name string, prompt string, triggerBy string, repeat bool, repeatRule string, startTime string, endTime string) (string, error) {
+func (m *mockTaskBindings) CreateTask(*core_context.ExecuteContext, string, string, string, string, bool, string, string, string) (string, error) {
 	m.createdID = "task-mock-123"
 	return m.createdID, nil
 }
 
-func (m *mockTaskBindings) FindToolsByCategories(ctx *core_context.ExecuteContext, categories []string) ([]tool.ToolMetadata, error) {
+func (m *mockTaskBindings) FindToolsByCategories(*core_context.ExecuteContext, []string) ([]tool.Metadata, error) {
 	return nil, nil
 }
 
-func (m *mockTaskBindings) CallTool(ctx *core_context.ExecuteContext, toolName string, args string) *tool.Result {
+func (m *mockTaskBindings) CallTool(*core_context.ExecuteContext, string, string) *tool.Result {
 	return nil
 }
 

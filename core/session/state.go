@@ -5,7 +5,7 @@ import (
 	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
-type SessionState struct {
+type State struct {
 	SessionID          uuid.UUID
 	CurrentModel       string
 	CurrentLLMProvider uuid.UUID

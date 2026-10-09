@@ -8,11 +8,11 @@ import (
 	"github.com/smtdfc/nagare/gateway/utils"
 )
 
-type AuthController struct {
+type Controller struct {
 	logger *logger.BaseLogger
 }
 
-func (a *AuthController) Check(ctx fiber.Ctx) error {
+func (a *Controller) Check(ctx fiber.Ctx) error {
 	user := ctx.Locals("user")
 	if user == nil {
 		return custom_errors.ErrUnauthorized
@@ -22,8 +22,8 @@ func (a *AuthController) Check(ctx fiber.Ctx) error {
 }
 
 // @Injectable
-func NewAuthController(logger *logger.BaseLogger) *AuthController {
-	return &AuthController{
+func NewAuthController(logger *logger.BaseLogger) *Controller {
+	return &Controller{
 		logger: logger.With("module", "auth-controller"),
 	}
 }

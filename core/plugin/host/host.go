@@ -1,7 +1,6 @@
 package host
 
 import (
-	"context"
 	"encoding/json"
 	"net"
 	"sync"
@@ -39,7 +38,7 @@ func (h *PluginHost) GetSocketPath() string {
 	return h.socketPath
 }
 
-func (h *PluginHost) Start(ctx context.Context) error {
+func (h *PluginHost) Start() error {
 	path := h.socketPath
 	if path == "" {
 		path = ipc.GetDefaultSocketPath()
@@ -63,7 +62,7 @@ func (h *PluginHost) Start(ctx context.Context) error {
 	return nil
 }
 
-func (h *PluginHost) Stop(ctx context.Context) error {
+func (h *PluginHost) Stop() error {
 	if h.stopChan != nil {
 		select {
 		case <-h.stopChan:

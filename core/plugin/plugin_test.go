@@ -11,8 +11,8 @@ func TestFeature_ToString(t *testing.T) {
 	if ChatFeature.ToString() != "chat" {
 		t.Errorf("expected 'chat', got '%s'", ChatFeature.ToString())
 	}
-	if PluginToolFeature.ToString() != "plugin_tool" {
-		t.Errorf("expected 'plugin_tool', got '%s'", PluginToolFeature.ToString())
+	if ToolFeature.ToString() != "plugin_tool" {
+		t.Errorf("expected 'plugin_tool', got '%s'", ToolFeature.ToString())
 	}
 }
 
@@ -22,10 +22,10 @@ func TestParseFeatureString(t *testing.T) {
 		input    string
 		expected []Feature
 	}{
-		{"chat,plugin_tool", []Feature{ChatFeature, PluginToolFeature}},
+		{"chat,plugin_tool", []Feature{ChatFeature, ToolFeature}},
 		{"chat", []Feature{ChatFeature}},
-		{"plugin_tool", []Feature{PluginToolFeature}},
-		{" chat , plugin_tool ", []Feature{ChatFeature, PluginToolFeature}},
+		{"plugin_tool", []Feature{ToolFeature}},
+		{" chat , plugin_tool ", []Feature{ChatFeature, ToolFeature}},
 		{"unknown,chat", []Feature{ChatFeature}},
 		{"", nil},
 	}
@@ -53,7 +53,7 @@ func TestPlugin_ToFeaturesString(t *testing.T) {
 		PackageName: "com.example.telegram",
 		Name:        "Telegram",
 		Author:      "Author",
-		Features:    []Feature{ChatFeature, PluginToolFeature},
+		Features:    []Feature{ChatFeature, ToolFeature},
 		Version:     "1.0.0",
 		Bin:         "telegram.bin",
 		IsActive:    true,
@@ -67,7 +67,7 @@ func TestPlugin_ToFeaturesString(t *testing.T) {
 
 func TestPluginStatus(t *testing.T) {
 	// Verify PluginStatus struct fields
-	status := PluginStatus{
+	status := Status{
 		PID:         "12345",
 		PackageName: "com.example.test",
 		Name:        "Test",

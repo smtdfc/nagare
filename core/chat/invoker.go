@@ -11,7 +11,7 @@ import (
 	"github.com/smtdfc/nagare/core/event_bus"
 	llm_provider_mgr "github.com/smtdfc/nagare/core/llm/manager"
 	"github.com/smtdfc/nagare/core/logger"
-	message "github.com/smtdfc/nagare/core/message"
+	"github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/prompt"
 	"github.com/smtdfc/nagare/core/session"
 	session_mgr "github.com/smtdfc/nagare/core/session/manager"
@@ -54,7 +54,7 @@ func (a *AgentInvoker) Invoke(params *AgentInvokeParams) (message.ReadOnlyChanne
 	channelID := ""
 	sessionOwnerType := ""
 	sessionOwnerID := ""
-	var sessionState *session.SessionState
+	var sessionState *session.State
 	invokeID := params.InvokeID
 	if invokeID == "" {
 		invokeID = uuid.New().String()

@@ -11,11 +11,11 @@ import (
 
 type mockAdapter struct{}
 
-func (m *mockAdapter) GetModels(ctx context.Context) ([]string, error) {
+func (m *mockAdapter) GetModels(context.Context) ([]string, error) {
 	return []string{"mock-model-1"}, nil
 }
 
-func (m *mockAdapter) Send(ctx context.Context, model string, inputs messages.ListMessage, tools tool.ListTool) (message.ReadOnlyChannel, error) {
+func (m *mockAdapter) Send(context.Context, string, messages.ListMessage, tool.ListTool) (message.ReadOnlyChannel, error) {
 	ch := make(chan messages.Message)
 	close(ch)
 	return ch, nil

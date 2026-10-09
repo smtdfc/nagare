@@ -6,14 +6,14 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/smtdfc/nagare/plugin/metadata"
 	"github.com/smtdfc/nagare/pkgs/helpers"
+	"github.com/smtdfc/nagare/plugin/metadata"
 )
 
 func loadMetadata(metadataFile string) (*metadata.PluginMetadata, error) {
 	_, err := os.Stat(metadataFile)
 	if errors.Is(err, os.ErrNotExist) {
-		return nil, errors.New("Metadata file not exist")
+		return nil, errors.New("metadata file not exist")
 	}
 
 	metadataContent, err := os.ReadFile(metadataFile)

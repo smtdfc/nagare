@@ -21,7 +21,7 @@ func OpenBrowser(url string) error {
 		cmd = "xdg-open"
 		args = []string{url}
 	default:
-		return fmt.Errorf("Not support OS: %s", runtime.GOOS)
+		return fmt.Errorf("not support OS: %s", runtime.GOOS)
 	}
 
 	return exec.Command(cmd, args...).Start()

@@ -1,18 +1,18 @@
 package task
 
-type TaskStatus string
+type Status string
 
 const (
-	Pending TaskStatus = "pending"
-	Running TaskStatus = "running"
-	Queued  TaskStatus = "queued"
+	Pending Status = "pending"
+	Running Status = "running"
+	Queued  Status = "queued"
 )
 
-func (t TaskStatus) ToString() string {
+func (t Status) ToString() string {
 	return string(t)
 }
 
-func MapStringToTaskStatus(s string) TaskStatus {
+func MapStringToTaskStatus(s string) Status {
 	switch s {
 	case "pending":
 		return Pending

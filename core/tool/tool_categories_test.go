@@ -19,7 +19,7 @@ func TestToolCategoryConstants(t *testing.T) {
 		{"Weather", WeatherCategory, "weather"},
 		{"Networking", NetworkingCategory, "networking"},
 		{"TaskManagement", TaskManagementCategory, "task_management"},
-		{"ToolRouting", ToolRoutingCategory, "tool_routing"},
+		{"ToolRouting", RoutingCategory, "tool_routing"},
 		{"Timing", TimingCategory, "timing"},
 	}
 

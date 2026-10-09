@@ -13,7 +13,7 @@ type DynamicTool struct {
 	Plugin      *plugin.Plugin
 }
 
-type ToolMetadata struct {
+type Metadata struct {
 	Name         string `json:"name"`
 	Description  string `json:"description"`
 	Args         string `json:"args"`

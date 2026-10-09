@@ -38,7 +38,7 @@ func (c *Connector) Connect(ctx context.Context, path string) error {
 
 func (c *Connector) listenLoop() {
 	defer func() {
-		c.Close()
+		_ = c.Close()
 		c.doneOnce.Do(func() { close(c.done) })
 	}()
 

@@ -9,6 +9,7 @@ import (
 	"github.com/smtdfc/nagare/core/memory"
 	"github.com/smtdfc/nagare/core/plugin/host"
 	"github.com/smtdfc/nagare/core/plugin/manager"
+	"github.com/smtdfc/nagare/core/setup/hooks"
 	task_manager "github.com/smtdfc/nagare/core/task/manager"
 	task_workers "github.com/smtdfc/nagare/core/task/workers"
 	"github.com/smtdfc/nagare/pkgs/paths"
@@ -18,7 +19,7 @@ type CoreSetup struct {
 	agentPool         *agent.Pool
 	pluginMgr         *manager.PluginManager
 	pluginHost        *host.PluginHost
-	chatWorker        *chat.ChatWorker
+	chatWorker        *chat.Worker
 	taskCronJobWorker *task_workers.CronJobWorker
 	taskMgr           *task_manager.TaskManager
 	vectorMemory      *memory.VectorMemory
@@ -35,7 +36,7 @@ func (c *CoreSetup) Setup() error {
 	c.taskCronJobWorker.Do()
 
 	c.logger.Info("Starting plugin host")
-	err := c.pluginHost.Start(ctx)
+	err := c.pluginHost.Start()
 	if err != nil {
 		return err
 	}
@@ -60,6 +61,14 @@ func (c *CoreSetup) Setup() error {
 	}
 	c.logger.Info("Vector index loaded successfully")
 
+	c.logger.Info("Running hooks")
+	for _, fn := range hooks.GetOnStartHooks() {
+		err = fn(ctx)
+		if err != nil {
+			c.logger.Warn("Failed to run hook", "err", err)
+		}
+	}
+
 	return nil
 }
 
@@ -80,7 +89,7 @@ func (c *CoreSetup) Teardown(ctx context.Context) error {
 	c.logger.Info("all plugins stopped")
 
 	c.logger.Info("stopping plugin host")
-	err = c.pluginHost.Stop(ctx)
+	err = c.pluginHost.Stop()
 	if err != nil {
 		c.logger.Error("failed to stop plugin host", "err", err)
 	}
@@ -93,6 +102,13 @@ func (c *CoreSetup) Teardown(ctx context.Context) error {
 		return err
 	}
 	c.logger.Info("vector index synced successfully")
+	c.logger.Info("Running hooks")
+	for _, fn := range hooks.GetOnStopHooks() {
+		err = fn(ctx)
+		if err != nil {
+			c.logger.Warn("Failed to run hook", "err", err)
+		}
+	}
 
 	return nil
 }
@@ -102,7 +118,7 @@ func NewCoreSetup(
 	agentPool *agent.Pool,
 	pluginMgr *manager.PluginManager,
 	pluginHost *host.PluginHost,
-	chatWorker *chat.ChatWorker,
+	chatWorker *chat.Worker,
 	taskCronJobWorker *task_workers.CronJobWorker,
 	taskMgr *task_manager.TaskManager,
 	vectorMemory *memory.VectorMemory,

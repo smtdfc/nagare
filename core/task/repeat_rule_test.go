@@ -21,7 +21,7 @@ func TestMapTaskRepeatRuleToTaskRepeatRule(t *testing.T) {
 	// Verify mapping of string to repeat rule
 	tests := []struct {
 		input    string
-		expected TaskRepeatRule
+		expected RepeatRule
 	}{
 		{"no_repeat", NoRepeat},
 		{"daily", Daily},

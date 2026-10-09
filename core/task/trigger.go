@@ -1,17 +1,17 @@
 package task
 
-type TaskTriggerSource string
+type TriggerSource string
 
 const (
-	Scheduled TaskTriggerSource = "scheduled"
-	Event     TaskTriggerSource = "event"
+	Scheduled TriggerSource = "scheduled"
+	Event     TriggerSource = "event"
 )
 
-func (t TaskTriggerSource) ToString() string {
+func (t TriggerSource) ToString() string {
 	return string(t)
 }
 
-func MapTaskTriggerSourceToTaskSource(s string) TaskTriggerSource {
+func MapTaskTriggerSourceToTaskSource(s string) TriggerSource {
 	switch s {
 	case "scheduled":
 		return Scheduled

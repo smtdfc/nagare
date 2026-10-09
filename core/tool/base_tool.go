@@ -48,7 +48,7 @@ func (b *BaseTool[I, O]) Execute(ctx *context.ExecuteContext, argRaw string) (st
 		return "{}", custom_errors.ErrMarshalToolResultFailed
 	}
 
-	return string(resultJson), nil
+	return resultJson, nil
 }
 
 // GetArgsSchema implements [Tool].

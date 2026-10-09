@@ -13,8 +13,8 @@ type Task struct {
 	IsActive  bool
 
 	Prompt      string
-	Status      TaskStatus
-	TriggerRule *TaskTriggerRule
+	Status      Status
+	TriggerRule *TriggerRule
 
 	NextRunTime *time.Time
 }

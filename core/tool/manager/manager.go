@@ -1,7 +1,6 @@
 package manager
 
 import (
-	context2 "context"
 	"errors"
 	"strings"
 	"sync"
@@ -60,7 +59,7 @@ func (t *ToolManager) GetListTool() tool.ListTool {
 	return t.cachedList
 }
 
-func (t *ToolManager) Call(ctx *context.ExecuteContext, toolCall *tool.ToolCall) *tool.Result {
+func (t *ToolManager) Call(ctx *context.ExecuteContext, toolCall *tool.Call) *tool.Result {
 	toolResultBuilder := tool.NewToolResultBuilder(toolCall.CallID, toolCall.Name)
 	calledTool, isExist := registry.Registry[toolCall.Name]
 	if !isExist {
@@ -76,8 +75,8 @@ func (t *ToolManager) Call(ctx *context.ExecuteContext, toolCall *tool.ToolCall)
 	return toolResultBuilder.Success(result).Build()
 }
 
-func (t *ToolManager) FindToolsByKeywords(ctx context2.Context, keywords []string) ([]tool.ToolMetadata, error) {
-	list := make([]tool.ToolMetadata, 0)
+func (t *ToolManager) FindToolsByKeywords(keywords []string) ([]tool.Metadata, error) {
+	list := make([]tool.Metadata, 0)
 
 	for _, item := range registry.Registry {
 		if !item.RequiresRouter {
@@ -95,7 +94,7 @@ func (t *ToolManager) FindToolsByKeywords(ctx context2.Context, keywords []strin
 		}
 
 		if nameMatch || descMatch || categoriesMatch {
-			list = append(list, tool.ToolMetadata{
+			list = append(list, tool.Metadata{
 				Name:         item.Tool.GetName(),
 				Description:  item.Tool.GetDescription(),
 				Args:         item.Tool.GetArgsSchema(),
@@ -169,7 +168,7 @@ func NewToolManager(logger *logger.BaseLogger, taskMgr *task_manager.TaskManager
 			tool.WeatherCategory:           "Weather",
 			tool.NetworkingCategory:        "Networking",
 			tool.TaskManagementCategory:    "Task Management",
-			tool.ToolRoutingCategory:       "Tool Routing",
+			tool.RoutingCategory:           "Tool Routing",
 			tool.TimingCategory:            "Timing",
 		},
 		pluginToolCategories: make(map[string]map[string]string),

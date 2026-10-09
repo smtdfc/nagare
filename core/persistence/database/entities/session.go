@@ -27,7 +27,7 @@ type Session struct {
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
 
-func (p *Session) BeforeCreate(tx *gorm.DB) (err error) {
+func (p *Session) BeforeCreate(*gorm.DB) (err error) {
 	if p.ID == uuid.Nil {
 		p.ID = uuid.New()
 	}

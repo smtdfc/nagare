@@ -19,7 +19,7 @@ func TestToolCall_Construction(t *testing.T) {
 	}
 
 	// Verify ListToolCall slice
-	var list ListToolCall = []*ToolCall{tc}
+	var list ListToolCall = []*Call{tc}
 	if len(list) != 1 {
 		t.Errorf("expected list length 1, got %d", len(list))
 	}

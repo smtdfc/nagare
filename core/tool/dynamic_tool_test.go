@@ -36,7 +36,7 @@ func TestDynamicTool_Construction(t *testing.T) {
 
 func TestToolMetadata_Construction(t *testing.T) {
 	// Verify ToolMetadata struct fields
-	meta := ToolMetadata{
+	meta := Metadata{
 		Name:         "meta_tool",
 		Description:  "meta desc",
 		Args:         "{}",

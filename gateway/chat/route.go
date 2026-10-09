@@ -10,15 +10,15 @@ import (
 	"github.com/smtdfc/nagare/gateway/common/websocket"
 )
 
-type ChatRouteInitializer func(app *fiber.App, ws *websocket.Coordinator)
+type RouteInitializer func(app *fiber.App, ws *websocket.Coordinator)
 
 // @Injectable
 func NewRouteInitializer(
-	chatController *ChatController,
-	websocketHandler *ChatWebsocketHandler,
+	chatController *Controller,
+	websocketHandler *WebsocketHandler,
 	appConfig *config.Config,
 	authGuard *guards.AuthGuard,
-) ChatRouteInitializer {
+) RouteInitializer {
 	authMiddleware := middlewares.AuthMiddlewareProvider(appConfig, authGuard)
 
 	return func(app *fiber.App, ws *websocket.Coordinator) {

@@ -30,33 +30,14 @@ func prepareDirectories(cwd, packageName string) (pkgDir, binFile, sigFile strin
 	return
 }
 
-func copyFile(src, dst string) error {
-	sourceFile, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer sourceFile.Close()
-
-	destFile, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer destFile.Close()
-
-	_, err = io.Copy(destFile, sourceFile)
-	if err != nil {
-		return err
-	}
-
-	return destFile.Sync()
-}
-
 func generateFileSignature(filePath string) (string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
 
 	hasher := sha256.New()
 	if _, err := io.Copy(hasher, file); err != nil {
@@ -79,10 +60,14 @@ func packPlugin(pkgDir, outputFilePath string) error {
 	if err != nil {
 		return err
 	}
-	defer outFile.Close()
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(outFile)
 
 	zipWriter := zip.NewWriter(outFile)
-	defer zipWriter.Close()
+	defer func(zipWriter *zip.Writer) {
+		_ = zipWriter.Close()
+	}(zipWriter)
 
 	return filepath.Walk(pkgDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -113,7 +98,9 @@ func packPlugin(pkgDir, outputFilePath string) error {
 		if err != nil {
 			return err
 		}
-		defer file.Close()
+		defer func(file *os.File) {
+			_ = file.Close()
+		}(file)
 
 		_, err = io.Copy(fileWriter, file)
 		return err

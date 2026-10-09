@@ -11,7 +11,6 @@ func (h *PluginHost) handleHandshake(conn *PluginConnection, payload *websocket.
 	data, err := getPayloadData[plugin.HandshakeEventPayload](payload)
 	if err != nil {
 		_ = conn.Send(plugin.HandshakeFailedEvent, &plugin.HandshakeFailedEventPayload{
-			ID:    "",
 			Cause: "failed to parse payload",
 		}, payload.RequestID)
 		return
@@ -22,7 +21,6 @@ func (h *PluginHost) handleHandshake(conn *PluginConnection, payload *websocket.
 	if err != nil {
 		h.logger.Error("Handshake failed", "packageName", data.PackageName, "cause", err)
 		_ = conn.Send(plugin.HandshakeFailedEvent, &plugin.HandshakeFailedEventPayload{
-			ID:    data.ID,
 			Cause: err.Error(),
 		}, payload.RequestID)
 		return
@@ -41,9 +39,7 @@ func (h *PluginHost) handleHandshake(conn *PluginConnection, payload *websocket.
 	h.connections[conn.pluginID] = conn
 	h.mu.Unlock()
 
-	err = conn.Send(plugin.HandshakeSuccessEvent, &plugin.HandshakeSuccessEventPayload{
-		ID: data.ID,
-	}, payload.RequestID)
+	err = conn.Send(plugin.HandshakeSuccessEvent, &plugin.HandshakeSuccessEventPayload{}, payload.RequestID)
 	if err != nil {
 		return
 	}

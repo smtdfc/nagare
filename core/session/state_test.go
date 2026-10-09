@@ -12,7 +12,7 @@ func TestSessionState_Construction(t *testing.T) {
 	sessID := uuid.New()
 	providerID := uuid.New()
 
-	state := SessionState{
+	state := State{
 		SessionID:          sessID,
 		CurrentModel:       "gpt-4o-mini",
 		CurrentLLMProvider: providerID,
