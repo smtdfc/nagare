@@ -45,7 +45,7 @@ OS="$(detect_os)"
 ARCH="$(detect_arch)"
 echo "Detected system: OS=$OS, Arch=$ARCH"
 
-LOCAL_DIST="dist/${OS}-${ARCH}"
+LOCAL_DIST="dist"
 
 if [ -d "$LOCAL_DIST" ] && [ -f "$LOCAL_DIST/nagare" ]; then
     echo "Found local build in $LOCAL_DIST. Installing from local files..."
