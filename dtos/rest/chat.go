@@ -7,7 +7,7 @@ const (
 	CreateChatSessionEndpoint            = "/api/v1/user/chat/session/create"
 	ListChatSessionsEndpoint             = "/api/v1/user/chat/session/list"
 	GetChatSessionEndpoint               = "/api/v1/user/chat/session/:id"
-	UpdateChatSessionLLMSettingsEndpoint = "/api/v1/user/chat/session/:id/settings"
+	UpdateChatSessionModelSettingsEndpoint = "/api/v1/user/chat/session/:id/settings"
 	GetChatHistoryEndpoint               = "/api/v1/user/chat/session/:id/history"
 	DeleteChatSessionEndpoint            = "/api/v1/user/chat/session/:id"
 	ArchiveChatSessionEndpoint           = "/api/v1/user/chat/session/:id/archive"
@@ -18,8 +18,8 @@ type Session struct {
 	ID                 string           `json:"id"`
 	Title              string           `json:"title"`
 	IsArchive          bool             `json:"isArchive"`
-	CurrentLLMModel    string           `json:"currentLLMModel,omitempty"`
-	CurrentLLMProvider *LLMProviderInfo `json:"currentLLMProvider,omitempty"`
+	CurrentModel    string           `json:"currentModel,omitempty"`
+	CurrentModelProvider *ModelProviderInfo `json:"currentModelProvider,omitempty"`
 }
 
 type SendChatMessageRequest struct {
@@ -33,8 +33,8 @@ type SendChatMessageResponse struct {
 
 type CreateChatSessionRequest struct {
 	Title              string `json:"title"`
-	CurrentLLMProvider string `json:"currentLLMProvider"`
-	CurrentLLMModel    string `json:"currentLLMModel"`
+	CurrentModelProvider string `json:"currentModelProvider"`
+	CurrentModel    string `json:"currentModel"`
 }
 
 type CreateChatSessionResponse struct {
@@ -66,12 +66,12 @@ type GetChatSessionResponse struct {
 	Session *Session `json:"session"`
 }
 
-type UpdateChatSessionLLMSettingsRequest struct {
-	CurrentLLMProvider string `json:"currentLLMProvider"`
-	CurrentLLMModel    string `json:"currentLLMModel"`
+type UpdateChatSessionModelSettingsRequest struct {
+	CurrentModelProvider string `json:"currentModelProvider"`
+	CurrentModel    string `json:"currentModel"`
 }
 
-type UpdateChatSessionLLMSettingsResponse struct {
+type UpdateChatSessionModelSettingsResponse struct {
 	Session *Session `json:"session"`
 }
 
