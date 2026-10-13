@@ -12,15 +12,18 @@
     "prettier": "^3.9.8"
   },
   "scripts": {
-    "gateway:start": "cd ./cli && go run -tags debug . gateway start -d",
+    "gen:ts": "go run ./scripts/ts.go",
+    "gateway:dev": "cd ./cli && go run -tags debug . gateway start -d",
     "gateway:stop": "cd ./cli && go run -tags debug . gateway stop",
     "build": "./build.sh",
     "cli:run": "cd ./cli && go run -tags debug . ",
-    "web:start": "pnpm --filter ./client/web dev ",
+    "web:dev": "pnpm --filter ./client/web dev ",
     "web:build": "pnpm --filter ./client/web build ",
     "web:lint": "pnpm  --filter ./client/web lint ",
     "web:format": "pnpm --filter ./client/web format ",
-    "web:preview": "pnpm --filter ./client/web preview"
+    "web:preview": "pnpm --filter ./client/web preview",
+    "desktop:dev": "cd ./client/desktop && wails3 dev",
+    "desktop:build": "cd ./client/desktop && wails3 build"
   },
   "type": "module",
   "dependencies": {

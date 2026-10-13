@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=nagare-desktop
+Exec=nagare-desktop
+Icon=nagare-desktop
+Categories=Development;
+Terminal=false
+Keywords=wails
+Version=1.0
+StartupNotify=false
