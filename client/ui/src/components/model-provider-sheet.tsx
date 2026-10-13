@@ -16,16 +16,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select.tsx";
-import type { AddLLMProviderRequest, Credential } from "@nagare-app/dtos";
+import type { AddModelProviderRequest, Credential } from "@nagare-app/dtos";
 import { useEffect, useState } from "react";
 
 const COMPATIBLE_OPTIONS = [{ value: "OpenAI", label: "OpenAI" }];
 
-interface LLMProviderSheetProps {
+interface ModelProviderSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  form: AddLLMProviderRequest;
-  setForm: React.Dispatch<React.SetStateAction<AddLLMProviderRequest>>;
+  form: AddModelProviderRequest;
+  setForm: React.Dispatch<React.SetStateAction<AddModelProviderRequest>>;
   onSave: () => void;
   isSaving: boolean;
   credentials: Credential[];
@@ -33,7 +33,7 @@ interface LLMProviderSheetProps {
   mode?: "add" | "edit";
 }
 
-export function LLMProviderSheet({
+export function ModelProviderSheet({
   open,
   onOpenChange,
   form,
@@ -43,7 +43,7 @@ export function LLMProviderSheet({
   credentials,
   isCredentialsLoading,
   mode = "add",
-}: LLMProviderSheetProps) {
+}: ModelProviderSheetProps) {
   const [modelInput, setModelInput] = useState("");
   const [authMode, setAuthMode] = useState<"apiKey" | "credential">(
     "credential",
@@ -94,12 +94,12 @@ export function LLMProviderSheet({
       <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="text-lg font-semibold">
-            {isEdit ? "Edit LLM Provider" : "Add LLM Provider"}
+            {isEdit ? "Edit Model Provider" : "Add Model Provider"}
           </SheetTitle>
           <SheetDescription className="text-xs text-muted-foreground">
             {isEdit
-              ? "Update the configuration for this LLM provider."
-              : "Connect a new language model provider to Nagare."}
+              ? "Update the configuration for this model provider."
+              : "Connect a new model provider to Nagare."}
           </SheetDescription>
         </SheetHeader>
 
@@ -219,7 +219,7 @@ export function LLMProviderSheet({
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium">Models</label>
             <p className="text-xs text-muted-foreground">
-              Add the model IDs this provider supports.
+              Add the model IDs this provider supports (chat and embedding).
             </p>
             <div className="flex gap-2">
               <Input

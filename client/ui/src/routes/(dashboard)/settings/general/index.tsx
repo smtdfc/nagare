@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Save, Loader2 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "#/components/ui/button.tsx";
-import { LLMProviderService, SettingsService } from "@nagare-app/services";
+import { ModelProviderService, SettingsService } from "@nagare-app/services";
 import { showToastError } from "#/lib/toast.ts";
 import { toast } from "#/components/ui/toast.tsx";
-import type { GeneralSettings, LLMProvider } from "@nagare-app/dtos";
+import type { GeneralSettings, ModelProvider } from "@nagare-app/dtos";
 import {
   Select,
   SelectContent,
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/(dashboard)/settings/general/")({
 
 function RouteComponent() {
   const [settings, setSettings] = useState<GeneralSettings | null>(null);
-  const [providers, setProviders] = useState<LLMProvider[]>([]);
+  const [providers, setProviders] = useState<ModelProvider[]>([]);
   const [models, setModels] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -37,14 +37,14 @@ function RouteComponent() {
     try {
       const [generalSettings, providerList] = await Promise.all([
         SettingsService.getGeneralSettings(),
-        LLMProviderService.list(),
+        ModelProviderService.list(),
       ]);
       setSettings(generalSettings);
       setProviders(providerList);
 
-      if (generalSettings?.defaultLLMProvider) {
-        const providerModels = await LLMProviderService.getModels({
-          id: generalSettings.defaultLLMProvider,
+      if (generalSettings?.defaultModelProvider) {
+        const providerModels = await ModelProviderService.getModels({
+          id: generalSettings.defaultModelProvider,
         });
         setModels(providerModels);
       }
@@ -62,13 +62,13 @@ function RouteComponent() {
   const handleProviderChange = async (providerId: string | null) => {
     if (!providerId) return;
     setSettings((prev) =>
-      prev ? { ...prev, defaultLLMProvider: providerId, defaultLLMModel: "" } : prev,
+      prev ? { ...prev, defaultModelProvider: providerId, defaultModel: "" } : prev,
     );
     setModels([]);
 
     setIsLoadingModels(true);
     try {
-      const providerModels = await LLMProviderService.getModels({
+      const providerModels = await ModelProviderService.getModels({
         id: providerId,
       });
       setModels(providerModels);
@@ -81,7 +81,7 @@ function RouteComponent() {
 
   const handleModelChange = (model: string | null) => {
     setSettings((prev) =>
-      prev ? { ...prev, defaultLLMModel: model ?? "" } : prev,
+      prev ? { ...prev, defaultModel: model ?? "" } : prev,
     );
   };
 
@@ -120,18 +120,18 @@ function RouteComponent() {
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium">
-                Default LLM provider
+                Default model provider
               </label>
               <p className="text-xs text-muted-foreground">
-                Select the active LLM provider to use for conversations.
+                Select the active model provider to use for conversations.
               </p>
               <Select
-                value={settings?.defaultLLMProvider ?? ""}
+                value={settings?.defaultModelProvider ?? ""}
                 onValueChange={handleProviderChange}
               >
                 <SelectTrigger className="w-full mt-1.5">
                   <SelectValue placeholder="Select a provider">
-                    {providers.find((p) => p.id === settings?.defaultLLMProvider)
+                    {providers.find((p) => p.id === settings?.defaultModelProvider)
                       ?.name ?? "Select a provider"}
                   </SelectValue>
                 </SelectTrigger>
@@ -148,7 +148,7 @@ function RouteComponent() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium">Default LLM model</label>
+              <label className="text-sm font-medium">Default model</label>
               <p className="text-xs text-muted-foreground">
                 Select the default model for the chosen provider.
               </p>
@@ -157,7 +157,7 @@ function RouteComponent() {
                   <Loader2 className="absolute right-8 top-2.5 w-4 h-4 animate-spin text-muted-foreground z-10" />
                 )}
                 <Select
-                  value={settings?.defaultLLMModel ?? ""}
+                  value={settings?.defaultModel ?? ""}
                   disabled={isLoadingModels || models.length === 0}
                   onValueChange={handleModelChange}
                 >

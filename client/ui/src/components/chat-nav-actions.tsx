@@ -9,8 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChatService, LLMProviderService } from "@nagare-app/services";
-import type { LLMProvider, Session } from "@nagare-app/dtos";
+import { ChatService, ModelProviderService } from "@nagare-app/services";
+import type { ModelProvider, Session } from "@nagare-app/dtos";
 import { showToastError } from "#/lib/toast";
 import {
   Popover,
@@ -51,28 +51,28 @@ type ChatNavActionsProps = {
   onSessionDuplicated: (session: Session) => void;
 };
 
-function ChatLLMSelector({
+function ChatModelSelector({
   session,
   onSessionUpdated,
 }: Pick<ChatNavActionsProps, "session" | "onSessionUpdated">) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [providers, setProviders] = React.useState<LLMProvider[]>([]);
+  const [providers, setProviders] = React.useState<ModelProvider[]>([]);
   const [models, setModels] = React.useState<string[]>([]);
   const [providerID, setProviderID] = React.useState(
-    session.currentLLMProvider?.id ?? "",
+    session.currentModelProvider?.id ?? "",
   );
-  const [model, setModel] = React.useState(session.currentLLMModel ?? "");
+  const [model, setModel] = React.useState(session.currentModel ?? "");
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
 
   React.useEffect(() => {
-    setProviderID(session.currentLLMProvider?.id ?? "");
-    setModel(session.currentLLMModel ?? "");
+    setProviderID(session.currentModelProvider?.id ?? "");
+    setModel(session.currentModel ?? "");
   }, [session]);
 
   React.useEffect(() => {
     let isMounted = true;
-    void LLMProviderService.list()
+    void ModelProviderService.list()
       .then((items) => {
         if (isMounted) setProviders(items ?? []);
       })
@@ -85,7 +85,7 @@ function ChatLLMSelector({
   const loadModels = async (id: string) => {
     setIsLoading(true);
     try {
-      setModels((await LLMProviderService.getModels({ id })) ?? []);
+      setModels((await ModelProviderService.getModels({ id })) ?? []);
     } catch (error) {
       showToastError(error);
     } finally {
@@ -109,11 +109,11 @@ function ChatLLMSelector({
     if (!providerID || !model) return;
     setIsSaving(true);
     try {
-      const updatedSession = await ChatService.updateChatSessionLLMSettings(
+      const updatedSession = await ChatService.updateChatSessionModelSettings(
         session.id,
         {
-          currentLLMProvider: providerID,
-          currentLLMModel: model,
+          currentModelProvider: providerID,
+          currentModel: model,
         },
       );
       onSessionUpdated(updatedSession);
@@ -139,7 +139,7 @@ function ChatLLMSelector({
       >
         <SlidersHorizontal className="h-4 w-4" />
         <span className="hidden max-w-28 truncate sm:inline">
-          {session.currentLLMProvider?.name ?? "AI"}
+          {session.currentModelProvider?.name ?? "AI"}
         </span>
       </PopoverTrigger>
       <PopoverContent className="w-80" align="end">
@@ -156,7 +156,7 @@ function ChatLLMSelector({
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select a provider">
                   {providers.find((provider) => provider.id === providerID)
-                    ?.name ?? session.currentLLMProvider?.name}
+                    ?.name ?? session.currentModelProvider?.name}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -267,7 +267,7 @@ export function ChatNavActions({
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      <ChatLLMSelector session={session} onSessionUpdated={onSessionUpdated} />
+      <ChatModelSelector session={session} onSessionUpdated={onSessionUpdated} />
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger
           render={

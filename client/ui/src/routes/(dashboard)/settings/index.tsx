@@ -39,11 +39,11 @@ const settingSections: SettingSection[] = [
         href: "/settings/credentials",
       },
       {
-        title: "LLM Providers",
+        title: "Model Providers",
         description:
-          "Manage and configure your LLM providers (OpenAI, Anthropic, etc.).",
+          "Manage and configure your model providers (OpenAI, etc.) for chat and embedding.",
         icon: Brain,
-        href: "/settings/llm-providers",
+        href: "/settings/model-providers",
       },
     ],
   },

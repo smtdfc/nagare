@@ -1,5 +1,5 @@
-import type { LLMProvider } from "@nagare-app/dtos";
-import { LLMProviderService } from "@nagare-app/services";
+import type { ModelProvider } from "@nagare-app/dtos";
+import { ModelProviderService } from "@nagare-app/services";
 import { useState } from "react";
 import { toast } from "./ui/toast";
 import { showToastError } from "#/lib/toast";
@@ -7,11 +7,11 @@ import { Brain, ChevronDown, ChevronUp, Loader2, Trash2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 
-export function LLMProviderCard({
+export function ModelProviderCard({
   provider,
   onDelete,
 }: {
-  provider: LLMProvider;
+  provider: ModelProvider;
   onDelete: (id: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -20,7 +20,7 @@ export function LLMProviderCard({
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await LLMProviderService.delete(provider.id);
+      await ModelProviderService.delete(provider.id);
       onDelete(provider.id);
       toast.add({
         title: "Deleted",
