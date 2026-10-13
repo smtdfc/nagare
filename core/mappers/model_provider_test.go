@@ -7,15 +7,15 @@ import (
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 )
 
-func TestLLMProviderMapper(t *testing.T) {
-	// Verify LLMProviderMapper methods
+func TestModelProviderMapper(t *testing.T) {
+	// Verify ModelProviderMapper methods
 	credMapper := NewCredentialMapper()
-	mapper := NewLLMProviderMapper(credMapper)
+	mapper := NewModelProviderMapper(credMapper)
 
 	id := uuid.New()
 	credID := uuid.New()
 
-	entity := &entities.LLMProvider{
+	entity := &entities.ModelProvider{
 		ID:           id,
 		Name:         "OpenAI",
 		Compatible:   "OpenAI",

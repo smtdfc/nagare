@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/smtdfc/nagare/core/llm/provider"
+	"github.com/smtdfc/nagare/core/model/provider"
 )
 
 func TestOwnerType_ToString(t *testing.T) {
@@ -57,9 +57,9 @@ func TestSessionInfo_Construction(t *testing.T) {
 		OwnerType:       USER,
 		ChannelID:       "chan-1",
 		IsArchive:       false,
-		CurrentLLMModel: "gpt-4o",
-		LLMProviderID:   providerID,
-		LLMProvider: &provider.LLMProviderInfo{
+		CurrentModel: "gpt-4o",
+		ModelProviderID:   providerID,
+		ModelProvider: &provider.ModelProviderInfo{
 			ID:         providerID,
 			Name:       "openai",
 			Compatible: provider.OpenAICompatible,
@@ -75,7 +75,7 @@ func TestSessionInfo_Construction(t *testing.T) {
 	if info.OwnerType != USER {
 		t.Errorf("expected owner type USER, got %s", info.OwnerType)
 	}
-	if info.LLMProvider == nil || info.LLMProvider.Name != "openai" {
-		t.Errorf("expected valid LLMProvider")
+	if info.ModelProvider == nil || info.ModelProvider.Name != "openai" {
+		t.Errorf("expected valid ModelProvider")
 	}
 }

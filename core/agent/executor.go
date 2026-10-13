@@ -6,7 +6,7 @@ import (
 
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/custom_errors"
-	"github.com/smtdfc/nagare/core/llm/provider"
+	"github.com/smtdfc/nagare/core/model/provider"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/tool"
@@ -41,17 +41,17 @@ func (a *Executor) HandleError(message *messages.ResponseFailedMessage) error {
 	case "402":
 		return custom_errors.ErrModelPaymentRequired
 	case "500":
-		return custom_errors.ErrLLMProviderAdapter
+		return custom_errors.ErrModelProviderAdapter
 	case "503":
-		return custom_errors.ErrLLMProviderAdapter
+		return custom_errors.ErrModelProviderAdapter
 	case "504":
-		return custom_errors.ErrLLMProviderAdapter
+		return custom_errors.ErrModelProviderAdapter
 	}
 
 	return custom_errors.ErrUnknown
 }
 
-func (a *Executor) Execute(ctx *context.ExecuteContext, model string, llmAdapter provider.LLMProviderAdapter, output message.WriteOnlyChannel) {
+func (a *Executor) Execute(ctx *context.ExecuteContext, model string, modelAdapter provider.ModelProviderAdapter, output message.WriteOnlyChannel) {
 	defer close(output)
 
 	isError := false
@@ -99,11 +99,11 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, llmAdapter
 			break
 		}
 
-		llmOutput, err := llmAdapter.Send(ctx, model, a.state.GetFullMessage(), a.toolMgr.GetListTool())
+		llmOutput, err := modelAdapter.Send(ctx, model, a.state.GetFullMessage(), a.toolMgr.GetListTool())
 		if err != nil {
 			isError = true
 			a.logger.Error("Agent error", "error", err)
-			output <- messages.NewAgentErrorMessage(err.Error(), custom_errors.ErrLLMProviderAdapter.Code)
+			output <- messages.NewAgentErrorMessage(err.Error(), custom_errors.ErrModelProviderAdapter.Code)
 			break
 		}
 

@@ -5,18 +5,18 @@ import (
 	"github.com/smtdfc/nagare/core/credential"
 )
 
-type LLMProviderCompatible string
+type ModelProviderCompatible string
 
 const (
-	OpenAICompatible  LLMProviderCompatible = "OpenAI"
-	UnknownCompatible LLMProviderCompatible = "Unknown"
+	OpenAICompatible  ModelProviderCompatible = "OpenAI"
+	UnknownCompatible ModelProviderCompatible = "Unknown"
 )
 
-func (l LLMProviderCompatible) ToString() string {
+func (l ModelProviderCompatible) ToString() string {
 	return string(l)
 }
 
-func GetCompatibleFromString(s string) LLMProviderCompatible {
+func GetCompatibleFromString(s string) ModelProviderCompatible {
 	switch s {
 	case string(OpenAICompatible):
 		return OpenAICompatible
@@ -25,10 +25,10 @@ func GetCompatibleFromString(s string) LLMProviderCompatible {
 	}
 }
 
-type LLMProviderConfig struct {
+type ModelProviderConfig struct {
 	ID         uuid.UUID
 	Name       string
-	Compatible LLMProviderCompatible
+	Compatible ModelProviderCompatible
 	ApiKey     string
 	Models     []string
 	BaseURL    string

@@ -34,14 +34,14 @@ func TestConfigManager_GetAndSet(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error on GetGeneralConfig: %v", err)
 	}
-	if cfg.DefaultLLMProvider != "" || cfg.DefaultLLMModel != "" {
+	if cfg.DefaultModelProvider != "" || cfg.DefaultModel != "" {
 		t.Errorf("expected empty initial config")
 	}
 
 	// Set config
 	newCfg := &config.GeneralConfig{
-		DefaultLLMProvider: "openai",
-		DefaultLLMModel:    "gpt-4o",
+		DefaultModelProvider: "openai",
+		DefaultModel:    "gpt-4o",
 	}
 	err = mgr.SetGeneralConfig(ctx, newCfg)
 	if err != nil {
@@ -53,7 +53,7 @@ func TestConfigManager_GetAndSet(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error getting updated config: %v", err)
 	}
-	if updated.DefaultLLMProvider != "openai" || updated.DefaultLLMModel != "gpt-4o" {
+	if updated.DefaultModelProvider != "openai" || updated.DefaultModel != "gpt-4o" {
 		t.Errorf("expected updated config, got %+v", updated)
 	}
 }

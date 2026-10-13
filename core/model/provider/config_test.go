@@ -7,8 +7,8 @@ import (
 	"github.com/smtdfc/nagare/core/credential"
 )
 
-func TestLLMProviderCompatible_ToString(t *testing.T) {
-	// Verify LLMProviderCompatible ToString
+func TestModelProviderCompatible_ToString(t *testing.T) {
+	// Verify ModelProviderCompatible ToString
 	if OpenAICompatible.ToString() != "OpenAI" {
 		t.Errorf("expected 'OpenAI', got '%s'", OpenAICompatible.ToString())
 	}
@@ -21,7 +21,7 @@ func TestGetCompatibleFromString(t *testing.T) {
 	// Verify compatible provider parsing
 	tests := []struct {
 		input    string
-		expected LLMProviderCompatible
+		expected ModelProviderCompatible
 	}{
 		{"OpenAI", OpenAICompatible},
 		{"anthropic", UnknownCompatible},
@@ -39,11 +39,11 @@ func TestGetCompatibleFromString(t *testing.T) {
 	}
 }
 
-func TestLLMProviderConfig_Construction(t *testing.T) {
-	// Verify LLMProviderConfig fields
+func TestModelProviderConfig_Construction(t *testing.T) {
+	// Verify ModelProviderConfig fields
 	id := uuid.New()
 	credID := uuid.New()
-	cfg := LLMProviderConfig{
+	cfg := ModelProviderConfig{
 		ID:           id,
 		Name:         "OpenAI Prod",
 		Compatible:   OpenAICompatible,

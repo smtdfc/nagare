@@ -8,7 +8,8 @@ import (
 	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
-type LLMProviderAdapter interface {
+type ModelProviderAdapter interface {
 	GetModels(context.Context) ([]string, error)
 	Send(ctx context.Context, model string, inputs messages.ListMessage, tools tool.ListTool) (message.ReadOnlyChannel, error)
+	Embed(ctx context.Context, model string, inputs []string) ([][]float32, error)
 }

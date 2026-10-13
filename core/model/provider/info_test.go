@@ -6,10 +6,10 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestLLMProviderInfo_Construction(t *testing.T) {
-	// Verify LLMProviderInfo struct fields
+func TestModelProviderInfo_Construction(t *testing.T) {
+	// Verify ModelProviderInfo struct fields
 	id := uuid.New()
-	info := LLMProviderInfo{
+	info := ModelProviderInfo{
 		ID:         id,
 		Name:       "OpenAI",
 		Compatible: OpenAICompatible,

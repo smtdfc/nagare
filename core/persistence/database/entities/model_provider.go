@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type LLMProvider struct {
+type ModelProvider struct {
 	gorm.Model
 	ID         uuid.UUID `gorm:"primaryKey;" json:"id"`
 	Name       string
@@ -23,7 +23,7 @@ type LLMProvider struct {
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
 
-func (p *LLMProvider) BeforeCreate(*gorm.DB) (err error) {
+func (p *ModelProvider) BeforeCreate(*gorm.DB) (err error) {
 	if p.ID == uuid.Nil {
 		p.ID = uuid.New()
 	}

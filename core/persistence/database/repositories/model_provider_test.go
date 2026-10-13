@@ -8,13 +8,13 @@ import (
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 )
 
-func TestLLMProviderRepository_CRUD(t *testing.T) {
+func TestModelProviderRepository_CRUD(t *testing.T) {
 	db, l := setupTestDB(t)
-	repo := &LLMProviderRepository{db: db, logger: l}
+	repo := &ModelProviderRepository{db: db, logger: l}
 	ctx := context.Background()
 
 	id := uuid.New()
-	p := &entities.LLMProvider{
+	p := &entities.ModelProvider{
 		ID:         id,
 		Name:       "OpenAI Provider",
 		Compatible: "OpenAI",

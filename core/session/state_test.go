@@ -15,7 +15,7 @@ func TestSessionState_Construction(t *testing.T) {
 	state := State{
 		SessionID:          sessID,
 		CurrentModel:       "gpt-4o-mini",
-		CurrentLLMProvider: providerID,
+		CurrentModelProvider: providerID,
 		ChannelID:          "ch-abc",
 		Messages:           messages.ListMessage{},
 		NextCursor:         "cursor-1",

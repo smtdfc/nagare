@@ -7,20 +7,20 @@ import (
 func TestGeneralConfig(t *testing.T) {
 	// Verify GeneralConfig fields assignment
 	cfg := GeneralConfig{
-		DefaultLLMProvider: "openai",
-		DefaultLLMModel:    "gpt-4o",
+		DefaultModelProvider: "openai",
+		DefaultModel:    "gpt-4o",
 	}
 
-	if cfg.DefaultLLMProvider != "openai" {
-		t.Errorf("expected provider 'openai', got '%s'", cfg.DefaultLLMProvider)
+	if cfg.DefaultModelProvider != "openai" {
+		t.Errorf("expected provider 'openai', got '%s'", cfg.DefaultModelProvider)
 	}
-	if cfg.DefaultLLMModel != "gpt-4o" {
-		t.Errorf("expected model 'gpt-4o', got '%s'", cfg.DefaultLLMModel)
+	if cfg.DefaultModel != "gpt-4o" {
+		t.Errorf("expected model 'gpt-4o', got '%s'", cfg.DefaultModel)
 	}
 
 	// Verify zero-value
 	var zeroCfg GeneralConfig
-	if zeroCfg.DefaultLLMProvider != "" || zeroCfg.DefaultLLMModel != "" {
+	if zeroCfg.DefaultModelProvider != "" || zeroCfg.DefaultModel != "" {
 		t.Errorf("expected empty zero value")
 	}
 }

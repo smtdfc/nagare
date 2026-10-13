@@ -11,7 +11,7 @@ import (
 func TestSessionMapper(t *testing.T) {
 	// Verify SessionMapper ToDomain and ToEntity
 	credMapper := NewCredentialMapper()
-	llmMapper := NewLLMProviderMapper(credMapper)
+	llmMapper := NewModelProviderMapper(credMapper)
 	mapper := NewSessionMapper(llmMapper)
 
 	id := uuid.New()
@@ -25,8 +25,8 @@ func TestSessionMapper(t *testing.T) {
 		OwnerType:     "user",
 		IsArchive:     false,
 		CurrentModel:  "gpt-4o",
-		LLMProviderID: providerID,
-		LLMProvider: &entities.LLMProvider{
+		ModelProviderID: providerID,
+		ModelProvider: &entities.ModelProvider{
 			ID:         providerID,
 			Name:       "OpenAI",
 			Compatible: "OpenAI",
@@ -43,8 +43,8 @@ func TestSessionMapper(t *testing.T) {
 	if domain.OwnerType != session.USER {
 		t.Errorf("expected owner type USER, got %s", domain.OwnerType)
 	}
-	if domain.LLMProvider == nil || domain.LLMProvider.Name != "OpenAI" {
-		t.Errorf("expected provider OpenAI, got %v", domain.LLMProvider)
+	if domain.ModelProvider == nil || domain.ModelProvider.Name != "OpenAI" {
+		t.Errorf("expected provider OpenAI, got %v", domain.ModelProvider)
 	}
 
 	entityBack := mapper.ToEntity(domain)

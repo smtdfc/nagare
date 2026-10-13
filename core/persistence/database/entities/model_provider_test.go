@@ -6,9 +6,9 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestLLMProviderEntity_BeforeCreate(t *testing.T) {
+func TestModelProviderEntity_BeforeCreate(t *testing.T) {
 	// Verify BeforeCreate sets UUID when nil
-	prov := &LLMProvider{
+	prov := &ModelProvider{
 		ID:   uuid.Nil,
 		Name: "openai",
 	}
@@ -23,7 +23,7 @@ func TestLLMProviderEntity_BeforeCreate(t *testing.T) {
 
 	// Verify BeforeCreate preserves existing UUID
 	existingID := uuid.New()
-	prov2 := &LLMProvider{ID: existingID}
+	prov2 := &ModelProvider{ID: existingID}
 	_ = prov2.BeforeCreate(nil)
 	if prov2.ID != existingID {
 		t.Errorf("expected preserved UUID %s, got %s", existingID, prov2.ID)

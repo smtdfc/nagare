@@ -9,7 +9,7 @@ import (
 	config_mgr "github.com/smtdfc/nagare/core/config/manager"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/event_bus"
-	llm_provider_mgr "github.com/smtdfc/nagare/core/llm/manager"
+	model_provider_mgr "github.com/smtdfc/nagare/core/model/manager"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/prompt"
@@ -22,7 +22,7 @@ import (
 type AgentInvoker struct {
 	agentPool      *agent.Pool
 	sessionMgr     *session_mgr.SessionManager
-	llmProviderMgr *llm_provider_mgr.LLMProviderManager
+	modelProviderMgr *model_provider_mgr.ModelProviderManager
 	configMgr      *config_mgr.ConfigManager
 	eventBus       *event_bus.CoreEventBus
 	adapterLogger  *logger.BaseLogger
@@ -121,10 +121,10 @@ func (a *AgentInvoker) Invoke(params *AgentInvokeParams) (message.ReadOnlyChanne
 		history = append(history, sessionState.Messages...)
 		sessionOwnerID = sessionState.OwnerID
 		sessionOwnerType = sessionState.OwnerType.ToString()
-		currentLLMProviderID := sessionState.CurrentLLMProvider
-		currentLLMModel := sessionState.CurrentModel
+		currentModelProviderID := sessionState.CurrentModelProvider
+		currentModel := sessionState.CurrentModel
 
-		if currentLLMProviderID == uuid.Nil {
+		if currentModelProviderID == uuid.Nil {
 			emit(messages.NewAgentErrorMessage(
 				custom_errors.ErrCurrentProviderNotSetup.Details,
 				custom_errors.ErrCurrentProviderNotSetup.Code,
@@ -132,7 +132,7 @@ func (a *AgentInvoker) Invoke(params *AgentInvokeParams) (message.ReadOnlyChanne
 			return
 		}
 
-		if currentLLMModel == "" {
+		if currentModel == "" {
 			emit(messages.NewAgentErrorMessage(
 				custom_errors.ErrCurrentModelNotSetup.Details,
 				custom_errors.ErrCurrentModelNotSetup.Code,
@@ -140,27 +140,27 @@ func (a *AgentInvoker) Invoke(params *AgentInvokeParams) (message.ReadOnlyChanne
 			return
 		}
 
-		provider, err := a.llmProviderMgr.GetProviderByID(ctx, currentLLMProviderID.String())
+		provider, err := a.modelProviderMgr.GetProviderByID(ctx, currentModelProviderID.String())
 		if err != nil {
 			code, details := extractErrorDetails(err)
 			emit(messages.NewAgentErrorMessage(details, code))
 			return
 		}
 
-		adapter, err := a.llmProviderMgr.GetAdapter(provider)
+		adapter, err := a.modelProviderMgr.GetAdapter(provider)
 		if err != nil {
 			code, details := extractErrorDetails(err)
 			emit(messages.NewAgentErrorMessage(details, code))
 			return
 		}
 
-		currentAgent := a.agentPool.Get().WithContext(history).WithLLMAdapter(adapter)
+		currentAgent := a.agentPool.Get().WithContext(history).WithModelAdapter(adapter)
 		for _, msg := range inputMessages {
 			if msg != nil {
 				msg.SetInvokeID(invokeID)
 			}
 		}
-		agentOutput, err := currentAgent.Invoke(ctx, inputMessages, currentLLMModel, &agent.InvokeOption{
+		agentOutput, err := currentAgent.Invoke(ctx, inputMessages, currentModel, &agent.InvokeOption{
 			SessionID: sessionID,
 		})
 		if err != nil {
@@ -196,12 +196,12 @@ func (a *AgentInvoker) Invoke(params *AgentInvokeParams) (message.ReadOnlyChanne
 }
 
 // @Injectable
-func NewAgentInvoker(logger *logger.BaseLogger, agentPool *agent.Pool, llmProviderMgr *llm_provider_mgr.LLMProviderManager, sessionMgr *session_mgr.SessionManager, configMgr *config_mgr.ConfigManager, eventBus *event_bus.CoreEventBus, toolMgr *tool_mgr.ToolManager) *AgentInvoker {
+func NewAgentInvoker(logger *logger.BaseLogger, agentPool *agent.Pool, modelProviderMgr *model_provider_mgr.ModelProviderManager, sessionMgr *session_mgr.SessionManager, configMgr *config_mgr.ConfigManager, eventBus *event_bus.CoreEventBus, toolMgr *tool_mgr.ToolManager) *AgentInvoker {
 	return &AgentInvoker{
 		agentPool:      agentPool,
 		sessionMgr:     sessionMgr,
 		configMgr:      configMgr,
-		llmProviderMgr: llmProviderMgr,
+		modelProviderMgr: modelProviderMgr,
 		eventBus:       eventBus,
 		logger:         logger.With("module", "agent-invoker"),
 		adapterLogger:  logger.Clone(),

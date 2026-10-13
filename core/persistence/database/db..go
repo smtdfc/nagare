@@ -26,7 +26,7 @@ func InitDatabase(logger *logger.BaseLogger) (*gorm.DB, error) {
 		&entities.Session{},
 		&entities.Message{},
 		&entities.Plugin{},
-		&entities.LLMProvider{},
+		&entities.ModelProvider{},
 		&entities.Task{},
 		&entities.Plugin{},
 		&entities.Credential{},
@@ -36,5 +36,20 @@ func InitDatabase(logger *logger.BaseLogger) (*gorm.DB, error) {
 		return nil, err
 	}
 
+	migrateModelProviderSchema(db, databaseLogger)
+
 	return db, nil
+}
+
+func migrateModelProviderSchema(db *gorm.DB, databaseLogger *logger.BaseLogger) {
+	if db.Migrator().HasColumn(&entities.Session{}, "llm_provider_id") {
+		if err := db.Exec("UPDATE sessions SET model_provider_id = llm_provider_id WHERE model_provider_id IS NULL OR model_provider_id = ''").Error; err != nil {
+			databaseLogger.Error("Failed to migrate session model_provider_id", "error", err)
+		}
+	}
+	if db.Migrator().HasTable("embedding_providers") {
+		if err := db.Migrator().DropTable("embedding_providers"); err != nil {
+			databaseLogger.Error("Failed to drop legacy embedding_providers table", "error", err)
+		}
+	}
 }

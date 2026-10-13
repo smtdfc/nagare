@@ -20,7 +20,7 @@ func TestAutoMigrate_InMemory(t *testing.T) {
 		&entities.Session{},
 		&entities.Message{},
 		&entities.Plugin{},
-		&entities.LLMProvider{},
+		&entities.ModelProvider{},
 		&entities.Task{},
 		&entities.Credential{},
 	)

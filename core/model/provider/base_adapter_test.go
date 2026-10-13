@@ -21,9 +21,17 @@ func (m *mockAdapter) Send(context.Context, string, messages.ListMessage, tool.L
 	return ch, nil
 }
 
-func TestLLMProviderAdapter_Interface(t *testing.T) {
-	// Verify mock adapter satisfies LLMProviderAdapter interface
-	var adapter LLMProviderAdapter = &mockAdapter{}
+func (m *mockAdapter) Embed(_ context.Context, _ string, inputs []string) ([][]float32, error) {
+	result := make([][]float32, len(inputs))
+	for i := range inputs {
+		result[i] = []float32{float32(i)}
+	}
+	return result, nil
+}
+
+func TestModelProviderAdapter_Interface(t *testing.T) {
+	// Verify mock adapter satisfies ModelProviderAdapter interface
+	var adapter ModelProviderAdapter = &mockAdapter{}
 
 	models, err := adapter.GetModels(context.Background())
 	if err != nil {

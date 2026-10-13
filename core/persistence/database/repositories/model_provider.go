@@ -9,13 +9,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type LLMProviderRepository struct {
+type ModelProviderRepository struct {
 	db     *gorm.DB
 	logger *logger.BaseLogger
 }
 
-func (l *LLMProviderRepository) FindAll(ctx context.Context) ([]*entities.LLMProvider, error) {
-	var providers []*entities.LLMProvider
+func (l *ModelProviderRepository) FindAll(ctx context.Context) ([]*entities.ModelProvider, error) {
+	var providers []*entities.ModelProvider
 	err := l.db.WithContext(ctx).Find(&providers).Error
 	if err != nil {
 		l.logger.Error("Failed to get all provider", "err", err)
@@ -25,8 +25,8 @@ func (l *LLMProviderRepository) FindAll(ctx context.Context) ([]*entities.LLMPro
 	return providers, nil
 }
 
-func (l *LLMProviderRepository) FindByID(ctx context.Context, id string) (*entities.LLMProvider, error) {
-	var provider entities.LLMProvider
+func (l *ModelProviderRepository) FindByID(ctx context.Context, id string) (*entities.ModelProvider, error) {
+	var provider entities.ModelProvider
 	err := l.db.Where("id = ?", id).WithContext(ctx).First(&provider).Preload("Credential").Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -40,8 +40,8 @@ func (l *LLMProviderRepository) FindByID(ctx context.Context, id string) (*entit
 	return &provider, nil
 }
 
-func (l *LLMProviderRepository) DeleteByID(ctx context.Context, id string) error {
-	err := l.db.WithContext(ctx).Where("id = ?", id).Delete(&entities.LLMProvider{}).Error
+func (l *ModelProviderRepository) DeleteByID(ctx context.Context, id string) error {
+	err := l.db.WithContext(ctx).Where("id = ?", id).Delete(&entities.ModelProvider{}).Error
 	if err != nil {
 		l.logger.Error("Failed to delete provider", "id", id, "err", err)
 		return err
@@ -50,7 +50,7 @@ func (l *LLMProviderRepository) DeleteByID(ctx context.Context, id string) error
 	return nil
 }
 
-func (l *LLMProviderRepository) Update(ctx context.Context, provider *entities.LLMProvider) error {
+func (l *ModelProviderRepository) Update(ctx context.Context, provider *entities.ModelProvider) error {
 	result := l.db.WithContext(ctx).Model(provider).Where("id = ?", provider.ID).Updates(provider)
 
 	if result.Error != nil {
@@ -66,7 +66,7 @@ func (l *LLMProviderRepository) Update(ctx context.Context, provider *entities.L
 	return nil
 }
 
-func (l *LLMProviderRepository) Add(ctx context.Context, provider *entities.LLMProvider) (*entities.LLMProvider, error) {
+func (l *ModelProviderRepository) Add(ctx context.Context, provider *entities.ModelProvider) (*entities.ModelProvider, error) {
 	err := l.db.WithContext(ctx).Create(&provider).Error
 	if err != nil {
 		l.logger.Error("Failed to create provider", "err", err)
@@ -77,9 +77,9 @@ func (l *LLMProviderRepository) Add(ctx context.Context, provider *entities.LLMP
 }
 
 // @Injectable
-func NewLLMProviderRepository(db *gorm.DB, logger *logger.BaseLogger) *LLMProviderRepository {
-	return &LLMProviderRepository{
+func NewModelProviderRepository(db *gorm.DB, logger *logger.BaseLogger) *ModelProviderRepository {
+	return &ModelProviderRepository{
 		db:     db,
-		logger: logger.With("module", "llm-provider-repository"),
+		logger: logger.With("module", "model-provider-repository"),
 	}
 }

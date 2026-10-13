@@ -22,7 +22,7 @@ func setupTestDB(t *testing.T) (*gorm.DB, *logger.BaseLogger) {
 		&entities.Session{},
 		&entities.Message{},
 		&entities.Plugin{},
-		&entities.LLMProvider{},
+		&entities.ModelProvider{},
 		&entities.Task{},
 	)
 	if err != nil {

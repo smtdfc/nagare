@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	config_mgr "github.com/smtdfc/nagare/core/config/manager"
 	"github.com/smtdfc/nagare/core/custom_errors"
-	llm_provider_mgr "github.com/smtdfc/nagare/core/llm/manager"
+	model_provider_mgr "github.com/smtdfc/nagare/core/model/manager"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/mappers"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
@@ -24,25 +24,25 @@ type SessionManager struct {
 	sessionMapper  *mappers.SessionMapper
 	messageMapper  *mappers.MessageMapper
 	configMgr      *config_mgr.ConfigManager
-	llmProviderMgr *llm_provider_mgr.LLMProviderManager
+	modelProviderMgr *model_provider_mgr.ModelProviderManager
 }
 
-func (s *SessionManager) getDefaultLLMSettings(ctx context.Context) (uuid.UUID, string, error) {
+func (s *SessionManager) getDefaultModelSettings(ctx context.Context) (uuid.UUID, string, error) {
 	generalConf, err := s.configMgr.GetGeneralConfig(ctx)
 	if err != nil {
 		return uuid.Nil, "", err
 	}
 
-	if generalConf == nil || generalConf.DefaultLLMProvider == "" {
+	if generalConf == nil || generalConf.DefaultModelProvider == "" {
 		return uuid.Nil, "", custom_errors.ErrMissingDefaultProvider
 	}
 
-	providerID, err := uuid.Parse(generalConf.DefaultLLMProvider)
+	providerID, err := uuid.Parse(generalConf.DefaultModelProvider)
 	if err != nil {
 		return uuid.Nil, "", err
 	}
 
-	return providerID, generalConf.DefaultLLMModel, nil
+	return providerID, generalConf.DefaultModel, nil
 }
 
 func newSessionState(sessionDomain *session.Info, messageDomains messages.ListMessage) *session.State {
@@ -51,23 +51,23 @@ func newSessionState(sessionDomain *session.Info, messageDomains messages.ListMe
 		OwnerID:            sessionDomain.OwnerID,
 		SessionID:          sessionDomain.ID,
 		ChannelID:          sessionDomain.ChannelID,
-		CurrentModel:       sessionDomain.CurrentLLMModel,
-		CurrentLLMProvider: sessionDomain.LLMProviderID,
+		CurrentModel:       sessionDomain.CurrentModel,
+		CurrentModelProvider: sessionDomain.ModelProviderID,
 		Messages:           messageDomains,
 	}
 }
 
-func (s *SessionManager) CreateUserSession(ctx context.Context, title string, ownerID string, llmProvider string, llmModel string) (*session.Info, error) {
-	var llmProviderId = uuid.Nil
+func (s *SessionManager) CreateUserSession(ctx context.Context, title string, ownerID string, modelProvider string, chatModel string) (*session.Info, error) {
+	var modelProviderId = uuid.Nil
 	var err error
 
-	if llmProvider != "" {
-		llmProviderId, err = uuid.Parse(llmProvider)
+	if modelProvider != "" {
+		modelProviderId, err = uuid.Parse(modelProvider)
 		if err != nil {
 			return nil, custom_errors.ErrCreateSessionFailed
 		}
 	} else {
-		llmProviderId, llmModel, err = s.getDefaultLLMSettings(ctx)
+		modelProviderId, chatModel, err = s.getDefaultModelSettings(ctx)
 		if err != nil {
 			if errors.Is(err, custom_errors.ErrMissingDefaultProvider) {
 				return nil, err
@@ -83,8 +83,8 @@ func (s *SessionManager) CreateUserSession(ctx context.Context, title string, ow
 		OwnerID:         ownerID,
 		OwnerType:       session.USER,
 		IsArchive:       false,
-		LLMProviderID:   llmProviderId,
-		CurrentLLMModel: llmModel,
+		ModelProviderID:   modelProviderId,
+		CurrentModel: chatModel,
 	}
 
 	newSession, err := s.sessionRepo.Create(ctx, s.sessionMapper.ToEntity(sessionInfo))
@@ -174,7 +174,7 @@ func (s *SessionManager) DuplicateUserSession(ctx context.Context, sessionID str
 		OwnerType:     original.OwnerType,
 		IsArchive:     false,
 		CurrentModel:  original.CurrentModel,
-		LLMProviderID: original.LLMProviderID,
+		ModelProviderID: original.ModelProviderID,
 	}
 	created, err := s.sessionRepo.Create(ctx, duplicate)
 	if err != nil {
@@ -204,18 +204,18 @@ func (s *SessionManager) DuplicateUserSession(ctx context.Context, sessionID str
 	return s.sessionMapper.ToDomain(duplicated), nil
 }
 
-func (s *SessionManager) UpdateUserSessionLLMSettings(ctx context.Context, sessionID string, ownerID string, providerID string, model string) (*session.Info, error) {
+func (s *SessionManager) UpdateUserSessionModelSettings(ctx context.Context, sessionID string, ownerID string, providerID string, model string) (*session.Info, error) {
 	if providerID == "" || model == "" {
-		return nil, custom_errors.ErrUpdateSessionLLMFailed
+		return nil, custom_errors.ErrUpdateSessionModelFailed
 	}
 
-	provider, err := s.llmProviderMgr.GetProviderByID(ctx, providerID)
+	provider, err := s.modelProviderMgr.GetProviderByID(ctx, providerID)
 	if err != nil {
 		return nil, err
 	}
 
 	if provider == nil {
-		return nil, custom_errors.ErrLLMProviderNotFound
+		return nil, custom_errors.ErrModelProviderNotFound
 	}
 
 	userSession, err := s.sessionRepo.FindUserSession(ctx, sessionID, ownerID)
@@ -228,13 +228,13 @@ func (s *SessionManager) UpdateUserSessionLLMSettings(ctx context.Context, sessi
 		return nil, custom_errors.ErrSessionNotFound
 	}
 
-	if err := s.sessionRepo.UpdateLLMSettings(ctx, sessionID, provider.ID, model); err != nil {
-		return nil, custom_errors.ErrUpdateSessionLLMFailed
+	if err := s.sessionRepo.UpdateModelSettings(ctx, sessionID, provider.ID, model); err != nil {
+		return nil, custom_errors.ErrUpdateSessionModelFailed
 	}
 
 	updatedSession, err := s.sessionRepo.FindUserSession(ctx, sessionID, ownerID)
 	if err != nil || updatedSession == nil {
-		return nil, custom_errors.ErrUpdateSessionLLMFailed
+		return nil, custom_errors.ErrUpdateSessionModelFailed
 	}
 
 	return s.sessionMapper.ToDomain(updatedSession), nil
@@ -312,7 +312,7 @@ func (s *SessionManager) PreparePluginSession(ctx context.Context, channelID str
 	}
 
 	if sessionEntity == nil {
-		llmProviderID, defaultModel, err := s.getDefaultLLMSettings(ctx)
+		modelProviderID, defaultModel, err := s.getDefaultModelSettings(ctx)
 		if err != nil {
 			if errors.Is(err, custom_errors.ErrMissingDefaultProvider) {
 				return nil, err
@@ -328,8 +328,8 @@ func (s *SessionManager) PreparePluginSession(ctx context.Context, channelID str
 			OwnerType:       session.PLUGIN,
 			IsArchive:       false,
 			ChannelID:       channelID,
-			LLMProviderID:   llmProviderID,
-			CurrentLLMModel: defaultModel,
+			ModelProviderID:   modelProviderID,
+			CurrentModel: defaultModel,
 		}
 
 		sessionEntity, err = s.sessionRepo.Create(ctx, s.sessionMapper.ToEntity(sessionInfo))
@@ -480,7 +480,7 @@ func NewSessionManager(
 	messageMapper *mappers.MessageMapper,
 	pluginRepo *repositories.PluginRepository,
 	configMgr *config_mgr.ConfigManager,
-	llmProviderMgr *llm_provider_mgr.LLMProviderManager,
+	modelProviderMgr *model_provider_mgr.ModelProviderManager,
 ) *SessionManager {
 	return &SessionManager{
 		sessionRepo:    sessionRepo,
@@ -490,6 +490,6 @@ func NewSessionManager(
 		messageMapper:  messageMapper,
 		pluginRepo:     pluginRepo,
 		configMgr:      configMgr,
-		llmProviderMgr: llmProviderMgr,
+		modelProviderMgr: modelProviderMgr,
 	}
 }

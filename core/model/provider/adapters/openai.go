@@ -243,6 +243,29 @@ func (o *OpenAICompatibleAdapter) GetModels(ctx context.Context) ([]string, erro
 	return result, nil
 }
 
+func (o *OpenAICompatibleAdapter) Embed(ctx context.Context, model string, inputs []string) ([][]float32, error) {
+	resp, err := o.Client.Embeddings.New(ctx, openai.EmbeddingNewParams{
+		Input: openai.EmbeddingNewParamsInputUnion{
+			OfArrayOfStrings: inputs,
+		},
+		Model: openai.EmbeddingModel(model),
+	})
+	if err != nil {
+		o.logger.Error("embed error", "error", err)
+		return nil, custom_errors.ErrModelProviderAdapter
+	}
+
+	result := make([][]float32, 0, len(resp.Data))
+	for _, item := range resp.Data {
+		vec := make([]float32, len(item.Embedding))
+		for i, v := range item.Embedding {
+			vec[i] = float32(v)
+		}
+		result = append(result, vec)
+	}
+	return result, nil
+}
+
 func NewOpenAICompatibleAdapter(baseURL, APIKey string, Models []string, logger *logger.BaseLogger) *OpenAICompatibleAdapter {
 	client := openai.NewClient(option.WithAPIKey(APIKey), option.WithBaseURL(baseURL))
 

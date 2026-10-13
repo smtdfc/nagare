@@ -18,9 +18,9 @@ func TestExecutor_HandleError(t *testing.T) {
 	}{
 		{"429", custom_errors.ErrModelQuotaExceed},
 		{"402", custom_errors.ErrModelPaymentRequired},
-		{"500", custom_errors.ErrLLMProviderAdapter},
-		{"503", custom_errors.ErrLLMProviderAdapter},
-		{"504", custom_errors.ErrLLMProviderAdapter},
+		{"500", custom_errors.ErrModelProviderAdapter},
+		{"503", custom_errors.ErrModelProviderAdapter},
+		{"504", custom_errors.ErrModelProviderAdapter},
 	}
 
 	for _, tc := range tests {

@@ -8,7 +8,7 @@ import (
 type State struct {
 	SessionID          uuid.UUID
 	CurrentModel       string
-	CurrentLLMProvider uuid.UUID
+	CurrentModelProvider uuid.UUID
 	ChannelID          string
 	Messages           messages.ListMessage
 	NextCursor         string

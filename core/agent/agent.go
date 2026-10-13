@@ -4,7 +4,7 @@ import (
 	"context"
 
 	context2 "github.com/smtdfc/nagare/core/context"
-	"github.com/smtdfc/nagare/core/llm/provider"
+	"github.com/smtdfc/nagare/core/model/provider"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/tool/manager"
@@ -18,7 +18,7 @@ type InvokeOption struct {
 type Agent struct {
 	toolMgr    *manager.ToolManager
 	model      string
-	llmAdapter provider.LLMProviderAdapter
+	modelAdapter provider.ModelProviderAdapter
 	executor   *Executor
 	state      *State
 	logger     *logger.BaseLogger
@@ -27,12 +27,12 @@ type Agent struct {
 func (a *Agent) Reset() *Agent {
 	a.model = ""
 	a.state.Reset()
-	a.llmAdapter = nil
+	a.modelAdapter = nil
 	return a
 }
 
-func (a *Agent) WithLLMAdapter(adapter provider.LLMProviderAdapter) *Agent {
-	a.llmAdapter = adapter
+func (a *Agent) WithModelAdapter(adapter provider.ModelProviderAdapter) *Agent {
+	a.modelAdapter = adapter
 	return a
 }
 
@@ -57,7 +57,7 @@ func (a *Agent) Invoke(ctx context.Context, inputMessages messages.ListMessage, 
 			ectx.SessionID = options.SessionID
 		}
 
-		a.executor.Execute(ectx, model, a.llmAdapter, output)
+		a.executor.Execute(ectx, model, a.modelAdapter, output)
 	})()
 	return output, nil
 }
@@ -70,7 +70,7 @@ func NewAgent(toolMgr *manager.ToolManager, logger *logger.BaseLogger) *Agent {
 	state := NewAgentState()
 	return &Agent{
 		model:      "",
-		llmAdapter: nil,
+		modelAdapter: nil,
 		toolMgr:    toolMgr,
 		executor:   NewAgentExecutor(state, toolMgr, logger),
 		state:      state,

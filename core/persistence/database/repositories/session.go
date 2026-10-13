@@ -21,7 +21,7 @@ func (s *SessionRepository) FindByID(ctx context.Context, id string) (*entities.
 	var session entities.Session
 	err := s.db.WithContext(ctx).
 		Where("id = ?", id).
-		Preload("LLMProvider").
+		Preload("ModelProvider").
 		First(&session).Error
 
 	if err != nil {
@@ -98,7 +98,7 @@ func (s *SessionRepository) FindByChannelID(ctx context.Context, ownerType strin
 	var session *entities.Session
 	err := s.db.WithContext(ctx).
 		Where("owner_type = ? AND owner_id = ? AND channel_id = ?", ownerType, ownerID, channelID).
-		Preload("LLMProvider").
+		Preload("ModelProvider").
 		First(&session).Error
 
 	if err != nil {
@@ -137,20 +137,20 @@ func (s *SessionRepository) Update(ctx context.Context, session *entities.Sessio
 	return nil
 }
 
-func (s *SessionRepository) UpdateLLMSettings(ctx context.Context, sessionID string, providerID uuid.UUID, model string) error {
+func (s *SessionRepository) UpdateModelSettings(ctx context.Context, sessionID string, providerID uuid.UUID, model string) error {
 	result := s.db.WithContext(ctx).
 		Model(&entities.Session{}).
 		Where("id = ?", sessionID).
 		Updates(map[string]any{
-			"llm_provider_id": providerID,
+			"model_provider_id": providerID,
 			"current_model":   model,
 		})
 	if result.Error != nil {
-		s.logger.Error("failed to update session LLM settings", "id", sessionID, "error", result.Error)
+		s.logger.Error("failed to update session model settings", "id", sessionID, "error", result.Error)
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return errors.New("session not found to update LLM settings")
+		return errors.New("session not found to update model settings")
 	}
 
 	return nil
@@ -174,7 +174,7 @@ func (s *SessionRepository) FindUserSession(ctx context.Context, sessionId strin
 	var session entities.Session
 	err := s.db.WithContext(ctx).
 		Where("owner_type = ? AND owner_id = ? AND id = ?", "user", ownerID, sessionId).
-		Preload("LLMProvider").
+		Preload("ModelProvider").
 		First(&session).Error
 
 	if err != nil {
@@ -193,7 +193,7 @@ func (s *SessionRepository) FindPluginSession(ctx context.Context, sessionId str
 	var session entities.Session
 	err := s.db.WithContext(ctx).
 		Where("owner_type = ? AND owner_id= ? AND id = ?", "plugin", pluginId, sessionId).
-		Preload("LLMProvider").
+		Preload("ModelProvider").
 		First(&session).Error
 
 	if err != nil {
@@ -212,7 +212,7 @@ func (s *SessionRepository) FindSessionWithMessages(ctx context.Context, session
 	var session entities.Session
 
 	err := s.db.WithContext(ctx).
-		Preload("LLMProvider").
+		Preload("ModelProvider").
 		Preload("Messages", func(db *gorm.DB) *gorm.DB {
 			return db.Order("created_at ASC, rowid ASC")
 		}).
@@ -233,7 +233,7 @@ func (s *SessionRepository) FindUserSessionWithMessages(ctx context.Context, ses
 	var session entities.Session
 
 	err := s.db.WithContext(ctx).
-		Preload("LLMProvider").
+		Preload("ModelProvider").
 		Preload("Messages", func(db *gorm.DB) *gorm.DB {
 			return db.Order("created_at ASC, rowid ASC")
 		}).
@@ -254,7 +254,7 @@ func (s *SessionRepository) FindPluginSessionWithMessages(ctx context.Context, s
 	var session entities.Session
 
 	err := s.db.WithContext(ctx).
-		Preload("LLMProvider").
+		Preload("ModelProvider").
 		Preload("Messages", func(db *gorm.DB) *gorm.DB {
 			return db.Order("created_at ASC, rowid ASC")
 		}).

@@ -1,20 +1,20 @@
 package mappers
 
 import (
-	"github.com/smtdfc/nagare/core/llm/provider"
+	"github.com/smtdfc/nagare/core/model/provider"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
 type SessionMapper struct {
-	llmProviderMapper *LLMProviderMapper
+	modelProviderMapper *ModelProviderMapper
 }
 
 // @Injectable
-func NewSessionMapper(llmProviderMapper *LLMProviderMapper) *SessionMapper {
+func NewSessionMapper(modelProviderMapper *ModelProviderMapper) *SessionMapper {
 	return &SessionMapper{
-		llmProviderMapper: llmProviderMapper,
+		modelProviderMapper: modelProviderMapper,
 	}
 }
 
@@ -22,9 +22,9 @@ func (s *SessionMapper) ToDomain(entity *entities.Session) *session.Info {
 	if entity == nil {
 		return nil
 	}
-	var providerInfo *provider.LLMProviderInfo
-	if entity.LLMProvider != nil {
-		providerInfo = s.llmProviderMapper.ToProviderInfo(entity.LLMProvider)
+	var providerInfo *provider.ModelProviderInfo
+	if entity.ModelProvider != nil {
+		providerInfo = s.modelProviderMapper.ToProviderInfo(entity.ModelProvider)
 	}
 
 	return &session.Info{
@@ -34,9 +34,9 @@ func (s *SessionMapper) ToDomain(entity *entities.Session) *session.Info {
 		OwnerType:       session.GetOwnerType(entity.OwnerType),
 		IsArchive:       entity.IsArchive,
 		ChannelID:       entity.ChannelID,
-		CurrentLLMModel: entity.CurrentModel,
-		LLMProviderID:   entity.LLMProviderID,
-		LLMProvider:     providerInfo,
+		CurrentModel: entity.CurrentModel,
+		ModelProviderID:   entity.ModelProviderID,
+		ModelProvider:     providerInfo,
 	}
 }
 
@@ -48,8 +48,8 @@ func (s *SessionMapper) ToEntity(domain *session.Info) *entities.Session {
 		OwnerType:     string(domain.OwnerType),
 		IsArchive:     domain.IsArchive,
 		ChannelID:     domain.ChannelID,
-		CurrentModel:  domain.CurrentLLMModel,
-		LLMProviderID: domain.LLMProviderID,
+		CurrentModel:  domain.CurrentModel,
+		ModelProviderID: domain.ModelProviderID,
 	}
 }
 
