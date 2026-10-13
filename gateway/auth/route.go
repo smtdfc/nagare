@@ -13,14 +13,14 @@ type RouteInitializer func(app *fiber.App, ws *websocket.Coordinator)
 
 // @Injectable
 func NewRouteInitializer(
-	llmProviderController *Controller,
+	authController *Controller,
 	appConfig *config.Config,
 	authGuard *guards.AuthGuard,
 ) RouteInitializer {
 	authMiddleware := middlewares.AuthMiddlewareProvider(appConfig, authGuard)
 
 	return func(app *fiber.App, ws *websocket.Coordinator) {
-		app.Get(rest.CheckAuthStateEndpoint, authMiddleware, llmProviderController.Check)
+		app.Get(rest.CheckAuthStateEndpoint, authMiddleware, authController.Check)
 
 	}
 }

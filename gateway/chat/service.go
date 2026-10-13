@@ -18,20 +18,20 @@ func toSessionDTO(s *session.Info) *rest.Session {
 	if s == nil {
 		return nil
 	}
-	var llmProvider *rest.LLMProviderInfo
-	if s.LLMProvider != nil {
-		llmProvider = &rest.LLMProviderInfo{
-			ID:         s.LLMProvider.ID.String(),
-			Name:       s.LLMProvider.Name,
-			Compatible: s.LLMProvider.Compatible.ToString(),
+	var modelProvider *rest.ModelProviderInfo
+	if s.ModelProvider != nil {
+		modelProvider = &rest.ModelProviderInfo{
+			ID:         s.ModelProvider.ID.String(),
+			Name:       s.ModelProvider.Name,
+			Compatible: s.ModelProvider.Compatible.ToString(),
 		}
 	}
 	return &rest.Session{
 		ID:                 s.ID.String(),
 		Title:              s.Title,
 		IsArchive:          s.IsArchive,
-		CurrentLLMModel:    s.CurrentLLMModel,
-		CurrentLLMProvider: llmProvider,
+		CurrentModel:    s.CurrentModel,
+		CurrentModelProvider: modelProvider,
 	}
 }
 
@@ -66,7 +66,7 @@ func (c *Service) SendMessage(ctx context.Context, ownerID string, request *rest
 }
 
 func (c *Service) CreateSession(ctx context.Context, ownerID string, request *rest.CreateChatSessionRequest) (*rest.CreateChatSessionResponse, error) {
-	chatSession, err := c.sessionMgr.CreateUserSession(ctx, request.Title, ownerID, request.CurrentLLMProvider, request.CurrentLLMModel)
+	chatSession, err := c.sessionMgr.CreateUserSession(ctx, request.Title, ownerID, request.CurrentModelProvider, request.CurrentModel)
 	if err != nil {
 		return nil, err
 	}
@@ -133,19 +133,19 @@ func (c *Service) GetSession(ctx context.Context, ownerID string, sessionID stri
 	}, nil
 }
 
-func (c *Service) UpdateLLMSettings(ctx context.Context, ownerID string, sessionID string, request *rest.UpdateChatSessionLLMSettingsRequest) (*rest.UpdateChatSessionLLMSettingsResponse, error) {
-	chatSession, err := c.sessionMgr.UpdateUserSessionLLMSettings(
+func (c *Service) UpdateModelSettings(ctx context.Context, ownerID string, sessionID string, request *rest.UpdateChatSessionModelSettingsRequest) (*rest.UpdateChatSessionModelSettingsResponse, error) {
+	chatSession, err := c.sessionMgr.UpdateUserSessionModelSettings(
 		ctx,
 		sessionID,
 		ownerID,
-		request.CurrentLLMProvider,
-		request.CurrentLLMModel,
+		request.CurrentModelProvider,
+		request.CurrentModel,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return &rest.UpdateChatSessionLLMSettingsResponse{
+	return &rest.UpdateChatSessionModelSettingsResponse{
 		Session: toSessionDTO(chatSession),
 	}, nil
 }

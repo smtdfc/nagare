@@ -21,8 +21,8 @@ func (s *Service) SetGeneralSettings(ctx context.Context, request *rest.SetGener
 	}
 
 	generalConfig := &config.GeneralConfig{
-		DefaultLLMProvider: request.GeneralSettings.DefaultLLMProvider,
-		DefaultLLMModel:    request.GeneralSettings.DefaultLLMModel,
+		DefaultModelProvider: request.GeneralSettings.DefaultModelProvider,
+		DefaultModel:    request.GeneralSettings.DefaultModel,
 	}
 
 	err := s.configMgr.SetGeneralConfig(ctx, generalConfig)
@@ -42,8 +42,8 @@ func (s *Service) GetGeneralSettings(ctx context.Context) (*rest.GetGeneralSetti
 
 	return &rest.GetGeneralSettingsResponse{
 		GeneralSettings: &rest.GeneralSettings{
-			DefaultLLMModel:    generalConfig.DefaultLLMModel,
-			DefaultLLMProvider: generalConfig.DefaultLLMProvider,
+			DefaultModel:    generalConfig.DefaultModel,
+			DefaultModelProvider: generalConfig.DefaultModelProvider,
 		},
 	}, nil
 }

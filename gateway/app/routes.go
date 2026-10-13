@@ -10,7 +10,7 @@ import (
 	"github.com/smtdfc/nagare/gateway/auth"
 	"github.com/smtdfc/nagare/gateway/chat"
 	"github.com/smtdfc/nagare/gateway/credential"
-	"github.com/smtdfc/nagare/gateway/llm_provider"
+	"github.com/smtdfc/nagare/gateway/model_provider"
 	"github.com/smtdfc/nagare/gateway/plugin"
 	"github.com/smtdfc/nagare/gateway/settings"
 )
@@ -28,14 +28,14 @@ func SetupRoutes(
 	chatRoutes chat.RouteInitializer,
 	authRoutes auth.RouteInitializer,
 	credentialRoutes credential.RouteInitializer,
-	llmProviderRoutes llm_provider.LLMProviderRouteInitializer,
+	modelProviderRoutes model_provider.ModelProviderRouteInitializer,
 	pluginRoutes plugin.RouteInitializer,
 	settingsRoutes settings.RouteInitializer,
 ) *Routes {
 
 	chatRoutes(app.fiberApp, app.wsCoordinator)
 	credentialRoutes(app.fiberApp, app.wsCoordinator)
-	llmProviderRoutes(app.fiberApp, app.wsCoordinator)
+	modelProviderRoutes(app.fiberApp, app.wsCoordinator)
 	pluginRoutes(app.fiberApp, app.wsCoordinator)
 	settingsRoutes(app.fiberApp, app.wsCoordinator)
 	authRoutes(app.fiberApp, app.wsCoordinator)

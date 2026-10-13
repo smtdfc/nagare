@@ -27,7 +27,7 @@ func NewRouteInitializer(
 		app.Get(rest.ListChatSessionsEndpoint, authMiddleware, chatController.ListSessions)
 		app.Get(rest.GetChatHistoryEndpoint, authMiddleware, chatController.History)
 		app.Get(rest.GetChatSessionEndpoint, authMiddleware, chatController.GetSession)
-		app.Post(rest.UpdateChatSessionLLMSettingsEndpoint, authMiddleware, chatController.UpdateLLMSettings)
+		app.Post(rest.UpdateChatSessionModelSettingsEndpoint, authMiddleware, chatController.UpdateModelSettings)
 		app.Delete(rest.DeleteChatSessionEndpoint, authMiddleware, chatController.DeleteSession)
 		app.Post(rest.ArchiveChatSessionEndpoint, authMiddleware, chatController.ArchiveSession)
 		app.Post(rest.DuplicateChatSessionEndpoint, authMiddleware, chatController.DuplicateSession)

@@ -113,18 +113,18 @@ func (c *Controller) GetSession(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, data, 200)
 }
 
-func (c *Controller) UpdateLLMSettings(ctx fiber.Ctx) error {
+func (c *Controller) UpdateModelSettings(ctx fiber.Ctx) error {
 	ownerID, err := authenticatedUserID(ctx)
 	if err != nil {
 		return err
 	}
 
-	request, err := utils.ParseBody[*rest.UpdateChatSessionLLMSettingsRequest](ctx)
+	request, err := utils.ParseBody[*rest.UpdateChatSessionModelSettingsRequest](ctx)
 	if err != nil {
 		return err
 	}
 
-	data, err := c.chatService.UpdateLLMSettings(ctx, ownerID, ctx.Params("id"), request)
+	data, err := c.chatService.UpdateModelSettings(ctx, ownerID, ctx.Params("id"), request)
 	if err != nil {
 		return err
 	}
