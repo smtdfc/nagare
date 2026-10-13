@@ -23,9 +23,9 @@ import {
   SendChatMessageEndpoint,
   type SendChatMessageResponse,
   type Session,
-  UpdateChatSessionLLMSettingsEndpoint,
-  type UpdateChatSessionLLMSettingsRequest,
-  type UpdateChatSessionLLMSettingsResponse,
+  UpdateChatSessionModelSettingsEndpoint,
+  type UpdateChatSessionModelSettingsRequest,
+  type UpdateChatSessionModelSettingsResponse,
 } from "@nagare-app/dtos";
 import { catchError } from "./lib/errors.js";
 import type { Message } from "@nagare-app/messages";
@@ -71,18 +71,26 @@ export class ChatService {
     }
   }
 
-  static async updateChatSessionLLMSettings(
+  static async updateChatSessionModelSettings(
     id: string,
-    payload: UpdateChatSessionLLMSettingsRequest,
+    payload: UpdateChatSessionModelSettingsRequest,
   ) {
     try {
       const response = await instance.post<
-        ApiResponse<UpdateChatSessionLLMSettingsResponse>
-      >(UpdateChatSessionLLMSettingsEndpoint.replace(":id", id), payload);
+        ApiResponse<UpdateChatSessionModelSettingsResponse>
+      >(UpdateChatSessionModelSettingsEndpoint.replace(":id", id), payload);
       return response.data.data.session!;
     } catch (error) {
       catchError(error);
     }
+  }
+
+  /** @deprecated use updateChatSessionModelSettings instead */
+  static async updateChatSessionLLMSettings(
+    id: string,
+    payload: UpdateChatSessionModelSettingsRequest,
+  ) {
+    return ChatService.updateChatSessionModelSettings(id, payload);
   }
 
   static async deleteChatSession(id: string) {
