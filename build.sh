@@ -79,4 +79,7 @@ dix wire --workspace
 go build -o "../$DIST_DIR/nagare-gateway${exe_ext}"
 cd - > /dev/null
 
+echo "Building Desktop app"
+pnpm desktop:build
+cp client/desktop/bin/nagare-desktop dist/
 echo "Build complete!"
