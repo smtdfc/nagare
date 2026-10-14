@@ -57,7 +57,13 @@ if [ -d "$LOCAL_DIST" ] && [ -f "$LOCAL_DIST/nagare" ]; then
         echo "Notice: Local Gateway binary not found in $LOCAL_DIST, skipping."
     fi
 
-    echo "========================================="
+    if [ -f "$LOCAL_DIST/nagare-desktop" ]; then
+        install_binary "$LOCAL_DIST/nagare-desktop" "$INSTALL_PATH/nagare-desktop" "Nagare Desktop (local)"
+    else
+        echo "Notice: Local Nagare desktop binary not found in $LOCAL_DIST, skipping."
+    fi
+
+    echo "=====================nagare-desktop ===================="
     echo " Nagare installation completed!"
     echo "========================================="
     exit 0
@@ -100,6 +106,12 @@ if curl -sL -f "$ARCHIVE_URL" -o "$TMP_DIR/$ARCHIVE_NAME"; then
         install_binary "$TMP_DIR/nagare-gateway" "$INSTALL_PATH/nagare-gateway" "Gateway"
     else
         echo "Notice: 'nagare-gateway' binary not found in the archive, skipping."
+    fi
+
+    if [ -f "$TMP_DIR/nagare-desktop" ]; then
+        install_binary "$TMP_DIR/nagare-desktop" "$INSTALL_PATH/nagare-desktop" "Nagare Desktop"
+    else
+        echo "Notice: 'nagare-desktop' binary not found in the archive, skipping."
     fi
 else
     echo "Error: Could not download release archive for this configuration from GitHub."
