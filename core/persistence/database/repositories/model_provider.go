@@ -27,7 +27,7 @@ func (l *ModelProviderRepository) FindAll(ctx context.Context) ([]*entities.Mode
 
 func (l *ModelProviderRepository) FindByID(ctx context.Context, id string) (*entities.ModelProvider, error) {
 	var provider entities.ModelProvider
-	err := l.db.Where("id = ?", id).WithContext(ctx).First(&provider).Preload("Credential").Error
+	err := l.db.Where("id = ?", id).WithContext(ctx).Preload("Credential").First(&provider).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil

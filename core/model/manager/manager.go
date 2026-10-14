@@ -105,13 +105,13 @@ func (m *ModelProviderManager) FetchAvailableModels(ctx context.Context, id stri
 }
 
 func (m *ModelProviderManager) GetAdapter(provider *model_provider.ModelProviderConfig) (model_provider.ModelProviderAdapter, error) {
+
 	switch provider.Compatible {
 	case model_provider.OpenAICompatible:
 		apiKey := provider.ApiKey
 		if provider.ApiKey == "" && provider.Credential != nil {
 			apiKey = provider.Credential.ApiKey
 		}
-
 		return adapters.NewOpenAICompatibleAdapter(
 			provider.BaseURL,
 			apiKey,
