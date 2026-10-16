@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/smtdfc/nagare/dtos/websocket"
+	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 )
 
 func TestConnectorSendWithoutConnection(t *testing.T) {
-	connector := NewConnector(func(p *websocket.Payload[any]) {})
+	connector := NewConnector(func(p *plugin_dtos.Payload[any]) {})
 	err := connector.Send("test.event", "data", "req-1")
 	if !errors.Is(err, ErrConnectionNotReady) {
 		t.Fatalf("expected ErrConnectionNotReady, got %v", err)

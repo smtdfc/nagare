@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/smtdfc/nagare/dtos/websocket"
+	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 )
 
 type sampleData struct {
@@ -20,7 +20,7 @@ func TestGetData(t *testing.T) {
 	}
 
 	// Test valid payload
-	payload := &websocket.Payload[any]{
+	payload := &plugin_dtos.Payload[any]{
 		Event: "test.event",
 		Data: map[string]interface{}{
 			"message": "hello",

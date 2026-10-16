@@ -9,9 +9,8 @@ import (
 	"sync"
 	"time"
 
-	plugin_dtos "github.com/smtdfc/nagare/dtos/plugin"
-	"github.com/smtdfc/nagare/dtos/websocket"
 	"github.com/smtdfc/nagare/pkgs/ipc"
+	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 	"github.com/smtdfc/nagare/plugin/metadata"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
@@ -23,7 +22,7 @@ type PluginClient struct {
 	ConfigDir             string
 	Logger                *slog.Logger
 	connector             *Connector
-	pendingRequests       map[string]chan *websocket.Payload[any]
+	pendingRequests       map[string]chan *plugin_dtos.Payload[any]
 	tools                 []PluginTool
 	OnReceivedChatMessage func(sessionID string, channelID string, chunk string)
 }
@@ -49,7 +48,7 @@ func (p *PluginClient) Start(ctx context.Context, onStart func()) error {
 	return p.connector.Wait(ctx)
 }
 
-func (p *PluginClient) handleEvent(payload *websocket.Payload[any]) {
+func (p *PluginClient) handleEvent(payload *plugin_dtos.Payload[any]) {
 	switch payload.Event {
 	case
 		// Handshake
@@ -72,6 +71,10 @@ func (p *PluginClient) handleEvent(payload *websocket.Payload[any]) {
 		plugin_dtos.ResetChatChannelSuccessEvent,
 		plugin_dtos.ResetChatChannelFailedEvent,
 
+		// Get model providers
+		plugin_dtos.GetModelProvidersSuccessEvent,
+		plugin_dtos.GetModelProvidersFailedEvent,
+
 		// Register tool categories
 		plugin_dtos.RegisterToolCategoriesSuccessEvent,
 		plugin_dtos.RegisterToolCategoriesFailedEvent:
@@ -85,8 +88,8 @@ func (p *PluginClient) handleEvent(payload *websocket.Payload[any]) {
 	case plugin_dtos.PluginToolCallEvent:
 		go p.handlePluginToolCall(payload)
 		return
-	case websocket.ReceivedChatMessageEvent:
-		d, err := GetData[websocket.ReceivedChatMessageEventPayload](payload)
+	case plugin_dtos.ReceivedChatMessageEvent:
+		d, err := GetData[plugin_dtos.ReceivedChatMessageEventPayload](payload)
 		if err != nil || d == nil {
 			p.Logger.Warn("failed to parse ReceivedChatMessageEvent", "error", err)
 			return
@@ -98,7 +101,7 @@ func (p *PluginClient) handleEvent(payload *websocket.Payload[any]) {
 	}
 }
 
-func (p *PluginClient) handlePluginToolCall(payload *websocket.Payload[any]) {
+func (p *PluginClient) handlePluginToolCall(payload *plugin_dtos.Payload[any]) {
 	call, err := GetData[plugin_dtos.PluginToolCallEventPayload](payload)
 	if err != nil {
 		p.sendPluginToolResult(payload.RequestID, "", err.Error())
@@ -159,7 +162,7 @@ func NewPlugin() *PluginClient {
 
 	p := &PluginClient{
 		ConnectConfig:         &ConnectConfig{},
-		pendingRequests:       make(map[string]chan *websocket.Payload[any]),
+		pendingRequests:       make(map[string]chan *plugin_dtos.Payload[any]),
 		OnReceivedChatMessage: func(sessionID string, _ string, chunk string) {},
 		Logger:                slog.New(handler),
 		tools:                 make([]PluginTool, 0),

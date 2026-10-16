@@ -6,19 +6,19 @@ import (
 	"net"
 	"sync"
 
-	"github.com/smtdfc/nagare/dtos/websocket"
 	"github.com/smtdfc/nagare/pkgs/ipc"
+	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 )
 
 type Connector struct {
 	conn     net.Conn
 	mu       sync.Mutex
-	onEvent  func(*websocket.Payload[any])
+	onEvent  func(*plugin_dtos.Payload[any])
 	done     chan struct{}
 	doneOnce sync.Once
 }
 
-func NewConnector(onEvent func(*websocket.Payload[any])) *Connector {
+func NewConnector(onEvent func(*plugin_dtos.Payload[any])) *Connector {
 	return &Connector{
 		onEvent: onEvent,
 		done:    make(chan struct{}),
@@ -49,7 +49,7 @@ func (c *Connector) listenLoop() {
 		}
 
 		if c.onEvent != nil {
-			var payload websocket.Payload[any]
+			var payload plugin_dtos.Payload[any]
 			if err := json.Unmarshal(msg, &payload); err != nil {
 				continue
 			}
@@ -67,7 +67,7 @@ func (c *Connector) Wait(ctx context.Context) error {
 	}
 }
 
-func (c *Connector) Send(eventType websocket.Event, data any, requestID string) error {
+func (c *Connector) Send(eventType plugin_dtos.Event, data any, requestID string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -75,7 +75,7 @@ func (c *Connector) Send(eventType websocket.Event, data any, requestID string) 
 		return ErrConnectionNotReady
 	}
 
-	payload := websocket.Payload[any]{
+	payload := plugin_dtos.Payload[any]{
 		Event:     eventType,
 		Data:      data,
 		RequestID: requestID,

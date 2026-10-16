@@ -7,10 +7,10 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/smtdfc/nagare/dtos/websocket"
+	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 )
 
-func GetData[T any](payload *websocket.Payload[any]) (*T, error) {
+func GetData[T any](payload *plugin_dtos.Payload[any]) (*T, error) {
 	if payload == nil || payload.Data == nil {
 		return nil, fmt.Errorf("payload or data is nil")
 	}
@@ -28,7 +28,7 @@ func GetData[T any](payload *websocket.Payload[any]) (*T, error) {
 	return &result, nil
 }
 
-type WebsocketActionResult[T any, F any] struct {
+type plugin_dtosActionResult[T any, F any] struct {
 	IsSuccess bool
 	Data      *T
 	Error     *F
@@ -37,13 +37,13 @@ type WebsocketActionResult[T any, F any] struct {
 func sendAndWait[S any, F any, P any](
 	p *PluginClient,
 	ctx context.Context,
-	event websocket.Event,
+	event plugin_dtos.Event,
 	payload P,
-	failedEvent websocket.Event,
-	successEvent websocket.Event,
-) (*WebsocketActionResult[S, F], error) {
+	failedEvent plugin_dtos.Event,
+	successEvent plugin_dtos.Event,
+) (*plugin_dtosActionResult[S, F], error) {
 	requestID := uuid.New().String()
-	respChan := make(chan *websocket.Payload[any], 1)
+	respChan := make(chan *plugin_dtos.Payload[any], 1)
 
 	p.mu.Lock()
 	p.pendingRequests[requestID] = respChan
@@ -61,7 +61,7 @@ func sendAndWait[S any, F any, P any](
 		return nil, err
 	}
 
-	result := &WebsocketActionResult[S, F]{
+	result := &plugin_dtosActionResult[S, F]{
 		IsSuccess: false,
 		Data:      nil,
 		Error:     nil,

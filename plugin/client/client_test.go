@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/smtdfc/nagare/dtos/websocket"
+	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 )
 
 func TestPluginClientNewAndHandleEvent(t *testing.T) {
@@ -22,8 +22,8 @@ func TestPluginClientNewAndHandleEvent(t *testing.T) {
 	}
 
 	// Test dispatching ReceivedChatMessageEvent
-	payload := &websocket.Payload[any]{
-		Event: websocket.ReceivedChatMessageEvent,
+	payload := &plugin_dtos.Payload[any]{
+		Event: plugin_dtos.ReceivedChatMessageEvent,
 		Data: map[string]interface{}{
 			"sessionID": "sess-1",
 			"channelID": "chan-1",

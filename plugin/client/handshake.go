@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	plugin_dtos "github.com/smtdfc/nagare/dtos/plugin"
+	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 )
 
 func (p *PluginClient) Handshake(ctx context.Context) error {
