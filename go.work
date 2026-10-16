@@ -1,4 +1,4 @@
-go 1.27.1
+go 1.27.2
 
 use (
 	./cli
@@ -14,10 +14,9 @@ use (
 	./pkgs/security
 	./pkgs/system
 	./plugin/builder
-	./plugin/built_ins/example
-	./plugin/built_ins/google-calendar
 	./plugin/built_ins/telegram
 	./plugin/client
+	./plugin/dtos
 	./plugin/metadata
 	./scripts
 )
