@@ -4,9 +4,9 @@ import (
 	"context"
 
 	context2 "github.com/smtdfc/nagare/core/context"
-	"github.com/smtdfc/nagare/core/model/provider"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/message"
+	"github.com/smtdfc/nagare/core/model_provider/provider"
 	"github.com/smtdfc/nagare/core/tool/manager"
 	"github.com/smtdfc/nagare/pkgs/messages"
 )
@@ -16,12 +16,12 @@ type InvokeOption struct {
 }
 
 type Agent struct {
-	toolMgr    *manager.ToolManager
-	model      string
+	toolMgr      *manager.ToolManager
+	model        string
 	modelAdapter provider.ModelProviderAdapter
-	executor   *Executor
-	state      *State
-	logger     *logger.BaseLogger
+	executor     *Executor
+	state        *State
+	logger       *logger.BaseLogger
 }
 
 func (a *Agent) Reset() *Agent {
@@ -69,11 +69,11 @@ func (a *Agent) DumpState() *State {
 func NewAgent(toolMgr *manager.ToolManager, logger *logger.BaseLogger) *Agent {
 	state := NewAgentState()
 	return &Agent{
-		model:      "",
+		model:        "",
 		modelAdapter: nil,
-		toolMgr:    toolMgr,
-		executor:   NewAgentExecutor(state, toolMgr, logger),
-		state:      state,
-		logger:     logger.With("module", "agent"),
+		toolMgr:      toolMgr,
+		executor:     NewAgentExecutor(state, toolMgr, logger),
+		state:        state,
+		logger:       logger.With("module", "agent"),
 	}
 }

@@ -9,8 +9,9 @@ import (
 type Feature string
 
 const (
-	ChatFeature Feature = "chat"
-	ToolFeature Feature = "plugin_tool"
+	ChatFeature          Feature = "chat"
+	ModelProviderFeature Feature = "model_provider"
+	ToolFeature          Feature = "plugin_tool"
 )
 
 func (p Feature) ToString() string {
@@ -27,6 +28,8 @@ func ParseFeatureString(raw string) []Feature {
 			features = append(features, ChatFeature)
 		case string(ToolFeature):
 			features = append(features, ToolFeature)
+		case string(ModelProviderFeature):
+			features = append(features, ModelProviderFeature)
 		}
 	}
 

@@ -2,33 +2,31 @@ package host
 
 import (
 	"context"
-	"slices"
 
 	"github.com/smtdfc/nagare/core/event_bus"
 	core_plugin "github.com/smtdfc/nagare/core/plugin"
 	tool_registry "github.com/smtdfc/nagare/core/tool/registry"
-	"github.com/smtdfc/nagare/dtos/plugin"
-	"github.com/smtdfc/nagare/dtos/websocket"
+	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 )
 
-func (h *PluginHost) handleRegisterPluginTool(conn *PluginConnection, payload *websocket.Payload[any]) {
+func (h *PluginHost) handleRegisterPluginTool(conn *PluginConnection, payload *plugin_dtos.Payload[any]) {
 	if conn.pluginID == "" {
-		_ = conn.Send(plugin.RegisterPluginToolFailedEvent, &plugin.RegisterPluginToolFailedEventPayload{
+		_ = conn.Send(plugin_dtos.RegisterPluginToolFailedEvent, &plugin_dtos.RegisterPluginToolFailedEventPayload{
 			Cause: "access denied",
 		}, payload.RequestID)
 		return
 	}
 
-	data, err := getPayloadData[plugin.RegisterPluginToolEventPayload](payload)
+	data, err := getPayloadData[plugin_dtos.RegisterPluginToolEventPayload](payload)
 	if err != nil {
-		_ = conn.Send(plugin.RegisterPluginToolFailedEvent, &plugin.RegisterPluginToolFailedEventPayload{
+		_ = conn.Send(plugin_dtos.RegisterPluginToolFailedEvent, &plugin_dtos.RegisterPluginToolFailedEventPayload{
 			Cause: "failed to parse payload",
 		}, payload.RequestID)
 		return
 	}
 
-	if !slices.Contains(conn.scopes, core_plugin.ToolFeature.ToString()) {
-		_ = conn.Send(plugin.RegisterPluginToolFailedEvent, &plugin.RegisterPluginToolFailedEventPayload{
+	if !RequireScopes(conn.scopes, core_plugin.ToolFeature) {
+		_ = conn.Send(plugin_dtos.RegisterPluginToolFailedEvent, &plugin_dtos.RegisterPluginToolFailedEventPayload{
 			Cause: "Plugin not supported this feature",
 		}, payload.RequestID)
 		return
@@ -45,27 +43,27 @@ func (h *PluginHost) handleRegisterPluginTool(conn *PluginConnection, payload *w
 		h.chatEventBus,
 	)
 
-	_ = conn.Send(plugin.RegisterPluginToolSuccessEvent, &plugin.RegisterPluginToolSuccessEventPayload{}, payload.RequestID)
+	_ = conn.Send(plugin_dtos.RegisterPluginToolSuccessEvent, &plugin_dtos.RegisterPluginToolSuccessEventPayload{}, payload.RequestID)
 }
 
-func (h *PluginHost) handleRegisterToolCategories(conn *PluginConnection, payload *websocket.Payload[any]) {
+func (h *PluginHost) handleRegisterToolCategories(conn *PluginConnection, payload *plugin_dtos.Payload[any]) {
 	if conn.pluginID == "" {
-		_ = conn.Send(plugin.RegisterToolCategoriesFailedEvent, &plugin.RegisterToolCategoriesFailedEventPayload{
+		_ = conn.Send(plugin_dtos.RegisterToolCategoriesFailedEvent, &plugin_dtos.RegisterToolCategoriesFailedEventPayload{
 			Cause: "access denied",
 		}, payload.RequestID)
 		return
 	}
 
-	data, err := getPayloadData[plugin.RegisterToolCategoriesEventPayload](payload)
+	data, err := getPayloadData[plugin_dtos.RegisterToolCategoriesEventPayload](payload)
 	if err != nil {
-		_ = conn.Send(plugin.RegisterToolCategoriesFailedEvent, &plugin.RegisterToolCategoriesFailedEventPayload{
+		_ = conn.Send(plugin_dtos.RegisterToolCategoriesFailedEvent, &plugin_dtos.RegisterToolCategoriesFailedEventPayload{
 			Cause: "failed to parse payload",
 		}, payload.RequestID)
 		return
 	}
 
-	if !slices.Contains(conn.scopes, core_plugin.ToolFeature.ToString()) {
-		_ = conn.Send(plugin.RegisterToolCategoriesFailedEvent, &plugin.RegisterToolCategoriesFailedEventPayload{
+	if !RequireScopes(conn.scopes, core_plugin.ToolFeature) {
+		_ = conn.Send(plugin_dtos.RegisterToolCategoriesFailedEvent, &plugin_dtos.RegisterToolCategoriesFailedEventPayload{
 			Cause: "Plugin not supported this feature",
 		}, payload.RequestID)
 		return
@@ -73,11 +71,11 @@ func (h *PluginHost) handleRegisterToolCategories(conn *PluginConnection, payloa
 
 	h.toolMgr.AddPluginToolCategories(conn.pluginID, data.Categories)
 	h.logger.Info("Registered plugin tool categories", "categories", data.Categories, "pluginID", conn.pluginID)
-	_ = conn.Send(plugin.RegisterToolCategoriesSuccessEvent, &plugin.RegisterToolCategoriesSuccessEventPayload{}, payload.RequestID)
+	_ = conn.Send(plugin_dtos.RegisterToolCategoriesSuccessEvent, &plugin_dtos.RegisterToolCategoriesSuccessEventPayload{}, payload.RequestID)
 }
 
-func (h *PluginHost) handlePluginToolCallResult(conn *PluginConnection, payload *websocket.Payload[any]) {
-	data, err := getPayloadData[plugin.PluginToolCallResultEventPayload](payload)
+func (h *PluginHost) handlePluginToolCallResult(conn *PluginConnection, payload *plugin_dtos.Payload[any]) {
+	data, err := getPayloadData[plugin_dtos.PluginToolCallResultEventPayload](payload)
 	if err != nil {
 		return
 	}

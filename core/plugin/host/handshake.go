@@ -3,14 +3,13 @@ package host
 import (
 	"context"
 
-	"github.com/smtdfc/nagare/dtos/plugin"
-	"github.com/smtdfc/nagare/dtos/websocket"
+	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 )
 
-func (h *PluginHost) handleHandshake(conn *PluginConnection, payload *websocket.Payload[any]) {
-	data, err := getPayloadData[plugin.HandshakeEventPayload](payload)
+func (h *PluginHost) handleHandshake(conn *PluginConnection, payload *plugin_dtos.Payload[any]) {
+	data, err := getPayloadData[plugin_dtos.HandshakeEventPayload](payload)
 	if err != nil {
-		_ = conn.Send(plugin.HandshakeFailedEvent, &plugin.HandshakeFailedEventPayload{
+		_ = conn.Send(plugin_dtos.HandshakeFailedEvent, &plugin_dtos.HandshakeFailedEventPayload{
 			Cause: "failed to parse payload",
 		}, payload.RequestID)
 		return
@@ -20,7 +19,7 @@ func (h *PluginHost) handleHandshake(conn *PluginConnection, payload *websocket.
 	pluginInfo, err := h.pluginMgr.ValidConnect(context.Background(), data.PackageName, data.ConnectCode)
 	if err != nil {
 		h.logger.Error("Handshake failed", "packageName", data.PackageName, "cause", err)
-		_ = conn.Send(plugin.HandshakeFailedEvent, &plugin.HandshakeFailedEventPayload{
+		_ = conn.Send(plugin_dtos.HandshakeFailedEvent, &plugin_dtos.HandshakeFailedEventPayload{
 			Cause: err.Error(),
 		}, payload.RequestID)
 		return
@@ -39,7 +38,7 @@ func (h *PluginHost) handleHandshake(conn *PluginConnection, payload *websocket.
 	h.connections[conn.pluginID] = conn
 	h.mu.Unlock()
 
-	err = conn.Send(plugin.HandshakeSuccessEvent, &plugin.HandshakeSuccessEventPayload{}, payload.RequestID)
+	err = conn.Send(plugin_dtos.HandshakeSuccessEvent, &plugin_dtos.HandshakeSuccessEventPayload{}, payload.RequestID)
 	if err != nil {
 		return
 	}

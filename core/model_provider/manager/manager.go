@@ -6,8 +6,8 @@ import (
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/mappers"
-	model_provider "github.com/smtdfc/nagare/core/model/provider"
-	"github.com/smtdfc/nagare/core/model/provider/adapters"
+	model_provider "github.com/smtdfc/nagare/core/model_provider/provider"
+	"github.com/smtdfc/nagare/core/model_provider/provider/adapters"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 )
 

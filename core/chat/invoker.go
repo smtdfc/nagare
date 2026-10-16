@@ -9,9 +9,9 @@ import (
 	config_mgr "github.com/smtdfc/nagare/core/config/manager"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/event_bus"
-	model_provider_mgr "github.com/smtdfc/nagare/core/model/manager"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/message"
+	model_provider_mgr "github.com/smtdfc/nagare/core/model_provider/manager"
 	"github.com/smtdfc/nagare/core/prompt"
 	"github.com/smtdfc/nagare/core/session"
 	session_mgr "github.com/smtdfc/nagare/core/session/manager"
@@ -20,14 +20,14 @@ import (
 )
 
 type AgentInvoker struct {
-	agentPool      *agent.Pool
-	sessionMgr     *session_mgr.SessionManager
+	agentPool        *agent.Pool
+	sessionMgr       *session_mgr.SessionManager
 	modelProviderMgr *model_provider_mgr.ModelProviderManager
-	configMgr      *config_mgr.ConfigManager
-	eventBus       *event_bus.CoreEventBus
-	adapterLogger  *logger.BaseLogger
-	toolMgr        *tool_mgr.ToolManager
-	logger         *logger.BaseLogger
+	configMgr        *config_mgr.ConfigManager
+	eventBus         *event_bus.CoreEventBus
+	adapterLogger    *logger.BaseLogger
+	toolMgr          *tool_mgr.ToolManager
+	logger           *logger.BaseLogger
 }
 
 type AgentInvokeParams struct {
@@ -198,13 +198,13 @@ func (a *AgentInvoker) Invoke(params *AgentInvokeParams) (message.ReadOnlyChanne
 // @Injectable
 func NewAgentInvoker(logger *logger.BaseLogger, agentPool *agent.Pool, modelProviderMgr *model_provider_mgr.ModelProviderManager, sessionMgr *session_mgr.SessionManager, configMgr *config_mgr.ConfigManager, eventBus *event_bus.CoreEventBus, toolMgr *tool_mgr.ToolManager) *AgentInvoker {
 	return &AgentInvoker{
-		agentPool:      agentPool,
-		sessionMgr:     sessionMgr,
-		configMgr:      configMgr,
+		agentPool:        agentPool,
+		sessionMgr:       sessionMgr,
+		configMgr:        configMgr,
 		modelProviderMgr: modelProviderMgr,
-		eventBus:       eventBus,
-		logger:         logger.With("module", "agent-invoker"),
-		adapterLogger:  logger.Clone(),
-		toolMgr:        toolMgr,
+		eventBus:         eventBus,
+		logger:           logger.With("module", "agent-invoker"),
+		adapterLogger:    logger.Clone(),
+		toolMgr:          toolMgr,
 	}
 }

@@ -1,7 +1,7 @@
 package mappers
 
 import (
-	"github.com/smtdfc/nagare/core/model/provider"
+	"github.com/smtdfc/nagare/core/model_provider/provider"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/pkgs/helpers"
@@ -34,21 +34,21 @@ func (s *SessionMapper) ToDomain(entity *entities.Session) *session.Info {
 		OwnerType:       session.GetOwnerType(entity.OwnerType),
 		IsArchive:       entity.IsArchive,
 		ChannelID:       entity.ChannelID,
-		CurrentModel: entity.CurrentModel,
-		ModelProviderID:   entity.ModelProviderID,
-		ModelProvider:     providerInfo,
+		CurrentModel:    entity.CurrentModel,
+		ModelProviderID: entity.ModelProviderID,
+		ModelProvider:   providerInfo,
 	}
 }
 
 func (s *SessionMapper) ToEntity(domain *session.Info) *entities.Session {
 	return &entities.Session{
-		ID:            domain.ID,
-		Title:         domain.Title,
-		OwnerID:       domain.OwnerID,
-		OwnerType:     string(domain.OwnerType),
-		IsArchive:     domain.IsArchive,
-		ChannelID:     domain.ChannelID,
-		CurrentModel:  domain.CurrentModel,
+		ID:              domain.ID,
+		Title:           domain.Title,
+		OwnerID:         domain.OwnerID,
+		OwnerType:       string(domain.OwnerType),
+		IsArchive:       domain.IsArchive,
+		ChannelID:       domain.ChannelID,
+		CurrentModel:    domain.CurrentModel,
 		ModelProviderID: domain.ModelProviderID,
 	}
 }

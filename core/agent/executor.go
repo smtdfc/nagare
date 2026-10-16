@@ -6,9 +6,9 @@ import (
 
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/custom_errors"
-	"github.com/smtdfc/nagare/core/model/provider"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/message"
+	"github.com/smtdfc/nagare/core/model_provider/provider"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/core/tool/manager"
 	"github.com/smtdfc/nagare/pkgs/helpers"

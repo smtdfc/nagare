@@ -3,9 +3,8 @@ package host
 import (
 	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/session"
-	"github.com/smtdfc/nagare/dtos/plugin"
-	"github.com/smtdfc/nagare/dtos/websocket"
 	"github.com/smtdfc/nagare/pkgs/helpers"
+	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 )
 
 func (h *PluginHost) forwardPluginToolCalls() {
@@ -34,7 +33,7 @@ func (h *PluginHost) forwardPluginToolCalls() {
 				continue
 			}
 
-			err := conn.Send(plugin.PluginToolCallEvent, plugin.PluginToolCallEventPayload{
+			err := conn.Send(plugin_dtos.PluginToolCallEvent, plugin_dtos.PluginToolCallEventPayload{
 				Name: call.Name,
 				Args: call.Args,
 			}, call.RequestID)
@@ -85,8 +84,8 @@ func (h *PluginHost) forwardChatChunks() {
 			}
 
 			_ = conn.Send(
-				websocket.ReceivedChatMessageEvent,
-				&websocket.ReceivedChatMessageEventPayload{
+				plugin_dtos.ReceivedChatMessageEvent,
+				&plugin_dtos.ReceivedChatMessageEventPayload{
 					SessionID: chunkPayload.SessionID,
 					Message:   chunkJSON,
 					ChannelID: chunkPayload.ChannelID,

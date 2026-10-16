@@ -288,7 +288,6 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) (*plugin
 		return nil, custom_errors.ErrInstallPluginFailed
 	}
 
-	fmt.Println("features", pluginMetadata.Features)
 	newPlugin := plugin.Plugin{
 		PackageName: pluginMetadata.PackageName,
 		Name:        pluginMetadata.Name,
@@ -299,7 +298,7 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) (*plugin
 		IsActive:    true,
 	}
 
-	_, err = p.pluginRepo.CreateOrUpdate(ctx, p.pluginMapper.ToEntity(&newPlugin))
+	pluginEntity, err := p.pluginRepo.CreateOrUpdate(ctx, p.pluginMapper.ToEntity(&newPlugin))
 	if err != nil {
 		p.logger.Error("Install plugin failed", "error", err, "plugin", pluginPath)
 		return nil, custom_errors.ErrInstallPluginFailed
@@ -311,7 +310,7 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) (*plugin
 		return nil, custom_errors.ErrStartPluginFailed
 	}
 
-	return &newPlugin, nil
+	return p.pluginMapper.ToDomain(pluginEntity), nil
 
 }
 

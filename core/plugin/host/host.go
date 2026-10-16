@@ -7,22 +7,23 @@ import (
 
 	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/logger"
+	provider_mgr "github.com/smtdfc/nagare/core/model_provider/manager"
 	"github.com/smtdfc/nagare/core/plugin/manager"
 	session_mgr "github.com/smtdfc/nagare/core/session/manager"
 	manager2 "github.com/smtdfc/nagare/core/tool/manager"
-	plugin_dtos "github.com/smtdfc/nagare/dtos/plugin"
-	"github.com/smtdfc/nagare/dtos/websocket"
 	"github.com/smtdfc/nagare/pkgs/ipc"
 	"github.com/smtdfc/nagare/pkgs/paths"
+	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 )
 
 type PluginHost struct {
-	pluginMgr    *manager.PluginManager
-	toolMgr      *manager2.ToolManager
-	sessionMgr   *session_mgr.SessionManager
-	chatEventBus *event_bus.CoreEventBus
-	logger       *logger.BaseLogger
-	socketPath   string
+	modelProvider *provider_mgr.ModelProviderManager
+	pluginMgr     *manager.PluginManager
+	toolMgr       *manager2.ToolManager
+	sessionMgr    *session_mgr.SessionManager
+	chatEventBus  *event_bus.CoreEventBus
+	logger        *logger.BaseLogger
+	socketPath    string
 
 	listener    net.Listener
 	mu          sync.RWMutex
@@ -124,7 +125,7 @@ func (h *PluginHost) handleConnection(conn net.Conn) {
 			break
 		}
 
-		var payload websocket.Payload[any]
+		var payload plugin_dtos.Payload[any]
 		if err := json.Unmarshal(msgBytes, &payload); err != nil {
 			h.logger.Error("Failed to unmarshal payload", "error", err)
 			continue
@@ -134,7 +135,7 @@ func (h *PluginHost) handleConnection(conn net.Conn) {
 	}
 }
 
-func (h *PluginHost) dispatch(pConn *PluginConnection, payload *websocket.Payload[any]) {
+func (h *PluginHost) dispatch(pConn *PluginConnection, payload *plugin_dtos.Payload[any]) {
 	switch payload.Event {
 	case plugin_dtos.HandshakeEvent:
 		h.handleHandshake(pConn, payload)
@@ -150,6 +151,8 @@ func (h *PluginHost) dispatch(pConn *PluginConnection, payload *websocket.Payloa
 		go h.handleRegisterToolCategories(pConn, payload)
 	case plugin_dtos.PluginToolCallResultEvent:
 		h.handlePluginToolCallResult(pConn, payload)
+	case plugin_dtos.GetModelProvidersEvent:
+		h.handleGetModelProviders(pConn, payload)
 	default:
 		h.logger.Warn("Unknown event received from plugin", "event", payload.Event, "pluginID", pConn.pluginID)
 	}
@@ -160,16 +163,18 @@ func NewPluginHost(
 	pluginMgr *manager.PluginManager,
 	sessionMgr *session_mgr.SessionManager,
 	toolMgr *manager2.ToolManager,
+	modelProvider *provider_mgr.ModelProviderManager,
 	chatEventBus *event_bus.CoreEventBus,
 	logger *logger.BaseLogger,
 ) *PluginHost {
 	return &PluginHost{
-		pluginMgr:    pluginMgr,
-		sessionMgr:   sessionMgr,
-		toolMgr:      toolMgr,
-		chatEventBus: chatEventBus,
-		logger:       logger.With("module", "plugin-host"),
-		connections:  make(map[string]*PluginConnection),
-		socketPath:   paths.PluginSocketPath,
+		pluginMgr:     pluginMgr,
+		sessionMgr:    sessionMgr,
+		toolMgr:       toolMgr,
+		chatEventBus:  chatEventBus,
+		modelProvider: modelProvider,
+		logger:        logger.With("module", "plugin-host"),
+		connections:   make(map[string]*PluginConnection),
+		socketPath:    paths.PluginSocketPath,
 	}
 }

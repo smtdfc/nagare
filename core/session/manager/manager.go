@@ -7,9 +7,9 @@ import (
 	"github.com/google/uuid"
 	config_mgr "github.com/smtdfc/nagare/core/config/manager"
 	"github.com/smtdfc/nagare/core/custom_errors"
-	model_provider_mgr "github.com/smtdfc/nagare/core/model/manager"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/mappers"
+	model_provider_mgr "github.com/smtdfc/nagare/core/model_provider/manager"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"github.com/smtdfc/nagare/core/session"
@@ -17,13 +17,13 @@ import (
 )
 
 type SessionManager struct {
-	logger         *logger.BaseLogger
-	pluginRepo     *repositories.PluginRepository
-	sessionRepo    *repositories.SessionRepository
-	messageRepo    *repositories.MessageRepository
-	sessionMapper  *mappers.SessionMapper
-	messageMapper  *mappers.MessageMapper
-	configMgr      *config_mgr.ConfigManager
+	logger           *logger.BaseLogger
+	pluginRepo       *repositories.PluginRepository
+	sessionRepo      *repositories.SessionRepository
+	messageRepo      *repositories.MessageRepository
+	sessionMapper    *mappers.SessionMapper
+	messageMapper    *mappers.MessageMapper
+	configMgr        *config_mgr.ConfigManager
 	modelProviderMgr *model_provider_mgr.ModelProviderManager
 }
 
@@ -47,13 +47,13 @@ func (s *SessionManager) getDefaultModelSettings(ctx context.Context) (uuid.UUID
 
 func newSessionState(sessionDomain *session.Info, messageDomains messages.ListMessage) *session.State {
 	return &session.State{
-		OwnerType:          sessionDomain.OwnerType,
-		OwnerID:            sessionDomain.OwnerID,
-		SessionID:          sessionDomain.ID,
-		ChannelID:          sessionDomain.ChannelID,
-		CurrentModel:       sessionDomain.CurrentModel,
+		OwnerType:            sessionDomain.OwnerType,
+		OwnerID:              sessionDomain.OwnerID,
+		SessionID:            sessionDomain.ID,
+		ChannelID:            sessionDomain.ChannelID,
+		CurrentModel:         sessionDomain.CurrentModel,
 		CurrentModelProvider: sessionDomain.ModelProviderID,
-		Messages:           messageDomains,
+		Messages:             messageDomains,
 	}
 }
 
@@ -83,8 +83,8 @@ func (s *SessionManager) CreateUserSession(ctx context.Context, title string, ow
 		OwnerID:         ownerID,
 		OwnerType:       session.USER,
 		IsArchive:       false,
-		ModelProviderID:   modelProviderId,
-		CurrentModel: chatModel,
+		ModelProviderID: modelProviderId,
+		CurrentModel:    chatModel,
 	}
 
 	newSession, err := s.sessionRepo.Create(ctx, s.sessionMapper.ToEntity(sessionInfo))
@@ -168,12 +168,12 @@ func (s *SessionManager) DuplicateUserSession(ctx context.Context, sessionID str
 	}
 
 	duplicate := &entities.Session{
-		ID:            uuid.New(),
-		Title:         original.Title + " (Copy)",
-		OwnerID:       original.OwnerID,
-		OwnerType:     original.OwnerType,
-		IsArchive:     false,
-		CurrentModel:  original.CurrentModel,
+		ID:              uuid.New(),
+		Title:           original.Title + " (Copy)",
+		OwnerID:         original.OwnerID,
+		OwnerType:       original.OwnerType,
+		IsArchive:       false,
+		CurrentModel:    original.CurrentModel,
 		ModelProviderID: original.ModelProviderID,
 	}
 	created, err := s.sessionRepo.Create(ctx, duplicate)
@@ -328,8 +328,8 @@ func (s *SessionManager) PreparePluginSession(ctx context.Context, channelID str
 			OwnerType:       session.PLUGIN,
 			IsArchive:       false,
 			ChannelID:       channelID,
-			ModelProviderID:   modelProviderID,
-			CurrentModel: defaultModel,
+			ModelProviderID: modelProviderID,
+			CurrentModel:    defaultModel,
 		}
 
 		sessionEntity, err = s.sessionRepo.Create(ctx, s.sessionMapper.ToEntity(sessionInfo))
@@ -483,13 +483,13 @@ func NewSessionManager(
 	modelProviderMgr *model_provider_mgr.ModelProviderManager,
 ) *SessionManager {
 	return &SessionManager{
-		sessionRepo:    sessionRepo,
-		sessionMapper:  sessionMapper,
-		messageRepo:    messageRepo,
-		logger:         logger.With("module", "session-manager"),
-		messageMapper:  messageMapper,
-		pluginRepo:     pluginRepo,
-		configMgr:      configMgr,
+		sessionRepo:      sessionRepo,
+		sessionMapper:    sessionMapper,
+		messageRepo:      messageRepo,
+		logger:           logger.With("module", "session-manager"),
+		messageMapper:    messageMapper,
+		pluginRepo:       pluginRepo,
+		configMgr:        configMgr,
 		modelProviderMgr: modelProviderMgr,
 	}
 }

@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/smtdfc/nagare/core/credential"
-	"github.com/smtdfc/nagare/core/model/provider"
+	"github.com/smtdfc/nagare/core/model_provider/provider"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/pkgs/helpers"
 )

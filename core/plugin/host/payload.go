@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/smtdfc/nagare/dtos/websocket"
+	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 )
 
-func getPayloadData[T any](payload *websocket.Payload[any]) (*T, error) {
+func getPayloadData[T any](payload *plugin_dtos.Payload[any]) (*T, error) {
 	if payload == nil || payload.Data == nil {
 		return nil, errors.New("payload or data is nil")
 	}

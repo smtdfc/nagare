@@ -3,7 +3,7 @@ package host
 import (
 	"testing"
 
-	"github.com/smtdfc/nagare/dtos/websocket"
+	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 )
 
 type sampleData struct {
@@ -13,7 +13,7 @@ type sampleData struct {
 
 func TestGetPayloadData(t *testing.T) {
 	// Verify getPayloadData on valid payload
-	payload := &websocket.Payload[any]{
+	payload := &plugin_dtos.Payload[any]{
 		Data: map[string]any{
 			"name": "Nagare",
 			"age":  3,
@@ -35,7 +35,7 @@ func TestGetPayloadData(t *testing.T) {
 	}
 
 	// Verify nil data error
-	nilDataPayload := &websocket.Payload[any]{Data: nil}
+	nilDataPayload := &plugin_dtos.Payload[any]{Data: nil}
 	_, err = getPayloadData[sampleData](nilDataPayload)
 	if err == nil {
 		t.Errorf("expected error for nil payload data")

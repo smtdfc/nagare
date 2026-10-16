@@ -6,8 +6,8 @@ import (
 	"net"
 	"sync"
 
-	"github.com/smtdfc/nagare/dtos/websocket"
 	"github.com/smtdfc/nagare/pkgs/ipc"
+	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 )
 
 type PluginConnection struct {
@@ -19,7 +19,7 @@ type PluginConnection struct {
 	closed     bool
 }
 
-func (pc *PluginConnection) Send(event websocket.Event, data any, requestID string) error {
+func (pc *PluginConnection) Send(event plugin_dtos.Event, data any, requestID string) error {
 	pc.mu.Lock()
 	defer pc.mu.Unlock()
 
@@ -27,7 +27,7 @@ func (pc *PluginConnection) Send(event websocket.Event, data any, requestID stri
 		return errors.New("connection closed")
 	}
 
-	payload := websocket.Payload[any]{
+	payload := plugin_dtos.Payload[any]{
 		Event:     event,
 		RequestID: requestID,
 		Data:      data,

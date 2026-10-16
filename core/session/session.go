@@ -2,7 +2,7 @@ package session
 
 import (
 	"github.com/google/uuid"
-	"github.com/smtdfc/nagare/core/model/provider"
+	"github.com/smtdfc/nagare/core/model_provider/provider"
 )
 
 type OwnerType string
@@ -39,7 +39,7 @@ type Info struct {
 	ChannelID string
 	IsArchive bool
 
-	CurrentModel string
-	ModelProviderID   uuid.UUID
-	ModelProvider     *provider.ModelProviderInfo
+	CurrentModel    string
+	ModelProviderID uuid.UUID
+	ModelProvider   *provider.ModelProviderInfo
 }
