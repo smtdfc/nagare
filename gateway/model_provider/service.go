@@ -3,8 +3,8 @@ package model_provider
 import (
 	"context"
 
-	model_provider_mgr "github.com/smtdfc/nagare/core/model/manager"
-	"github.com/smtdfc/nagare/core/model/provider"
+	model_provider_mgr "github.com/smtdfc/nagare/core/model_provider/manager"
+	"github.com/smtdfc/nagare/core/model_provider/provider"
 	"github.com/smtdfc/nagare/dtos/rest"
 	"github.com/smtdfc/nagare/pkgs/helpers"
 )

@@ -39,8 +39,16 @@ func Build() {
 	}
 	printSuccess()
 
-	fmt.Printf("%s[~]%s Building Go source for target [%s/%s]...\n", ColorYellow, ColorReset, runtime.GOOS, runtime.GOARCH)
-	if err := compileSource(binFile); err != nil {
+	fmt.Printf("%s[~]%s Detecting source language ... ", ColorYellow, ColorReset)
+	lang, err := detectSourceLanguage(cwd)
+	if err != nil {
+		printError("%v", err)
+		return
+	}
+	fmt.Printf("(%s)\n", lang)
+
+	fmt.Printf("%s[~]%s Building %s source for target [%s/%s]...\n", ColorYellow, ColorReset, lang, runtime.GOOS, runtime.GOARCH)
+	if err := compileSource(cwd, binFile, lang); err != nil {
 		printError("Compilation fatal abort: %v", err)
 		return
 	}
