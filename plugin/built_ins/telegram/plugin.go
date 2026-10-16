@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"time"
 
@@ -58,12 +59,37 @@ func (tp *TelegramPlugin) Start(ctx context.Context) error {
 	)
 }
 
+func escapeMarkdownV2(text string) string {
+	replacer := strings.NewReplacer(
+		"_", "\\_",
+		"*", "\\*",
+		"[", "\\[",
+		"]", "\\]",
+		"(", "\\(",
+		")", "\\)",
+		"~", "\\~",
+		"`", "\\`",
+		">", "\\>",
+		"#", "\\#",
+		"+", "\\+",
+		"-", "\\-",
+		"=", "\\=",
+		"|", "\\|",
+		"{", "\\{",
+		"}", "\\}",
+		".", "\\.",
+		"!", "\\!",
+	)
+	return replacer.Replace(text)
+}
+
 // sendTextMessage sends a text messages to a Telegram chat and logs any error.
 func (tp *TelegramPlugin) sendTextMessage(ctx context.Context, chatID int64, text string) error {
 	if text == "" {
 		return nil
 	}
-	_, err := tp.bot.SendMessage(ctx, tu.Message(tu.ID(chatID), text))
+	params := tu.Message(tu.ID(chatID), text)
+	_, err := tp.bot.SendMessage(ctx, params)
 	if err != nil {
 		tp.pluginClient.Logger.Error("Error sending messages to telegram", "chatID", chatID, "error", err)
 	}

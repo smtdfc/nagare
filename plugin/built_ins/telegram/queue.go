@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/mymmrac/telego"
 )
@@ -89,6 +91,26 @@ func (tp *TelegramPlugin) handleSingleMessage(ctx context.Context, update *teleg
 		}
 		tp.clearSessionID(chatID)
 		_ = tp.sendTextMessage(ctx, chatIntID, "Chat session has been reset.")
+		tp.finishProcessing(chatID, sessionID)
+		return
+
+	case "/model_providers":
+		providers, err := tp.pluginClient.GetListModelProvider(ctx)
+		if err != nil {
+			tp.pluginClient.Logger.Error("failed to get list model provider", "chatID", chatID, "error", err)
+			_ = tp.sendTextMessage(ctx, chatIntID, "Oops! Error while getting list model providers")
+			tp.finishProcessing(chatID, sessionID)
+			return
+		}
+
+		var msg strings.Builder
+		msg.WriteString("List of model providers:\n")
+		idx := 0
+		for id, p := range providers {
+			msg.WriteString(fmt.Sprintf("%d: %s (ID: `%s`)\n", idx, p, id))
+			idx = idx + 1
+		}
+		_ = tp.sendTextMessage(ctx, chatIntID, msg.String())
 		tp.finishProcessing(chatID, sessionID)
 		return
 	}
