@@ -9,7 +9,7 @@
     }
   },
   "devDependencies": {
-    "prettier": "^3.9.8"
+    "prettier": "^3.9.10"
   },
   "scripts": {
     "gen:ts": "go run ./scripts/ts.go",
@@ -27,6 +27,6 @@
   },
   "type": "module",
   "dependencies": {
-    "react": "^19.3.0"
+    "react": "^19.3.1"
   }
 }
