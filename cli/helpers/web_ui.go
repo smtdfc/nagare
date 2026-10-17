@@ -2,10 +2,13 @@ package helpers
 
 import (
 	"embed"
+	"io"
 	"io/fs"
 	"log"
+	"mime"
 	"net/http"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -13,66 +16,47 @@ import (
 var Files embed.FS
 
 type spaHandler struct {
-	fs http.FileSystem
+	fs fs.FS
 }
 
 func (h *spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	p := path.Clean(r.URL.Path)
-	fsPath := strings.TrimPrefix(p, "/")
+	cleanPath := path.Clean(r.URL.Path)
+	fsPath := strings.TrimPrefix(cleanPath, "/")
 	if fsPath == "" || fsPath == "." {
 		fsPath = "index.html"
 	}
 
 	f, err := h.fs.Open(fsPath)
-	if err != nil {
-		if path.Ext(fsPath) != "" {
-			http.NotFound(w, r)
+	if err == nil {
+		defer f.Close()
+
+		stat, err := f.Stat()
+		if err == nil && !stat.IsDir() {
+			ext := filepath.Ext(fsPath)
+			if mimeType := mime.TypeByExtension(ext); mimeType != "" {
+				w.Header().Set("Content-Type", mimeType)
+			}
+
+			http.ServeContent(w, r, stat.Name(), stat.ModTime(), f.(io.ReadSeeker))
 			return
 		}
+	}
 
-		indexFile, err := h.fs.Open("index.html")
-		if err != nil {
-			http.Error(w, "index.html not found", http.StatusInternalServerError)
-			return
-		}
-		defer func(indexFile http.File) {
-			_ = indexFile.Close()
-		}(indexFile)
-
-		stat, _ := indexFile.Stat()
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		http.ServeContent(w, r, "index.html", stat.ModTime(), indexFile)
+	if path.Ext(fsPath) != "" {
+		http.NotFound(w, r)
 		return
 	}
-	defer func(f http.File) {
-		_ = f.Close()
-	}(f)
 
-	stat, err := f.Stat()
-	if err == nil && stat.IsDir() {
-		indexPath := path.Join(fsPath, "index.html")
-		if idxF, err := h.fs.Open(indexPath); err == nil {
-			defer func(idxF http.File) {
-				_ = idxF.Close()
-			}(idxF)
-			idxStat, _ := idxF.Stat()
-			http.ServeContent(w, r, "index.html", idxStat.ModTime(), idxF)
-			return
-		}
-
-		indexFile, err := h.fs.Open("index.html")
-		if err == nil {
-			defer func(indexFile http.File) {
-				_ = indexFile.Close()
-			}(indexFile)
-			idxStat, _ := indexFile.Stat()
-			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			http.ServeContent(w, r, "index.html", idxStat.ModTime(), indexFile)
-			return
-		}
+	indexFile, err := h.fs.Open("index.html")
+	if err != nil {
+		http.Error(w, "index.html not found", http.StatusInternalServerError)
+		return
 	}
+	defer indexFile.Close()
 
-	http.FileServer(h.fs).ServeHTTP(w, r)
+	stat, _ := indexFile.Stat()
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	http.ServeContent(w, r, "index.html", stat.ModTime(), indexFile.(io.ReadSeeker))
 }
 
 func Handler() http.Handler {
@@ -82,7 +66,7 @@ func Handler() http.Handler {
 	}
 
 	return &spaHandler{
-		fs: http.FS(subFS),
+		fs: subFS,
 	}
 }
 
