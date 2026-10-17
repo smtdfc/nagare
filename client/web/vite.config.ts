@@ -30,11 +30,17 @@ const config = defineConfig({
     tailwindcss(),
   ],
   build: {
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         chunkFileNames: "assets/chunk-[hash].js",
         entryFileNames: "assets/[hash].js",
         assetFileNames: "assets/[hash].[ext]",
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+              return 'vendor';
+          }
+        },
       },
     },
   },

@@ -14,7 +14,7 @@ use (
 	./pkgs/security
 	./pkgs/system
 	./plugin/builder
-	./plugin/built_ins/telegram
+	./plugin/builtins/telegram
 	./plugin/client
 	./plugin/dtos
 	./plugin/metadata
