@@ -1,18 +1,31 @@
 #!/usr/bin/env bash
 set -e
 
-WEB_DIST_DIR="client/web/dist"
-CLI_WEB_DIST_DIR="cli/helpers/web_dist"
-DIST_DIR="dist"
-MODULES_DIR="$DIST_DIR/modules"
+ROOT_DIR="$(pwd)"
+CLIENT_WEB_SOURCE="$ROOT_DIR/client/web"
+GATEWAY_SOURCE="$ROOT_DIR/gateway"
+CLI_SOURCE="$ROOT_DIR/cli"
+GO_BUILTIN_PLUGINS_SOURCE="$ROOT_DIR/plugin/builtins"
+DESKTOP_SOURCE="$ROOT_DIR/client/desktop"
+WEB_DIST_DIR="$ROOT_DIR/client/web/dist"
+CLI_WEB_DIST_DIR="$ROOT_DIR/cli/helpers/web_dist"
+DIST_DIR="$ROOT_DIR/dist"
 WEB_DIR="$DIST_DIR/web"
-RUST_MODULES=(
+CORE_PLUGINS="$DIST_DIR/plugins/core"
+BUILTIN_PLUGINS="$DIST_DIR/plugins/builtins"
+CLI_SCRIPT="$CLI_SOURCE/main.go"
+RUST_CORE_PLUGIN=(
     "crates/nagare_vector"
 )
 
+GO_BUILTIN_PLUGINS=(
+    "telegram"
+)
+
 mkdir -p "$DIST_DIR"
-mkdir -p "$MODULES_DIR"
+mkdir -p "$CORE_PLUGINS"
 mkdir -p "$WEB_DIR"
+mkdir -p "$BUILTIN_PLUGINS"
 
 case "$(uname -s)" in
     Linux*|Darwin*)
@@ -30,7 +43,7 @@ echo "Generating TypeScript code..."
 go run ./scripts/ts.go
 
 echo "Building Nagare Web UI..."
-cd client/web
+cd $CLIENT_WEB_SOURCE
 pnpm install --frozen-lockfile
 pnpm build
 cd - > /dev/null
@@ -40,46 +53,37 @@ rm -rf "$WEB_DIR"
 cp -r "$WEB_DIST_DIR" "$CLI_WEB_DIST_DIR"
 cp -r "$WEB_DIST_DIR" "$WEB_DIR"
 
-echo "Building Rust modules..."
-for module in "${RUST_MODULES[@]}"; do
-    cargo build \
-        --release \
-        --manifest-path "$module/Cargo.toml"
+echo "Building Rust core plugins ..."
+for plugin in "${RUST_CORE_PLUGIN[@]}"; do
+    (
+        cd "$plugin" || exit 1
+        go run $CLI_SCRIPT plugin build
+        cp ./*.nagare_plugin "$CORE_PLUGINS/"
+    )
+done
 
-    module_name="$(basename "$module")"
-
-    case "$(uname -s)" in
-        Linux*)
-            library_name="lib${module_name}.so"
-            ;;
-        Darwin*)
-            library_name="lib${module_name}.dylib"
-            ;;
-        MINGW*|MSYS*|CYGWIN*)
-            library_name="${module_name}.dll"
-            ;;
-        *)
-            echo "Unsupported platform: $(uname -s)"
-            exit 1
-            ;;
-    esac
-
-    cp "target/release/$library_name" \
-        "$MODULES_DIR/$library_name"
+echo "Building Go builtin plugins ..."
+for plugin in "${GO_BUILTIN_PLUGINS[@]}"; do
+    (
+        cd "$GO_BUILTIN_PLUGINS_SOURCE/$plugin" || exit 1
+        go run $CLI_SCRIPT plugin build
+        cp ./*.nagare_plugin "$BUILTIN_PLUGINS/"
+    )
 done
 
 echo "Building Nagare CLI..."
-cd cli
-go build -o "../$DIST_DIR/nagare${exe_ext}"
+cd "$CLI_SOURCE"
+go build -o "$DIST_DIR/nagare${exe_ext}"
 cd - > /dev/null
 
 echo "Building Nagare Gateway..."
-cd gateway
+cd "$GATEWAY_SOURCE"
 dix wire --workspace
-go build -o "../$DIST_DIR/nagare-gateway${exe_ext}"
+go build -o "$DIST_DIR/nagare-gateway${exe_ext}"
 cd - > /dev/null
 
 echo "Building Desktop app"
 pnpm desktop:build
-cp client/desktop/bin/nagare-desktop dist/
+cp "$DESKTOP_SOURCE/bin/nagare-desktop${exe_ext}" $DIST_DIR
+
 echo "Build complete!"
