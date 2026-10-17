@@ -6,7 +6,7 @@
   <p align="center">
     <a href="https://github.com/smtdfc/nagare/releases"><img src="https://img.shields.io/github/v/release/smtdfc/nagare?color=blue&style=flat-square" alt="Release" /></a>
     <a href="https://go.dev/"><img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" alt="Go" /></a>
-    <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-SIMD_FFI-dea584?style=flat-square&logo=rust" alt="Rust" /></a>
+    <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-dea584?style=flat-square&logo=rust" alt="Rust" /></a>
     <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React 19" /></a>
     <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" /></a>
   </p>
@@ -26,7 +26,7 @@ It runs quietly in the background on your computer (Linux, macOS, Windows), help
 
 - 🖐️ **Hands on Your OS:** Nagare isn't just a text bot. Out of the box, it can manage files, check system volume, launch processes, inspect system status, and run scheduled tasks.
 - ⚡ **Lightweight Plugin System:** Write extensions in separate processes communicating over fast local IPC (Unix Sockets & Windows Named Pipes). A plugin crash never takes down your assistant.
-- 🦀 **Fast Local Memory:** Semantic search and long-term memory are powered by native Rust SIMD kernels via zero-CGO FFI, keeping RAM usage tiny without needing heavy external vector databases.
+- 🦀 **Fast Local Memory:** Semantic search and long-term memory are powered by Rust plugin
 - 🖥️ **Built-in Web Interface:** Includes a clean, responsive React 19 chat dashboard accessible right from your browser.
 
 ---
@@ -67,7 +67,7 @@ nagare gateway stop
 
 ### 3. Open the Web Dashboard
 
-Launch the embedded web UI:
+Launch the web UI:
 
 ```bash
 nagare web
@@ -82,7 +82,7 @@ Then visit [http://localhost:3005](http://localhost:3005) to configure your API 
 Generate a token for local API or script access:
 
 ```bash
-nagare auth token --name "my-laptop"
+nagare auth token
 ```
 
 ---
@@ -100,7 +100,7 @@ import (
 )
 
 func main() {
-	plugin := client.NewPlugin("system-helper", "1.0.0")
+	plugin := client.NewPlugin()
 
 	// Register a new tool the AI assistant can call
 	plugin.RegisterTool(
@@ -127,5 +127,3 @@ nagare plugin build
 ## License
 
 Distributed under the **MIT License**. See [`LICENSE`](./LICENSE) for details.
-
-Crafted with care by [@smtdfc](https://github.com/smtdfc).
