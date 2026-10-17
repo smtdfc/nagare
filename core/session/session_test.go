@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/smtdfc/nagare/core/model/provider"
+	"github.com/smtdfc/nagare/core/model_provider/provider"
 )
 
 func TestOwnerType_ToString(t *testing.T) {
@@ -57,8 +57,8 @@ func TestSessionInfo_Construction(t *testing.T) {
 		OwnerType:       USER,
 		ChannelID:       "chan-1",
 		IsArchive:       false,
-		CurrentModel: "gpt-4o",
-		ModelProviderID:   providerID,
+		CurrentModel:    "gpt-4o",
+		ModelProviderID: providerID,
 		ModelProvider: &provider.ModelProviderInfo{
 			ID:         providerID,
 			Name:       "openai",
