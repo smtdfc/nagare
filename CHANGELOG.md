@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.13.0](https://github.com/smtdfc/nagare/compare/v1.12.0...v1.13.0) (2026-10-17)
+
+
+### Features
+
+* add logging functionality with initialization and error handling ([cd97ff9](https://github.com/smtdfc/nagare/commit/cd97ff9f23caa0052cce16c748f797ff24dd778d))
+* add Nagare Plugin SDK for Rust ([8b1bfb6](https://github.com/smtdfc/nagare/commit/8b1bfb63ce1abfa74ccfb730c529a5729178da62))
+* add Telegram plugin with message handling, session management, and tests ([de3e0b0](https://github.com/smtdfc/nagare/commit/de3e0b007f8c72120cd4456f6ba69c34760d1ec5))
+* implement main functionality and metadata handling for nagare_vector plugin ([7bc155d](https://github.com/smtdfc/nagare/commit/7bc155d8920ff44f7cac1d65da981366845212c2))
+* Implement Model Provider Adapter and Configuration ([de0e9bd](https://github.com/smtdfc/nagare/commit/de0e9bd23ede73581f8a9094c6f85e7bac80d24f))
+* implement PluginTool interface and BaseTool struct ([c8ba9cd](https://github.com/smtdfc/nagare/commit/c8ba9cd5eb5cb6e5b2a072fb0925d6aa86b853be))
+* **installer:** add Nagare desktop ([ece5532](https://github.com/smtdfc/nagare/commit/ece55321e54eb189a08ed4b313916d3c732ca915))
+* **plugin/builder:** add support for detecting source language and compiling Rust plugins ([67c7f83](https://github.com/smtdfc/nagare/commit/67c7f83c61ac1486798f35945e1e90064a522e4a))
+* **plugin/dtos:** add event types and payload structures for chat and plugin tools ([fdba165](https://github.com/smtdfc/nagare/commit/fdba165b379cf6c565593a6532781c1b04494073))
+* **plugin/telegram:** enhance message handling with model provider support and markdown escaping ([2482b94](https://github.com/smtdfc/nagare/commit/2482b94f79da436220b607f9e9c610887fd988b9))
+* update installation script to use user-specific paths and copy plugins/assets ([febd30c](https://github.com/smtdfc/nagare/commit/febd30c8b9ac3671fa4777c9fd8ace06840dc2ae))
+
+
+### Bug Fixes
+
+* **core:** resolve error when load provider ([b0d95a1](https://github.com/smtdfc/nagare/commit/b0d95a14bd4b4e2b5afd8dceba181b28ffcb7ad2))
+* correct import path and adjust CoreSetup initialization in tests ([f2c88ec](https://github.com/smtdfc/nagare/commit/f2c88ec8782c97ff50ed2c6f3a5c0525307bf976))
+* improve Rust compilation error handling and update binary location logic ([8b9f65a](https://github.com/smtdfc/nagare/commit/8b9f65aaf9ac56cac9628de8486485231c6e1805))
+
 ## [1.12.0](https://github.com/smtdfc/nagare/compare/v1.11.0...v1.12.0) (2026-10-13)
 
 
