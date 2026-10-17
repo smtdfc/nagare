@@ -1,12 +1,26 @@
 #!/bin/bash
 
 REPO="smtdfc/nagare"
-INSTALL_PATH="/usr/local/bin"
+INSTALL_PATH="$HOME/.local/bin"
+
+NAGARE_DATA_DIR="$HOME/.nagare"
+NAGARE_ASSETS_DIR="$NAGARE_DATA_DIR/assets"
+BUILTIN_PLUGINS_STORE_DIR="$NAGARE_ASSETS_DIR/plugins/builtins"
+CORE_PLUGINS_STORE_DIR="$NAGARE_ASSETS_DIR/plugins/core"
+WEB_STORE_DIR="$NAGARE_ASSETS_DIR/web"
+
+mkdir -p "$NAGARE_ASSETS_DIR"
+mkdir -p "$INSTALL_PATH"
+mkdir -p "$BUILTIN_PLUGINS_STORE_DIR"
+mkdir -p "$CORE_PLUGINS_STORE_DIR"
+mkdir -p "$WEB_STORE_DIR"
 
 install_binary() {
     local src="$1"
     local dest="$2"
     local name="$3"
+
+    rm -f "$dest"
 
     if cp "$src" "$dest"; then
         chmod +x "$dest"
@@ -51,6 +65,7 @@ if [ -d "$LOCAL_DIST" ] && [ -f "$LOCAL_DIST/nagare" ]; then
     echo "Found local build in $LOCAL_DIST. Installing from local files..."
 
     install_binary "$LOCAL_DIST/nagare" "$INSTALL_PATH/nagare" "CLI (local)" || exit 1
+
     if [ -f "$LOCAL_DIST/nagare-gateway" ]; then
         install_binary "$LOCAL_DIST/nagare-gateway" "$INSTALL_PATH/nagare-gateway" "Gateway (local)"
     else
@@ -63,16 +78,15 @@ if [ -d "$LOCAL_DIST" ] && [ -f "$LOCAL_DIST/nagare" ]; then
         echo "Notice: Local Nagare desktop binary not found in $LOCAL_DIST, skipping."
     fi
 
-    echo "=====================nagare-desktop ===================="
-    echo " Nagare installation completed!"
+    echo "Copying plugins and web assets..."
+    [ -d "$LOCAL_DIST/plugins/builtins" ] && cp -r "$LOCAL_DIST/plugins/builtins/." "$BUILTIN_PLUGINS_STORE_DIR/"
+    [ -d "$LOCAL_DIST/plugins/core" ] && cp -r "$LOCAL_DIST/plugins/core/." "$CORE_PLUGINS_STORE_DIR/"
+    [ -d "$LOCAL_DIST/web" ] && cp -r "$LOCAL_DIST/web/." "$WEB_STORE_DIR/"
+
+    echo "========================================="
+    echo " Nagare local installation completed!"
     echo "========================================="
     exit 0
-fi
-
-
-if [ "$EUID" -ne 0 ]; then
-    echo "Please run this script with sudo privileges (sudo bash install.sh) to download and install from GitHub."
-    exit 1
 fi
 
 VERSION=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
@@ -113,6 +127,11 @@ if curl -sL -f "$ARCHIVE_URL" -o "$TMP_DIR/$ARCHIVE_NAME"; then
     else
         echo "Notice: 'nagare-desktop' binary not found in the archive, skipping."
     fi
+
+    echo "Copying plugins and web assets..."
+    [ -d "$TMP_DIR/plugins/builtins" ] && cp -r "$TMP_DIR/plugins/builtins/." "$BUILTIN_PLUGINS_STORE_DIR/"
+    [ -d "$TMP_DIR/plugins/core" ] && cp -r "$TMP_DIR/plugins/core/." "$CORE_PLUGINS_STORE_DIR/"
+    [ -d "$TMP_DIR/plugins/web" ] && cp -r "$TMP_DIR/plugins/web/." "$WEB_STORE_DIR/"
 else
     echo "Error: Could not download release archive for this configuration from GitHub."
     exit 1
