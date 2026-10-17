@@ -79,42 +79,66 @@ func compileRustSource(cwd, binFile string) error {
 		return err
 	}
 
-	cmd := exec.Command("cargo", "build", "--release")
+	buildDir := filepath.Join(cwd, "build")
+
+	cmd := exec.Command(
+		"cargo",
+		"build",
+		"--release",
+		"--target-dir", buildDir,
+	)
 	cmd.Dir = cwd
+
 	if err := streamStderr(cmd, "RUST"); err != nil {
 		return fmt.Errorf("cargo build failed: %w", err)
 	}
 
-	built, err := locateCargoBinary(cwd, binName)
+	built, err := locateCargoBinary(buildDir, binName)
 	if err != nil {
-		return err
+		return fmt.Errorf("locate Rust artifact %q: %w", binName, err)
 	}
 
 	if err := copyBinary(built, binFile); err != nil {
-		return fmt.Errorf("failed to stage rust binary: %w", err)
+		return fmt.Errorf("failed to stage Rust artifact: %w", err)
 	}
+
 	return nil
 }
 
-func locateCargoBinary(cwd, binName string) (string, error) {
+func locateCargoBinary(buildDir, binName string) (string, error) {
 	candidates := []string{binName}
-	if underscored := strings.ReplaceAll(binName, "-", "_"); underscored != binName {
+
+	underscored := strings.ReplaceAll(binName, "-", "_")
+	if underscored != binName {
 		candidates = append(candidates, underscored)
 	}
 
-	suffix := ""
-	if runtime.GOOS == "windows" {
-		suffix = ".exe"
+	var suffixes []string
+
+	switch runtime.GOOS {
+	case "windows":
+		suffixes = []string{".exe", ".dll", ".lib", ".a"}
+	case "darwin":
+		suffixes = []string{"", ".dylib", ".a"}
+	default:
+		suffixes = []string{"", ".so", ".a"}
 	}
 
 	for _, name := range candidates {
-		path := filepath.Join(cwd, "target", "release", name+suffix)
-		if info, err := os.Stat(path); err == nil && !info.IsDir() {
-			return path, nil
+		for _, suffix := range suffixes {
+			path := filepath.Join(buildDir, "release", name+suffix)
+			info, err := os.Stat(path)
+			if err == nil && !info.IsDir() {
+				return path, nil
+			}
 		}
 	}
 
-	return "", fmt.Errorf("cargo build succeeded but release binary %q was not found in target/release", binName)
+	return "", fmt.Errorf(
+		"cargo build succeeded but artifact %q was not found in %s",
+		binName,
+		filepath.Join(buildDir, "release"),
+	)
 }
 
 func copyBinary(src, dst string) error {
