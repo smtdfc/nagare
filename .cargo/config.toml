@@ -1,0 +1,5 @@
+[env]
+NAGARE_PLUGIN_LOG_FILE = "/tmp/nagare-plugin-test.log"
+NAGARE_PLUGIN_CONFIG_DIR= "/tmp/nagare-plugin-test.json"
+NAGARE_PLUGIN_CONNECT_CODE="test"
+NAGARE_PLUGIN_SOCKET_PATH="/tmp/nagare-plugin-test.sock"
