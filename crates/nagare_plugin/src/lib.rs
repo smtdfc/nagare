@@ -7,6 +7,7 @@ pub mod errors;
 pub mod handshake;
 pub mod helpers;
 pub mod ipc;
+pub mod logger;
 pub mod metadata;
 pub mod tool;
 

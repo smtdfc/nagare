@@ -34,6 +34,10 @@ pub enum PluginError {
     Io(String),
     #[error("json error: {0}")]
     Json(String),
+    #[error("init logger error: {0}")]
+    InitLogger(String),
+    #[error("logger error: {0}")]
+    Logger(String),
     #[error("channel closed")]
     ChannelClosed,
     #[error("{0}")]
@@ -49,6 +53,18 @@ impl From<std::io::Error> for PluginError {
 impl From<serde_json::Error> for PluginError {
     fn from(e: serde_json::Error) -> Self {
         Self::Json(e.to_string())
+    }
+}
+
+impl From<fern::InitError> for PluginError {
+    fn from(e: fern::InitError) -> Self {
+        Self::InitLogger(e.to_string())
+    }
+}
+
+impl From<log::SetLoggerError> for PluginError {
+    fn from(e: log::SetLoggerError) -> Self {
+        Self::Logger(e.to_string())
     }
 }
 

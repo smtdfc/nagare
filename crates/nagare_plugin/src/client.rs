@@ -20,6 +20,7 @@ use crate::dtos::{
 use crate::errors::PluginError;
 use crate::helpers::get_data;
 use crate::ipc::default_socket_path;
+use crate::logger::init_logging_once;
 use crate::metadata::PluginMetadata;
 use crate::tool::PluginTool;
 
@@ -60,8 +61,11 @@ impl PluginClient {
         Self::new_with_logger()
     }
 
-    fn new_with_logger() -> Arc<Self> {
-        init_logging_once();
+    pub fn new_with_logger() -> Arc<Self> {
+        let log_file = std::env::var("NAGARE_PLUGIN_LOG_FILE")
+            .expect("NAGARE_PLUGIN_LOG_FILE environment variable is not set");
+
+        init_logging_once(&log_file);
 
         let connector = Connector::new(None);
         let this = Arc::new(Self {
@@ -69,7 +73,8 @@ impl PluginClient {
                 metadata: RwLock::new(None),
                 connect_config: RwLock::new(ConnectConfig::default()),
                 config_dir: RwLock::new(
-                    std::env::var("NAGARE_PLUGIN_CONFIG_DIR").unwrap_or_default(),
+                    std::env::var("NAGARE_PLUGIN_CONFIG_DIR")
+                        .expect("NAGARE_PLUGIN_CONFIG_DIR environment variable is not set"),
                 ),
                 pending_requests: Mutex::new(HashMap::new()),
                 tools: Mutex::new(Vec::new()),
@@ -127,6 +132,13 @@ impl PluginClient {
         *self.inner.on_received_chat_message.write().unwrap() = Arc::new(cb);
     }
 
+    pub fn set_on_other_message(
+        &self,
+        cb: impl Fn(String, Payload<serde_json::Value>) + Send + Sync + 'static,
+    ) {
+        *self.inner.on_other_message.write().unwrap() = Arc::new(cb);
+    }
+
     /// Mirror of Go `LoadMetadata(raw)`.
     pub fn load_metadata(&self, raw: &str) -> Result<PluginMetadata, PluginError> {
         let metadata: PluginMetadata = serde_json::from_str(raw)?;
@@ -137,13 +149,15 @@ impl PluginClient {
     fn resolve_socket_path(&self) -> String {
         let mut cfg = self.inner.connect_config.write().unwrap();
         if cfg.socket_path.is_empty() {
-            cfg.socket_path = std::env::var("NAGARE_PLUGIN_SOCKET_PATH").unwrap_or_default();
+            cfg.socket_path = std::env::var("NAGARE_PLUGIN_SOCKET_PATH")
+                .expect("NAGARE_PLUGIN_SOCKET_PATH environment variable is not set");
         }
         if cfg.socket_path.is_empty() {
             cfg.socket_path = default_socket_path();
         }
         if cfg.connect_code.is_empty() {
-            cfg.connect_code = std::env::var("NAGARE_PLUGIN_CONNECT_CODE").unwrap_or_default();
+            cfg.connect_code = std::env::var("NAGARE_PLUGIN_CONNECT_CODE")
+                .expect("NAGARE_PLUGIN_CONNECT_CODE environment variable is not set");
         }
         cfg.socket_path.clone()
     }
@@ -262,18 +276,6 @@ impl PluginClient {
         .map_err(|_| PluginError::Timeout)?
     }
 
-    async fn set_other_event_handler<T>(self, f: T)
-    where
-        T: Fn(String, Payload<serde_json::Value>) + Send + Sync + 'static,
-    {
-        match self.inner.on_other_message.write() {
-            Ok(mut guard) => {
-                *guard = Arc::new(f);
-            }
-            Err(e) => {}
-        }
-    }
-
     fn handle_event(self: Arc<Self>, payload: Payload<serde_json::Value>) {
         match payload.event.as_str() {
             HANDSHAKE_SUCCESS_EVENT
@@ -336,14 +338,6 @@ impl PluginClient {
     }
 }
 
-use std::sync::OnceLock;
-
-static LOG_INIT: OnceLock<()> = OnceLock::new();
-
-fn init_logging_once() {
-    LOG_INIT.get_or_init(|| {});
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -404,6 +398,29 @@ mod tests {
         });
         p.clone().handle_event(Payload {
             event: RECEIVED_CHAT_MESSAGE_EVENT.to_string(),
+            request_id: "r1".to_string(),
+            data: serde_json::json!({
+                "sessionID": "sess-1",
+                "channelID": "chan-1",
+                "message": "test chunk",
+            }),
+        });
+        assert!(*received.lock().unwrap());
+    }
+
+    #[test]
+    fn handle_event_dispatches_other_message() {
+        let p = PluginClient::new();
+        let received = Arc::new(Mutex::new(false));
+        let r2 = received.clone();
+        p.set_on_other_message(move |s, c| {
+            if s == "other-message" {
+                *r2.lock().unwrap() = true;
+            }
+        });
+
+        p.clone().handle_event(Payload {
+            event: "other-message".to_owned(),
             request_id: "r1".to_string(),
             data: serde_json::json!({
                 "sessionID": "sess-1",

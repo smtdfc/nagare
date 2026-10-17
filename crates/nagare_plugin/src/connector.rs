@@ -1,6 +1,6 @@
 use std::sync::{
-    atomic::{AtomicBool, Ordering},
     Arc, RwLock,
+    atomic::{AtomicBool, Ordering},
 };
 
 use serde::Serialize;
@@ -8,7 +8,7 @@ use tokio::sync::{Mutex, Notify};
 
 use crate::dtos::Payload;
 use crate::errors::PluginError;
-use crate::ipc::{encode_message, MAX_MESSAGE_SIZE};
+use crate::ipc::{MAX_MESSAGE_SIZE, encode_message};
 
 /// Callback invoked for every incoming payload.
 pub type OnEvent = Arc<dyn Fn(Payload<serde_json::Value>) + Send + Sync>;
@@ -144,7 +144,10 @@ impl Connector {
             let Some(write_half) = guard.as_mut() else {
                 return Err(PluginError::ConnectionNotReady);
             };
-            write_half.write_all(&frame).await.map_err(PluginError::from)?;
+            write_half
+                .write_all(&frame)
+                .await
+                .map_err(PluginError::from)?;
             Ok(())
         }
         #[cfg(windows)]
