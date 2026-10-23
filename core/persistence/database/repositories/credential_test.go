@@ -43,7 +43,11 @@ func TestCredentialRepository_CRUD(t *testing.T) {
 	if err != nil || len(all) != 1 {
 		t.Errorf("expected 1 credential in FindAll, got %d (err: %v)", len(all), err)
 	}
-	
+
+	if found == nil {
+		t.Errorf("expected credential in FindAll, got nil")
+	}
+
 	// Update
 	found.Name = "openai-updated"
 	err = repo.Update(ctx, found)
