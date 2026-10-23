@@ -57,4 +57,43 @@ func TestPluginMetadataValidate(t *testing.T) {
 	if err := invalid.Validate(); err == nil {
 		t.Fatalf("expected error for empty author, got nil")
 	}
+
+	// Test path traversal in PackageName
+	invalid = valid
+	invalid.PackageName = "../../evil"
+	if err := invalid.Validate(); err == nil {
+		t.Fatalf("expected error for path traversal in package_name, got nil")
+	}
+
+	invalid = valid
+	invalid.PackageName = "foo/bar"
+	if err := invalid.Validate(); err == nil {
+		t.Fatalf("expected error for slash in package_name, got nil")
+	}
+
+	// Test path traversal in Bin
+	invalid = valid
+	invalid.Bin = PluginBinaryMetadata{
+		"linux": "../../../bin/sh",
+	}
+	if err := invalid.Validate(); err == nil {
+		t.Fatalf("expected error for path traversal in bin, got nil")
+	}
+
+	invalid.Bin = PluginBinaryMetadata{
+		"linux": "/usr/bin/python3",
+	}
+	if err := invalid.Validate(); err == nil {
+		t.Fatalf("expected error for absolute path in bin, got nil")
+	}
+
+	// Test valid Bin
+	validWithBin := valid
+	validWithBin.Bin = PluginBinaryMetadata{
+		"linux":   "bin/nagare.plugin.telegram",
+		"windows": "bin/nagare.plugin.telegram.exe",
+	}
+	if err := validWithBin.Validate(); err != nil {
+		t.Fatalf("unexpected validation error with valid bin: %v", err)
+	}
 }
