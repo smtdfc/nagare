@@ -45,6 +45,7 @@ var (
 	ErrLoadPluginMetadataFailed    = NewNagareCoreError("LOAD_PLUGIN_METADATA_FAILED", "Failed to load plugin metadata")
 	ErrPluginMetadataInvalid       = NewNagareCoreError("PLUGIN_METADATA_INVALID", "Plugin metadata is invalid")
 	ErrPluginBinaryMissing         = NewNagareCoreError("PLUGIN_BINARY_MISSING", "Plugin binary is missing")
+	ErrPluginSignatureInvalid      = NewNagareCoreError("PLUGIN_SIGNATURE_INVALID", "Plugin signature is invalid or missing")
 	ErrStartPluginFailed           = NewNagareCoreError("START_PLUGIN_FAILED", "Failed to start plugin")
 	ErrUnpackPluginFailed          = NewNagareCoreError("UNPACK_PLUGIN_FAILED", "Failed to unpack plugin")
 	ErrPluginFileInvalid           = NewNagareCoreError("PLUGIN_FILE_INVAILD", "Plugin file is invalid")
