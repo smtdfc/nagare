@@ -1,5 +1,5 @@
 {
-  "output": "./dix/generated/root.go",
+  "output": "./.dix/generated/root.go",
   "ignore_packages": [
     "github.com/smtdfc/nagare/cli/*",
     "github.com/smtdfc/nagare/client/*",
