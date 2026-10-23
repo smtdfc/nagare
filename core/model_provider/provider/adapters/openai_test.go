@@ -121,7 +121,7 @@ func TestTransformToProviderMessage_ToolResultMessage(t *testing.T) {
 	if result.OfFunctionCallOutput == nil {
 		t.Fatal("expected OfFunctionCallOutput to be set")
 	}
-	if result.OfFunctionCallOutput.CallID != "call-1" {
+	if result.OfFunctionCallOutput.CallID.Value != "call-1" {
 		t.Errorf("expected CallID 'call-1', got %q", result.OfFunctionCallOutput.CallID)
 	}
 }
@@ -204,11 +204,11 @@ type mockToolForAdapter struct {
 	argsSchema  string
 }
 
-func (m *mockToolForAdapter) GetName() string               { return m.name }
-func (m *mockToolForAdapter) GetDescription() string         { return m.description }
-func (m *mockToolForAdapter) GetArgsSchema() string          { return m.argsSchema }
-func (m *mockToolForAdapter) GetBindings() tool.Bindings     { return nil }
-func (m *mockToolForAdapter) GetCategories() []string        { return nil }
+func (m *mockToolForAdapter) GetName() string                        { return m.name }
+func (m *mockToolForAdapter) GetDescription() string                 { return m.description }
+func (m *mockToolForAdapter) GetArgsSchema() string                  { return m.argsSchema }
+func (m *mockToolForAdapter) GetBindings() tool.Bindings             { return nil }
+func (m *mockToolForAdapter) GetCategories() []string                { return nil }
 func (m *mockToolForAdapter) WithBindings(_ tool.Bindings) tool.Tool { return m }
 func (m *mockToolForAdapter) Execute(_ *nagare_context.ExecuteContext, _ string) (string, error) {
 	return "", nil
@@ -217,7 +217,7 @@ func (m *mockToolForAdapter) Execute(_ *nagare_context.ExecuteContext, _ string)
 // unknownMessage is a message type not handled by TransformToProviderMessage.
 type unknownMessage struct{}
 
-func (u *unknownMessage) GetMessageID() string           { return "unknown" }
+func (u *unknownMessage) GetMessageID() string                 { return "unknown" }
 func (u *unknownMessage) GetMessageType() messages.MessageType { return "unknown" }
-func (u *unknownMessage) GetInvokeID() string            { return "" }
-func (u *unknownMessage) SetInvokeID(_ string)           {}
+func (u *unknownMessage) GetInvokeID() string                  { return "" }
+func (u *unknownMessage) SetInvokeID(_ string)                 {}

@@ -72,7 +72,7 @@ func (o *OpenAICompatibleAdapter) TransformToProviderMessage(msg messages.Messag
 	case *messages.ToolResultMessage:
 		return responses.ResponseInputItemUnionParam{
 			OfFunctionCallOutput: &responses.ResponseInputItemFunctionCallOutputParam{
-				CallID: t.CallID,
+				CallID: param.NewOpt(t.CallID),
 				Output: responses.ResponseInputItemFunctionCallOutputOutputUnionParam{
 					OfString: openai.String(t.Result),
 				},
