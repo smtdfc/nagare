@@ -3,6 +3,9 @@ package manager
 import (
 	"archive/zip"
 	"context"
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -25,7 +28,48 @@ import (
 	"github.com/smtdfc/nagare/plugin/metadata"
 )
 
+const (
+	maxPluginFileSize  int64 = 250 * 1024 * 1024 // 250MB per file limit
+	maxPluginTotalSize int64 = 500 * 1024 * 1024 // 500MB total uncompressed limit
+)
+
+func verifyFileSignature(binFile, sigFile string) error {
+	sigData, err := os.ReadFile(sigFile)
+	if err != nil {
+		return fmt.Errorf("failed to read signature file %s: %w", sigFile, err)
+	}
+
+	expectedSig := strings.TrimSpace(string(sigData))
+	if expectedSig == "" {
+		return errors.New("signature file is empty")
+	}
+
+	file, err := os.Open(binFile)
+	if err != nil {
+		return fmt.Errorf("failed to open binary file %s: %w", binFile, err)
+	}
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
+
+	hasher := sha256.New()
+	if _, err := io.Copy(hasher, file); err != nil {
+		return fmt.Errorf("failed to compute binary hash: %w", err)
+	}
+
+	actualSig := hex.EncodeToString(hasher.Sum(nil))
+	if subtle.ConstantTimeCompare([]byte(strings.ToLower(expectedSig)), []byte(strings.ToLower(actualSig))) != 1 {
+		return fmt.Errorf("signature verification failed: expected %s, got %s", expectedSig, actualSig)
+	}
+
+	return nil
+}
+
 func extractFile(fpath string, file *zip.File) error {
+	if file.UncompressedSize64 > uint64(maxPluginFileSize) {
+		return fmt.Errorf("file %s exceeds maximum allowed size (%d bytes)", file.Name, maxPluginFileSize)
+	}
+
 	outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {
 		return err
@@ -48,11 +92,23 @@ func extractFile(fpath string, file *zip.File) error {
 		}
 	}(rc)
 
-	if _, err = io.Copy(outFile, rc); err != nil {
+	limitedReader := io.LimitReader(rc, maxPluginFileSize+1)
+	written, err := io.Copy(outFile, limitedReader)
+	if err != nil {
 		return err
 	}
+	if written > maxPluginFileSize {
+		return fmt.Errorf("file %s exceeded maximum decompression limit", file.Name)
+	}
 
-	return os.Chmod(fpath, file.Mode())
+	mode := file.Mode() & 0755
+	if mode&0111 == 0 {
+		mode = 0644
+	} else {
+		mode = 0755
+	}
+
+	return os.Chmod(fpath, mode)
 }
 
 func unpackPlugin(archivePath, destDir string) error {
@@ -73,13 +129,20 @@ func unpackPlugin(archivePath, destDir string) error {
 		return fmt.Errorf("failed to create destination directory: %w", err)
 	}
 
+	var totalUncompressedBytes int64
+
 	for _, file := range reader.File {
+		// Reject symlinks to prevent symlink traversal
+		if file.Mode()&os.ModeSymlink != 0 {
+			return fmt.Errorf("illegal symlink detected in archive: %s", file.Name)
+		}
+
 		if filepath.IsAbs(file.Name) {
 			return fmt.Errorf("illegal absolute file path detected in archive: %s", file.Name)
 		}
 
 		normalizedName := strings.ReplaceAll(file.Name, "\\", "/")
-		if strings.Contains(normalizedName, "../") || normalizedName == ".." {
+		if strings.Contains(normalizedName, "../") || normalizedName == ".." || strings.HasPrefix(normalizedName, "/") {
 			return fmt.Errorf("illegal file path detected in archive: %s", file.Name)
 		}
 
@@ -89,6 +152,15 @@ func unpackPlugin(archivePath, destDir string) error {
 			return fmt.Errorf("illegal file path detected in archive: %s", file.Name)
 		}
 
+		dirPath := filepath.Dir(fpath)
+		if evalDir, err := filepath.EvalSymlinks(dirPath); err == nil {
+			if evalDest, err := filepath.EvalSymlinks(absDestDir); err == nil {
+				if evalDir != evalDest && !strings.HasPrefix(evalDir, evalDest+string(filepath.Separator)) {
+					return fmt.Errorf("illegal directory traversal detected in archive: %s", file.Name)
+				}
+			}
+		}
+
 		if file.FileInfo().IsDir() {
 			if err := os.MkdirAll(fpath, 0775); err != nil {
 				return err
@@ -96,7 +168,12 @@ func unpackPlugin(archivePath, destDir string) error {
 			continue
 		}
 
-		if err := os.MkdirAll(filepath.Dir(fpath), 0775); err != nil {
+		totalUncompressedBytes += int64(file.UncompressedSize64)
+		if totalUncompressedBytes > maxPluginTotalSize {
+			return fmt.Errorf("archive total uncompressed size exceeds limit (%d bytes)", maxPluginTotalSize)
+		}
+
+		if err := os.MkdirAll(dirPath, 0775); err != nil {
 			return err
 		}
 
@@ -248,6 +325,9 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) (*plugin
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		_ = os.RemoveAll(tempDir)
+	}()
 
 	err = unpackPlugin(
 		pluginPath,
@@ -270,10 +350,31 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) (*plugin
 		return nil, custom_errors.ErrPluginMetadataInvalid
 	}
 
-	pluginDir := filepath.Join(paths.PluginDir, pluginMetadata.PackageName)
 	binFile, isExist := pluginMetadata.Bin[runtime.GOOS]
 	if !isExist {
 		return nil, custom_errors.ErrPluginBinaryMissing
+	}
+
+	cleanRelBin := filepath.Clean(binFile)
+	normalizedBin := strings.ReplaceAll(cleanRelBin, "\\", "/")
+	if filepath.IsAbs(cleanRelBin) || strings.HasPrefix(normalizedBin, "../") || normalizedBin == ".." || strings.Contains(normalizedBin, "/../") {
+		p.logger.Error("Install plugin failed: binary path attempts traversal", "bin", binFile)
+		return nil, custom_errors.ErrPluginMetadataInvalid
+	}
+
+	tempBinFile := filepath.Join(tempDir, cleanRelBin)
+	tempSigFile := filepath.Join(tempDir, pluginMetadata.PackageName+".sig")
+	if err := verifyFileSignature(tempBinFile, tempSigFile); err != nil {
+		p.logger.Error("Install plugin failed: signature verification failed", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrPluginSignatureInvalid
+	}
+
+	pluginDir := filepath.Join(paths.PluginDir, pluginMetadata.PackageName)
+	cleanPluginDir := filepath.Clean(pluginDir)
+	destBinFile := filepath.Clean(filepath.Join(cleanPluginDir, cleanRelBin))
+	if !strings.HasPrefix(destBinFile, cleanPluginDir+string(filepath.Separator)) {
+		p.logger.Error("Install plugin failed: binary path escapes plugin directory", "destBinFile", destBinFile)
+		return nil, custom_errors.ErrInstallPluginFailed
 	}
 
 	err = helpers.CopyDir(tempDir, pluginDir)
@@ -282,8 +383,7 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) (*plugin
 		return nil, custom_errors.ErrInstallPluginFailed
 	}
 
-	binFile = filepath.Join(pluginDir, binFile)
-	if err := os.Chmod(binFile, 0755); err != nil {
+	if err := os.Chmod(destBinFile, 0755); err != nil {
 		p.logger.Error("Install plugin failed", "error", err, "plugin", pluginPath)
 		return nil, custom_errors.ErrInstallPluginFailed
 	}
@@ -294,7 +394,7 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) (*plugin
 		Author:      pluginMetadata.Author,
 		Features:    plugin.ParseFeatureString(pluginMetadata.GetFeatures()),
 		Version:     pluginMetadata.Version,
-		Bin:         binFile,
+		Bin:         destBinFile,
 		IsActive:    true,
 	}
 
