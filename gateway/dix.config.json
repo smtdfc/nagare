@@ -1,3 +1,11 @@
 {
-  "output": "./.dix/generated/root.go"
+  "output": "./dix/generated/root.go",
+  "ignore_packages": [
+    "github.com/smtdfc/nagare/cli/*",
+    "github.com/smtdfc/nagare/client/*",
+    "github.com/smtdfc/nagare/pkgs/*",
+    "github.com/smtdfc/nagare/plugin/*",
+    "github.com/smtdfc/nagare/scripts/*",
+    "github.com/smtdfc/nagare/dtos/*"
+  ]
 }
