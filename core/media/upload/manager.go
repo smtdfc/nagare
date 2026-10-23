@@ -3,6 +3,7 @@ package upload
 import (
 	"os"
 	"path"
+	"sync"
 
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
@@ -11,6 +12,7 @@ import (
 )
 
 type Manager struct {
+	mu          sync.RWMutex
 	logger      *logger.BaseLogger
 	attachments map[string]string
 }
@@ -24,34 +26,45 @@ func (um *Manager) AddAttachment(p string) (string, error) {
 	}
 
 	uploadPath := path.Join(dir, id)
-	if um.attachments == nil {
-		um.attachments = make(map[string]string)
-	}
 	err := helpers.CopyFile(p, uploadPath)
 	if err != nil {
 		um.logger.Error("Failed to copy file to upload path", "error", err)
 		return "", custom_errors.ErrUploadFailed
 	}
 
+	um.mu.Lock()
+	if um.attachments == nil {
+		um.attachments = make(map[string]string)
+	}
 	um.attachments[id] = uploadPath
+	um.mu.Unlock()
+
 	um.logger.Info("Attachment added", "attachment_id", id, "path", uploadPath)
 
 	return id, nil
 }
 
 func (um *Manager) GetAttachmentPath(id string) (string, bool) {
+	um.mu.RLock()
+	defer um.mu.RUnlock()
+	if um.attachments == nil {
+		return "", false
+	}
 	p, exists := um.attachments[id]
 	return p, exists
 }
 
 func (um *Manager) RemoveAttachment(id string) {
+	um.mu.Lock()
 	delete(um.attachments, id)
+	um.mu.Unlock()
 	um.logger.Info("Attachment removed", "id", id)
 }
 
 // @Injectable
 func NewUploadManager(logger *logger.BaseLogger) *Manager {
 	return &Manager{
-		logger: logger.With("module", "upload-manager"),
+		logger:      logger.With("module", "upload-manager"),
+		attachments: make(map[string]string),
 	}
 }
