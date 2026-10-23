@@ -7,7 +7,7 @@ import (
 )
 
 type OpenBrowserInput struct {
-	Url string `json:"url"`
+	Urls []string `json:"urls"`
 }
 
 type OpenBrowserOutput struct {
@@ -17,9 +17,11 @@ var OpenBrowserTool = tool.DefineTool(
 	"open_browser_tool",
 	"Open browser",
 	func(ctx *context.ExecuteContext, args *OpenBrowserInput, _ tool.Bindings) (*OpenBrowserOutput, error) {
-		err := system.OpenBrowser(args.Url)
-		if err != nil {
-			return nil, err
+		for _, url := range args.Urls {
+			err := system.OpenBrowser(url)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		return &OpenBrowserOutput{}, nil
