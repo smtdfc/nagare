@@ -87,7 +87,7 @@ function RouteComponent() {
       <div className="flex flex-col w-full max-w-2xl mx-auto gap-6">
         <SettingsHeader
           title="Model Providers"
-          description="Configure and manage your connected AI model providers. One provider serves both chat and embedding."
+          description="Configure and manage your connected AI model providers."
           action={
             <Button
               size="sm"
