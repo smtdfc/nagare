@@ -1,5 +1,43 @@
 # Changelog
 
+## [1.13.0](https://github.com/smtdfc/nagare/compare/v1.12.0...v1.13.0) (2026-10-23)
+
+
+### Features
+
+* add logging functionality with initialization and error handling ([cd97ff9](https://github.com/smtdfc/nagare/commit/cd97ff9f23caa0052cce16c748f797ff24dd778d))
+* add Nagare Plugin SDK for Rust ([8b1bfb6](https://github.com/smtdfc/nagare/commit/8b1bfb63ce1abfa74ccfb730c529a5729178da62))
+* add Telegram plugin with message handling, session management, and tests ([de3e0b0](https://github.com/smtdfc/nagare/commit/de3e0b007f8c72120cd4456f6ba69c34760d1ec5))
+* **client/ui:** add help page ([18a1f5a](https://github.com/smtdfc/nagare/commit/18a1f5abd21637988ba2368aeb6a70e52373f343))
+* **core/custom_errors:** add ErrPluginSignatureInvalid ([4d6d595](https://github.com/smtdfc/nagare/commit/4d6d5952b75ea6a29bce2fd0278096b9d74b3841))
+* **core/media-manager:** add sync.RWMutex for thread safety ([b2e19ba](https://github.com/smtdfc/nagare/commit/b2e19ba44883be01dcba0ca4fc1742734a3347ca))
+* **core/plugin-manager:** add sync.RWMutex for thread safety ([9857c80](https://github.com/smtdfc/nagare/commit/9857c805e2a6a64f15bbf66fba934a043de4e8cf))
+* **core:** add plugin update mechanism and human-in-the-loop tool approval ([65ce61d](https://github.com/smtdfc/nagare/commit/65ce61dc4612724e3bd2a6ab6176633bcc18284c))
+* **core:** allow open_browser tool to open multiple URLs ([070ead8](https://github.com/smtdfc/nagare/commit/070ead8b3d890a8f757a739d88368afc87291b41))
+* implement main functionality and metadata handling for nagare_vector plugin ([7bc155d](https://github.com/smtdfc/nagare/commit/7bc155d8920ff44f7cac1d65da981366845212c2))
+* Implement Model Provider Adapter and Configuration ([de0e9bd](https://github.com/smtdfc/nagare/commit/de0e9bd23ede73581f8a9094c6f85e7bac80d24f))
+* implement PluginTool interface and BaseTool struct ([c8ba9cd](https://github.com/smtdfc/nagare/commit/c8ba9cd5eb5cb6e5b2a072fb0925d6aa86b853be))
+* **installer:** add Nagare desktop ([ece5532](https://github.com/smtdfc/nagare/commit/ece55321e54eb189a08ed4b313916d3c732ca915))
+* **installer:** update Windows installer script ([8244eef](https://github.com/smtdfc/nagare/commit/8244eef548e01bf5146cb7e1f67dac2c32342d17))
+* **pkgs/messages:** add TaskTriggerMessage ([933f5b1](https://github.com/smtdfc/nagare/commit/933f5b1ca22a4b7cde45ce3169bcd03684989fd0))
+* **pkgs/messages:** implement TaskTriggerMessage struct ([5c5f94c](https://github.com/smtdfc/nagare/commit/5c5f94c1458dcac00a13da83da50945e4d454c0c))
+* **plugin/builder:** add support for detecting source language and compiling Rust plugins ([67c7f83](https://github.com/smtdfc/nagare/commit/67c7f83c61ac1486798f35945e1e90064a522e4a))
+* **plugin/dtos:** add event types and payload structures for chat and plugin tools ([fdba165](https://github.com/smtdfc/nagare/commit/fdba165b379cf6c565593a6532781c1b04494073))
+* **plugin/telegram:** enhance message handling with model provider support and markdown escaping ([2482b94](https://github.com/smtdfc/nagare/commit/2482b94f79da436220b607f9e9c610887fd988b9))
+* update installation script to use user-specific paths and copy plugins/assets ([febd30c](https://github.com/smtdfc/nagare/commit/febd30c8b9ac3671fa4777c9fd8ace06840dc2ae))
+
+
+### Bug Fixes
+
+* **client/ui:** correct the description text in the settings header ([1ec49eb](https://github.com/smtdfc/nagare/commit/1ec49ebdcb43863b5c25fb1242510b2f1357aefc))
+* **core/plugin-manager:** prevent Zip Slip, symlink traversal, and zip ([2c15bda](https://github.com/smtdfc/nagare/commit/2c15bdaffeffef2e40086028175e7bff19b19052))
+* **core:** resolve error when load provider ([b0d95a1](https://github.com/smtdfc/nagare/commit/b0d95a14bd4b4e2b5afd8dceba181b28ffcb7ad2))
+* **core:** use param.Opt for tool call IDs ([4900ba5](https://github.com/smtdfc/nagare/commit/4900ba55bfe9795296348c3d7cbe2fddeb45746e))
+* correct import path and adjust CoreSetup initialization in tests ([f2c88ec](https://github.com/smtdfc/nagare/commit/f2c88ec8782c97ff50ed2c6f3a5c0525307bf976))
+* **gateway:** prevent path traversal when uploading plugins ([048e0b0](https://github.com/smtdfc/nagare/commit/048e0b018ca0c7af2a1f844f480e3d43a00b272c))
+* improve Rust compilation error handling and update binary location logic ([8b9f65a](https://github.com/smtdfc/nagare/commit/8b9f65aaf9ac56cac9628de8486485231c6e1805))
+* **plugin/metadata:** prevent directory traversal ([7814573](https://github.com/smtdfc/nagare/commit/781457354e05b86a1b50e36ac2fc206b5a3a6b3d))
+
 ## [1.12.0](https://github.com/smtdfc/nagare/compare/v1.11.0...v1.12.0) (2026-10-13)
 
 
