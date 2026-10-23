@@ -79,7 +79,7 @@ export function LoginForm({ onSubmit }: LoginFormProps) {
             <Button type="submit">Continue</Button>
           </Field>
           <FieldDescription className="text-center">
-            Don&apos;t have a token? <a href="#">Get a token</a>
+            Don&apos;t have a token? <a href="/helps/how-to-get-a-token">Get a token</a>
           </FieldDescription>
         </FieldGroup>
       </form>
