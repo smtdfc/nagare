@@ -75,7 +75,6 @@ echo "Building Desktop app"
 pnpm desktop:build
 cp "$DESKTOP_SOURCE/bin/nagare-desktop${exe_ext}" "$DIST_DIR"
 
-
 echo "Building Nagare CLI..."
 cd "$CLI_SOURCE"
 go build -o "$DIST_DIR/nagare${exe_ext}"

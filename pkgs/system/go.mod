@@ -1,4 +1,4 @@
-module github.com/smtdfc/nagare/pkg/system
+module github.com/smtdfc/nagare/pkgs/system
 
 go 1.27
 

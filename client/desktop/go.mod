@@ -1,4 +1,4 @@
-module changeme
+module github.com/smtdfc/nagare/client/desktop
 
 go 1.26.0
 
