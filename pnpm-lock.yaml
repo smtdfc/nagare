@@ -300,7 +300,7 @@ importers:
         specifier: ~6.0.3
         version: 6.0.3
       vite:
-        specifier: ^8.3.4
+        specifier: ^8.3.3
         version: 8.3.4(@types/node@24.19.2)(jiti@2.7.0)
 
 packages:
