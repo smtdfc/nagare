@@ -5,9 +5,11 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -190,4 +192,33 @@ func TestVerifyFileSignature(t *testing.T) {
 	if err := verifyFileSignature(binFile.Name(), "non_existent_file.sig"); err == nil {
 		t.Fatalf("expected signature verification to fail for missing signature file, but it passed")
 	}
+}
+
+func TestPluginManager_ConcurrentAccess(t *testing.T) {
+	pm := &PluginManager{
+		connectCodes: make(map[string]string),
+	}
+
+	var wg sync.WaitGroup
+	workers := 20
+	iterations := 100
+
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		pkgName := fmt.Sprintf("plugin.test.%d", i%5)
+		go func(pkg string) {
+			defer wg.Done()
+			for j := 0; j < iterations; j++ {
+				pm.SetConnectCode(pkg, "code-123")
+				pm.SetPluginSocketPath("/tmp/test.sock")
+				_ = pm.GetPluginSocketPath()
+
+				pm.mu.RLock()
+				_ = pm.connectCodes[pkg]
+				pm.mu.RUnlock()
+			}
+		}(pkgName)
+	}
+
+	wg.Wait()
 }

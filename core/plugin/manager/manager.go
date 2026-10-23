@@ -15,6 +15,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/shirou/gopsutil/v4/process"
@@ -205,6 +206,7 @@ func loadMetadata(metadataFile string) (*metadata.PluginMetadata, error) {
 }
 
 type PluginManager struct {
+	mu           sync.RWMutex
 	pluginRepo   *repositories.PluginRepository
 	pluginMapper *mappers.PluginMapper
 	connectCodes map[string]string
@@ -269,18 +271,23 @@ func (p *PluginManager) StopPlugin(plugin *plugin.Plugin) error {
 		p.logger.Warn("Failed to remove PID file", "error", err, "packageName", plugin.PackageName)
 	}
 
+	p.mu.Lock()
 	delete(p.connectCodes, plugin.PackageName)
+	p.mu.Unlock()
 	return nil
 }
 
 func (p *PluginManager) StartPlugin(plugin *plugin.Plugin) error {
 	connectCode := uuid.New().String()
+	p.mu.Lock()
 	p.connectCodes[plugin.PackageName] = connectCode
+	socketPath := p.socketPath
+	p.mu.Unlock()
+
 	cmd := exec.Command(plugin.Bin)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
-	socketPath := p.socketPath
 	if socketPath == "" {
 		socketPath = paths.PluginSocketPath
 	}
@@ -432,14 +439,20 @@ func (p *PluginManager) StartAllPlugin(ctx context.Context) error {
 }
 
 func (p *PluginManager) SetPluginSocketPath(path string) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	p.socketPath = path
 }
 
 func (p *PluginManager) GetPluginSocketPath() string {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
 	return p.socketPath
 }
 
 func (p *PluginManager) SetConnectCode(packageName string, code string) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	p.connectCodes[packageName] = code
 }
 
@@ -470,12 +483,14 @@ func (p *PluginManager) ValidConnect(cxt context.Context, packageName string, co
 		return nil, custom_errors.ErrPluginNotFound
 	}
 
+	p.mu.RLock()
 	code, ok := p.connectCodes[packageName]
+	p.mu.RUnlock()
 	if !ok {
 		return nil, custom_errors.ErrPluginConnectionInvalid
 	}
 
-	if code != connectCode {
+	if subtle.ConstantTimeCompare([]byte(code), []byte(connectCode)) != 1 {
 		return nil, custom_errors.ErrPluginConnectionInvalid
 	}
 
