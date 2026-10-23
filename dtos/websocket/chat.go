@@ -8,12 +8,27 @@ const (
 	UnregisterChatListenerEvent        Event = "UnregisterChatListenerEvent"
 	UnregisterChatListenerSuccessEvent Event = "UnregisterChatListenerSuccessEvent"
 	UnregisterChatListenerFailEvent    Event = "UnregisterChatListenerFailEvent"
+	SubmitToolApprovalEvent            Event = "SubmitToolApprovalEvent"
+	SubmitToolApprovalSuccessEvent     Event = "SubmitToolApprovalSuccessEvent"
+	SubmitToolApprovalFailEvent        Event = "SubmitToolApprovalFailEvent"
 )
 
 type ReceivedChatMessageEventPayload struct {
 	SessionID string `json:"sessionID"`
 	ChannelID string `json:"channelID"`
 	Message   string `json:"message"`
+}
+
+type SubmitToolApprovalEventPayload struct {
+	RequestID string `json:"requestID"`
+	SessionID string `json:"sessionID"`
+	Accept    bool   `json:"accept"`
+}
+
+type SubmitToolApprovalSuccessEventPayload struct{}
+
+type SubmitToolApprovalFailEventPayload struct {
+	Cause string `json:"cause"`
 }
 
 type RegisterChatMessageListenerEventPayload struct {

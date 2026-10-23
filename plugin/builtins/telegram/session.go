@@ -45,6 +45,11 @@ func (tp *TelegramPlugin) releaseSession(chatID string) {
 		delete(tp.idleTimers, chatID)
 		delete(tp.queues, chatID)
 		delete(tp.isProcessing, chatID)
+		for requestID, approval := range tp.approvals {
+			if approval.chatID == chatID {
+				delete(tp.approvals, requestID)
+			}
+		}
 		tp.pluginClient.Logger.Info("release chat session due to 2 hours of inactivity.", "chatID", chatID, "sessionID", sessionID)
 	}
 }
@@ -64,4 +69,26 @@ func (tp *TelegramPlugin) finishProcessing(chatID, sessionID string) {
 	tp.mu.Unlock()
 
 	tp.clearBuffer(sessionID)
+}
+
+func (tp *TelegramPlugin) setPendingApproval(requestID, chatID, sessionID string) {
+	tp.mu.Lock()
+	defer tp.mu.Unlock()
+	if tp.approvals == nil {
+		tp.approvals = make(map[string]pendingToolApproval)
+	}
+	tp.approvals[requestID] = pendingToolApproval{chatID: chatID, sessionID: sessionID}
+}
+
+func (tp *TelegramPlugin) getPendingApproval(requestID, chatID string) (pendingToolApproval, bool) {
+	tp.mu.Lock()
+	defer tp.mu.Unlock()
+	approval, ok := tp.approvals[requestID]
+	return approval, ok && approval.chatID == chatID
+}
+
+func (tp *TelegramPlugin) clearPendingApproval(requestID string) {
+	tp.mu.Lock()
+	defer tp.mu.Unlock()
+	delete(tp.approvals, requestID)
 }

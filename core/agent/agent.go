@@ -4,6 +4,7 @@ import (
 	"context"
 
 	context2 "github.com/smtdfc/nagare/core/context"
+	"github.com/smtdfc/nagare/core/hil"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/model_provider/provider"
@@ -51,7 +52,8 @@ func (a *Agent) Invoke(ctx context.Context, inputMessages messages.ListMessage, 
 			}
 		}
 		ectx := &context2.ExecuteContext{
-			Context: ctx,
+			Context:        ctx,
+			MessageChannel: output,
 		}
 		if options != nil {
 			ectx.SessionID = options.SessionID
@@ -66,13 +68,13 @@ func (a *Agent) DumpState() *State {
 	return a.state
 }
 
-func NewAgent(toolMgr *manager.ToolManager, logger *logger.BaseLogger) *Agent {
+func NewAgent(toolMgr *manager.ToolManager, approvalMgr *hil.Manager, logger *logger.BaseLogger) *Agent {
 	state := NewAgentState()
 	return &Agent{
 		model:        "",
 		modelAdapter: nil,
 		toolMgr:      toolMgr,
-		executor:     NewAgentExecutor(state, toolMgr, logger),
+		executor:     NewAgentExecutor(state, toolMgr, approvalMgr, logger),
 		state:        state,
 		logger:       logger.With("module", "agent"),
 	}

@@ -75,9 +75,9 @@ version = "0.1.0"
 			want: "spaced",
 		},
 		{
-			name: "single quotes",
+			name:     "single quotes",
 			manifest: "[package]\nname = 'quoted'\n",
-			want: "quoted",
+			want:     "quoted",
 		},
 		{
 			name:     "missing name",

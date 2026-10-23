@@ -9,6 +9,8 @@ import (
 
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/event_bus"
+	"github.com/smtdfc/nagare/core/hil"
+	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/task"
 	task_manager "github.com/smtdfc/nagare/core/task/manager"
 	"github.com/smtdfc/nagare/core/tool"
@@ -16,9 +18,11 @@ import (
 )
 
 type ToolBindings struct {
-	taskMgr  *task_manager.TaskManager
-	toolMgr  *ToolManager
-	eventBus *event_bus.CoreEventBus
+	approvalMgr *hil.Manager
+	taskMgr     *task_manager.TaskManager
+	toolMgr     *ToolManager
+	eventBus    *event_bus.CoreEventBus
+	logger      *logger.BaseLogger
 }
 
 func (t *ToolBindings) FindToolsByKeywords(keywords []string) ([]tool.Metadata, error) {
@@ -117,4 +121,16 @@ func (t *ToolBindings) FindToolsByCategories(_ *context.ExecuteContext, categori
 		}
 	}
 	return list, nil
+}
+
+func (t *ToolBindings) RequestToolApproval(ctx *context.ExecuteContext, title string) bool {
+	request := t.approvalMgr.Request(ctx.SessionID, title)
+	ctx.MessageChannel <- request
+	accepted, err := t.approvalMgr.Wait(ctx, request.RequestID)
+	if err != nil {
+		t.logger.Error("Error when request user approve action", "sessionID", ctx.SessionID, "title", title)
+		return false
+	}
+
+	return accepted
 }

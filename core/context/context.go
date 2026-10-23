@@ -1,9 +1,13 @@
 package context
 
-import "context"
+import (
+	"context"
+
+	"github.com/smtdfc/nagare/core/message"
+)
 
 type ExecuteContext struct {
 	context.Context
-
-	SessionID string
+	MessageChannel message.WriteOnlyChannel
+	SessionID      string
 }

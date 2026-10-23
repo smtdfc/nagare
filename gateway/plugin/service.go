@@ -108,6 +108,22 @@ func (p *Service) InstallPluginFromAttachment(ctx context.Context, request *rest
 	}, nil
 }
 
+func (p *Service) UpdatePlugin(ctx context.Context, request *rest.UpdatePluginRequest) (*rest.UpdatePluginResponse, error) {
+	attachmentPath, exists := p.uploadMgr.GetAttachmentPath(request.AttachmentID)
+	if !exists {
+		return nil, custom_errors.ErrPluginNotFound
+	}
+
+	plg, err := p.pluginMgr.Update(ctx, attachmentPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rest.UpdatePluginResponse{
+		Plugin: toPluginDTO(plg),
+	}, nil
+}
+
 // @Injectable
 func NewPluginService(
 	pluginMgr *manager.PluginManager,

@@ -64,6 +64,10 @@ func (tp *TelegramPlugin) handleSingleMessage(ctx context.Context, update *teleg
 		tp.setSessionID(chatID, sessionID)
 	}
 
+	if tp.handleApprovalCommand(ctx, chatID, chatIntID, update.Message.Text) {
+		return
+	}
+
 	switch update.Message.Text {
 	case "/start":
 		_ = tp.sendTextMessage(ctx, chatIntID, "Hello! I'm your Nagare bot. How can I assist you today?")
@@ -121,4 +125,38 @@ func (tp *TelegramPlugin) handleSingleMessage(ctx context.Context, update *teleg
 		tp.finishProcessing(chatID, sessionID)
 		return
 	}
+}
+
+func (tp *TelegramPlugin) handleApprovalCommand(ctx context.Context, chatID string, chatIntID int64, text string) bool {
+	fields := strings.Fields(text)
+	if len(fields) == 0 {
+		return false
+	}
+	command := strings.ToLower(strings.Split(fields[0], "@")[0])
+	if command != "/approve" && command != "/reject" {
+		return false
+	}
+	if len(fields) != 2 {
+		_ = tp.sendTextMessage(ctx, chatIntID, "Usage: /approve <request-id> or /reject <request-id>")
+		return true
+	}
+
+	approval, ok := tp.getPendingApproval(fields[1], chatID)
+	if !ok {
+		_ = tp.sendTextMessage(ctx, chatIntID, "That approval request is no longer pending.")
+		return true
+	}
+	accept := command == "/approve"
+	if err := tp.pluginClient.SubmitToolApproval(ctx, approval.sessionID, fields[1], accept); err != nil {
+		tp.pluginClient.Logger.Error("failed to submit tool approval", "requestID", fields[1], "error", err)
+		_ = tp.sendTextMessage(ctx, chatIntID, "Could not submit your decision. Please try again.")
+		return true
+	}
+	tp.clearPendingApproval(fields[1])
+	if accept {
+		_ = tp.sendTextMessage(ctx, chatIntID, "Tool execution approved.")
+	} else {
+		_ = tp.sendTextMessage(ctx, chatIntID, "Tool execution rejected.")
+	}
+	return true
 }

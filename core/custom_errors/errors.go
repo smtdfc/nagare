@@ -41,6 +41,7 @@ var (
 	ErrAgentChat                   = NewNagareCoreError("AGENT_CHAT_ERROR", "Agent chat process error")
 	ErrGetListPluginFailed         = NewNagareCoreError("GET_LIST_PLUGIN_FAILED", "Failed to get list of plugins")
 	ErrInstallPluginFailed         = NewNagareCoreError("INSTALL_PLUGIN_FAILED", "Failed to install plugin")
+	ErrPluginUpdateFailed          = NewNagareCoreError("PLUGIN_UPDATE_FAILED", "Failed to update plugin")
 	ErrPluginNotFound              = NewNagareCoreError("PLUGIN_NOT_FOUND", "Plugin not found")
 	ErrLoadPluginMetadataFailed    = NewNagareCoreError("LOAD_PLUGIN_METADATA_FAILED", "Failed to load plugin metadata")
 	ErrPluginMetadataInvalid       = NewNagareCoreError("PLUGIN_METADATA_INVALID", "Plugin metadata is invalid")

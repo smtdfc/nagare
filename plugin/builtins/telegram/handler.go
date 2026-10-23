@@ -17,6 +17,7 @@ func (tp *TelegramPlugin) OnReceivedChatMessage(sessionID, channelID, chunk stri
 		if err != nil {
 			return
 		}
+		chatID = channelID
 		chatIntID = num
 	} else {
 		var ok bool
@@ -32,6 +33,17 @@ func (tp *TelegramPlugin) OnReceivedChatMessage(sessionID, channelID, chunk stri
 	}
 
 	switch msg.Type {
+	case messages.ApprovalRequestMessageType:
+		approval, err := helpers.UnmarshalJson[messages.ApprovalRequestMessage](chunk)
+		if err != nil {
+			return
+		}
+		tp.setPendingApproval(approval.RequestID, chatID, sessionID)
+
+		_ = tp.sendTextMessage(context.Background(), chatIntID,
+			"Approval required: .\n"+
+				"Reply /approve "+approval.RequestID+" to allow it, or /reject "+approval.RequestID+" to deny it.")
+
 	case messages.TextMessageType:
 		textMsg, err := helpers.UnmarshalJson[messages.TextMessage](chunk)
 		if err != nil {

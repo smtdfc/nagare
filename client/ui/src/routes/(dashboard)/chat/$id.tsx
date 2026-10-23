@@ -16,6 +16,7 @@ import {
   getMessageRole,
   isAgentCompletedMessage,
   isAgentErrorMessage,
+  isApprovalRequestMessage,
   isTextMessage,
   isToolCallMessage,
 } from "#/lib/message";
@@ -31,12 +32,16 @@ export const Route = createFileRoute("/(dashboard)/chat/$id")({
   component: RouteComponent,
 });
 
-const allowShowMessageTypes = [MessageType.TextMessageType];
+const allowShowMessageTypes = [
+  MessageType.TextMessageType,
+  MessageType.ApprovalRequestMessageType,
+];
 const allowHandleMessageTypes = [
   MessageType.TextMessageType,
   MessageType.ToolCallMessageType,
   MessageType.AgentCompletedMessageType,
   MessageType.AgentErrorMessageType,
+  MessageType.ApprovalRequestMessageType,
 ];
 
 function renderMessageContent(message: ChatMessage) {
@@ -102,6 +107,13 @@ function RouteComponent() {
         }
       }
 
+      // A tool/approval event may be the latest visible item. The next text
+      // chunk must start a new message instead of being dropped.
+      if (isChunkText) {
+        setStatusText("Responding...");
+        return [...prev, chunk];
+      }
+
       if (isAgentCompletedMessage(chunk)) {
         setStatusText(`Finishing ...`);
         setIsProcessing(false);
@@ -109,6 +121,11 @@ function RouteComponent() {
 
       if (isToolCallMessage(chunk)) {
         setStatusText(`Using ${chunk.name}`);
+      }
+
+      if (isApprovalRequestMessage(chunk)) {
+        setStatusText("Waiting for approval...");
+        return [...prev, chunk];
       }
 
       if (isAgentErrorMessage(chunk)) {

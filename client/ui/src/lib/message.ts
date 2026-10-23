@@ -2,6 +2,7 @@ import {
   MessageType,
   type AgentCompletedMessage,
   type AgentErrorMessage,
+  type ApprovalRequestMessage,
   type TextMessage,
   type ToolCallMessage,
 } from "@nagare-app/messages";
@@ -29,6 +30,12 @@ export function isAgentErrorMessage(
   return message.type === MessageType.AgentErrorMessageType;
 }
 
+export function isApprovalRequestMessage(
+  message: ChatMessage,
+): message is ApprovalRequestMessage {
+  return message.type === MessageType.ApprovalRequestMessageType;
+}
+
 export function getMessageRole(message: ChatMessage) {
   if (isTextMessage(message)) {
     return (message.role as string).toLowerCase();
@@ -40,6 +47,10 @@ export function getMessageRole(message: ChatMessage) {
 
   if (isToolCallMessage(message)) {
     return "tool";
+  }
+
+  if (isApprovalRequestMessage(message)) {
+    return "system";
   }
 
   return "agent";

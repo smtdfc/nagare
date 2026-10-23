@@ -20,6 +20,9 @@ import {
   type InstallPluginFromAttachmentResponse,
   InstallPluginFromAttachmentEndpoint,
   type InstallLocalPluginResponse,
+  type UpdatePluginRequest,
+  UpdatePluginEndpoint,
+  type UpdatePluginResponse,
 } from "@nagare-app/dtos";
 import { catchError } from "./lib/errors";
 
@@ -116,6 +119,21 @@ export class PluginService {
       const response = await instance.post<
         ApiResponse<InstallPluginFromAttachmentResponse>
       >(InstallPluginFromAttachmentEndpoint, payload);
+      return response.data.data.plugin;
+    } catch (e) {
+      catchError(e);
+    }
+  }
+
+  static async update(
+    attachmentId: string,
+  ): Promise<Plugin | null> {
+    try {
+      const payload: UpdatePluginRequest = { attachmentId };
+      const response = await instance.post<ApiResponse<UpdatePluginResponse>>(
+        UpdatePluginEndpoint,
+        payload,
+      );
       return response.data.data.plugin;
     } catch (e) {
       catchError(e);

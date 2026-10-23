@@ -57,6 +57,8 @@ func main() {
 
 // Union type for Message
 export type Message = 
+    | ApprovalRequestMessage
+    | ApprovalResponseMessage
     | AgentCompletedMessage
     | AgentErrorMessage
     | AgentStartedMessage

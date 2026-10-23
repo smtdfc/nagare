@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/smtdfc/nagare/core/event_bus"
+	"github.com/smtdfc/nagare/core/hil"
 	"github.com/smtdfc/nagare/core/logger"
 	provider_mgr "github.com/smtdfc/nagare/core/model_provider/manager"
 	"github.com/smtdfc/nagare/core/plugin/manager"
@@ -22,6 +23,7 @@ type PluginHost struct {
 	toolMgr       *manager2.ToolManager
 	sessionMgr    *session_mgr.SessionManager
 	chatEventBus  *event_bus.CoreEventBus
+	approvalMgr   *hil.Manager
 	logger        *logger.BaseLogger
 	socketPath    string
 
@@ -145,6 +147,8 @@ func (h *PluginHost) dispatch(pConn *PluginConnection, payload *plugin_dtos.Payl
 		go h.handleSendChatMessage(pConn, payload)
 	case plugin_dtos.ResetChatChannelEvent:
 		go h.handleResetChatChannel(pConn, payload)
+	case plugin_dtos.SubmitToolApprovalEvent:
+		go h.handleSubmitToolApproval(pConn, payload)
 	case plugin_dtos.RegisterPluginToolEvent:
 		go h.handleRegisterPluginTool(pConn, payload)
 	case plugin_dtos.RegisterToolCategoriesEvent:
@@ -165,6 +169,7 @@ func NewPluginHost(
 	toolMgr *manager2.ToolManager,
 	modelProvider *provider_mgr.ModelProviderManager,
 	chatEventBus *event_bus.CoreEventBus,
+	approvalMgr *hil.Manager,
 	logger *logger.BaseLogger,
 ) *PluginHost {
 	return &PluginHost{
@@ -172,6 +177,7 @@ func NewPluginHost(
 		sessionMgr:    sessionMgr,
 		toolMgr:       toolMgr,
 		chatEventBus:  chatEventBus,
+		approvalMgr:   approvalMgr,
 		modelProvider: modelProvider,
 		logger:        logger.With("module", "plugin-host"),
 		connections:   make(map[string]*PluginConnection),

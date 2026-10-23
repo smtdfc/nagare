@@ -134,3 +134,30 @@ func (h *PluginHost) handleResetChatChannel(conn *PluginConnection, payload *plu
 		ChannelID: data.ChannelID,
 	}, payload.RequestID)
 }
+
+func (h *PluginHost) handleSubmitToolApproval(conn *PluginConnection, payload *plugin_dtos.Payload[any]) {
+	if conn.pluginID == "" {
+		_ = conn.Send(plugin_dtos.SubmitToolApprovalFailedEvent, &plugin_dtos.SubmitToolApprovalFailedEventPayload{Cause: "access denied"}, payload.RequestID)
+		return
+	}
+
+	data, err := getPayloadData[plugin_dtos.SubmitToolApprovalEventPayload](payload)
+	if err != nil || data == nil || data.SessionID == "" || data.ApprovalRequestID == "" {
+		_ = conn.Send(plugin_dtos.SubmitToolApprovalFailedEvent, &plugin_dtos.SubmitToolApprovalFailedEventPayload{Cause: "invalid approval payload"}, payload.RequestID)
+		return
+	}
+	if !RequireScopes(conn.scopes, core_plugin.ChatFeature) {
+		_ = conn.Send(plugin_dtos.SubmitToolApprovalFailedEvent, &plugin_dtos.SubmitToolApprovalFailedEventPayload{Cause: "plugin not supported this feature"}, payload.RequestID)
+		return
+	}
+	if _, err := h.sessionMgr.GetPluginSession(context.Background(), data.SessionID, conn.pluginID); err != nil {
+		_ = conn.Send(plugin_dtos.SubmitToolApprovalFailedEvent, &plugin_dtos.SubmitToolApprovalFailedEventPayload{Cause: err.Error()}, payload.RequestID)
+		return
+	}
+	if err := h.approvalMgr.Respond(data.ApprovalRequestID, data.SessionID, data.Accept); err != nil {
+		_ = conn.Send(plugin_dtos.SubmitToolApprovalFailedEvent, &plugin_dtos.SubmitToolApprovalFailedEventPayload{Cause: err.Error()}, payload.RequestID)
+		return
+	}
+
+	_ = conn.Send(plugin_dtos.SubmitToolApprovalSuccessEvent, &plugin_dtos.SubmitToolApprovalSuccessEventPayload{}, payload.RequestID)
+}

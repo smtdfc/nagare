@@ -8,6 +8,11 @@ import (
 
 type mockBindings struct{}
 
+// RequestToolApproval implements [Bindings].
+func (m *mockBindings) RequestToolApproval(ctx *context2.ExecuteContext, title string) bool {
+	panic("unimplemented")
+}
+
 func (m *mockBindings) RefreshTask(*context2.ExecuteContext) {}
 
 func (m *mockBindings) CreateTask(*context2.ExecuteContext, string, string, string, string, bool, string, string, string) (string, error) {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/event_bus"
+	"github.com/smtdfc/nagare/core/hil"
 	"github.com/smtdfc/nagare/core/logger"
 	task_manager "github.com/smtdfc/nagare/core/task/manager"
 	"github.com/smtdfc/nagare/core/tool"
@@ -15,21 +16,22 @@ import (
 )
 
 type ToolManager struct {
-	mu         sync.RWMutex
-	cachedList tool.ListTool
-	logger     *logger.BaseLogger
-	taskMgr    *task_manager.TaskManager
-	eventBus   *event_bus.CoreEventBus
-
+	mu                   sync.RWMutex
+	cachedList           tool.ListTool
+	logger               *logger.BaseLogger
+	taskMgr              *task_manager.TaskManager
+	eventBus             *event_bus.CoreEventBus
+	approvalMgr          *hil.Manager
 	toolCategories       map[string]string
 	pluginToolCategories map[string]map[string]string
 }
 
 func (t *ToolManager) createBindings() *ToolBindings {
 	return &ToolBindings{
-		taskMgr:  t.taskMgr,
-		eventBus: t.eventBus,
-		toolMgr:  t,
+		taskMgr:     t.taskMgr,
+		eventBus:    t.eventBus,
+		toolMgr:     t,
+		approvalMgr: t.approvalMgr,
 	}
 }
 
@@ -154,11 +156,12 @@ func (t *ToolManager) AddPluginToolCategories(pluginID string, categories map[st
 }
 
 // @Injectable
-func NewToolManager(logger *logger.BaseLogger, taskMgr *task_manager.TaskManager, eventBus *event_bus.CoreEventBus) *ToolManager {
+func NewToolManager(logger *logger.BaseLogger, taskMgr *task_manager.TaskManager, eventBus *event_bus.CoreEventBus, approvalMgr *hil.Manager) *ToolManager {
 	return &ToolManager{
-		logger:   logger.With("module", "tool-manager"),
-		taskMgr:  taskMgr,
-		eventBus: eventBus,
+		logger:      logger.With("module", "tool-manager"),
+		taskMgr:     taskMgr,
+		eventBus:    eventBus,
+		approvalMgr: approvalMgr,
 		toolCategories: map[string]string{
 			tool.ProcessManagementCategory: "Process Management",
 			tool.PowerManagementCategory:   "Power Management",

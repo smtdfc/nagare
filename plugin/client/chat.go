@@ -85,3 +85,25 @@ func (p *PluginClient) ResetChatChannel(ctx context.Context, channelID string) e
 
 	return nil
 }
+
+func (p *PluginClient) SubmitToolApproval(ctx context.Context, sessionID, approvalRequestID string, accept bool) error {
+	resp, err := sendAndWait[plugin_dtos.SubmitToolApprovalSuccessEventPayload, plugin_dtos.SubmitToolApprovalFailedEventPayload](
+		p,
+		ctx,
+		plugin_dtos.SubmitToolApprovalEvent,
+		plugin_dtos.SubmitToolApprovalEventPayload{
+			SessionID:         sessionID,
+			ApprovalRequestID: approvalRequestID,
+			Accept:            accept,
+		},
+		plugin_dtos.SubmitToolApprovalFailedEvent,
+		plugin_dtos.SubmitToolApprovalSuccessEvent,
+	)
+	if err != nil {
+		return err
+	}
+	if !resp.IsSuccess {
+		return errors.New(resp.Error.Cause)
+	}
+	return nil
+}

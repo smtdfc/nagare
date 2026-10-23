@@ -21,6 +21,12 @@ type TelegramPlugin struct {
 	queues         map[string][]telego.Update
 	isProcessing   map[string]bool
 	messageBuffers sync.Map
+	approvals      map[string]pendingToolApproval
+}
+
+type pendingToolApproval struct {
+	chatID    string
+	sessionID string
 }
 
 func NewTelegramPlugin(bot *telego.Bot, pluginClient *client.PluginClient) *TelegramPlugin {
@@ -31,6 +37,7 @@ func NewTelegramPlugin(bot *telego.Bot, pluginClient *client.PluginClient) *Tele
 		idleTimers:   make(map[string]*time.Timer),
 		queues:       make(map[string][]telego.Update),
 		isProcessing: make(map[string]bool),
+		approvals:    make(map[string]pendingToolApproval),
 	}
 }
 

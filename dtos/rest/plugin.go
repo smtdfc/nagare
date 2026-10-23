@@ -23,6 +23,7 @@ const (
 	GetListPluginEndpoint               = "/api/v1/user/plugins/list"
 	InstallLocalPluginEndpoint          = "/api/v1/user/plugins/install-local"
 	InstallPluginFromAttachmentEndpoint = "/api/v1/user/plugins/install-attachment"
+	UpdatePluginEndpoint                = "/api/v1/user/plugins/update"
 	UninstallPluginEndpoint             = "/api/v1/user/plugins/uninstall"
 	ActivatePluginEndpoint              = "/api/v1/user/plugins/activate"
 	DeactivatePluginEndpoint            = "/api/v1/user/plugins/deactivate"
@@ -71,5 +72,13 @@ type InstallPluginFromAttachmentRequest struct {
 }
 
 type InstallPluginFromAttachmentResponse struct {
+	Plugin *Plugin `json:"plugin"`
+}
+
+type UpdatePluginRequest struct {
+	AttachmentID string `json:"attachmentId"`
+}
+
+type UpdatePluginResponse struct {
 	Plugin *Plugin `json:"plugin"`
 }

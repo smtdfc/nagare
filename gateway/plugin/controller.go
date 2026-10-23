@@ -143,6 +143,20 @@ func (p *Controller) InstallFromAttachment(c fiber.Ctx) error {
 	return utils.ResponseSuccess(c, data, 200)
 }
 
+func (p *Controller) Update(c fiber.Ctx) error {
+	request, err := utils.ParseBody[*rest.UpdatePluginRequest](c)
+	if err != nil {
+		return err
+	}
+
+	data, err := p.pluginService.UpdatePlugin(c.Context(), request)
+	if err != nil {
+		return err
+	}
+
+	return utils.ResponseSuccess(c, data, 200)
+}
+
 // @Injectable
 func NewPluginController(pluginService *Service, logger *logger.BaseLogger) *Controller {
 	return &Controller{

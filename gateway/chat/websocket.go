@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/olahol/melody"
+	"github.com/smtdfc/nagare/core/hil"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/session/manager"
 	"github.com/smtdfc/nagare/dtos/websocket"
@@ -13,9 +14,42 @@ import (
 )
 
 type WebsocketHandler struct {
-	sessionMgr *manager.SessionManager
-	authGuard  *guards.AuthGuard
-	logger     *logger.BaseLogger
+	sessionMgr  *manager.SessionManager
+	authGuard   *guards.AuthGuard
+	approvalMgr *hil.Manager
+	logger      *logger.BaseLogger
+}
+
+func (c *WebsocketHandler) OnSubmitToolApproval(s *melody.Session, _ *websocket2.Coordinator, message *websocket.Payload[any]) {
+	data, err := websocket2.GetData[websocket.SubmitToolApprovalEventPayload](message)
+	if err != nil || data == nil || data.RequestID == "" || data.SessionID == "" {
+		_ = websocket2.SendMessage(s, websocket.SubmitToolApprovalFailEvent, &websocket.SubmitToolApprovalFailEventPayload{
+			Cause: "invalid approval payload",
+		}, message.RequestID)
+		return
+	}
+
+	auth, err := websocket2.GetAuth(s, "user")
+	if err != nil {
+		_ = websocket2.SendMessage(s, websocket.SubmitToolApprovalFailEvent, &websocket.SubmitToolApprovalFailEventPayload{
+			Cause: err.Error(),
+		}, message.RequestID)
+		return
+	}
+	if _, err := c.sessionMgr.GetUserSession(context.Background(), data.SessionID, auth.TargetID); err != nil {
+		_ = websocket2.SendMessage(s, websocket.SubmitToolApprovalFailEvent, &websocket.SubmitToolApprovalFailEventPayload{
+			Cause: err.Error(),
+		}, message.RequestID)
+		return
+	}
+	if err := c.approvalMgr.Respond(data.RequestID, data.SessionID, data.Accept); err != nil {
+		_ = websocket2.SendMessage(s, websocket.SubmitToolApprovalFailEvent, &websocket.SubmitToolApprovalFailEventPayload{
+			Cause: err.Error(),
+		}, message.RequestID)
+		return
+	}
+
+	_ = websocket2.SendMessage(s, websocket.SubmitToolApprovalSuccessEvent, &websocket.SubmitToolApprovalSuccessEventPayload{}, message.RequestID)
 }
 
 func (c *WebsocketHandler) OnAuth(s *melody.Session, _ *websocket2.Coordinator, message *websocket.Payload[any]) {
@@ -142,11 +176,13 @@ func (c *WebsocketHandler) OnUnlistenMessage(s *melody.Session, w *websocket2.Co
 func NewWebsocketHandler(
 	sessionMgr *manager.SessionManager,
 	authGuard *guards.AuthGuard,
+	approvalMgr *hil.Manager,
 	logger *logger.BaseLogger,
 ) *WebsocketHandler {
 	return &WebsocketHandler{
-		sessionMgr: sessionMgr,
-		authGuard:  authGuard,
-		logger:     logger.With("module", "gateway:chat:websocket_handler"),
+		sessionMgr:  sessionMgr,
+		authGuard:   authGuard,
+		approvalMgr: approvalMgr,
+		logger:      logger.With("module", "gateway:chat:websocket_handler"),
 	}
 }

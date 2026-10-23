@@ -13,6 +13,11 @@ type mockTaskBindings struct {
 	refreshed bool
 }
 
+// RequestToolApproval implements [tool.Bindings].
+func (m *mockTaskBindings) RequestToolApproval(ctx *core_context.ExecuteContext, title string) bool {
+	panic("unimplemented")
+}
+
 func (m *mockTaskBindings) RefreshTask(*core_context.ExecuteContext) {
 	m.refreshed = true
 }

@@ -20,6 +20,9 @@ import {
   type RegisterChatListenerFailEventPayload,
   type RegisterChatListenerSuccessEventEventPayload,
   type RegisterChatMessageListenerEventPayload,
+  type SubmitToolApprovalEventPayload,
+  type SubmitToolApprovalSuccessEventPayload,
+  type SubmitToolApprovalFailEventPayload,
   SendChatMessageEndpoint,
   type SendChatMessageResponse,
   type Session,
@@ -190,5 +193,20 @@ export class ChatService {
     } catch (error) {
       catchError(error);
     }
+  }
+
+  static async submitToolApproval(
+    payload: SubmitToolApprovalEventPayload,
+  ) {
+    return websocket.request<
+      SubmitToolApprovalEventPayload,
+      SubmitToolApprovalSuccessEventPayload,
+      SubmitToolApprovalFailEventPayload
+    >(
+      AppEvent.SubmitToolApprovalEvent,
+      payload,
+      AppEvent.SubmitToolApprovalSuccessEvent,
+      AppEvent.SubmitToolApprovalFailEvent,
+    );
   }
 }

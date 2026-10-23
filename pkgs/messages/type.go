@@ -18,4 +18,6 @@ const (
 	AgentCompletedMessageType    MessageType = "AGENT_COMPLETED_MESSAGE"
 	AgentErrorMessageType        MessageType = "AGENT_ERROR_MESSAGE"
 	TaskTriggerMessageType       MessageType = "TASK_TRIGGER_MESSAGE"
+	ApprovalRequestMessageType   MessageType = "APPROVAL_REQUEST_MESSAGE"
+	ApprovalResponseMessageType  MessageType = "APPROVAL_RESPONSE_MESSAGE"
 )

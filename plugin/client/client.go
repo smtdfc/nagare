@@ -71,6 +71,10 @@ func (p *PluginClient) handleEvent(payload *plugin_dtos.Payload[any]) {
 		plugin_dtos.ResetChatChannelSuccessEvent,
 		plugin_dtos.ResetChatChannelFailedEvent,
 
+		// Human-in-the-loop tool approval
+		plugin_dtos.SubmitToolApprovalSuccessEvent,
+		plugin_dtos.SubmitToolApprovalFailedEvent,
+
 		// Get model providers
 		plugin_dtos.GetModelProvidersSuccessEvent,
 		plugin_dtos.GetModelProvidersFailedEvent,

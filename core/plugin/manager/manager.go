@@ -421,6 +421,129 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) (*plugin
 
 }
 
+// Update replaces the plugin files and metadata in place while preserving the
+// existing plugin ID. This keeps linked sessions (owner_id = plugin ID) intact
+// instead of orphaning them like uninstall + reinstall does.
+func (p *PluginManager) Update(ctx context.Context, pluginPath string) (*plugin.Plugin, error) {
+	_, err := os.Stat(pluginPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, custom_errors.ErrPluginNotFound
+		}
+		p.logger.Error("Update plugin failed", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrPluginUpdateFailed
+	}
+
+	id := uuid.New().String()
+	tempDir := filepath.Join(paths.TempDir, id)
+	metadataFile := filepath.Join(tempDir, "metadata.json")
+	err = os.MkdirAll(tempDir, 0775)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = os.RemoveAll(tempDir)
+	}()
+
+	err = unpackPlugin(pluginPath, tempDir)
+	if err != nil {
+		p.logger.Error("Update plugin failed", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrUnpackPluginFailed
+	}
+
+	pluginMetadata, err := loadMetadata(metadataFile)
+	if err != nil {
+		p.logger.Error("Update plugin failed", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrLoadPluginMetadataFailed
+	}
+
+	err = pluginMetadata.Validate()
+	if err != nil {
+		p.logger.Error("Update plugin failed", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrPluginMetadataInvalid
+	}
+
+	binFile, isExist := pluginMetadata.Bin[runtime.GOOS]
+	if !isExist {
+		return nil, custom_errors.ErrPluginBinaryMissing
+	}
+
+	cleanRelBin := filepath.Clean(binFile)
+	normalizedBin := strings.ReplaceAll(cleanRelBin, "\\", "/")
+	if filepath.IsAbs(cleanRelBin) || strings.HasPrefix(normalizedBin, "../") || normalizedBin == ".." || strings.Contains(normalizedBin, "/../") {
+		p.logger.Error("Update plugin failed: binary path attempts traversal", "bin", binFile)
+		return nil, custom_errors.ErrPluginMetadataInvalid
+	}
+
+	tempBinFile := filepath.Join(tempDir, cleanRelBin)
+	tempSigFile := filepath.Join(tempDir, pluginMetadata.PackageName+".sig")
+	if err := verifyFileSignature(tempBinFile, tempSigFile); err != nil {
+		p.logger.Error("Update plugin failed: signature verification failed", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrPluginSignatureInvalid
+	}
+
+	// Locate the installed plugin by package name so we can preserve its ID.
+	existing, err := p.pluginRepo.FindByPackageName(ctx, pluginMetadata.PackageName)
+	if err != nil {
+		return nil, custom_errors.ErrPluginUpdateFailed
+	}
+	if existing == nil {
+		return nil, custom_errors.ErrPluginNotFound
+	}
+
+	existingDomain := p.pluginMapper.ToDomain(existing)
+
+	// Stop the running plugin before replacing its files.
+	if err := p.StopPlugin(existingDomain); err != nil {
+		p.logger.Error("Update plugin failed: stop plugin", "error", err, "packageName", pluginMetadata.PackageName)
+		// Continue anyway so files can still be replaced.
+	}
+
+	pluginDir := filepath.Join(paths.PluginDir, pluginMetadata.PackageName)
+	cleanPluginDir := filepath.Clean(pluginDir)
+
+	// Remove old files then copy the new version into the same install location.
+	if err := os.RemoveAll(cleanPluginDir); err != nil {
+		p.logger.Error("Update plugin failed: remove old plugin dir", "error", err, "packageName", pluginMetadata.PackageName)
+		return nil, custom_errors.ErrPluginUpdateFailed
+	}
+	if err := os.MkdirAll(cleanPluginDir, 0775); err != nil {
+		return nil, custom_errors.ErrPluginUpdateFailed
+	}
+	if err := helpers.CopyDir(tempDir, cleanPluginDir); err != nil {
+		p.logger.Error("Update plugin failed: copy files", "error", err, "packageName", pluginMetadata.PackageName)
+		return nil, custom_errors.ErrPluginUpdateFailed
+	}
+
+	destBinFile := filepath.Clean(filepath.Join(cleanPluginDir, cleanRelBin))
+	if err := os.Chmod(destBinFile, 0755); err != nil {
+		p.logger.Error("Update plugin failed", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrPluginUpdateFailed
+	}
+
+	// Update DB record while preserving the existing ID (sessions stay linked).
+	existing.Name = pluginMetadata.Name
+	existing.Author = pluginMetadata.Author
+	existing.Features = pluginMetadata.GetFeatures()
+	existing.Version = pluginMetadata.Version
+	existing.Bin = destBinFile
+	existing.IsActive = true
+
+	if err := p.pluginRepo.Update(ctx, existing); err != nil {
+		p.logger.Error("Update plugin failed", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrPluginUpdateFailed
+	}
+
+	updatedDomain := p.pluginMapper.ToDomain(existing)
+
+	if err := p.StartPlugin(updatedDomain); err != nil {
+		p.logger.Error("Update plugin failed: start plugin", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrStartPluginFailed
+	}
+
+	return updatedDomain, nil
+}
+
 func (p *PluginManager) StartAllPlugin(ctx context.Context) error {
 	activePlugins, err := p.pluginRepo.FindActive(ctx)
 	if err != nil {

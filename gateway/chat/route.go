@@ -33,6 +33,7 @@ func NewRouteInitializer(
 		app.Post(rest.DuplicateChatSessionEndpoint, authMiddleware, chatController.DuplicateSession)
 		ws.On(websocket_dtos.RegisterChatListenerEvent, websocketHandler.OnListenMessage)
 		ws.On(websocket_dtos.UnregisterChatListenerEvent, websocketHandler.OnUnlistenMessage)
+		ws.On(websocket_dtos.SubmitToolApprovalEvent, websocketHandler.OnSubmitToolApproval)
 		ws.On(websocket_dtos.AuthEvent, websocketHandler.OnAuth)
 	}
 }

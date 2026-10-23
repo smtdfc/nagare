@@ -6,6 +6,7 @@ import (
 
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/custom_errors"
+	"github.com/smtdfc/nagare/core/hil"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/model_provider/provider"
@@ -18,9 +19,10 @@ import (
 const MaxAgentLoopCount = 20
 
 type Executor struct {
-	state   *State
-	toolMgr *manager.ToolManager
-	logger  *logger.BaseLogger
+	state       *State
+	toolMgr     *manager.ToolManager
+	approvalMgr *hil.Manager
+	logger      *logger.BaseLogger
 }
 
 func (a *Executor) ExecuteTool(ctx *context.ExecuteContext, toolCall *tool.Call) *tool.Result {
@@ -161,10 +163,11 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, modelAdapt
 	a.logger.Info("Agent end loop", "duration", endTime)
 }
 
-func NewAgentExecutor(state *State, toolMgr *manager.ToolManager, logger *logger.BaseLogger) *Executor {
+func NewAgentExecutor(state *State, toolMgr *manager.ToolManager, approvalMgr *hil.Manager, logger *logger.BaseLogger) *Executor {
 	return &Executor{
-		state:   state,
-		toolMgr: toolMgr,
-		logger:  logger.With("module", "agent-executor"),
+		state:       state,
+		toolMgr:     toolMgr,
+		approvalMgr: approvalMgr,
+		logger:      logger.With("module", "agent-executor"),
 	}
 }

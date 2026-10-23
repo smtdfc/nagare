@@ -22,6 +22,10 @@ const (
 	ResetChatChannelEvent        Event = "plugin:reset_chat_channel"
 	ResetChatChannelSuccessEvent Event = "plugin:reset_chat_channel:success"
 	ResetChatChannelFailedEvent  Event = "plugin:reset_chat_channel:failed"
+
+	SubmitToolApprovalEvent        Event = "plugin:submit_tool_approval"
+	SubmitToolApprovalSuccessEvent Event = "plugin:submit_tool_approval:success"
+	SubmitToolApprovalFailedEvent  Event = "plugin:submit_tool_approval:failed"
 )
 
 type GetModelProvidersEventPayload struct {
@@ -95,5 +99,17 @@ type ResetChatChannelSuccessEventPayload struct {
 }
 
 type ResetChatChannelFailedEventPayload struct {
+	Cause string `json:"cause"`
+}
+
+type SubmitToolApprovalEventPayload struct {
+	SessionID         string `json:"sessionID"`
+	ApprovalRequestID string `json:"approvalRequestID"`
+	Accept            bool   `json:"accept"`
+}
+
+type SubmitToolApprovalSuccessEventPayload struct{}
+
+type SubmitToolApprovalFailedEventPayload struct {
 	Cause string `json:"cause"`
 }

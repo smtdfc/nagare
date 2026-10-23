@@ -20,12 +20,20 @@ type KillProcessOutput struct {
 var KillProcessTool = tool.DefineTool(
 	"kill_process_tool",
 	"Terminate a running process by its PID",
-	func(ctx *context.ExecuteContext, args *KillProcessInput, _ tool.Bindings) (*KillProcessOutput, error) {
+	func(ctx *context.ExecuteContext, args *KillProcessInput, bindings tool.Bindings) (*KillProcessOutput, error) {
 		if args == nil || args.PID <= 0 {
 			return nil, fmt.Errorf("invalid PID provided")
 		}
 
 		procMgr := system.NewProcessManager()
+		approved := bindings.RequestToolApproval(ctx, fmt.Sprintf("Allow the agent to terminate the process with PID: %d", args.PID))
+		if !approved {
+			return &KillProcessOutput{
+				Success: false,
+				Message: "User does not grant permission",
+			}, nil
+		}
+
 		name, err := procMgr.Kill(args.PID)
 		if err != nil {
 			return &KillProcessOutput{

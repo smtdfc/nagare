@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Plug, Package } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Button } from "#/components/ui/button.tsx";
 import { Skeleton } from "#/components/ui/skeleton.tsx";
 import { envConfig, Environment, PluginService } from "@nagare-app/services";
@@ -26,6 +26,9 @@ function RouteComponent() {
   const [localPath, setLocalPath] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isInstalling, setIsInstalling] = useState(false);
+  const [updatingPluginId, setUpdatingPluginId] = useState<string | null>(null);
+  const [isSubmittingUpdate, setIsSubmittingUpdate] = useState(false);
+  const updateFileInputRef = useRef<HTMLInputElement>(null);
 
   const isDesktop = envConfig.current === Environment.Desktop;
 
@@ -53,6 +56,51 @@ function RouteComponent() {
 
   const handleUninstall = (id: string) => {
     setPlugins((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const handleUpdatePlugin = (plugin: Plugin) => {
+    // Reset input value trước khi mở dialog để người dùng có thể chọn lại
+    // cùng một file (tránh trình duyệt không trigger onChange khi tên file trùng).
+    if (updateFileInputRef.current) {
+      updateFileInputRef.current.value = "";
+    }
+    setUpdatingPluginId(plugin.id);
+    updateFileInputRef.current?.click();
+  };
+
+  const handleUpdateFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file || !updatingPluginId) return;
+
+    setIsSubmittingUpdate(true);
+    try {
+      const { attachmentId } = await PluginService.upload(file);
+      const updated = await PluginService.update(attachmentId);
+      if (!updated) throw new Error("Failed to update plugin");
+
+      setPlugins((prev) =>
+        prev.map((p) =>
+          p.id === updatingPluginId ? { ...p, ...updated } : p,
+        ),
+      );
+
+      toast.add({
+        title: "Updated",
+        type: "success",
+        priority: "high",
+        description: `Plugin "${updated.name}" has been updated to v${updated.version}. Your sessions are preserved.`,
+      });
+    } catch (e) {
+      showToastError(e);
+    } finally {
+      setIsSubmittingUpdate(false);
+      setUpdatingPluginId(null);
+      if (updateFileInputRef.current) {
+        updateFileInputRef.current.value = "";
+      }
+    }
   };
 
   const handleInstall = async () => {
@@ -139,6 +187,7 @@ function RouteComponent() {
                 plugin={p}
                 onToggle={handleToggle}
                 onUninstall={handleUninstall}
+                onUpdate={handleUpdatePlugin}
               />
             ))}
           </div>
@@ -154,6 +203,15 @@ function RouteComponent() {
           onBrowse={() => {}}
           isDesktop={isDesktop}
           onFileSelect={setSelectedFile}
+        />
+
+        {/* Hidden file input used to pick a new package when updating a plugin. */}
+        <input
+          ref={updateFileInputRef}
+          type="file"
+          className="hidden"
+          accept=".nagare_plugin,.zip"
+          onChange={handleUpdateFileChange}
         />
       </div>
     </div>

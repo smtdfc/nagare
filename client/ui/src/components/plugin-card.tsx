@@ -3,20 +3,30 @@ import { PluginService } from "@nagare-app/services";
 import { useState } from "react";
 import { toast } from "./ui/toast";
 import { showToastError } from "#/lib/toast";
-import { Loader2, Plug, PowerOff, Trash2, Zap } from "lucide-react";
+import {
+  Loader2,
+  Plug,
+  PowerOff,
+  RefreshCw,
+  Trash2,
+  Zap,
+} from "lucide-react";
 import { Button } from "./ui/button";
 
 export function PluginCard({
   plugin,
   onToggle,
   onUninstall,
+  onUpdate,
 }: {
   plugin: Plugin;
   onToggle: (id: string, active: boolean) => void;
   onUninstall: (id: string) => void;
+  onUpdate?: (plugin: Plugin) => void;
 }) {
   const [isTogglingActive, setIsTogglingActive] = useState(false);
   const [isUninstalling, setIsUninstalling] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleToggle = async () => {
     setIsTogglingActive(true);
@@ -60,6 +70,16 @@ export function PluginCard({
       showToastError(e);
     } finally {
       setIsUninstalling(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!onUpdate) return;
+    setIsUpdating(true);
+    try {
+      onUpdate(plugin);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -120,6 +140,21 @@ export function PluginCard({
             <Trash2 className="w-4 h-4 text-destructive" />
           )}
         </Button>
+        {onUpdate && (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={handleUpdate}
+            disabled={isUpdating}
+            aria-label="Update plugin"
+          >
+            {isUpdating ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
+          </Button>
+        )}
       </div>
     </div>
   );

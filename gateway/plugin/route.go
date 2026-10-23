@@ -28,5 +28,6 @@ func NewRouteInitializer(
 		app.Post(rest.GetPluginStatusEndpoint, authMiddleware, pluginController.Status)
 		app.Post(rest.UploadPluginEndpoint, authMiddleware, pluginController.Upload)
 		app.Post(rest.InstallPluginFromAttachmentEndpoint, authMiddleware, pluginController.InstallFromAttachment)
+		app.Post(rest.UpdatePluginEndpoint, authMiddleware, pluginController.Update)
 	}
 }
