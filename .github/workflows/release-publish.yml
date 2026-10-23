@@ -13,29 +13,34 @@ permissions:
 
 jobs:
   build:
-    name: Build (${{ matrix.os }})
+    name: Build (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
+
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             target: linux-amd64
             archive: tar.gz
-          - os: macos-latest
+
+          - os: macos-15-intel
             target: darwin-amd64
             archive: tar.gz
+
           - os: windows-latest
             target: windows-amd64
-            archive: tar.gz
+            archive: zip
 
     steps:
-      - name: Checkout Nagare Bot
+      - name: Checkout Nagare
         uses: actions/checkout@v4
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.27"
+          cache: true
 
       - name: Setup Rust Toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -53,50 +58,117 @@ jobs:
           version: latest
           run_install: false
 
-      - name: Install dependencies
+      # Linux: Wails v3 GTK4 + WebKitGTK 6.0 native dependencies.
+      - name: Install Linux desktop dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            pkg-config \
+            libgtk-4-dev \
+            libwebkitgtk-6.0-dev
+
+      - name: Verify Linux desktop dependencies
+        if: runner.os == 'Linux'
+        run: |
+          pkg-config --modversion gtk4
+          pkg-config --modversion webkitgtk-6.0
+          gcc --version
+
+      # macOS: hosted runner must have Xcode Command Line Tools.
+      - name: Verify macOS build tools
+        if: runner.os == 'macOS'
+        run: |
+          xcode-select -p
+          xcrun --find clang
+          clang --version
+
+      # Windows: verify the Go toolchain and native C compiler.
+      - name: Verify Windows build tools
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          go version
+          if (Get-Command gcc -ErrorAction SilentlyContinue) {
+            gcc --version
+          } elseif (Get-Command clang -ErrorAction SilentlyContinue) {
+            clang --version
+          } else {
+            Write-Host "No standalone GCC/Clang found; checking the Go build environment."
+          }
+
+      - name: Install project dependencies
         run: pnpm install
 
       - name: Install Dix
         run: go install github.com/smtdfc/dix@latest
 
-      - name: Install Wails
+      - name: Install Wails CLI
         run: go install github.com/wailsapp/wails/v3/cmd/wails3@latest
 
-      - name: Build
-        run: ./build.sh
+      - name: Verify Wails CLI
         shell: bash
+        run: |
+          wails3 version
 
-      - name: Archive binaries
+      - name: Build
+        shell: bash
+        run: |
+          chmod +x ./build.sh
+          ./build.sh
+
+      # Unix platforms use tar.gz.
+      - name: Archive binaries (Unix)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           mkdir -p packed
-          tar -czvf "packed/nagare-${{ matrix.target }}.tar.gz" -C dist .
+          tar -czf "packed/nagare-${{ matrix.target }}.tar.gz" -C dist .
+
+      # Windows releases use ZIP.
+      - name: Archive binaries (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path packed | Out-Null
+          Compress-Archive `
+            -Path "dist/*" `
+            -DestinationPath "packed/nagare-${{ matrix.target }}.zip" `
+            -CompressionLevel Optimal
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: binary-${{ matrix.target }}
-          path: packed/*.${{ matrix.archive }}
+          path: packed/*
+          if-no-files-found: error
+          retention-days: 7
 
   release:
     needs: build
     name: Publish Release
     runs-on: ubuntu-latest
+
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: downloaded-artifacts
 
-      - name: Prepare files for release
+      - name: Prepare release files
+        shell: bash
         run: |
           mkdir -p final-packed
-          find downloaded-artifacts -type f -name "*.tar.gz" -exec cp {} final-packed/ \;
-          ls -la final-packed/
+          find downloaded-artifacts -type f \
+            \( -name "*.tar.gz" -o -name "*.zip" \) \
+            -exec cp {} final-packed/ \;
+
+          test -n "$(find final-packed -maxdepth 1 -type f -print -quit)"
+          ls -lh final-packed/
 
       - name: Upload binaries to Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.tag }}
-          files: |
-            final-packed/*
+          tag_name: ${{ inputs.tag }}
+          files: final-packed/*
