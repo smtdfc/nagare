@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/mymmrac/telego"
+	tu "github.com/mymmrac/telego/telegoutil"
 )
 
 func (tp *TelegramPlugin) enqueueMessage(update telego.Update) {
@@ -154,9 +155,83 @@ func (tp *TelegramPlugin) handleApprovalCommand(ctx context.Context, chatID stri
 	}
 	tp.clearPendingApproval(fields[1])
 	if accept {
-		_ = tp.sendTextMessage(ctx, chatIntID, "Tool execution approved.")
+		_ = tp.sendTextMessage(ctx, chatIntID, "✅ Tool execution approved.")
 	} else {
-		_ = tp.sendTextMessage(ctx, chatIntID, "Tool execution rejected.")
+		_ = tp.sendTextMessage(ctx, chatIntID, "❌ Tool execution rejected.")
 	}
 	return true
+}
+
+func (tp *TelegramPlugin) handleCallbackQuery(update telego.Update) {
+	cq := update.CallbackQuery
+	if cq == nil || cq.Message == nil {
+		return
+	}
+
+	chatIntID := cq.Message.GetChat().ID
+	chatID := strconv.FormatInt(chatIntID, 10)
+
+	parts := strings.SplitN(cq.Data, ":", 2)
+	if len(parts) != 2 {
+		_ = tp.bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
+			CallbackQueryID: cq.ID,
+			Text:            "Invalid action.",
+		})
+		return
+	}
+
+	action := parts[0]
+	requestID := parts[1]
+
+	var accept bool
+	switch action {
+	case "approve":
+		accept = true
+	case "reject":
+		accept = false
+	default:
+		_ = tp.bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
+			CallbackQueryID: cq.ID,
+			Text:            "Invalid action.",
+		})
+		return
+	}
+
+	approval, ok := tp.getPendingApproval(requestID, chatID)
+	if !ok {
+		_ = tp.bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
+			CallbackQueryID: cq.ID,
+			Text:            "That approval request is no longer pending.",
+		})
+		return
+	}
+
+	if err := tp.pluginClient.SubmitToolApproval(context.Background(), approval.sessionID, requestID, accept); err != nil {
+		tp.pluginClient.Logger.Error("failed to submit tool approval via button", "requestID", requestID, "error", err)
+		_ = tp.bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
+			CallbackQueryID: cq.ID,
+			Text:            "Could not submit your decision. Please try again.",
+		})
+		return
+	}
+
+	// Acknowledge the callback to remove the loading state on the button.
+	_ = tp.bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
+		CallbackQueryID: cq.ID,
+	})
+
+	// Remove the inline keyboard from the original request message.
+	_, _ = tp.bot.EditMessageReplyMarkup(context.Background(), &telego.EditMessageReplyMarkupParams{
+		ChatID:      tu.ID(chatIntID),
+		MessageID:   approval.messageID,
+		ReplyMarkup: &telego.InlineKeyboardMarkup{},
+	})
+
+	if accept {
+		_ = tp.sendTextMessage(context.Background(), chatIntID, "✅ Tool execution approved.")
+	} else {
+		_ = tp.sendTextMessage(context.Background(), chatIntID, "❌ Tool execution rejected.")
+	}
+
+	tp.clearPendingApproval(requestID)
 }

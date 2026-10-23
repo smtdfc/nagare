@@ -71,13 +71,13 @@ func (tp *TelegramPlugin) finishProcessing(chatID, sessionID string) {
 	tp.clearBuffer(sessionID)
 }
 
-func (tp *TelegramPlugin) setPendingApproval(requestID, chatID, sessionID string) {
+func (tp *TelegramPlugin) setPendingApproval(requestID, chatID, sessionID string, messageID int) {
 	tp.mu.Lock()
 	defer tp.mu.Unlock()
 	if tp.approvals == nil {
 		tp.approvals = make(map[string]pendingToolApproval)
 	}
-	tp.approvals[requestID] = pendingToolApproval{chatID: chatID, sessionID: sessionID}
+	tp.approvals[requestID] = pendingToolApproval{chatID: chatID, sessionID: sessionID, messageID: messageID}
 }
 
 func (tp *TelegramPlugin) getPendingApproval(requestID, chatID string) (pendingToolApproval, bool) {

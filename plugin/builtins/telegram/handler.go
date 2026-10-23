@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
+	tu "github.com/mymmrac/telego/telegoutil"
 	"github.com/smtdfc/nagare/pkgs/helpers"
 	"github.com/smtdfc/nagare/pkgs/messages"
 )
@@ -38,11 +40,21 @@ func (tp *TelegramPlugin) OnReceivedChatMessage(sessionID, channelID, chunk stri
 		if err != nil {
 			return
 		}
-		tp.setPendingApproval(approval.RequestID, chatID, sessionID)
 
-		_ = tp.sendTextMessage(context.Background(), chatIntID,
-			"Approval required: .\n"+
-				"Reply /approve "+approval.RequestID+" to allow it, or /reject "+approval.RequestID+" to deny it.")
+		title := escapeMarkdownV2(approval.Title)
+		text := fmt.Sprintf("⚠️ *Approval required*\n\nTool: *%s*\n\nDo you allow this tool execution?", title)
+
+		params := tu.Message(tu.ID(chatIntID), text)
+		params.ParseMode = "MarkdownV2"
+		params.ReplyMarkup = tp.approvalKeyboard(approval.RequestID)
+
+		sent, err := tp.bot.SendMessage(context.Background(), params)
+		if err != nil {
+			tp.pluginClient.Logger.Error("failed to send approval request", "requestID", approval.RequestID, "chatID", chatID, "error", err)
+			return
+		}
+
+		tp.setPendingApproval(approval.RequestID, chatID, sessionID, sent.MessageID)
 
 	case messages.TextMessageType:
 		textMsg, err := helpers.UnmarshalJson[messages.TextMessage](chunk)
