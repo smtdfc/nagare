@@ -43,7 +43,7 @@ echo "Generating TypeScript code..."
 go run ./scripts/ts.go
 
 echo "Building Nagare Web UI..."
-cd $CLIENT_WEB_SOURCE
+cd "$CLIENT_WEB_SOURCE"
 pnpm install --frozen-lockfile
 pnpm build
 cd - > /dev/null
@@ -57,7 +57,7 @@ echo "Building Rust core plugins ..."
 for plugin in "${RUST_CORE_PLUGIN[@]}"; do
     (
         cd "$plugin" || exit 1
-        go run $CLI_SCRIPT plugin build
+        go run "$CLI_SCRIPT" plugin build
         cp ./*.nagare_plugin "$CORE_PLUGINS/"
     )
 done
@@ -66,10 +66,15 @@ echo "Building Go builtin plugins ..."
 for plugin in "${GO_BUILTIN_PLUGINS[@]}"; do
     (
         cd "$GO_BUILTIN_PLUGINS_SOURCE/$plugin" || exit 1
-        go run $CLI_SCRIPT plugin build
+        go run "$CLI_SCRIPT" plugin build
         cp ./*.nagare_plugin "$BUILTIN_PLUGINS/"
     )
 done
+
+echo "Building Desktop app"
+pnpm desktop:build
+cp "$DESKTOP_SOURCE/bin/nagare-desktop${exe_ext}" "$DIST_DIR"
+
 
 echo "Building Nagare CLI..."
 cd "$CLI_SOURCE"
@@ -82,8 +87,5 @@ dix wire --workspace
 go build -o "$DIST_DIR/nagare-gateway${exe_ext}"
 cd - > /dev/null
 
-echo "Building Desktop app"
-pnpm desktop:build
-cp "$DESKTOP_SOURCE/bin/nagare-desktop${exe_ext}" $DIST_DIR
 
 echo "Build complete!"
