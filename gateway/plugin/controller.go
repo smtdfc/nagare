@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/dtos/rest"
@@ -114,7 +115,7 @@ func (p *Controller) Upload(c fiber.Ctx) error {
 		return custom_errors.ErrUploadFailed
 	}
 
-	savePath := filepath.Join(dir, file.Filename)
+	savePath := filepath.Join(dir, uuid.New().String()+".nagare_plugin")
 	if err := c.SaveFile(file, savePath); err != nil {
 		p.logger.Error("Failed to get file from form file", "err", err)
 		return custom_errors.ErrUploadFailed
