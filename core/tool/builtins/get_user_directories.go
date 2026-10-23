@@ -3,7 +3,7 @@ package declarations
 import (
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/tool"
-	"github.com/smtdfc/nagare/pkg/system"
+	"github.com/smtdfc/nagare/pkgs/system"
 )
 
 type GetUserDirectoriesOutput struct {
