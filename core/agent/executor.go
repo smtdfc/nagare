@@ -15,7 +15,7 @@ import (
 	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
-const MAX_AGENT_LOOP_COUNT = 20
+const MaxAgentLoopCount = 20
 
 type Executor struct {
 	state   *State
@@ -86,7 +86,7 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, modelAdapt
 		default:
 		}
 
-		if a.state.LoopCounter > MAX_AGENT_LOOP_COUNT {
+		if a.state.LoopCounter > MaxAgentLoopCount {
 			a.logger.Info("Agent loop exceeded maximum iterations")
 			output <- messages.NewAgentErrorMessage(
 				custom_errors.ErrAgentExceedMaxIterations.Details,
