@@ -10,6 +10,7 @@ $BUILTIN_PLUGINS_STORE_DIR = Join-Path $NAGARE_ASSETS_DIR "plugins\builtins"
 $CORE_PLUGINS_STORE_DIR = Join-Path $NAGARE_ASSETS_DIR "plugins\core"
 $WEB_STORE_DIR = Join-Path $NAGARE_ASSETS_DIR "web"
 
+# Create installation directories
 @(
     $INSTALL_PATH,
     $BUILTIN_PLUGINS_STORE_DIR,
@@ -37,6 +38,7 @@ function Install-Binary {
         }
 
         Copy-Item -LiteralPath $Source -Destination $Destination -Force
+
         Write-Host "Successfully installed ${Name}: $(Split-Path $Destination -Leaf)"
     }
     catch {
@@ -56,8 +58,17 @@ function Copy-Assets {
 
     if (Test-Path -LiteralPath $Source -PathType Container) {
         New-Item -ItemType Directory -Path $Destination -Force | Out-Null
-        Copy-Item -Path (Join-Path $Source "*") `
-            -Destination $Destination -Recurse -Force
+
+        Copy-Item `
+            -Path (Join-Path $Source "*") `
+            -Destination $Destination `
+            -Recurse `
+            -Force
+
+        Write-Host "Copied assets: $Source -> $Destination"
+    }
+    else {
+        Write-Host "Notice: asset directory not found, skipping: $Source"
     }
 }
 
@@ -70,58 +81,74 @@ function Install-Distribution {
         [string]$Label
     )
 
+    # CLI
     Install-Binary `
-        (Join-Path $Source "nagare.exe") `
-        (Join-Path $INSTALL_PATH "nagare.exe") `
-        "CLI ($Label)"
+        -Source (Join-Path $Source "nagare.exe") `
+        -Destination (Join-Path $INSTALL_PATH "nagare.exe") `
+        -Name "CLI ($Label)"
 
+    # Gateway
     $gateway = Join-Path $Source "nagare-gateway.exe"
+
     if (Test-Path -LiteralPath $gateway -PathType Leaf) {
-        Install-Binary $gateway `
-            (Join-Path $INSTALL_PATH "nagare-gateway.exe") `
-            "Gateway ($Label)"
+        Install-Binary `
+            -Source $gateway `
+            -Destination (Join-Path $INSTALL_PATH "nagare-gateway.exe") `
+            -Name "Gateway ($Label)"
     }
     else {
         Write-Host "Notice: nagare-gateway.exe not found, skipping."
     }
 
+    # Desktop
     $desktop = Join-Path $Source "nagare-desktop.exe"
+
     if (Test-Path -LiteralPath $desktop -PathType Leaf) {
-        Install-Binary $desktop `
-            (Join-Path $INSTALL_PATH "nagare-desktop.exe") `
-            "Nagare Desktop ($Label)"
+        Install-Binary `
+            -Source $desktop `
+            -Destination (Join-Path $INSTALL_PATH "nagare-desktop.exe") `
+            -Name "Nagare Desktop ($Label)"
     }
     else {
         Write-Host "Notice: nagare-desktop.exe not found, skipping."
     }
 
+    # Plugins and web assets
     Write-Host "Copying plugins and web assets..."
 
-    Copy-Assets (Join-Path $Source "plugins\builtins") `
-        $BUILTIN_PLUGINS_STORE_DIR
+    Copy-Assets `
+        -Source (Join-Path $Source "plugins\builtins") `
+        -Destination $BUILTIN_PLUGINS_STORE_DIR
 
-    Copy-Assets (Join-Path $Source "plugins\core") `
-        $CORE_PLUGINS_STORE_DIR
+    Copy-Assets `
+        -Source (Join-Path $Source "plugins\core") `
+        -Destination $CORE_PLUGINS_STORE_DIR
 
     # Local build: dist/web
-    # Release archive: plugins/web (same layout as the Bash script)
+    # Release archive: web or plugins/web
     $webSource = Join-Path $Source "web"
+
     if (-not (Test-Path -LiteralPath $webSource -PathType Container)) {
         $webSource = Join-Path $Source "plugins\web"
     }
 
-    Copy-Assets $webSource $WEB_STORE_DIR
+    Copy-Assets `
+        -Source $webSource `
+        -Destination $WEB_STORE_DIR
 }
 
-# Detect OS and architecture
+# Detect operating system and architecture
 $OS = "windows"
+
 switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()) {
     "X64" {
         $ARCH = "amd64"
     }
+
     "Arm64" {
         $ARCH = "arm64"
     }
+
     default {
         throw "Unsupported CPU architecture: $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)"
     }
@@ -135,19 +162,26 @@ $LOCAL_CLI = Join-Path $LOCAL_DIST "nagare.exe"
 
 if (Test-Path -LiteralPath $LOCAL_CLI -PathType Leaf) {
     Write-Host "Found local build in dist. Installing from local files..."
+
     Install-Distribution -Source $LOCAL_DIST -Label "local"
 
     Write-Host "========================================="
     Write-Host " Nagare local installation completed!"
     Write-Host "========================================="
+
     exit 0
 }
 
-# 2. Fetch latest GitHub release
+# 2. Fetch the latest GitHub Release
 $releaseUrl = "https://api.github.com/repos/$REPO/releases/latest"
 
 try {
-    $release = Invoke-RestMethod -Uri $releaseUrl -Method Get
+    Write-Host "Fetching latest release from GitHub..."
+
+    $release = Invoke-RestMethod `
+        -Uri $releaseUrl `
+        -Method Get
+
     $VERSION = $release.tag_name
 }
 catch {
@@ -160,10 +194,12 @@ if ([string]::IsNullOrWhiteSpace($VERSION)) {
 
 Write-Host "Selected version for installation: $VERSION"
 
-$ARCHIVE_NAME = "nagare-${OS}-${ARCH}.tar.gz"
+# Download ZIP release archive
+$ARCHIVE_NAME = "nagare-${OS}-${ARCH}.zip"
 $ARCHIVE_URL = "https://github.com/$REPO/releases/download/$VERSION/$ARCHIVE_NAME"
 
-$TMP_DIR = Join-Path ([System.IO.Path]::GetTempPath()) `
+$TMP_DIR = Join-Path `
+    ([System.IO.Path]::GetTempPath()) `
     ("nagare-install-" + [guid]::NewGuid().ToString("N"))
 
 New-Item -ItemType Directory -Path $TMP_DIR -Force | Out-Null
@@ -172,22 +208,34 @@ try {
     $archivePath = Join-Path $TMP_DIR $ARCHIVE_NAME
 
     Write-Host "Downloading archive from: $ARCHIVE_URL"
-    Invoke-WebRequest -Uri $ARCHIVE_URL -OutFile $archivePath
 
-    Write-Host "Extracting archive..."
-    tar.exe -xzf $archivePath -C $TMP_DIR
+    Invoke-WebRequest `
+        -Uri $ARCHIVE_URL `
+        -OutFile $archivePath
 
-    if ($LASTEXITCODE -ne 0) {
-        throw "Failed to extract release archive."
+    if (-not (Test-Path -LiteralPath $archivePath -PathType Leaf)) {
+        throw "Downloaded archive was not found: $archivePath"
     }
 
-    # Support either files at archive root or inside a single directory.
+    if ((Get-Item -LiteralPath $archivePath).Length -eq 0) {
+        throw "Downloaded archive is empty."
+    }
+
+    # Extract ZIP archive
+    Write-Host "Extracting archive..."
+
+    Expand-Archive `
+        -LiteralPath $archivePath `
+        -DestinationPath $TMP_DIR `
+        -Force
+
+    # Support files at the archive root or inside one directory
     $SOURCE_DIR = $TMP_DIR
 
-    if (-not (Test-Path -LiteralPath (Join-Path $SOURCE_DIR "nagare.exe"))) {
+    if (-not (Test-Path -LiteralPath (Join-Path $SOURCE_DIR "nagare.exe") -PathType Leaf)) {
         $candidate = Get-ChildItem -LiteralPath $TMP_DIR -Directory |
             Where-Object {
-                Test-Path -LiteralPath (Join-Path $_.FullName "nagare.exe")
+                Test-Path -LiteralPath (Join-Path $_.FullName "nagare.exe") -PathType Leaf
             } |
             Select-Object -First 1
 
@@ -196,10 +244,11 @@ try {
         }
     }
 
-    if (-not (Test-Path -LiteralPath (Join-Path $SOURCE_DIR "nagare.exe"))) {
+    if (-not (Test-Path -LiteralPath (Join-Path $SOURCE_DIR "nagare.exe") -PathType Leaf)) {
         throw "nagare.exe was not found in the downloaded archive."
     }
 
+    # Install binaries and assets
     Install-Distribution -Source $SOURCE_DIR -Label "release"
 
     Write-Host "========================================="
@@ -211,7 +260,11 @@ catch {
     exit 1
 }
 finally {
+    # Clean up temporary files
     if (Test-Path -LiteralPath $TMP_DIR) {
-        Remove-Item -LiteralPath $TMP_DIR -Recurse -Force
+        Remove-Item `
+            -LiteralPath $TMP_DIR `
+            -Recurse `
+            -Force
     }
 }

@@ -413,7 +413,7 @@ mod tests {
         let p = PluginClient::new();
         let received = Arc::new(Mutex::new(false));
         let r2 = received.clone();
-        p.set_on_other_message(move |s, c| {
+        p.set_on_other_message(move |s, _c| {
             if s == "other-message" {
                 *r2.lock().unwrap() = true;
             }
