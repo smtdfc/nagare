@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.14.0](https://github.com/smtdfc/nagare/compare/v1.13.0...v1.14.0) (2026-10-24)
+
+
+### Features
+
+* **telegram:** implement approval request handling with inline keyboard ([2c23334](https://github.com/smtdfc/nagare/commit/2c233347fc4e303a91b813d0804804b55018588d))
+
+
+### Bug Fixes
+
+* (core/tool) update import paths from pkg/system to pkgs/system across multiple files ([7e25e86](https://github.com/smtdfc/nagare/commit/7e25e864705e182338d547e1787d61ff43c32b22))
+* **crates/nagare_plugin:** improve code structure and readability, update comments, and enhance Windows compatibility ([cc92d61](https://github.com/smtdfc/nagare/commit/cc92d61d54fbe27a5823239825637c9c80e85bd3))
+* **crates/nagare_plugin:** remove redundant unused imports warning ([e8462c0](https://github.com/smtdfc/nagare/commit/e8462c0e8efa20b04e97f8c7386c4b62790a1279))
+* improve readability and structure of installation script, enhance error handling, and update comments ([72903d3](https://github.com/smtdfc/nagare/commit/72903d354dd7094d635069ee3987df6dac46effa))
+
 ## [1.13.0](https://github.com/smtdfc/nagare/compare/v1.12.0...v1.13.0) (2026-10-23)
 
 
