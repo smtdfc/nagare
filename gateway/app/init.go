@@ -30,7 +30,6 @@ func StartApp(app *App, coreSetup *setup.CoreSetup, _ *Routes, chatWorker *chat.
 		}
 	}
 
-	chatWorker.Do()
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 

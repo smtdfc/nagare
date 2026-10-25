@@ -155,6 +155,11 @@ func (a *AgentInvoker) Invoke(params *AgentInvokeParams) (message.ReadOnlyChanne
 		}
 
 		currentAgent := a.agentPool.Get().WithContext(history).WithModelAdapter(adapter)
+		defer func() {
+			currentAgent.Reset()
+			a.agentPool.Put(currentAgent)
+		}()
+
 		for _, msg := range inputMessages {
 			if msg != nil {
 				msg.SetInvokeID(invokeID)
@@ -172,11 +177,6 @@ func (a *AgentInvoker) Invoke(params *AgentInvokeParams) (message.ReadOnlyChanne
 		for msg := range agentOutput {
 			emit(msg)
 		}
-
-		defer func() {
-			currentAgent.Reset()
-			a.agentPool.Put(currentAgent)
-		}()
 
 		currentState := currentAgent.DumpState()
 		for _, msg := range currentState.PendingMessage {
