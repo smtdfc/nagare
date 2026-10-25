@@ -1,6 +1,8 @@
 package declarations
 
 import (
+	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/smtdfc/nagare/core/tool"
@@ -16,10 +18,29 @@ func TestVolumeControlTool_Metadata(t *testing.T) {
 	}
 }
 
-func TestVolumeControlTool_Validation(t *testing.T) {
-	// Verify error on empty action
+func TestVolumeControlTool_EmptyAction(t *testing.T) {
+	// Verify error on empty action without touching the system mixer
 	_, err := VolumeControlTool.Execute(nil, `{"action":""}`)
 	if err == nil {
 		t.Errorf("expected error for empty action")
+	}
+}
+
+func TestVolumeControlTool_UnknownAction(t *testing.T) {
+	// Verify unknown actions are rejected before calling the system mixer
+	res, err := VolumeControlTool.Execute(nil, `{"action":"bogus_action"}`)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	var out VolumeControlOutput
+	if err := json.Unmarshal([]byte(res), &out); err != nil {
+		t.Fatalf("failed to decode output %q: %v", res, err)
+	}
+	if out.Success {
+		t.Errorf("expected success=false for an unknown action")
+	}
+	if !strings.Contains(out.Message, "Unknown action") {
+		t.Errorf("expected unknown-action message, got %q", out.Message)
 	}
 }
