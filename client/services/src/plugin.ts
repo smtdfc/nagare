@@ -17,6 +17,7 @@ import {
   type UploadPluginResponse,
   UploadPluginEndpoint,
   type Plugin,
+  type InstallPluginFromAttachmentRequest,
   type InstallPluginFromAttachmentResponse,
   InstallPluginFromAttachmentEndpoint,
   type InstallLocalPluginResponse,
@@ -115,9 +116,13 @@ export class PluginService {
 
   static async installFromAttachment(
     attachmentId: string,
+    signatureAttachmentId?: string,
   ): Promise<InstallPluginFromAttachmentResponse | null> {
     try {
-      const payload = { attachmentId };
+      const payload: InstallPluginFromAttachmentRequest = {
+        attachmentId,
+        signatureAttachmentId,
+      };
       const response = await instance.post<
         ApiResponse<InstallPluginFromAttachmentResponse>
       >(InstallPluginFromAttachmentEndpoint, payload);
@@ -129,9 +134,13 @@ export class PluginService {
 
   static async update(
     attachmentId: string,
+    signatureAttachmentId?: string,
   ): Promise<UpdatePluginResponse | null> {
     try {
-      const payload: UpdatePluginRequest = { attachmentId };
+      const payload: UpdatePluginRequest = {
+        attachmentId,
+        signatureAttachmentId,
+      };
       const response = await instance.post<ApiResponse<UpdatePluginResponse>>(
         UpdatePluginEndpoint,
         payload,
