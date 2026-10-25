@@ -8,6 +8,7 @@ type Plugin struct {
 	Features        []string `json:"features"`
 	Version         string   `json:"version"`
 	SignatureStatus string   `json:"signatureStatus"`
+	LastStatus      string   `json:"lastStatus"`
 	IsActive        bool     `json:"isActive"`
 }
 
