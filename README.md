@@ -148,6 +148,8 @@ Alternatively, copy any number of public key files into that folder. Key files m
 
 The installed binary checksum is persisted and checked again before every start. A binary modified after installation is refused.
 
+Plugins are started independently. If one plugin fails its checksum check or cannot launch, Nagare logs a warning, records the failure in that plugin's `last_status`, and keeps running the others. The plugin stays active so the next start retries it.
+
 ---
 
 ## License
