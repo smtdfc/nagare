@@ -21,7 +21,7 @@ type DeleteFileOutput struct {
 var DeleteFileTool = tool.DefineTool(
 	"delete_file_tool",
 	"Delete a file at the provided path. Directories are not allowed and confirm must be true.",
-	func(ctx *context.ExecuteContext, args *DeleteFileInput, _ tool.Bindings) (*DeleteFileOutput, error) {
+	func(ctx *context.ExecuteContext, args *DeleteFileInput, bindings tool.Bindings) (*DeleteFileOutput, error) {
 		if args == nil || !args.Confirm {
 			return nil, fmt.Errorf("file deletion requires confirm=true")
 		}
@@ -36,6 +36,9 @@ var DeleteFileTool = tool.DefineTool(
 		}
 		if info.IsDir() {
 			return nil, fmt.Errorf("directories cannot be deleted by this tool")
+		}
+		if err := requireApproval(ctx, bindings, fmt.Sprintf("Allow the agent to delete %s", path)); err != nil {
+			return nil, err
 		}
 		if err := os.Remove(path); err != nil {
 			return nil, fmt.Errorf("failed to delete file: %w", err)

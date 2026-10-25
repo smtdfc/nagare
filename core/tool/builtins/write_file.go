@@ -24,7 +24,7 @@ type WriteFileOutput struct {
 var WriteFileTool = tool.DefineTool(
 	"write_file_tool",
 	"Create or update a text file at the provided path. Confirm must be true.",
-	func(ctx *context.ExecuteContext, args *WriteFileInput, _ tool.Bindings) (*WriteFileOutput, error) {
+	func(ctx *context.ExecuteContext, args *WriteFileInput, bindings tool.Bindings) (*WriteFileOutput, error) {
 		if args == nil || !args.Confirm {
 			return nil, fmt.Errorf("file write requires confirm=true")
 		}
@@ -42,6 +42,10 @@ var WriteFileTool = tool.DefineTool(
 			} else if !os.IsNotExist(err) {
 				return nil, fmt.Errorf("failed to check file: %w", err)
 			}
+		}
+
+		if err := requireApproval(ctx, bindings, fmt.Sprintf("Allow the agent to write to %s", path)); err != nil {
+			return nil, err
 		}
 
 		if err := os.WriteFile(path, []byte(args.Content), 0644); err != nil {

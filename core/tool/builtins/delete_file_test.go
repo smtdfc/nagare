@@ -19,13 +19,20 @@ func TestDeleteFileTool_Metadata(t *testing.T) {
 }
 
 func TestDeleteFileTool_Execute(t *testing.T) {
-	// Verify validation when confirm is false
-	_, err := DeleteFileTool.Execute(nil, `{"path":"/tmp/fake","confirm":false}`)
+	ctx := approvalTestContext()
+	approvals := &fakeApprovalBindings{approve: true}
+	withBindings(t, DeleteFileTool, approvals)
+
+	// Verify validation when confirm is false and no approval is requested
+	_, err := DeleteFileTool.Execute(ctx, `{"path":"/tmp/fake","confirm":false}`)
 	if err == nil {
 		t.Errorf("expected error when confirm is false")
 	}
+	if len(approvals.calls) != 0 {
+		t.Errorf("expected no approval request before validation, got %d", len(approvals.calls))
+	}
 
-	// Verify successful file deletion with temp file
+	// Verify successful file deletion with temp file after approval
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "to_delete.txt")
 	err = os.WriteFile(testFile, []byte("content"), 0644)
@@ -33,15 +40,58 @@ func TestDeleteFileTool_Execute(t *testing.T) {
 		t.Fatalf("failed to create temp file: %v", err)
 	}
 
-	res, err := DeleteFileTool.Execute(nil, `{"path":"`+testFile+`","confirm":true}`)
+	res, err := DeleteFileTool.Execute(ctx, `{"path":"`+testFile+`","confirm":true}`)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if res == "" || res == "{}" {
 		t.Errorf("expected valid output, got '%s'", res)
 	}
+	if len(approvals.calls) != 1 {
+		t.Errorf("expected one approval request, got %d", len(approvals.calls))
+	}
 
 	if _, err := os.Stat(testFile); !os.IsNotExist(err) {
 		t.Errorf("expected file to be deleted")
+	}
+}
+
+func TestDeleteFileTool_DeniedByUser(t *testing.T) {
+	ctx := approvalTestContext()
+	approvals := &fakeApprovalBindings{approve: false}
+	withBindings(t, DeleteFileTool, approvals)
+
+	testFile := filepath.Join(t.TempDir(), "keep_me.txt")
+	if err := os.WriteFile(testFile, []byte("content"), 0644); err != nil {
+		t.Fatalf("failed to create temp file: %v", err)
+	}
+
+	_, err := DeleteFileTool.Execute(ctx, `{"path":"`+testFile+`","confirm":true}`)
+	if err == nil {
+		t.Fatalf("expected error when the user denies the action")
+	}
+	if len(approvals.calls) != 1 {
+		t.Errorf("expected one approval request, got %d", len(approvals.calls))
+	}
+	if _, statErr := os.Stat(testFile); statErr != nil {
+		t.Errorf("expected file to still exist after denial, got err: %v", statErr)
+	}
+}
+
+func TestDeleteFileTool_FailsClosedWithoutApprovalChannel(t *testing.T) {
+	ctx := approvalTestContext()
+	withBindings(t, DeleteFileTool, nil)
+
+	testFile := filepath.Join(t.TempDir(), "keep_me.txt")
+	if err := os.WriteFile(testFile, []byte("content"), 0644); err != nil {
+		t.Fatalf("failed to create temp file: %v", err)
+	}
+
+	_, err := DeleteFileTool.Execute(ctx, `{"path":"`+testFile+`","confirm":true}`)
+	if err == nil {
+		t.Fatalf("expected error when no approval bindings are configured")
+	}
+	if _, statErr := os.Stat(testFile); statErr != nil {
+		t.Errorf("expected file to still exist without approval, got err: %v", statErr)
 	}
 }

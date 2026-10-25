@@ -95,6 +95,12 @@ func (m *Manager) remove(requestID string) {
 	m.mu.Unlock()
 }
 
+// Cancel discards a pending request that never reached the user, so it cannot
+// leak in the pending map when delivery is aborted.
+func (m *Manager) Cancel(requestID string) {
+	m.remove(requestID)
+}
+
 // @Injectable
 func NewManager() *Manager {
 	return &Manager{

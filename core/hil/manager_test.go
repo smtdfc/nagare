@@ -53,3 +53,15 @@ func TestManagerTimesOut(t *testing.T) {
 		t.Fatalf("expected timeout, got %v", err)
 	}
 }
+
+func TestManagerCancelRemovesPendingRequest(t *testing.T) {
+	mgr := NewManager()
+	request := mgr.Request("session-1", "Allow agent to delete file hello.txt ?")
+
+	mgr.Cancel(request.RequestID)
+
+	err := mgr.Respond(request.RequestID, "session-1", true)
+	if !errors.Is(err, ErrApprovalNotFound) {
+		t.Fatalf("expected cancelled request to be gone, got %v", err)
+	}
+}

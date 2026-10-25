@@ -124,8 +124,20 @@ func (t *ToolBindings) FindToolsByCategories(_ *context.ExecuteContext, categori
 }
 
 func (t *ToolBindings) RequestToolApproval(ctx *context.ExecuteContext, title string) bool {
+	if ctx == nil || ctx.Context == nil || ctx.MessageChannel == nil {
+		t.logger.Error("Cannot request tool approval without an active session channel", "title", title)
+		return false
+	}
+
 	request := t.approvalMgr.Request(ctx.SessionID, title)
-	ctx.MessageChannel <- request
+	select {
+	case ctx.MessageChannel <- request:
+	case <-ctx.Done():
+		t.approvalMgr.Cancel(request.RequestID)
+		t.logger.Error("Approval request aborted before reaching the user", "sessionID", ctx.SessionID, "title", title)
+		return false
+	}
+
 	accepted, err := t.approvalMgr.Wait(ctx, request.RequestID)
 	if err != nil {
 		t.logger.Error("Error when request user approve action", "sessionID", ctx.SessionID, "title", title)

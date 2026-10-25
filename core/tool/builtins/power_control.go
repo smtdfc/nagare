@@ -21,7 +21,7 @@ type PowerControlOutput struct {
 var PowerControlTool = tool.DefineTool(
 	"power_control_tool",
 	"Cross-platform control for system power actions: shutdown, restart, suspend, hibernate, or logout",
-	func(ctx *context.ExecuteContext, args *PowerControlInput, _ tool.Bindings) (*PowerControlOutput, error) {
+	func(ctx *context.ExecuteContext, args *PowerControlInput, bindings tool.Bindings) (*PowerControlOutput, error) {
 		if args == nil || args.Action == "" {
 			return nil, fmt.Errorf("action is required (shutdown, restart, suspend, hibernate, logout)")
 		}
@@ -29,6 +29,22 @@ var PowerControlTool = tool.DefineTool(
 		action := strings.ToLower(strings.TrimSpace(args.Action))
 		powerCtrl := system.NewPowerControl()
 		var err error
+
+		switch action {
+		case "shutdown", "restart", "reboot", "suspend", "sleep", "hibernate", "logout":
+		default:
+			return &PowerControlOutput{
+				Success: false,
+				Message: fmt.Sprintf("Unknown action: '%s'. Supported: shutdown, restart, suspend, hibernate, logout", args.Action),
+			}, nil
+		}
+
+		if err := requireApproval(ctx, bindings, fmt.Sprintf("Allow the agent to execute system action '%s' on this computer", action)); err != nil {
+			return &PowerControlOutput{
+				Success: false,
+				Message: err.Error(),
+			}, nil
+		}
 
 		switch action {
 		case "shutdown":
@@ -41,11 +57,6 @@ var PowerControlTool = tool.DefineTool(
 			err = powerCtrl.Hibernate()
 		case "logout":
 			err = powerCtrl.Logout()
-		default:
-			return &PowerControlOutput{
-				Success: false,
-				Message: fmt.Sprintf("Unknown action: '%s'. Supported: shutdown, restart, suspend, hibernate, logout", args.Action),
-			}, nil
 		}
 
 		if err != nil {

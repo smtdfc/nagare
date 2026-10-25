@@ -22,9 +22,17 @@ type CreateProcessOutput struct {
 var CreateProcessTool = tool.DefineTool(
 	"create_process_tool",
 	"Start a detached process and return its PID. Pass the executable in command and arguments separately; do not use shell syntax.",
-	func(ctx *context.ExecuteContext, args *CreateProcessInput, _ tool.Bindings) (*CreateProcessOutput, error) {
+	func(ctx *context.ExecuteContext, args *CreateProcessInput, bindings tool.Bindings) (*CreateProcessOutput, error) {
 		if args == nil || args.Command == "" {
 			return nil, fmt.Errorf("command cannot be empty")
+		}
+
+		title := fmt.Sprintf("Allow the agent to start process %q", args.Command)
+		if len(args.Args) > 0 {
+			title = fmt.Sprintf("Allow the agent to start process %q with args %v", args.Command, args.Args)
+		}
+		if err := requireApproval(ctx, bindings, title); err != nil {
+			return nil, err
 		}
 
 		pid, err := system.NewProcessManager().Start(args.Command, args.Args, args.WorkingDir)
