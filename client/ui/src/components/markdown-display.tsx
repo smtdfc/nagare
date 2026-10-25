@@ -1,14 +1,34 @@
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
 type MarkdownDisplayProps = {
   content: string;
 };
 
+/**
+ * Language models commonly emit LaTeX with \(...\) or \[...\] delimiters.
+ * CommonMark treats the leading backslash as an escape, so those formulas end
+ * up rendered as plain bracketed text. Rewrite them into the dollar delimiters
+ * understood by remark-math before the document is parsed.
+ */
+export function normalizeMathDelimiters(content: string) {
+  return content
+    .replace(/\\\[([\s\S]*?)\\\]/g, (_match: string, expression: string) => {
+      return `\n$$\n${expression.trim()}\n$$\n`;
+    })
+    .replace(/\\\(([\s\S]*?)\\\)/g, (_match: string, expression: string) => {
+      return `$${expression.trim()}$`;
+    });
+}
+
 export default function MarkdownDisplay({ content }: MarkdownDisplayProps) {
   return (
     <Markdown
-      remarkPlugins={[remarkGfm]}
+      remarkPlugins={[remarkGfm, remarkMath]}
+      rehypePlugins={[[rehypeKatex, { throwOnError: false, errorColor: "#ef4444" }]]}
       components={{
         h1: ({ node, ...props }) => (
           <h1 className="text-2xl font-bold my-4" {...props} />
@@ -99,7 +119,7 @@ export default function MarkdownDisplay({ content }: MarkdownDisplayProps) {
         br: () => <br className="my-1 block" />,
       }}
     >
-      {content}
+      {normalizeMathDelimiters(content)}
     </Markdown>
   );
 }
