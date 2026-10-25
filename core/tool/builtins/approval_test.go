@@ -40,12 +40,12 @@ func approvalTestContext() *core_context.ExecuteContext {
 	}
 }
 
-func withBindings(t *testing.T, tl tool.Tool, bindings tool.Bindings) {
+func withBindings(t *testing.T, tl tool.Tool, bindings tool.Bindings) tool.Tool {
 	t.Helper()
 
 	original := tl.GetBindings()
 	t.Cleanup(func() {
 		tl.WithBindings(original)
 	})
-	tl.WithBindings(bindings)
+	return tl.WithBindings(bindings)
 }

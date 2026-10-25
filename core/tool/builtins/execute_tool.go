@@ -3,6 +3,7 @@ package declarations
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/tool"
@@ -27,6 +28,9 @@ var ExecuteTool = tool.DefineTool(
 		}
 
 		result := bindings.CallTool(ctx, args.Name, string(jsonStr))
+		if result == nil {
+			return nil, fmt.Errorf("tool %q returned no result", args.Name)
+		}
 		if !result.IsSuccess {
 			return nil, errors.New(result.Result)
 		}
