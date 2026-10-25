@@ -3,6 +3,7 @@ package manager
 import (
 	"archive/zip"
 	"context"
+	"crypto/ed25519"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"
@@ -34,6 +35,23 @@ const (
 	maxPluginTotalSize int64 = 500 * 1024 * 1024 // 500MB total uncompressed limit
 )
 
+func computeFileChecksum(filePath string) (string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open file %s: %w", filePath, err)
+	}
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
+
+	hasher := sha256.New()
+	if _, err := io.Copy(hasher, file); err != nil {
+		return "", fmt.Errorf("failed to hash file %s: %w", filePath, err)
+	}
+
+	return hex.EncodeToString(hasher.Sum(nil)), nil
+}
+
 func verifyFileSignature(binFile, sigFile string) error {
 	sigData, err := os.ReadFile(sigFile)
 	if err != nil {
@@ -64,6 +82,128 @@ func verifyFileSignature(binFile, sigFile string) error {
 	}
 
 	return nil
+}
+
+func (p *PluginManager) loadTrustedPublicKeys() ([]ed25519.PublicKey, error) {
+	entries, err := os.ReadDir(paths.TrustedDir)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to read trusted key directory %s: %w", paths.TrustedDir, err)
+	}
+
+	keys := make([]ed25519.PublicKey, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() || strings.HasPrefix(entry.Name(), ".") {
+			continue
+		}
+
+		keyPath := filepath.Join(paths.TrustedDir, entry.Name())
+		raw, err := os.ReadFile(keyPath)
+		if err != nil {
+			p.logger.Warn("Failed to read trusted plugin key", "file", keyPath, "error", err)
+			continue
+		}
+
+		key, err := metadata.ParsePublicKey(string(raw))
+		if err != nil {
+			p.logger.Warn("Skipping invalid trusted plugin key", "file", keyPath, "error", err)
+			continue
+		}
+		keys = append(keys, key)
+	}
+
+	return keys, nil
+}
+
+func (p *PluginManager) verifyArchiveSignature(archivePath string) (string, error) {
+	signaturePath := archivePath + ".sig"
+	rawSignature, err := os.ReadFile(signaturePath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			p.logger.Warn("Plugin archive is not signed", "plugin", archivePath)
+			return plugin.SignatureStatusUnsigned, nil
+		}
+
+		return "", fmt.Errorf("failed to read signature file %s: %w", signaturePath, err)
+	}
+
+	signature, err := metadata.ParseSignatureFile(rawSignature)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse signature file %s: %w", signaturePath, err)
+	}
+
+	trustedKeys, err := p.loadTrustedPublicKeys()
+	if err != nil {
+		return "", err
+	}
+	if len(trustedKeys) == 0 {
+		p.logger.Warn(
+			"Plugin archive is signed but no trusted public key is available; signature was not verified",
+			"plugin", archivePath,
+			"trustedDir", paths.TrustedDir,
+		)
+		return plugin.SignatureStatusUnverified, nil
+	}
+
+	for _, publicKey := range trustedKeys {
+		err := metadata.VerifyArchive(archivePath, signature, publicKey)
+		if err == nil {
+			return plugin.SignatureStatusVerified, nil
+		}
+		if !errors.Is(err, metadata.ErrInvalidSignature) {
+			return "", err
+		}
+	}
+
+	return "", metadata.ErrInvalidSignature
+}
+
+func (p *PluginManager) verifyPluginChecksum(plg *plugin.Plugin) error {
+	expected := strings.TrimSpace(plg.BinChecksum)
+	if expected == "" {
+		p.logger.Warn(
+			"Plugin checksum is missing, skipping binary integrity check",
+			"packageName", plg.PackageName,
+		)
+		return nil
+	}
+
+	actual, err := computeFileChecksum(plg.Bin)
+	if err != nil {
+		p.logger.Error("Failed to compute plugin binary checksum", "error", err, "packageName", plg.PackageName)
+		return custom_errors.ErrPluginChecksumMismatch
+	}
+
+	if subtle.ConstantTimeCompare([]byte(strings.ToLower(expected)), []byte(actual)) != 1 {
+		p.logger.Error(
+			"Plugin binary checksum mismatch",
+			"packageName", plg.PackageName,
+			"expected", expected,
+			"actual", actual,
+		)
+		return custom_errors.ErrPluginChecksumMismatch
+	}
+
+	return nil
+}
+
+func (p *PluginManager) ensureChecksum(ctx context.Context, plg *plugin.Plugin) {
+	if strings.TrimSpace(plg.BinChecksum) != "" {
+		return
+	}
+
+	checksum, err := computeFileChecksum(plg.Bin)
+	if err != nil {
+		p.logger.Warn("Failed to backfill plugin checksum", "error", err, "packageName", plg.PackageName)
+		return
+	}
+
+	plg.BinChecksum = checksum
+	if err := p.pluginRepo.Update(ctx, p.pluginMapper.ToEntity(plg)); err != nil {
+		p.logger.Warn("Failed to persist plugin checksum", "error", err, "packageName", plg.PackageName)
+	}
 }
 
 func extractFile(fpath string, file *zip.File) error {
@@ -278,6 +418,10 @@ func (p *PluginManager) StopPlugin(plugin *plugin.Plugin) error {
 }
 
 func (p *PluginManager) StartPlugin(plugin *plugin.Plugin) error {
+	if err := p.verifyPluginChecksum(plugin); err != nil {
+		return err
+	}
+
 	connectCode := uuid.New().String()
 	p.mu.Lock()
 	p.connectCodes[plugin.PackageName] = connectCode
@@ -323,6 +467,12 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) (*plugin
 
 		p.logger.Error("Install plugin failed", "error", err, "plugin", pluginPath)
 		return nil, custom_errors.ErrInstallPluginFailed
+	}
+
+	signatureStatus, err := p.verifyArchiveSignature(pluginPath)
+	if err != nil {
+		p.logger.Error("Install plugin failed: archive signature verification failed", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrPluginSignatureInvalid
 	}
 
 	id := uuid.New().String()
@@ -376,6 +526,12 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) (*plugin
 		return nil, custom_errors.ErrPluginSignatureInvalid
 	}
 
+	binChecksum, err := computeFileChecksum(tempBinFile)
+	if err != nil {
+		p.logger.Error("Install plugin failed: compute binary checksum", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrInstallPluginFailed
+	}
+
 	pluginDir := filepath.Join(paths.PluginDir, pluginMetadata.PackageName)
 	cleanPluginDir := filepath.Clean(pluginDir)
 	destBinFile := filepath.Clean(filepath.Join(cleanPluginDir, cleanRelBin))
@@ -395,14 +551,31 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) (*plugin
 		return nil, custom_errors.ErrInstallPluginFailed
 	}
 
+	destChecksum, err := computeFileChecksum(destBinFile)
+	if err != nil {
+		p.logger.Error("Install plugin failed: compute installed binary checksum", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrInstallPluginFailed
+	}
+	if subtle.ConstantTimeCompare([]byte(binChecksum), []byte(destChecksum)) != 1 {
+		p.logger.Error(
+			"Install plugin failed: installed binary checksum mismatch",
+			"plugin", pluginPath,
+			"expected", binChecksum,
+			"actual", destChecksum,
+		)
+		return nil, custom_errors.ErrPluginChecksumMismatch
+	}
+
 	newPlugin := plugin.Plugin{
-		PackageName: pluginMetadata.PackageName,
-		Name:        pluginMetadata.Name,
-		Author:      pluginMetadata.Author,
-		Features:    plugin.ParseFeatureString(pluginMetadata.GetFeatures()),
-		Version:     pluginMetadata.Version,
-		Bin:         destBinFile,
-		IsActive:    true,
+		PackageName:     pluginMetadata.PackageName,
+		Name:            pluginMetadata.Name,
+		Author:          pluginMetadata.Author,
+		Features:        plugin.ParseFeatureString(pluginMetadata.GetFeatures()),
+		Version:         pluginMetadata.Version,
+		Bin:             destBinFile,
+		BinChecksum:     binChecksum,
+		SignatureStatus: signatureStatus,
+		IsActive:        true,
 	}
 
 	pluginEntity, err := p.pluginRepo.CreateOrUpdate(ctx, p.pluginMapper.ToEntity(&newPlugin))
@@ -432,6 +605,12 @@ func (p *PluginManager) Update(ctx context.Context, pluginPath string) (*plugin.
 		}
 		p.logger.Error("Update plugin failed", "error", err, "plugin", pluginPath)
 		return nil, custom_errors.ErrPluginUpdateFailed
+	}
+
+	signatureStatus, err := p.verifyArchiveSignature(pluginPath)
+	if err != nil {
+		p.logger.Error("Update plugin failed: archive signature verification failed", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrPluginSignatureInvalid
 	}
 
 	id := uuid.New().String()
@@ -482,6 +661,12 @@ func (p *PluginManager) Update(ctx context.Context, pluginPath string) (*plugin.
 		return nil, custom_errors.ErrPluginSignatureInvalid
 	}
 
+	binChecksum, err := computeFileChecksum(tempBinFile)
+	if err != nil {
+		p.logger.Error("Update plugin failed: compute binary checksum", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrPluginUpdateFailed
+	}
+
 	// Locate the installed plugin by package name so we can preserve its ID.
 	existing, err := p.pluginRepo.FindByPackageName(ctx, pluginMetadata.PackageName)
 	if err != nil {
@@ -521,12 +706,29 @@ func (p *PluginManager) Update(ctx context.Context, pluginPath string) (*plugin.
 		return nil, custom_errors.ErrPluginUpdateFailed
 	}
 
+	destChecksum, err := computeFileChecksum(destBinFile)
+	if err != nil {
+		p.logger.Error("Update plugin failed: compute installed binary checksum", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrPluginUpdateFailed
+	}
+	if subtle.ConstantTimeCompare([]byte(binChecksum), []byte(destChecksum)) != 1 {
+		p.logger.Error(
+			"Update plugin failed: installed binary checksum mismatch",
+			"plugin", pluginPath,
+			"expected", binChecksum,
+			"actual", destChecksum,
+		)
+		return nil, custom_errors.ErrPluginChecksumMismatch
+	}
+
 	// Update DB record while preserving the existing ID (sessions stay linked).
 	existing.Name = pluginMetadata.Name
 	existing.Author = pluginMetadata.Author
 	existing.Features = pluginMetadata.GetFeatures()
 	existing.Version = pluginMetadata.Version
 	existing.Bin = destBinFile
+	existing.BinChecksum = binChecksum
+	existing.SignatureStatus = signatureStatus
 	existing.IsActive = true
 
 	if err := p.pluginRepo.Update(ctx, existing); err != nil {
@@ -552,6 +754,7 @@ func (p *PluginManager) StartAllPlugin(ctx context.Context) error {
 	}
 
 	for _, plg := range p.pluginMapper.ToDomains(activePlugins) {
+		p.ensureChecksum(ctx, plg)
 		err := p.StartPlugin(plg)
 		if err != nil {
 			return err
@@ -670,6 +873,8 @@ func (p *PluginManager) Activate(ctx context.Context, id string) error {
 	if plg.IsActive {
 		return custom_errors.ErrPluginAlreadyActive
 	}
+
+	p.ensureChecksum(ctx, plg)
 
 	plg.IsActive = true
 	err = p.pluginRepo.Update(ctx, p.pluginMapper.ToEntity(plg))
