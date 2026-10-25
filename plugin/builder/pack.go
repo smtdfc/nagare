@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+
+	"github.com/smtdfc/nagare/plugin/metadata"
 )
 
 func prepareDirectories(cwd, packageName string) (pkgDir, binFile, sigFile string, err error) {
@@ -21,6 +23,11 @@ func prepareDirectories(cwd, packageName string) (pkgDir, binFile, sigFile strin
 	binFile = filepath.Join(binDir, binFileName)
 	sigFile = filepath.Join(pkgDir, packageName+".sig")
 
+	// Rebuild pkg from scratch so stale binaries or signatures from a previous
+	// build cannot leak into the signed archive.
+	if err = os.RemoveAll(pkgDir); err != nil {
+		return
+	}
 	if err = os.MkdirAll(pkgDir, 0775); err != nil {
 		return
 	}
@@ -53,6 +60,20 @@ func signBinary(binFile, sigFile string) error {
 		return err
 	}
 	return os.WriteFile(sigFile, []byte(signature), 0664)
+}
+
+func signPluginArchive(archivePath, privateKeyPath string) error {
+	privateKey, err := metadata.LoadPrivateKey(privateKeyPath)
+	if err != nil {
+		return err
+	}
+
+	signature, err := metadata.SignArchive(archivePath, privateKey)
+	if err != nil {
+		return err
+	}
+
+	return metadata.WriteSignatureFile(archivePath+".sig", signature)
 }
 
 func packPlugin(pkgDir, outputFilePath string) error {

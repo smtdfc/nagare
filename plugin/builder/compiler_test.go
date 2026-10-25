@@ -212,7 +212,7 @@ func TestBuildRustPluginEndToEnd(t *testing.T) {
 	}
 
 	t.Chdir(dir)
-	Build()
+	Build("")
 
 	if _, err := os.Stat(filepath.Join(dir, "nagare.test.rust-plugin.nagare_plugin")); err != nil {
 		t.Fatalf("expected packed .nagare_plugin archive: %v", err)
