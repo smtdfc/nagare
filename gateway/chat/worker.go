@@ -26,6 +26,7 @@ type Worker struct {
 	chatEventBus *event_bus.CoreEventBus
 	logger       *logger.BaseLogger
 	ws           *websocket.Coordinator
+	doOnce       sync.Once
 
 	sessionChans map[string]chan SessionJob
 }
@@ -65,45 +66,47 @@ func (c *Worker) runHandleSessionMessageWorker(sessionID string, ch chan Session
 }
 
 func (c *Worker) Do() {
-	go func() {
-		ch, unsubscribe := c.chatEventBus.Subscribe(event_bus.ChunkEvent)
-		defer unsubscribe()
+	c.doOnce.Do(func() {
+		go func() {
+			ch, unsubscribe := c.chatEventBus.Subscribe(event_bus.ChunkEvent)
+			defer unsubscribe()
 
-		for evt := range ch {
+			for evt := range ch {
 
-			switch evt.GetEventType() {
-			case event_bus.ChunkEvent:
-				chunkPayload, ok := evt.(*event_bus.ChatChunkEventPayload)
-				if !ok {
-					continue
-				}
+				switch evt.GetEventType() {
+				case event_bus.ChunkEvent:
+					chunkPayload, ok := evt.(*event_bus.ChatChunkEventPayload)
+					if !ok {
+						continue
+					}
 
-				if chunkPayload.SenderType == event_bus.Plugin {
-					continue
-				}
+					if chunkPayload.SenderType == event_bus.Plugin {
+						continue
+					}
 
-				sessionID := chunkPayload.SessionID
+					sessionID := chunkPayload.SessionID
 
-				c.mu.Lock()
-				sessionChan, exists := c.sessionChans[sessionID]
-				if !exists {
-					sessionChan = make(chan SessionJob, 200)
-					c.sessionChans[sessionID] = sessionChan
+					c.mu.Lock()
+					sessionChan, exists := c.sessionChans[sessionID]
+					if !exists {
+						sessionChan = make(chan SessionJob, 200)
+						c.sessionChans[sessionID] = sessionChan
 
-					go c.runHandleSessionMessageWorker(sessionID, sessionChan)
-				}
-				c.mu.Unlock()
+						go c.runHandleSessionMessageWorker(sessionID, sessionChan)
+					}
+					c.mu.Unlock()
 
-				sessionChan <- SessionJob{
-					Chunk:            chunkPayload.Chunk,
-					InvokeID:         chunkPayload.RequestID,
-					ChannelID:        chunkPayload.ChannelID,
-					SessionOwnerType: chunkPayload.SessionOwnerType,
-					SessionOwnerID:   chunkPayload.SessionOwnerID,
+					sessionChan <- SessionJob{
+						Chunk:            chunkPayload.Chunk,
+						InvokeID:         chunkPayload.RequestID,
+						ChannelID:        chunkPayload.ChannelID,
+						SessionOwnerType: chunkPayload.SessionOwnerType,
+						SessionOwnerID:   chunkPayload.SessionOwnerID,
+					}
 				}
 			}
-		}
-	}()
+		}()
+	})
 }
 
 // @Injectable

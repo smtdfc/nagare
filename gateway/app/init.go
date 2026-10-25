@@ -21,7 +21,7 @@ type RunStats struct {
 
 // @Injectable
 // @Root
-func StartApp(app *App, coreSetup *setup.CoreSetup, _ *Routes, chatWorker *chat.Worker, _ *manager.PluginManager) *RunStats {
+func StartApp(app *App, coreSetup *setup.CoreSetup, _ *Routes, chunkWorker *chat.Worker, _ *manager.PluginManager) *RunStats {
 	err := coreSetup.Setup()
 	if err != nil {
 		return &RunStats{
@@ -29,6 +29,11 @@ func StartApp(app *App, coreSetup *setup.CoreSetup, _ *Routes, chatWorker *chat.
 			Error:   err,
 		}
 	}
+
+	// The core chat worker handles SendEvent and runs the agent. This gateway
+	// worker is a different subscriber: it forwards ChunkEvent payloads to the
+	// session WebSocket rooms so clients receive the response as it streams.
+	chunkWorker.Do()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
