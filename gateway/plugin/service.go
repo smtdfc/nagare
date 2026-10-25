@@ -18,13 +18,25 @@ func toPluginDTO(domain *plugin.Plugin) *rest.Plugin {
 	}
 
 	return &rest.Plugin{
-		ID:          domain.ID.String(),
-		PackageName: domain.PackageName,
-		Name:        domain.Name,
-		Author:      domain.Author,
-		Features:    features,
-		Version:     domain.Version,
-		IsActive:    domain.IsActive,
+		ID:              domain.ID.String(),
+		PackageName:     domain.PackageName,
+		Name:            domain.Name,
+		Author:          domain.Author,
+		Features:        features,
+		Version:         domain.Version,
+		SignatureStatus: domain.SignatureStatus,
+		IsActive:        domain.IsActive,
+	}
+}
+
+func signatureWarning(status string) string {
+	switch status {
+	case plugin.SignatureStatusUnsigned:
+		return "This plugin is not signed. Only install plugins from a source you trust."
+	case plugin.SignatureStatusUnverified:
+		return "This plugin has a signature, but no trusted public key was found. Add the publisher's public key to the trusted folder and reinstall."
+	default:
+		return ""
 	}
 }
 
@@ -59,7 +71,10 @@ func (p *Service) InstallLocalPlugin(ctx context.Context, request *rest.InstallL
 		return nil, err
 	}
 
-	return &rest.InstallLocalPluginResponse{Plugin: toPluginDTO(plg)}, nil
+	return &rest.InstallLocalPluginResponse{
+		Plugin:  toPluginDTO(plg),
+		Warning: signatureWarning(plg.SignatureStatus),
+	}, nil
 }
 
 func (p *Service) UninstallPlugin(ctx context.Context, request *rest.UninstallPluginRequest) error {
@@ -104,7 +119,8 @@ func (p *Service) InstallPluginFromAttachment(ctx context.Context, request *rest
 	}
 
 	return &rest.InstallPluginFromAttachmentResponse{
-		Plugin: toPluginDTO(plg),
+		Plugin:  toPluginDTO(plg),
+		Warning: signatureWarning(plg.SignatureStatus),
 	}, nil
 }
 
@@ -120,7 +136,8 @@ func (p *Service) UpdatePlugin(ctx context.Context, request *rest.UpdatePluginRe
 	}
 
 	return &rest.UpdatePluginResponse{
-		Plugin: toPluginDTO(plg),
+		Plugin:  toPluginDTO(plg),
+		Warning: signatureWarning(plg.SignatureStatus),
 	}, nil
 }
 
