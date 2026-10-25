@@ -21,6 +21,9 @@ type Plugin struct {
 	// "verified", "unverified", or "unsigned".
 	SignatureStatus string `gorm:"column:signature_status;type:varchar(20);default:'unsigned'" json:"signature_status"`
 	IsActive        bool   `gorm:"default:true" json:"is_active"`
+	// LastStatus is the outcome of the most recent start or stop attempt:
+	// "running", "stopped", "failed", or "unknown".
+	LastStatus string `gorm:"column:last_status;type:varchar(20);default:'unknown'" json:"last_status"`
 
 	// Sessions []Session `gorm:"foreignKey:PluginID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"sessions,omitempty"`
 

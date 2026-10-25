@@ -49,12 +49,22 @@ type Plugin struct {
 	// "verified", "unverified", or "unsigned".
 	SignatureStatus string
 	IsActive        bool
+	// LastStatus records the outcome of the most recent start or stop attempt:
+	// "running", "stopped", "failed", or "unknown".
+	LastStatus string
 }
 
 const (
 	SignatureStatusVerified   = "verified"
 	SignatureStatusUnverified = "unverified"
 	SignatureStatusUnsigned   = "unsigned"
+)
+
+const (
+	PluginStatusRunning = "running"
+	PluginStatusStopped = "stopped"
+	PluginStatusFailed  = "failed"
+	PluginStatusUnknown = "unknown"
 )
 
 func (p *Plugin) ToFeaturesString() string {

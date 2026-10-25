@@ -18,6 +18,11 @@ func (p *PluginMapper) ToDomain(entity *entities.Plugin) *plugin.Plugin {
 		signatureStatus = plugin.SignatureStatusUnsigned
 	}
 
+	lastStatus := entity.LastStatus
+	if lastStatus == "" {
+		lastStatus = plugin.PluginStatusUnknown
+	}
+
 	return &plugin.Plugin{
 		ID:              entity.ID,
 		PackageName:     entity.PackageName,
@@ -29,6 +34,7 @@ func (p *PluginMapper) ToDomain(entity *entities.Plugin) *plugin.Plugin {
 		BinChecksum:     entity.BinChecksum,
 		SignatureStatus: signatureStatus,
 		IsActive:        entity.IsActive,
+		LastStatus:      lastStatus,
 	}
 }
 
@@ -44,6 +50,7 @@ func (p *PluginMapper) ToEntity(domain *plugin.Plugin) *entities.Plugin {
 		BinChecksum:     domain.BinChecksum,
 		SignatureStatus: domain.SignatureStatus,
 		IsActive:        domain.IsActive,
+		LastStatus:      domain.LastStatus,
 	}
 }
 

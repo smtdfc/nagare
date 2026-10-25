@@ -34,6 +34,9 @@ func TestPluginMapper_ToDomain(t *testing.T) {
 	if len(domain.Features) != 2 {
 		t.Errorf("expected 2 features, got %d", len(domain.Features))
 	}
+	if domain.LastStatus != plugin.PluginStatusUnknown {
+		t.Errorf("expected unknown last status, got %q", domain.LastStatus)
+	}
 
 	// Verify nil handling
 	if mapper.ToDomain(nil) != nil {
@@ -55,6 +58,7 @@ func TestPluginMapper_ToEntity(t *testing.T) {
 		Version:     "1.0.0",
 		Bin:         "test.bin",
 		IsActive:    true,
+		LastStatus:  plugin.PluginStatusRunning,
 	}
 
 	entity := mapper.ToEntity(domain)
@@ -63,6 +67,9 @@ func TestPluginMapper_ToEntity(t *testing.T) {
 	}
 	if entity.Features != "chat" {
 		t.Errorf("expected features 'chat', got '%s'", entity.Features)
+	}
+	if entity.LastStatus != plugin.PluginStatusRunning {
+		t.Errorf("expected running last status, got %q", entity.LastStatus)
 	}
 }
 
