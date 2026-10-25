@@ -22,13 +22,10 @@ type SessionJob struct {
 }
 
 type Worker struct {
-	mu           sync.RWMutex
 	chatEventBus *event_bus.CoreEventBus
 	logger       *logger.BaseLogger
 	ws           *websocket.Coordinator
 	doOnce       sync.Once
-
-	sessionChans map[string]chan SessionJob
 }
 
 func (c *Worker) HandleChunkMessage(sessionID string, job *SessionJob) {
@@ -51,59 +48,28 @@ func (c *Worker) HandleChunkMessage(sessionID string, job *SessionJob) {
 	}
 }
 
-func (c *Worker) runHandleSessionMessageWorker(sessionID string, ch chan SessionJob) {
-	defer func() {
-		c.mu.Lock()
-		delete(c.sessionChans, sessionID)
-		c.mu.Unlock()
-		close(ch)
-		c.logger.Debug("Session worker terminated and cleaned up", "session_id", sessionID)
-	}()
-
-	for job := range ch {
-		c.HandleChunkMessage(sessionID, &job)
-	}
-}
-
 func (c *Worker) Do() {
 	c.doOnce.Do(func() {
 		go func() {
 			ch, unsubscribe := c.chatEventBus.Subscribe(event_bus.ChunkEvent)
 			defer unsubscribe()
 
+			// Broadcast on the subscription goroutine. A per-session worker
+			// queue used to be created here, but it was never cleaned up and
+			// leaked a goroutine and channel for every session that streamed.
 			for evt := range ch {
-
-				switch evt.GetEventType() {
-				case event_bus.ChunkEvent:
-					chunkPayload, ok := evt.(*event_bus.ChatChunkEventPayload)
-					if !ok {
-						continue
-					}
-
-					if chunkPayload.SenderType == event_bus.Plugin {
-						continue
-					}
-
-					sessionID := chunkPayload.SessionID
-
-					c.mu.Lock()
-					sessionChan, exists := c.sessionChans[sessionID]
-					if !exists {
-						sessionChan = make(chan SessionJob, 200)
-						c.sessionChans[sessionID] = sessionChan
-
-						go c.runHandleSessionMessageWorker(sessionID, sessionChan)
-					}
-					c.mu.Unlock()
-
-					sessionChan <- SessionJob{
-						Chunk:            chunkPayload.Chunk,
-						InvokeID:         chunkPayload.RequestID,
-						ChannelID:        chunkPayload.ChannelID,
-						SessionOwnerType: chunkPayload.SessionOwnerType,
-						SessionOwnerID:   chunkPayload.SessionOwnerID,
-					}
+				chunkPayload, ok := evt.(*event_bus.ChatChunkEventPayload)
+				if !ok || chunkPayload.SenderType == event_bus.Plugin {
+					continue
 				}
+
+				c.HandleChunkMessage(chunkPayload.SessionID, &SessionJob{
+					Chunk:            chunkPayload.Chunk,
+					InvokeID:         chunkPayload.RequestID,
+					ChannelID:        chunkPayload.ChannelID,
+					SessionOwnerType: chunkPayload.SessionOwnerType,
+					SessionOwnerID:   chunkPayload.SessionOwnerID,
+				})
 			}
 		}()
 	})
@@ -113,9 +79,7 @@ func (c *Worker) Do() {
 func NewWorker(logger *logger.BaseLogger, chatEventBus *event_bus.CoreEventBus, ws *websocket.Coordinator) *Worker {
 	return &Worker{
 		chatEventBus: chatEventBus,
-		mu:           sync.RWMutex{},
 		ws:           ws,
 		logger:       logger.With("worker", "gateway:chat:worker"),
-		sessionChans: make(map[string]chan SessionJob),
 	}
 }
