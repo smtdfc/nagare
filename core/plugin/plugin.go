@@ -44,8 +44,18 @@ type Plugin struct {
 	Features    []Feature
 	Version     string
 	Bin         string
-	IsActive    bool
+	BinChecksum string
+	// SignatureStatus records how the installed archive was verified:
+	// "verified", "unverified", or "unsigned".
+	SignatureStatus string
+	IsActive        bool
 }
+
+const (
+	SignatureStatusVerified   = "verified"
+	SignatureStatusUnverified = "unverified"
+	SignatureStatusUnsigned   = "unsigned"
+)
 
 func (p *Plugin) ToFeaturesString() string {
 	strs := make([]string, len(p.Features))

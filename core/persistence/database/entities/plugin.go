@@ -16,7 +16,11 @@ type Plugin struct {
 	Features    string    `gorm:"type:text" json:"features"`
 	Version     string    `gorm:"type:varchar(50);not null" json:"version"`
 	Bin         string    `gorm:"type:varchar(255)" json:"bin"`
-	IsActive    bool      `gorm:"default:true" json:"is_active"`
+	BinChecksum string    `gorm:"column:bin_checksum;type:varchar(64)" json:"bin_checksum"`
+	// SignatureStatus is the archive verification result at install time:
+	// "verified", "unverified", or "unsigned".
+	SignatureStatus string `gorm:"column:signature_status;type:varchar(20);default:'unsigned'" json:"signature_status"`
+	IsActive        bool   `gorm:"default:true" json:"is_active"`
 
 	// Sessions []Session `gorm:"foreignKey:PluginID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"sessions,omitempty"`
 

@@ -13,28 +13,37 @@ func (p *PluginMapper) ToDomain(entity *entities.Plugin) *plugin.Plugin {
 		return nil
 	}
 
+	signatureStatus := entity.SignatureStatus
+	if signatureStatus == "" {
+		signatureStatus = plugin.SignatureStatusUnsigned
+	}
+
 	return &plugin.Plugin{
-		ID:          entity.ID,
-		PackageName: entity.PackageName,
-		Name:        entity.Name,
-		Author:      entity.Author,
-		Features:    plugin.ParseFeatureString(entity.Features),
-		Version:     entity.Version,
-		Bin:         entity.Bin,
-		IsActive:    entity.IsActive,
+		ID:              entity.ID,
+		PackageName:     entity.PackageName,
+		Name:            entity.Name,
+		Author:          entity.Author,
+		Features:        plugin.ParseFeatureString(entity.Features),
+		Version:         entity.Version,
+		Bin:             entity.Bin,
+		BinChecksum:     entity.BinChecksum,
+		SignatureStatus: signatureStatus,
+		IsActive:        entity.IsActive,
 	}
 }
 
 func (p *PluginMapper) ToEntity(domain *plugin.Plugin) *entities.Plugin {
 	return &entities.Plugin{
-		ID:          domain.ID,
-		PackageName: domain.PackageName,
-		Name:        domain.Name,
-		Author:      domain.Author,
-		Features:    domain.ToFeaturesString(),
-		Version:     domain.Version,
-		Bin:         domain.Bin,
-		IsActive:    domain.IsActive,
+		ID:              domain.ID,
+		PackageName:     domain.PackageName,
+		Name:            domain.Name,
+		Author:          domain.Author,
+		Features:        domain.ToFeaturesString(),
+		Version:         domain.Version,
+		Bin:             domain.Bin,
+		BinChecksum:     domain.BinChecksum,
+		SignatureStatus: domain.SignatureStatus,
+		IsActive:        domain.IsActive,
 	}
 }
 

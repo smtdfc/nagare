@@ -104,6 +104,8 @@ func (p *PluginRepository) CreateOrUpdate(ctx context.Context, plugin *entities.
 				"features",
 				"version",
 				"bin",
+				"bin_checksum",
+				"signature_status",
 				"is_active",
 				"updated_at",
 			}),
