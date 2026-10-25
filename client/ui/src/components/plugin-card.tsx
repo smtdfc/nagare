@@ -27,6 +27,7 @@ export function PluginCard({
   const [isTogglingActive, setIsTogglingActive] = useState(false);
   const [isUninstalling, setIsUninstalling] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const signatureStatus = plugin.signatureStatus || "unsigned";
 
   const handleToggle = async () => {
     setIsTogglingActive(true);
@@ -103,6 +104,22 @@ export function PluginCard({
           >
             {plugin.isActive ? "Active" : "Inactive"}
           </span>
+          {signatureStatus !== "verified" && (
+            <span
+              className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
+                signatureStatus === "unsigned"
+                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                  : "bg-sky-500/10 text-sky-600 dark:text-sky-400"
+              }`}
+              title={
+                signatureStatus === "unsigned"
+                  ? "This plugin has no signature."
+                  : "This plugin has a signature that could not be verified."
+              }
+            >
+              {signatureStatus === "unsigned" ? "Unsigned" : "Unverified"}
+            </span>
+          )}
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
           by <span className="font-medium">{plugin.author}</span> &middot; v

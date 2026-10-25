@@ -6,7 +6,11 @@ import { Skeleton } from "#/components/ui/skeleton.tsx";
 import { envConfig, Environment, PluginService } from "@nagare-app/services";
 import { showToastError } from "#/lib/toast.ts";
 import { toast } from "#/components/ui/toast.tsx";
-import type { Plugin } from "@nagare-app/dtos";
+import type {
+  InstallLocalPluginResponse,
+  InstallPluginFromAttachmentResponse,
+  Plugin,
+} from "@nagare-app/dtos";
 import { PluginCard } from "#/components/plugin-card";
 import { PluginSheet } from "#/components/plugin-sheet";
 import { EmptyState } from "#/components/empty-state";
@@ -77,7 +81,8 @@ function RouteComponent() {
     setIsSubmittingUpdate(true);
     try {
       const { attachmentId } = await PluginService.upload(file);
-      const updated = await PluginService.update(attachmentId);
+      const result = await PluginService.update(attachmentId);
+      const updated = result?.plugin;
       if (!updated) throw new Error("Failed to update plugin");
 
       setPlugins((prev) =>
@@ -92,6 +97,15 @@ function RouteComponent() {
         priority: "high",
         description: `Plugin "${updated.name}" has been updated to v${updated.version}. Your sessions are preserved.`,
       });
+
+      if (result?.warning) {
+        toast.add({
+          title: "Plugin warning",
+          type: "warning",
+          priority: "high",
+          description: result.warning,
+        });
+      }
     } catch (e) {
       showToastError(e);
     } finally {
@@ -117,15 +131,19 @@ function RouteComponent() {
 
     setIsInstalling(true);
     try {
-      let plugin: Plugin | null = null;
+      let result:
+        | InstallLocalPluginResponse
+        | InstallPluginFromAttachmentResponse
+        | null = null;
 
       if (isDesktop) {
-        plugin = await PluginService.installLocal(localPath.trim());
+        result = await PluginService.installLocal(localPath.trim());
       } else if (selectedFile) {
         const { attachmentId } = await PluginService.upload(selectedFile);
-        plugin = await PluginService.installFromAttachment(attachmentId);
+        result = await PluginService.installFromAttachment(attachmentId);
       }
 
+      const plugin = result?.plugin ?? null;
       if (!plugin) throw new Error("Failed to install plugin");
 
       setPlugins((prev) => [...prev, plugin]);
@@ -139,6 +157,15 @@ function RouteComponent() {
         priority: "high",
         description: "Plugin installed successfully.",
       });
+
+      if (result?.warning) {
+        toast.add({
+          title: "Plugin warning",
+          type: "warning",
+          priority: "high",
+          description: result.warning,
+        });
+      }
     } catch (e) {
       showToastError(e);
     } finally {
