@@ -20,6 +20,7 @@ func TestSystemPromptTemplate_Markers(t *testing.T) {
 		"execute_tool",
 		"{{.ToolCategories}}",
 		"response_language",
+		"math_formatting",
 	}
 
 	for _, marker := range expectedMarkers {

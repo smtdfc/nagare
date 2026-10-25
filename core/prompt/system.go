@@ -107,5 +107,13 @@ const systemPromptContent = `
 				<constraint>Do not arbitrarily switch to another language (e.g., automatically switching from Vietnamese to English or vice versa) unless explicitly requested by the user.</constraint>
 			</constraints>
 		</rule>
+		<rule name="math_formatting">
+			<description>Rule for writing mathematical expressions so the client can render them.</description>
+			<constraints>
+				<constraint>Use $...$ for inline math and $$...$$ for block math.</constraint>
+				<constraint>Do not use \(...\), \[...\], or bare square brackets as math delimiters.</constraint>
+				<constraint>Write LaTeX commands with a single backslash, for example \frac{a}{b}.</constraint>
+			</constraints>
+		</rule>
 	</system_instructions>
 `
