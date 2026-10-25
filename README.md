@@ -122,6 +122,30 @@ Build your plugin with the CLI:
 nagare plugin build
 ```
 
+### Signing plugin archives
+
+Generate an Ed25519 key pair once, then pass the private key to the build command:
+
+```bash
+openssl genpkey -algorithm ED25519 -out plugin-signing-key.pem
+openssl pkey -in plugin-signing-key.pem -pubout -out plugin-signing-key.pub.pem
+
+nagare plugin build --sign plugin-signing-key.pem
+```
+
+The signature is written next to the archive as `<package>.nagare_plugin.sig`. Keep both files together when installing from a local path.
+
+The gateway trusts any Ed25519 public key placed in the trusted plugin key folder:
+
+```bash
+mkdir -p ~/.nagare/trusted
+cp plugin-signing-key.pub.pem ~/.nagare/trusted/publisher.pem
+```
+
+Alternatively, copy any number of public key files into that folder. Key files may contain a PKIX PEM public key or a raw base64/hex Ed25519 public key. A signed archive is accepted when it verifies against at least one trusted key. If the trusted folder is empty, the archive installs with an **unverified** warning; an archive without a `.sig` file installs with an **unsigned** warning.
+
+The installed binary checksum is persisted and checked again before every start. A binary modified after installation is refused.
+
 ---
 
 ## License
