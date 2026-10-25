@@ -38,14 +38,16 @@ export class PluginService {
     }
   }
 
-  static async installLocal(path: string): Promise<Plugin | null> {
+  static async installLocal(
+    path: string,
+  ): Promise<InstallLocalPluginResponse | null> {
     try {
       const payload: InstallLocalPluginRequest = { path };
       const data = await instance.post<ApiResponse<InstallLocalPluginResponse>>(
         InstallLocalPluginEndpoint,
         payload,
       );
-      return data.data.data.plugin;
+      return data.data.data;
     } catch (e) {
       catchError(e);
     }
@@ -113,13 +115,13 @@ export class PluginService {
 
   static async installFromAttachment(
     attachmentId: string,
-  ): Promise<Plugin | null> {
+  ): Promise<InstallPluginFromAttachmentResponse | null> {
     try {
       const payload = { attachmentId };
       const response = await instance.post<
         ApiResponse<InstallPluginFromAttachmentResponse>
       >(InstallPluginFromAttachmentEndpoint, payload);
-      return response.data.data.plugin;
+      return response.data.data;
     } catch (e) {
       catchError(e);
     }
@@ -127,14 +129,14 @@ export class PluginService {
 
   static async update(
     attachmentId: string,
-  ): Promise<Plugin | null> {
+  ): Promise<UpdatePluginResponse | null> {
     try {
       const payload: UpdatePluginRequest = { attachmentId };
       const response = await instance.post<ApiResponse<UpdatePluginResponse>>(
         UpdatePluginEndpoint,
         payload,
       );
-      return response.data.data.plugin;
+      return response.data.data;
     } catch (e) {
       catchError(e);
     }
