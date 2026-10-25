@@ -3,6 +3,7 @@ package plugin
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
@@ -104,8 +105,8 @@ func (p *Controller) Upload(c fiber.Ctx) error {
 		return custom_errors.ErrPluginFileInvalid
 	}
 
-	ext := filepath.Ext(file.Filename)
-	if ext != ".nagare_plugin" {
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	if ext != ".nagare_plugin" && ext != ".sig" {
 		return custom_errors.ErrPluginFileInvalidFormat
 	}
 
@@ -115,7 +116,7 @@ func (p *Controller) Upload(c fiber.Ctx) error {
 		return custom_errors.ErrUploadFailed
 	}
 
-	savePath := filepath.Join(dir, uuid.New().String()+".nagare_plugin")
+	savePath := filepath.Join(dir, uuid.New().String()+ext)
 	if err := c.SaveFile(file, savePath); err != nil {
 		p.logger.Error("Failed to get file from form file", "err", err)
 		return custom_errors.ErrUploadFailed

@@ -107,13 +107,31 @@ func (p *Service) GetPluginStatus(ctx context.Context, request *rest.GetPluginSt
 	}, nil
 }
 
+func (p *Service) signatureAttachmentPath(signatureAttachmentID string) (string, error) {
+	if signatureAttachmentID == "" {
+		return "", nil
+	}
+
+	path, exists := p.uploadMgr.GetAttachmentPath(signatureAttachmentID)
+	if !exists {
+		return "", custom_errors.ErrPluginSignatureInvalid
+	}
+
+	return path, nil
+}
+
 func (p *Service) InstallPluginFromAttachment(ctx context.Context, request *rest.InstallPluginFromAttachmentRequest) (*rest.InstallPluginFromAttachmentResponse, error) {
 	attachmentPath, exists := p.uploadMgr.GetAttachmentPath(request.AttachmentID)
 	if !exists {
 		return nil, custom_errors.ErrPluginNotFound
 	}
 
-	plg, err := p.pluginMgr.Install(ctx, attachmentPath)
+	signaturePath, err := p.signatureAttachmentPath(request.SignatureAttachmentID)
+	if err != nil {
+		return nil, err
+	}
+
+	plg, err := p.pluginMgr.InstallWithSignature(ctx, attachmentPath, signaturePath)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +148,12 @@ func (p *Service) UpdatePlugin(ctx context.Context, request *rest.UpdatePluginRe
 		return nil, custom_errors.ErrPluginNotFound
 	}
 
-	plg, err := p.pluginMgr.Update(ctx, attachmentPath)
+	signaturePath, err := p.signatureAttachmentPath(request.SignatureAttachmentID)
+	if err != nil {
+		return nil, err
+	}
+
+	plg, err := p.pluginMgr.UpdateWithSignature(ctx, attachmentPath, signaturePath)
 	if err != nil {
 		return nil, err
 	}
