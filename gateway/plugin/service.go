@@ -25,6 +25,7 @@ func toPluginDTO(domain *plugin.Plugin) *rest.Plugin {
 		Features:        features,
 		Version:         domain.Version,
 		SignatureStatus: domain.SignatureStatus,
+		LastStatus:      domain.LastStatus,
 		IsActive:        domain.IsActive,
 	}
 }
