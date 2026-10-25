@@ -1,13 +1,14 @@
 package rest
 
 type Plugin struct {
-	ID          string   `json:"id"`
-	PackageName string   `json:"packageName"`
-	Name        string   `json:"name"`
-	Author      string   `json:"author"`
-	Features    []string `json:"features"`
-	Version     string   `json:"version"`
-	IsActive    bool     `json:"isActive"`
+	ID              string   `json:"id"`
+	PackageName     string   `json:"packageName"`
+	Name            string   `json:"name"`
+	Author          string   `json:"author"`
+	Features        []string `json:"features"`
+	Version         string   `json:"version"`
+	SignatureStatus string   `json:"signatureStatus"`
+	IsActive        bool     `json:"isActive"`
 }
 
 type PluginStatus struct {
@@ -40,7 +41,8 @@ type InstallLocalPluginRequest struct {
 }
 
 type InstallLocalPluginResponse struct {
-	Plugin *Plugin `json:"plugin"`
+	Plugin  *Plugin `json:"plugin"`
+	Warning string  `json:"warning,omitempty"`
 }
 
 type UninstallPluginRequest struct {
@@ -72,7 +74,8 @@ type InstallPluginFromAttachmentRequest struct {
 }
 
 type InstallPluginFromAttachmentResponse struct {
-	Plugin *Plugin `json:"plugin"`
+	Plugin  *Plugin `json:"plugin"`
+	Warning string  `json:"warning,omitempty"`
 }
 
 type UpdatePluginRequest struct {
@@ -80,5 +83,6 @@ type UpdatePluginRequest struct {
 }
 
 type UpdatePluginResponse struct {
-	Plugin *Plugin `json:"plugin"`
+	Plugin  *Plugin `json:"plugin"`
+	Warning string  `json:"warning,omitempty"`
 }
