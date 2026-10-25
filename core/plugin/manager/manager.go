@@ -117,8 +117,12 @@ func (p *PluginManager) loadTrustedPublicKeys() ([]ed25519.PublicKey, error) {
 	return keys, nil
 }
 
-func (p *PluginManager) verifyArchiveSignature(archivePath string) (string, error) {
+func (p *PluginManager) verifyArchiveSignature(archivePath string, detachedSignaturePath ...string) (string, error) {
 	signaturePath := archivePath + ".sig"
+	if len(detachedSignaturePath) > 0 && strings.TrimSpace(detachedSignaturePath[0]) != "" {
+		signaturePath = detachedSignaturePath[0]
+	}
+
 	rawSignature, err := os.ReadFile(signaturePath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -459,6 +463,17 @@ func (p *PluginManager) StartPlugin(plugin *plugin.Plugin) error {
 }
 
 func (p *PluginManager) Install(ctx context.Context, pluginPath string) (*plugin.Plugin, error) {
+	return p.install(ctx, pluginPath, "")
+}
+
+// InstallWithSignature installs an archive with a detached signature that is
+// not stored next to the archive, as happens when a web client uploads the
+// .sig file separately.
+func (p *PluginManager) InstallWithSignature(ctx context.Context, pluginPath, signaturePath string) (*plugin.Plugin, error) {
+	return p.install(ctx, pluginPath, signaturePath)
+}
+
+func (p *PluginManager) install(ctx context.Context, pluginPath, signaturePath string) (*plugin.Plugin, error) {
 	_, err := os.Stat(pluginPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -469,7 +484,7 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) (*plugin
 		return nil, custom_errors.ErrInstallPluginFailed
 	}
 
-	signatureStatus, err := p.verifyArchiveSignature(pluginPath)
+	signatureStatus, err := p.verifyArchiveSignature(pluginPath, signaturePath)
 	if err != nil {
 		p.logger.Error("Install plugin failed: archive signature verification failed", "error", err, "plugin", pluginPath)
 		return nil, custom_errors.ErrPluginSignatureInvalid
@@ -598,6 +613,16 @@ func (p *PluginManager) Install(ctx context.Context, pluginPath string) (*plugin
 // existing plugin ID. This keeps linked sessions (owner_id = plugin ID) intact
 // instead of orphaning them like uninstall + reinstall does.
 func (p *PluginManager) Update(ctx context.Context, pluginPath string) (*plugin.Plugin, error) {
+	return p.update(ctx, pluginPath, "")
+}
+
+// UpdateWithSignature updates an archive with a detached signature that is
+// not stored next to the archive.
+func (p *PluginManager) UpdateWithSignature(ctx context.Context, pluginPath, signaturePath string) (*plugin.Plugin, error) {
+	return p.update(ctx, pluginPath, signaturePath)
+}
+
+func (p *PluginManager) update(ctx context.Context, pluginPath, signaturePath string) (*plugin.Plugin, error) {
 	_, err := os.Stat(pluginPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -607,7 +632,7 @@ func (p *PluginManager) Update(ctx context.Context, pluginPath string) (*plugin.
 		return nil, custom_errors.ErrPluginUpdateFailed
 	}
 
-	signatureStatus, err := p.verifyArchiveSignature(pluginPath)
+	signatureStatus, err := p.verifyArchiveSignature(pluginPath, signaturePath)
 	if err != nil {
 		p.logger.Error("Update plugin failed: archive signature verification failed", "error", err, "plugin", pluginPath)
 		return nil, custom_errors.ErrPluginSignatureInvalid

@@ -357,6 +357,26 @@ func TestVerifyArchiveSignature(t *testing.T) {
 		}
 	})
 
+	t.Run("explicit detached signature path", func(t *testing.T) {
+		signatureBytes, err := os.ReadFile(archivePath + ".sig")
+		if err != nil {
+			t.Fatalf("failed to read signature: %v", err)
+		}
+
+		detachedPath := filepath.Join(t.TempDir(), "uploaded-signature")
+		if err := os.WriteFile(detachedPath, signatureBytes, 0644); err != nil {
+			t.Fatalf("failed to write detached signature: %v", err)
+		}
+
+		status, err := pm.verifyArchiveSignature(archivePath, detachedPath)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if status != plugin.SignatureStatusVerified {
+			t.Fatalf("expected verified status, got %q", status)
+		}
+	})
+
 	t.Run("skips malformed trusted key files", func(t *testing.T) {
 		if err := os.WriteFile(filepath.Join(trustedDir, "README.txt"), []byte("not a key"), 0644); err != nil {
 			t.Fatalf("failed to write malformed key file: %v", err)
