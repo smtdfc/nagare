@@ -3,6 +3,7 @@ package manager
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/sha256"
@@ -20,9 +21,14 @@ import (
 
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
+	"github.com/smtdfc/nagare/core/mappers"
+	"github.com/smtdfc/nagare/core/persistence/database/entities"
+	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/pkgs/paths"
 	"github.com/smtdfc/nagare/plugin/metadata"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 func createTestZip(t *testing.T, entries map[string]string) string {
@@ -465,4 +471,57 @@ func TestPluginManager_ConcurrentAccess(t *testing.T) {
 	}
 
 	wg.Wait()
+}
+
+func TestStartAllPlugin_ContinuesWhenPluginFails(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("failed to open in-memory sqlite: %v", err)
+	}
+	if err := db.AutoMigrate(&entities.Plugin{}); err != nil {
+		t.Fatalf("failed to migrate plugin entity: %v", err)
+	}
+
+	log := &logger.BaseLogger{Logger: *slog.Default()}
+	repo := repositories.NewPluginRepository(db, log)
+	pm := &PluginManager{
+		logger:       log,
+		pluginRepo:   repo,
+		pluginMapper: mappers.NewPluginMapper(),
+		connectCodes: make(map[string]string),
+	}
+
+	ctx := context.Background()
+	binDir := t.TempDir()
+	for _, packageName := range []string{"broken.one", "broken.two"} {
+		if _, err := repo.CreateOrUpdate(ctx, &entities.Plugin{
+			PackageName: packageName,
+			Name:        packageName,
+			Version:     "1.0.0",
+			Bin:         filepath.Join(binDir, packageName),
+			IsActive:    true,
+		}); err != nil {
+			t.Fatalf("failed to seed plugin %s: %v", packageName, err)
+		}
+	}
+
+	if err := pm.StartAllPlugin(ctx); err != nil {
+		t.Fatalf("expected gateway startup to survive broken plugins, got %v", err)
+	}
+
+	ents, err := repo.FindAll(ctx)
+	if err != nil {
+		t.Fatalf("failed to list plugins: %v", err)
+	}
+	if len(ents) != 2 {
+		t.Fatalf("expected 2 plugins, got %d", len(ents))
+	}
+	for _, ent := range ents {
+		if ent.LastStatus != plugin.PluginStatusFailed {
+			t.Errorf("expected failed last status for %s, got %q", ent.PackageName, ent.LastStatus)
+		}
+		if !ent.IsActive {
+			t.Errorf("expected %s to stay active for retry, got inactive", ent.PackageName)
+		}
+	}
 }

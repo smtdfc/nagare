@@ -380,59 +380,81 @@ func (p *PluginManager) GetListPlugin(ctx context.Context) ([]*plugin.Plugin, er
 	return p.pluginMapper.ToDomains(ents), nil
 }
 
-func (p *PluginManager) StopPlugin(plugin *plugin.Plugin) error {
-	pidPath := plugin.Bin + ".pid"
+// setLastStatus records the outcome of the most recent start or stop attempt.
+// A failed write is only logged: it must not mask the original plugin error.
+func (p *PluginManager) setLastStatus(ctx context.Context, plg *plugin.Plugin, status string) {
+	plg.LastStatus = status
+
+	if err := p.pluginRepo.Update(ctx, p.pluginMapper.ToEntity(plg)); err != nil {
+		p.logger.Warn(
+			"Failed to persist plugin last status",
+			"error", err,
+			"packageName", plg.PackageName,
+			"status", status,
+		)
+	}
+}
+
+func (p *PluginManager) StopPlugin(ctx context.Context, plg *plugin.Plugin) error {
+	pidPath := plg.Bin + ".pid"
 
 	data, err := os.ReadFile(pidPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			p.logger.Warn("PID file not found, skipping plugin stop", "packageName", plugin.PackageName)
+			p.logger.Warn("PID file not found, skipping plugin stop", "packageName", plg.PackageName)
+			p.setLastStatus(ctx, plg, plugin.PluginStatusStopped)
 			return nil
 		}
-		p.logger.Error("Failed to read PID file", "error", err, "packageName", plugin.PackageName)
+		p.logger.Error("Failed to read PID file", "error", err, "packageName", plg.PackageName)
+		p.setLastStatus(ctx, plg, plugin.PluginStatusFailed)
 		return err
 	}
 
 	var pid int
 	if _, err := fmt.Sscanf(string(data), "%d", &pid); err != nil {
-		p.logger.Error("Invalid PID format in file", "error", err, "packageName", plugin.PackageName)
+		p.logger.Error("Invalid PID format in file", "error", err, "packageName", plg.PackageName)
 		_ = os.Remove(pidPath)
+		p.setLastStatus(ctx, plg, plugin.PluginStatusFailed)
 		return err
 	}
 
 	proc, err := os.FindProcess(pid)
 	if err != nil {
-		p.logger.Error("Failed to find process", "pid", pid, "error", err, "packageName", plugin.PackageName)
+		p.logger.Error("Failed to find process", "pid", pid, "error", err, "packageName", plg.PackageName)
 		_ = os.Remove(pidPath)
+		p.setLastStatus(ctx, plg, plugin.PluginStatusFailed)
 		return err
 	}
 
 	if err := proc.Kill(); err != nil {
-		p.logger.Error("Failed to kill process", "pid", pid, "error", err, "packageName", plugin.PackageName)
+		p.logger.Error("Failed to kill process", "pid", pid, "error", err, "packageName", plg.PackageName)
 	}
 
 	if err := os.Remove(pidPath); err != nil {
-		p.logger.Warn("Failed to remove PID file", "error", err, "packageName", plugin.PackageName)
+		p.logger.Warn("Failed to remove PID file", "error", err, "packageName", plg.PackageName)
 	}
 
 	p.mu.Lock()
-	delete(p.connectCodes, plugin.PackageName)
+	delete(p.connectCodes, plg.PackageName)
 	p.mu.Unlock()
+
+	p.setLastStatus(ctx, plg, plugin.PluginStatusStopped)
 	return nil
 }
 
-func (p *PluginManager) StartPlugin(plugin *plugin.Plugin) error {
-	if err := p.verifyPluginChecksum(plugin); err != nil {
+func (p *PluginManager) StartPlugin(ctx context.Context, plg *plugin.Plugin) error {
+	if err := p.verifyPluginChecksum(plg); err != nil {
+		p.setLastStatus(ctx, plg, plugin.PluginStatusFailed)
 		return err
 	}
 
 	connectCode := uuid.New().String()
 	p.mu.Lock()
-	p.connectCodes[plugin.PackageName] = connectCode
+	p.connectCodes[plg.PackageName] = connectCode
 	socketPath := p.socketPath
 	p.mu.Unlock()
 
-	cmd := exec.Command(plugin.Bin)
+	cmd := exec.Command(plg.Bin)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
@@ -443,22 +465,24 @@ func (p *PluginManager) StartPlugin(plugin *plugin.Plugin) error {
 		os.Environ(),
 		fmt.Sprintf("NAGARE_PLUGIN_CONNECT_CODE=%s", connectCode),
 		fmt.Sprintf("NAGARE_PLUGIN_SOCKET_PATH=%s", socketPath),
-		fmt.Sprintf("NAGARE_PLUGIN_LOG_FILE=%s", filepath.Join(paths.PluginLogDir, plugin.PackageName+".log")),
-		fmt.Sprintf("NAGARE_PLUGIN_CONFIG_DIR=%s", filepath.Join(paths.PluginConfigDir, plugin.PackageName)),
+		fmt.Sprintf("NAGARE_PLUGIN_LOG_FILE=%s", filepath.Join(paths.PluginLogDir, plg.PackageName+".log")),
+		fmt.Sprintf("NAGARE_PLUGIN_CONFIG_DIR=%s", filepath.Join(paths.PluginConfigDir, plg.PackageName)),
 	)
 
 	err := cmd.Start()
 	if err != nil {
-		p.logger.Error("Start plugin failed", "error", err, "packageName", plugin.PackageName)
+		p.logger.Error("Start plugin failed", "error", err, "packageName", plg.PackageName)
+		p.setLastStatus(ctx, plg, plugin.PluginStatusFailed)
 		return custom_errors.ErrStartPluginFailed
 	}
 
-	pidPath := plugin.Bin + ".pid"
+	pidPath := plg.Bin + ".pid"
 	pidStr := fmt.Sprintf("%d", cmd.Process.Pid)
 	if writeErr := os.WriteFile(pidPath, []byte(pidStr), 0644); writeErr != nil {
-		p.logger.Error("Failed to write plugin PID file", "error", writeErr, "packageName", plugin.PackageName)
+		p.logger.Error("Failed to write plugin PID file", "error", writeErr, "packageName", plg.PackageName)
 	}
 
+	p.setLastStatus(ctx, plg, plugin.PluginStatusRunning)
 	return nil
 }
 
@@ -599,13 +623,21 @@ func (p *PluginManager) install(ctx context.Context, pluginPath, signaturePath s
 		return nil, custom_errors.ErrInstallPluginFailed
 	}
 
-	err = p.StartPlugin(&newPlugin)
-	if err != nil {
+	// CreateOrUpdate does not populate the primary key when it updates an
+	// existing package, so reload the row before recording its start status.
+	pluginEntity, err = p.pluginRepo.FindByPackageName(ctx, newPlugin.PackageName)
+	if err != nil || pluginEntity == nil {
+		p.logger.Error("Install plugin failed: reload installed plugin", "error", err, "plugin", pluginPath)
+		return nil, custom_errors.ErrInstallPluginFailed
+	}
+
+	installed := p.pluginMapper.ToDomain(pluginEntity)
+	if err := p.StartPlugin(ctx, installed); err != nil {
 		p.logger.Error("Install plugin failed", "error", err, "plugin", pluginPath)
 		return nil, custom_errors.ErrStartPluginFailed
 	}
 
-	return p.pluginMapper.ToDomain(pluginEntity), nil
+	return installed, nil
 
 }
 
@@ -704,7 +736,7 @@ func (p *PluginManager) update(ctx context.Context, pluginPath, signaturePath st
 	existingDomain := p.pluginMapper.ToDomain(existing)
 
 	// Stop the running plugin before replacing its files.
-	if err := p.StopPlugin(existingDomain); err != nil {
+	if err := p.StopPlugin(ctx, existingDomain); err != nil {
 		p.logger.Error("Update plugin failed: stop plugin", "error", err, "packageName", pluginMetadata.PackageName)
 		// Continue anyway so files can still be replaced.
 	}
@@ -763,7 +795,7 @@ func (p *PluginManager) update(ctx context.Context, pluginPath, signaturePath st
 
 	updatedDomain := p.pluginMapper.ToDomain(existing)
 
-	if err := p.StartPlugin(updatedDomain); err != nil {
+	if err := p.StartPlugin(ctx, updatedDomain); err != nil {
 		p.logger.Error("Update plugin failed: start plugin", "error", err, "plugin", pluginPath)
 		return nil, custom_errors.ErrStartPluginFailed
 	}
@@ -780,9 +812,15 @@ func (p *PluginManager) StartAllPlugin(ctx context.Context) error {
 
 	for _, plg := range p.pluginMapper.ToDomains(activePlugins) {
 		p.ensureChecksum(ctx, plg)
-		err := p.StartPlugin(plg)
-		if err != nil {
-			return err
+		if err := p.StartPlugin(ctx, plg); err != nil {
+			// A broken plugin must not block the rest of the gateway. Keep it
+			// active so it is retried on the next start, and surface the
+			// failure through last_status instead of failing the boot.
+			p.logger.Warn(
+				"Failed to start plugin, continuing",
+				"error", err,
+				"packageName", plg.PackageName,
+			)
 		}
 	}
 
@@ -815,9 +853,12 @@ func (p *PluginManager) StopAllPlugin(ctx context.Context) error {
 	}
 
 	for _, plg := range p.pluginMapper.ToDomains(activePlugins) {
-		err := p.StopPlugin(plg)
-		if err != nil {
-			return err
+		if err := p.StopPlugin(ctx, plg); err != nil {
+			p.logger.Warn(
+				"Failed to stop plugin, continuing",
+				"error", err,
+				"packageName", plg.PackageName,
+			)
 		}
 	}
 
@@ -861,7 +902,7 @@ func (p *PluginManager) Uninstall(ctx context.Context, id string) error {
 	p.logger.Info("Uninstalling plugin", "packageName", plg.PackageName, "name", plg.Name, "version", plg.Version)
 
 	p.logger.Info("Stopping plugin before uninstall", "packageName", plg.PackageName)
-	err = p.StopPlugin(plg)
+	err = p.StopPlugin(ctx, plg)
 	if err != nil {
 		p.logger.Logger.Error("Failed to stop plugin before uninstall", "error", err, "packageName", plg.PackageName)
 	} else {
@@ -908,7 +949,7 @@ func (p *PluginManager) Activate(ctx context.Context, id string) error {
 	}
 
 	p.logger.Info("Plugin activated successfully", "packageName", plg.PackageName, "name", plg.Name, "version", plg.Version)
-	return p.StartPlugin(plg)
+	return p.StartPlugin(ctx, plg)
 }
 
 func (p *PluginManager) Deactivate(ctx context.Context, id string) error {
@@ -926,7 +967,7 @@ func (p *PluginManager) Deactivate(ctx context.Context, id string) error {
 		return custom_errors.ErrPluginNotActive
 	}
 
-	err = p.StopPlugin(plg)
+	err = p.StopPlugin(ctx, plg)
 	if err != nil {
 		return custom_errors.ErrDeactivatePluginFailed
 	}
