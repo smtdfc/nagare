@@ -34,8 +34,69 @@ import { catchError } from "./lib/errors.js";
 import type { Message } from "@nagare-app/messages";
 import { websocket } from "./lib/websocket";
 import { Event as AppEvent } from "@nagare-app/dtos";
+import { AuthService } from "./auth";
 
 type ChatHandler = (message: Message) => Promise<void>;
+
+const sessionHandlers = new Map<string, ChatHandler>();
+let reconnectHandlingInstalledOn: typeof websocket | null = null;
+
+function handleReceivedChatMessage(
+  payload: Payload<ReceivedChatMessageEventPayload>,
+) {
+  const handler = sessionHandlers.get(payload.data.sessionID);
+  if (!handler) return;
+
+  const message = JSON.parse(payload.data.message) as Message;
+  void handler(message).catch((error) => {
+    console.error("Failed to handle chat message:", error);
+  });
+}
+
+async function registerChatListener(sessionID: string) {
+  await websocket.request<
+    RegisterChatMessageListenerEventPayload,
+    RegisterChatListenerSuccessEventEventPayload,
+    RegisterChatListenerFailEventPayload
+  >(
+    AppEvent.RegisterChatListenerEvent,
+    {
+      id: "",
+      sessionID,
+    },
+    AppEvent.RegisterChatListenerSuccessEvent,
+    AppEvent.RegisterChatListenerFailEvent,
+  );
+}
+
+function installReconnectHandling() {
+  if (reconnectHandlingInstalledOn === websocket) {
+    return;
+  }
+  reconnectHandlingInstalledOn = websocket;
+
+  websocket.on(AppEvent.ReceivedChatMessageEvent, handleReceivedChatMessage);
+
+  websocket.onReconnect(async () => {
+    try {
+      await AuthService.websocketAuth();
+    } catch (error) {
+      console.error("Failed to re-authenticate WebSocket:", error);
+      return;
+    }
+
+    for (const sessionID of [...sessionHandlers.keys()]) {
+      try {
+        await registerChatListener(sessionID);
+      } catch (error) {
+        console.error(
+          `Failed to restore chat listener for session ${sessionID}:`,
+          error,
+        );
+      }
+    }
+  });
+}
 
 export class ChatService {
   static async createChatSession(title: string) {
@@ -146,31 +207,14 @@ export class ChatService {
   }
 
   static async listenChatSession(id: string, handler: ChatHandler) {
-    const handlePayload = (
-      payload: Payload<ReceivedChatMessageEventPayload>,
-    ) => {
-      const message = JSON.parse(payload.data.message) as Message;
-      handler(message);
-    };
-    try {
-      await websocket.request<
-        RegisterChatMessageListenerEventPayload,
-        RegisterChatListenerSuccessEventEventPayload,
-        RegisterChatListenerFailEventPayload
-      >(
-        AppEvent.RegisterChatListenerEvent,
-        {
-          id: "",
-          sessionID: id,
-        },
-        AppEvent.RegisterChatListenerSuccessEvent,
-        AppEvent.RegisterChatListenerFailEvent,
-      );
+    installReconnectHandling();
 
-      websocket.on(AppEvent.ReceivedChatMessageEvent, handlePayload);
+    try {
+      await registerChatListener(id);
+      sessionHandlers.set(id, handler);
 
       return () => {
-        websocket.off(AppEvent.ReceivedChatMessageEvent, handlePayload);
+        sessionHandlers.delete(id);
         websocket.send(AppEvent.UnregisterChatListenerEvent, {
           id: "",
           sessionID: id,
