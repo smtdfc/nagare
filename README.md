@@ -135,6 +135,8 @@ nagare plugin build --sign plugin-signing-key.pem
 
 The signature is written next to the archive as `<package>.nagare_plugin.sig`. Keep both files together when installing from a local path.
 
+When installing from the web UI or updating an existing plugin, the `.sig` upload field is optional: choose the signature file alongside the package and both are verified together. Without it, the gateway falls back to the `.sig` file next to the package, if any.
+
 The gateway trusts any Ed25519 public key placed in the trusted plugin key folder:
 
 ```bash
