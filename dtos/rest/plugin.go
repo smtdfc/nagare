@@ -70,7 +70,8 @@ type UploadPluginResponse struct {
 }
 
 type InstallPluginFromAttachmentRequest struct {
-	AttachmentID string `json:"attachmentId"`
+	AttachmentID          string `json:"attachmentId"`
+	SignatureAttachmentID string `json:"signatureAttachmentId,omitempty"`
 }
 
 type InstallPluginFromAttachmentResponse struct {
@@ -79,7 +80,8 @@ type InstallPluginFromAttachmentResponse struct {
 }
 
 type UpdatePluginRequest struct {
-	AttachmentID string `json:"attachmentId"`
+	AttachmentID          string `json:"attachmentId"`
+	SignatureAttachmentID string `json:"signatureAttachmentId,omitempty"`
 }
 
 type UpdatePluginResponse struct {
