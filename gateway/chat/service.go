@@ -7,39 +7,17 @@ import (
 	config_mgr "github.com/smtdfc/nagare/core/config/manager"
 	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/core/session/manager"
 	"github.com/smtdfc/nagare/dtos/rest"
-	"github.com/smtdfc/nagare/pkgs/helpers"
 	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
-func toSessionDTO(s *session.Info) *rest.Session {
-	if s == nil {
-		return nil
-	}
-	var modelProvider *rest.ModelProviderInfo
-	if s.ModelProvider != nil {
-		modelProvider = &rest.ModelProviderInfo{
-			ID:         s.ModelProvider.ID.String(),
-			Name:       s.ModelProvider.Name,
-			Compatible: s.ModelProvider.Compatible.ToString(),
-		}
-	}
-	return &rest.Session{
-		ID:                   s.ID.String(),
-		Title:                s.Title,
-		IsArchive:            s.IsArchive,
-		CurrentModel:         s.CurrentModel,
-		CurrentModelProvider: modelProvider,
-	}
-}
-
 type Service struct {
-	configMgr    *config_mgr.ConfigManager
-	chatEventBus *event_bus.CoreEventBus
-	sessionMgr   *manager.SessionManager
-	logger       *logger.BaseLogger
+	configMgr     *config_mgr.ConfigManager
+	chatEventBus  *event_bus.CoreEventBus
+	sessionMgr    *manager.SessionManager
+	logger        *logger.BaseLogger
+	sessionMapper ISessionDtoMapper
 }
 
 func (c *Service) SendMessage(ctx context.Context, ownerID string, request *rest.SendChatMessageRequest) (*rest.SendChatMessageResponse, error) {
@@ -86,7 +64,7 @@ func (c *Service) CreateSession(ctx context.Context, ownerID string, request *re
 	}
 
 	return &rest.CreateChatSessionResponse{
-		Session: toSessionDTO(chatSession),
+		Session: c.sessionMapper.ToSessionDTO(chatSession),
 	}, nil
 }
 
@@ -104,7 +82,7 @@ func (c *Service) ListSessions(ctx context.Context, ownerID string, offset int, 
 	}
 
 	return &rest.ListChatSessionsResponse{
-		Sessions: helpers.SliceMap(sessions, toSessionDTO),
+		Sessions: c.sessionMapper.ToSessionDTOs(sessions),
 	}, nil
 }
 
@@ -143,7 +121,7 @@ func (c *Service) GetSession(ctx context.Context, ownerID string, sessionID stri
 	}
 
 	return &rest.GetChatSessionResponse{
-		Session: toSessionDTO(s),
+		Session: c.sessionMapper.ToSessionDTO(s),
 	}, nil
 }
 
@@ -160,7 +138,7 @@ func (c *Service) UpdateModelSettings(ctx context.Context, ownerID string, sessi
 	}
 
 	return &rest.UpdateChatSessionModelSettingsResponse{
-		Session: toSessionDTO(chatSession),
+		Session: c.sessionMapper.ToSessionDTO(chatSession),
 	}, nil
 }
 
@@ -175,7 +153,7 @@ func (c *Service) ArchiveSession(ctx context.Context, ownerID string, sessionID 
 	}
 
 	return &rest.ArchiveChatSessionResponse{
-		Session: toSessionDTO(chatSession),
+		Session: c.sessionMapper.ToSessionDTO(chatSession),
 	}, nil
 }
 
@@ -186,16 +164,17 @@ func (c *Service) DuplicateSession(ctx context.Context, ownerID string, sessionI
 	}
 
 	return &rest.DuplicateChatSessionResponse{
-		Session: toSessionDTO(chatSession),
+		Session: c.sessionMapper.ToSessionDTO(chatSession),
 	}, nil
 }
 
 // @Injectable
-func NewService(sessionMgr *manager.SessionManager, configMgr *config_mgr.ConfigManager, chatEventBus *event_bus.CoreEventBus, logger *logger.BaseLogger) *Service {
+func NewService(sessionMgr *manager.SessionManager, configMgr *config_mgr.ConfigManager, chatEventBus *event_bus.CoreEventBus, logger *logger.BaseLogger, sessionMapper ISessionDtoMapper) *Service {
 	return &Service{
-		configMgr:    configMgr,
-		chatEventBus: chatEventBus,
-		sessionMgr:   sessionMgr,
-		logger:       logger.With("module", "gateway:chat:service"),
+		configMgr:     configMgr,
+		chatEventBus:  chatEventBus,
+		sessionMgr:    sessionMgr,
+		logger:        logger.With("module", "gateway:chat:service"),
+		sessionMapper: sessionMapper,
 	}
 }
