@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/agent"
@@ -39,13 +40,12 @@ type AgentInvokeParams struct {
 	InvokeID         string
 }
 
-func (a *AgentInvoker) Invoke(params *AgentInvokeParams) (message.ReadOnlyChannel, error) {
+func (a *AgentInvoker) Invoke(ctx context.Context, params *AgentInvokeParams) (message.ReadOnlyChannel, error) {
 	if params == nil {
 		return nil, errors.New("agent invoke params cannot be nil")
 	}
 
 	output := make(chan messages.Message)
-	ctx := context.Background()
 	sessionID := params.SessionID
 	inputMessages := params.InputMessages
 	senderType := params.SenderType
@@ -77,7 +77,7 @@ func (a *AgentInvoker) Invoke(params *AgentInvokeParams) (message.ReadOnlyChanne
 			}
 			output <- msg
 			if sendIntoEventBus && a.eventBus != nil {
-				a.eventBus.Publish(ctx, event_bus.ChunkEvent, &event_bus.ChatChunkEventPayload{
+				a.eventBus.Publish(ctx, event_bus.ChatMessageChunkEvent, &event_bus.ChatMessageChunkEventPayload{
 					SessionID:        sessionID,
 					ChannelID:        channelID,
 					Chunk:            msg,
@@ -184,8 +184,11 @@ func (a *AgentInvoker) Invoke(params *AgentInvokeParams) (message.ReadOnlyChanne
 				msg.SetInvokeID(invokeID)
 			}
 		}
-		err = a.sessionMgr.SaveHistory(ctx, sessionID, currentState.PendingMessage)
+		saveCtx, cancelSave := context.WithTimeout(context.WithoutCancel(ctx), 15*time.Second)
+		defer cancelSave()
+		err = a.sessionMgr.SaveHistory(saveCtx, sessionID, currentState.PendingMessage)
 		if err != nil {
+			a.logger.Error("failed to save history", "sessionID", sessionID, "err", err)
 			code, details := extractErrorDetails(err)
 			emit(messages.NewAgentErrorMessage(details, code))
 			return

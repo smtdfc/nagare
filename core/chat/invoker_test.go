@@ -1,13 +1,14 @@
 package chat
 
 import (
+	"context"
 	"testing"
 )
 
 func TestAgentInvoker_NilParams(t *testing.T) {
 	// Verify error when params is nil
 	invoker := &AgentInvoker{}
-	_, err := invoker.Invoke(nil)
+	_, err := invoker.Invoke(context.Background(), nil)
 	if err == nil {
 		t.Errorf("expected error when invoke params is nil")
 	}
