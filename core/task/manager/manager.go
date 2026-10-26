@@ -1,3 +1,5 @@
+//go:build !goverter
+
 package manager
 
 import (
@@ -7,14 +9,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/core/mappers"
+	task_mapper "github.com/smtdfc/nagare/core/mappers/task"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"github.com/smtdfc/nagare/core/task"
 )
 
 type TaskManager struct {
 	taskRepo   *repositories.TaskRepository
-	taskMapper *mappers.TaskMapper
+	taskMapper task_mapper.ITaskMapper
 	logger     *logger.BaseLogger
 }
 
@@ -96,7 +98,7 @@ func (t *TaskManager) CancelAllTaskQueued(ctx context.Context) error {
 }
 
 // @Injectable
-func NewTaskManager(taskMapper *mappers.TaskMapper, taskRepo *repositories.TaskRepository, logger *logger.BaseLogger) *TaskManager {
+func NewTaskManager(taskMapper task_mapper.ITaskMapper, taskRepo *repositories.TaskRepository, logger *logger.BaseLogger) *TaskManager {
 	return &TaskManager{
 		taskRepo:   taskRepo,
 		taskMapper: taskMapper,

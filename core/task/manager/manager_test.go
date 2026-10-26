@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/core/mappers"
+	task2 "github.com/smtdfc/nagare/core/mappers/task"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"github.com/smtdfc/nagare/core/task"
@@ -38,7 +38,7 @@ func newTestTaskManager(t *testing.T) (*TaskManager, *gorm.DB) {
 	t.Helper()
 	db := setupTestDB(t)
 	repo := repositories.NewTaskRepository(db, testLogger())
-	mapper := mappers.NewTaskMapper()
+	mapper := task2.NewTaskMapper()
 	mgr := NewTaskManager(mapper, repo, testLogger())
 	return mgr, db
 }
