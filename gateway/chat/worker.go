@@ -51,14 +51,14 @@ func (c *Worker) HandleChunkMessage(sessionID string, job *SessionJob) {
 func (c *Worker) Do() {
 	c.doOnce.Do(func() {
 		go func() {
-			ch, unsubscribe := c.chatEventBus.Subscribe(event_bus.ChunkEvent)
+			ch, unsubscribe := c.chatEventBus.Subscribe(event_bus.ChatMessageChunkEvent)
 			defer unsubscribe()
 
 			// Broadcast on the subscription goroutine. A per-session worker
 			// queue used to be created here, but it was never cleaned up and
 			// leaked a goroutine and channel for every session that streamed.
 			for evt := range ch {
-				chunkPayload, ok := evt.(*event_bus.ChatChunkEventPayload)
+				chunkPayload, ok := evt.(*event_bus.ChatMessageChunkEventPayload)
 				if !ok || chunkPayload.SenderType == event_bus.Plugin {
 					continue
 				}

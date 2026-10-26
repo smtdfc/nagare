@@ -27,10 +27,10 @@ func toSessionDTO(s *session.Info) *rest.Session {
 		}
 	}
 	return &rest.Session{
-		ID:                 s.ID.String(),
-		Title:              s.Title,
-		IsArchive:          s.IsArchive,
-		CurrentModel:    s.CurrentModel,
+		ID:                   s.ID.String(),
+		Title:                s.Title,
+		IsArchive:            s.IsArchive,
+		CurrentModel:         s.CurrentModel,
 		CurrentModelProvider: modelProvider,
 	}
 }
@@ -49,7 +49,7 @@ func (c *Service) SendMessage(ctx context.Context, ownerID string, request *rest
 		return nil, err
 	}
 
-	c.chatEventBus.Publish(ctx, event_bus.SendEvent, &event_bus.SendMessageEventPayload{
+	c.chatEventBus.Publish(ctx, event_bus.SendChatMessageEvent, &event_bus.SendChatMessageEventPayload{
 		InvokeID:  invokeID,
 		RequestID: uuid.New().String(),
 		SessionID: request.SessionID,
@@ -63,6 +63,20 @@ func (c *Service) SendMessage(ctx context.Context, ownerID string, request *rest
 	return &rest.SendChatMessageResponse{
 		InvokeID: invokeID,
 	}, nil
+}
+
+func (c *Service) CancelChat(ctx context.Context, ownerID string, request *rest.CancelChatRequest) error {
+	_, err := c.sessionMgr.GetUserSession(ctx, request.SessionID, ownerID)
+	if err != nil {
+		return err
+	}
+
+	c.chatEventBus.Publish(ctx, event_bus.CancelChatEvent, &event_bus.CancelChatEventPayload{
+		InvokeID:  request.InvokeID,
+		RequestID: uuid.New().String(),
+	})
+
+	return nil
 }
 
 func (c *Service) CreateSession(ctx context.Context, ownerID string, request *rest.CreateChatSessionRequest) (*rest.CreateChatSessionResponse, error) {

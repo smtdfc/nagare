@@ -23,6 +23,7 @@ func NewRouteInitializer(
 
 	return func(app *fiber.App, ws *websocket.Coordinator) {
 		app.Post(rest.SendChatMessageEndpoint, authMiddleware, chatController.SendMessage)
+		app.Post(rest.CancelChatEndpoint, authMiddleware, chatController.CancelChat)
 		app.Post(rest.CreateChatSessionEndpoint, authMiddleware, chatController.CreateSession)
 		app.Get(rest.ListChatSessionsEndpoint, authMiddleware, chatController.ListSessions)
 		app.Get(rest.GetChatHistoryEndpoint, authMiddleware, chatController.History)
