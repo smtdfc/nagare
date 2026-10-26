@@ -1,4 +1,4 @@
-package mappers
+package kv
 
 import "github.com/smtdfc/nagare/core/persistence/database/entities"
 
@@ -27,6 +27,6 @@ func (k *KVMapper) ToEntities(domains map[string]string, scope string) []*entiti
 }
 
 // @Injectable
-func NewKVMapper() *KVMapper {
+func NewKVMapper() IKVMapper {
 	return &KVMapper{}
 }

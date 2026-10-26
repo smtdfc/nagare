@@ -4,13 +4,14 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/smtdfc/nagare/core/mappers/model_provider"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 )
 
 func TestModelProviderMapper(t *testing.T) {
 	// Verify ModelProviderMapper methods
 	credMapper := NewCredentialMapper()
-	mapper := NewModelProviderMapper(credMapper)
+	mapper := model_provider.NewModelProviderMapper(credMapper)
 
 	id := uuid.New()
 	credID := uuid.New()

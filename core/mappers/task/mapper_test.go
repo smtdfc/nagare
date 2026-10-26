@@ -5,13 +5,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	task2 "github.com/smtdfc/nagare/core/mappers/task"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/task"
 )
 
 func TestTaskMapper(t *testing.T) {
 	// Verify TaskMapper ToDomain and ToEntity
-	mapper := NewTaskMapper()
+	mapper := task2.NewTaskMapper()
 	id := uuid.New()
 	sessID := uuid.New()
 	now := time.Now()

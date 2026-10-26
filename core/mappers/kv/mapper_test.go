@@ -1,4 +1,4 @@
-package mappers
+package kv
 
 import (
 	"testing"

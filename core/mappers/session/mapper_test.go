@@ -1,9 +1,10 @@
-package mappers
+package session
 
 import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/smtdfc/nagare/core/mappers/model_provider"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/session"
 )
@@ -11,20 +12,20 @@ import (
 func TestSessionMapper(t *testing.T) {
 	// Verify SessionMapper ToDomain and ToEntity
 	credMapper := NewCredentialMapper()
-	llmMapper := NewModelProviderMapper(credMapper)
+	llmMapper := model_provider.NewModelProviderMapper(credMapper)
 	mapper := NewSessionMapper(llmMapper)
 
 	id := uuid.New()
 	providerID := uuid.New()
 
 	entity := &entities.Session{
-		ID:            id,
-		Title:         "Chat 1",
-		ChannelID:     "ch-1",
-		OwnerID:       "u-1",
-		OwnerType:     "user",
-		IsArchive:     false,
-		CurrentModel:  "gpt-4o",
+		ID:              id,
+		Title:           "Chat 1",
+		ChannelID:       "ch-1",
+		OwnerID:         "u-1",
+		OwnerType:       "user",
+		IsArchive:       false,
+		CurrentModel:    "gpt-4o",
 		ModelProviderID: providerID,
 		ModelProvider: &entities.ModelProvider{
 			ID:         providerID,

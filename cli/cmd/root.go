@@ -1,16 +1,28 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
 )
 
+// Version is set at build time via -ldflags "-X github.com/smtdfc/nagare/cli/cmd.Version=x.y.z".
+// Falls back to "dev" when building without ldflags.
+var Version = "dev"
+
 var rootCmd = &cobra.Command{
 	Use:   "nagare",
 	Short: "Command-line tools for managing Nagare",
 	Long:  "Nagare CLI provides commands for authentication, gateway management, and plugin development.",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if v, _ := cmd.Flags().GetBool("version"); v {
+			fmt.Printf("nagare version %s\n", Version)
+			return nil
+		}
+		return cmd.Help()
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -49,4 +61,6 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
+
+	rootCmd.Flags().BoolP("version", "v", false, "Print version information and exit")
 }
