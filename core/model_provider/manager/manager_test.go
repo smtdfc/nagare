@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/core/mappers"
+	model_provider_mapper "github.com/smtdfc/nagare/core/mappers/model_provider"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"gorm.io/driver/sqlite"
@@ -23,8 +23,7 @@ func TestModelProviderManager_GetAllAndGetByID(t *testing.T) {
 
 	l := &logger.BaseLogger{Logger: *slog.Default()}
 	credRepo := repositories.NewCredentialRepository(db, l)
-	credMapper := mappers.NewCredentialMapper()
-	modelMapper := mappers.NewModelProviderMapper(credMapper)
+	modelMapper := model_provider_mapper.NewModelProviderMapper()
 	modelRepo := repositories.NewModelProviderRepository(db, l)
 
 	mgr := NewModelProviderManager(modelRepo, credRepo, modelMapper, l)

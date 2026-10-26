@@ -5,7 +5,7 @@ import (
 
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/core/mappers"
+	model_provider_mapper "github.com/smtdfc/nagare/core/mappers/model_provider"
 	model_provider "github.com/smtdfc/nagare/core/model_provider/provider"
 	"github.com/smtdfc/nagare/core/model_provider/provider/adapters"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
@@ -14,7 +14,7 @@ import (
 type ModelProviderManager struct {
 	modelProviderRepo   *repositories.ModelProviderRepository
 	credentialRepo      *repositories.CredentialRepository
-	modelProviderMapper *mappers.ModelProviderMapper
+	modelProviderMapper model_provider_mapper.IModelProviderMapper
 	logger              *logger.BaseLogger
 	adapterLogger       *logger.BaseLogger
 }
@@ -123,7 +123,7 @@ func (m *ModelProviderManager) GetAdapter(provider *model_provider.ModelProvider
 }
 
 // @Injectable
-func NewModelProviderManager(modelProviderRepo *repositories.ModelProviderRepository, credentialRepo *repositories.CredentialRepository, modelProviderMapper *mappers.ModelProviderMapper, logger *logger.BaseLogger) *ModelProviderManager {
+func NewModelProviderManager(modelProviderRepo *repositories.ModelProviderRepository, credentialRepo *repositories.CredentialRepository, modelProviderMapper model_provider_mapper.IModelProviderMapper, logger *logger.BaseLogger) *ModelProviderManager {
 	return &ModelProviderManager{
 		modelProviderRepo:   modelProviderRepo,
 		credentialRepo:      credentialRepo,
