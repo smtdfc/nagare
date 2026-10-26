@@ -98,7 +98,7 @@ func (c *CronJobWorker) ExecuteTask(taskID uuid.UUID, task *task.Task) {
 	c.logger.Info("Executing task", "taskID", taskID.String(), "taskName", task.Name)
 	ctx := context.Background()
 
-	c.eventBus.Publish(ctx, event_bus.SendEvent, &event_bus.SendMessageEventPayload{
+	c.eventBus.Publish(ctx, event_bus.SendChatMessageEvent, &event_bus.SendChatMessageEventPayload{
 		RequestID: uuid.New().String(),
 		SessionID: task.SessionID.String(),
 		Messages: messages.ListMessage{
