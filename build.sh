@@ -1,10 +1,26 @@
 #!/usr/bin/env bash
 set -e
 
+JSON_FILE=".release-please-manifest.json"
+
+if [ ! -f "$JSON_FILE" ]; then
+    echo "File not found: $JSON_FILE"
+    exit 1
+fi
+
+if ! command -v jq &> /dev/null; then
+    echo "No jq command found. Please install jq to parse JSON files."
+    exit 1
+fi
+
+VERSION=$(jq -r '.[ "." ]' "$JSON_FILE")
+echo "Detected version: $VERSION"
+
 ROOT_DIR="$(pwd)"
 CLIENT_WEB_SOURCE="$ROOT_DIR/client/web"
 GATEWAY_SOURCE="$ROOT_DIR/gateway"
 CLI_SOURCE="$ROOT_DIR/cli"
+CORE_SOURCE="$ROOT_DIR/core"
 GO_BUILTIN_PLUGINS_SOURCE="$ROOT_DIR/plugin/builtins"
 DESKTOP_SOURCE="$ROOT_DIR/client/desktop"
 WEB_DIST_DIR="$ROOT_DIR/client/web/dist"
@@ -71,13 +87,18 @@ for plugin in "${GO_BUILTIN_PLUGINS[@]}"; do
     )
 done
 
+echo "Generating Go sources ..."
+goverter gen "$CORE_SOURCE/mappers/..."
+goverter gen "$GATEWAY_SOURCE/..."
+
+
 echo "Building Desktop app"
 pnpm desktop:build
 cp "$DESKTOP_SOURCE/bin/nagare-desktop${exe_ext}" "$DIST_DIR"
 
 echo "Building Nagare CLI..."
 cd "$CLI_SOURCE"
-go build -o "$DIST_DIR/nagare${exe_ext}"
+go build -ldflags "-X github.com/smtdfc/nagare/cli/cmd.Version=$VERSION"  -o "$DIST_DIR/nagare${exe_ext}"
 cd - > /dev/null
 
 echo "Building Nagare Gateway..."

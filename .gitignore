@@ -8,3 +8,4 @@ routeTree.gen.ts
 *.generated.ts
 target
 build
+*.generated.go
