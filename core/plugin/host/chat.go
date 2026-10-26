@@ -84,7 +84,7 @@ func (h *PluginHost) handleSendChatMessage(conn *PluginConnection, payload *plug
 		return
 	}
 
-	h.chatEventBus.Publish(ctx, event_bus.SendEvent, &event_bus.SendMessageEventPayload{
+	h.chatEventBus.Publish(ctx, event_bus.SendChatMessageEvent, &event_bus.SendChatMessageEventPayload{
 		RequestID: uuid.New().String(),
 		SessionID: data.SessionID,
 		Messages: messages.ListMessage{

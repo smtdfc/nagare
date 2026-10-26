@@ -47,7 +47,7 @@ func (h *PluginHost) forwardPluginToolCalls() {
 }
 
 func (h *PluginHost) forwardChatChunks() {
-	ch, unsubscribe := h.chatEventBus.Subscribe(event_bus.ChunkEvent)
+	ch, unsubscribe := h.chatEventBus.Subscribe(event_bus.ChatMessageChunkEvent)
 	defer unsubscribe()
 
 	for {
@@ -58,10 +58,10 @@ func (h *PluginHost) forwardChatChunks() {
 			if !ok {
 				return
 			}
-			if evt.GetEventType() != event_bus.ChunkEvent {
+			if evt.GetEventType() != event_bus.ChatMessageChunkEvent {
 				continue
 			}
-			chunkPayload, ok := evt.(*event_bus.ChatChunkEventPayload)
+			chunkPayload, ok := evt.(*event_bus.ChatMessageChunkEventPayload)
 			if !ok {
 				continue
 			}
