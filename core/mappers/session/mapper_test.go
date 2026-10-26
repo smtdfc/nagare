@@ -4,16 +4,13 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/smtdfc/nagare/core/mappers/model_provider"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/session"
 )
 
 func TestSessionMapper(t *testing.T) {
 	// Verify SessionMapper ToDomain and ToEntity
-	credMapper := NewCredentialMapper()
-	llmMapper := model_provider.NewModelProviderMapper(credMapper)
-	mapper := NewSessionMapper(llmMapper)
+	mapper := NewSessionMapper()
 
 	id := uuid.New()
 	providerID := uuid.New()

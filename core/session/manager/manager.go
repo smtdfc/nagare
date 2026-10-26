@@ -8,7 +8,8 @@ import (
 	config_mgr "github.com/smtdfc/nagare/core/config/manager"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/core/mappers"
+	"github.com/smtdfc/nagare/core/mappers/message"
+	session_mapper "github.com/smtdfc/nagare/core/mappers/session"
 	model_provider_mgr "github.com/smtdfc/nagare/core/model_provider/manager"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
@@ -21,8 +22,8 @@ type SessionManager struct {
 	pluginRepo       *repositories.PluginRepository
 	sessionRepo      *repositories.SessionRepository
 	messageRepo      *repositories.MessageRepository
-	sessionMapper    *mappers.SessionMapper
-	messageMapper    *mappers.MessageMapper
+	sessionMapper    session_mapper.ISessionMapper
+	messageMapper    message.IMessageMapper
 	configMgr        *config_mgr.ConfigManager
 	modelProviderMgr *model_provider_mgr.ModelProviderManager
 }
@@ -475,9 +476,9 @@ func (s *SessionManager) ResetChatChannel(ctx context.Context, channelID string,
 func NewSessionManager(
 	logger *logger.BaseLogger,
 	sessionRepo *repositories.SessionRepository,
-	sessionMapper *mappers.SessionMapper,
+	sessionMapper session_mapper.ISessionMapper,
 	messageRepo *repositories.MessageRepository,
-	messageMapper *mappers.MessageMapper,
+	messageMapper message.IMessageMapper,
 	pluginRepo *repositories.PluginRepository,
 	configMgr *config_mgr.ConfigManager,
 	modelProviderMgr *model_provider_mgr.ModelProviderManager,
