@@ -18,5 +18,5 @@ use (
 	./plugin/client
 	./plugin/dtos
 	./plugin/metadata
-	./scripts
+	./scripts/go
 )

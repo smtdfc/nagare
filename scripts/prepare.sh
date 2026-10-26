@@ -14,4 +14,4 @@ goverter gen "$CORE_SOURCE/mappers/..."
 goverter gen "$GATEWAY_SOURCE/..."
 
 echo "Generating TypeScript code..."
-go run ./scripts/ts.go
+go run ./scripts/go/ts.go

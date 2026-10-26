@@ -56,7 +56,7 @@ case "$(uname -s)" in
 esac
 
 echo "Generating TypeScript code..."
-go run ./scripts/ts.go
+go run ./scripts/go/ts.go
 
 echo "Building Nagare Web UI..."
 cd "$CLIENT_WEB_SOURCE"
