@@ -8,22 +8,11 @@ import (
 	credential_manager "github.com/smtdfc/nagare/core/credential/manager"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/dtos/rest"
-	"github.com/smtdfc/nagare/pkgs/helpers"
 )
-
-func toCredentialDTO(value *core_credential.Credential) *rest.Credential {
-	if value == nil {
-		return nil
-	}
-
-	return &rest.Credential{
-		ID:   value.ID.String(),
-		Name: value.Name,
-	}
-}
 
 type Service struct {
 	credentialManager *credential_manager.CredentialManager
+	credentialMapper  ICredentialDtoMapper
 }
 
 func (c *Service) ListCredentials(ctx context.Context) (*rest.GetListCredentialResponse, error) {
@@ -33,7 +22,7 @@ func (c *Service) ListCredentials(ctx context.Context) (*rest.GetListCredentialR
 	}
 
 	return &rest.GetListCredentialResponse{
-		Credentials: helpers.SliceMap(credentials, toCredentialDTO),
+		Credentials: c.credentialMapper.ToCredentialDTOs(credentials),
 	}, nil
 }
 
@@ -47,7 +36,7 @@ func (c *Service) GetCredentialDetails(ctx context.Context, id string) (*rest.Ge
 	}
 
 	return &rest.GetCredentialDetailsResponse{
-		Credential: toCredentialDTO(credentialValue),
+		Credential: c.credentialMapper.ToCredentialDTO(credentialValue),
 	}, nil
 }
 
@@ -61,7 +50,7 @@ func (c *Service) AddCredential(ctx context.Context, request *rest.AddCredential
 	}
 
 	return &rest.AddCredentialResponse{
-		Credential: toCredentialDTO(credentialValue),
+		Credential: c.credentialMapper.ToCredentialDTO(credentialValue),
 	}, nil
 }
 
@@ -81,7 +70,7 @@ func (c *Service) UpdateCredential(ctx context.Context, request *rest.UpdateCred
 	}
 
 	return &rest.UpdateCredentialResponse{
-		Credential: toCredentialDTO(credentialValue),
+		Credential: c.credentialMapper.ToCredentialDTO(credentialValue),
 	}, nil
 }
 
@@ -94,8 +83,9 @@ func (c *Service) DeleteCredential(ctx context.Context, request *rest.DeleteCred
 }
 
 // @Injectable
-func NewCredentialService(credentialManager *credential_manager.CredentialManager) *Service {
+func NewCredentialService(credentialManager *credential_manager.CredentialManager, credentialMapper ICredentialDtoMapper) *Service {
 	return &Service{
 		credentialManager: credentialManager,
+		credentialMapper:  credentialMapper,
 	}
 }
