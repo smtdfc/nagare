@@ -4,13 +4,13 @@ import (
 	"context"
 
 	"github.com/smtdfc/nagare/core/credential"
-	"github.com/smtdfc/nagare/core/mappers"
+	credential_mapper "github.com/smtdfc/nagare/core/mappers/credential"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 )
 
 type CredentialManager struct {
 	credentialRepo   *repositories.CredentialRepository
-	credentialMapper *mappers.CredentialMapper
+	credentialMapper credential_mapper.ICredentialMapper
 }
 
 func (c *CredentialManager) GetAll(ctx context.Context) ([]*credential.Credential, error) {
@@ -59,7 +59,7 @@ func (c *CredentialManager) Delete(ctx context.Context, id string) error {
 }
 
 // @Injectable
-func NewCredentialManager(credentialRepo *repositories.CredentialRepository, credentialMapper *mappers.CredentialMapper) *CredentialManager {
+func NewCredentialManager(credentialRepo *repositories.CredentialRepository, credentialMapper credential_mapper.ICredentialMapper) *CredentialManager {
 	return &CredentialManager{
 		credentialRepo:   credentialRepo,
 		credentialMapper: credentialMapper,

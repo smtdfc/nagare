@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/credential"
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/core/mappers"
+	credential_mapper "github.com/smtdfc/nagare/core/mappers/credential"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"gorm.io/driver/sqlite"
@@ -25,7 +25,7 @@ func TestCredentialManager_CRUD(t *testing.T) {
 
 	l := &logger.BaseLogger{Logger: *slog.Default()}
 	repo := repositories.NewCredentialRepository(db, l)
-	mapper := mappers.NewCredentialMapper()
+	mapper := credential_mapper.NewCredentialMapper()
 	mgr := &CredentialManager{credentialRepo: repo, credentialMapper: mapper}
 	ctx := context.Background()
 

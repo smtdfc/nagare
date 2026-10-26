@@ -1,10 +1,11 @@
-package mappers
+package credential
 
 import (
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/credential"
+
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 )
 
