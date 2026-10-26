@@ -67,6 +67,7 @@ function RouteComponent() {
   const setPendingMessages = useChat((c) => c.setPendingMessages);
   const setChatSession = useChat((c) => c.setChatSession);
   const setIsConnected = useChat((c) => c.setIsConnected);
+  const setInvokeID = useChat((c) => c.setInvokeID);
   const isConnected = useChat((c) => c.isConnected);
   const isProcessing = useChat((c) => c.isProcessing);
   const setIsProcessing = useChat((c) => c.setIsProcessing);
@@ -310,6 +311,7 @@ function RouteComponent() {
                   : message,
               ),
             );
+            setInvokeID(response.invokeID);
           }
           setIsProcessing(true);
           setPendingMessages(pendingMessages.slice(1));

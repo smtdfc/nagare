@@ -1,19 +1,21 @@
 import { useRef, useState, useEffect, type SyntheticEvent } from "react";
 import type { ChatData } from "#/types/chat.ts";
 import { Button } from "#/components/ui/button.tsx";
-import { PlusIcon, SendIcon } from "lucide-react";
+import { PlusIcon, SendIcon, SquareIcon } from "lucide-react";
 import { Textarea } from "#/components/ui/textarea.tsx";
 
 type ChatInputProps = {
-  disabled?: boolean;
+  isProcess?: boolean;
   currentChatData?: ChatData;
   onSend(data: ChatData): void;
+  onCancel(): void;
 };
 
 export default function ChatInput({
-  disabled,
   currentChatData,
   onSend,
+  onCancel,
+  isProcess,
 }: ChatInputProps) {
   const [text, setText] = useState(currentChatData?.text || "");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -33,6 +35,11 @@ export default function ChatInput({
   };
 
   const handleSend = () => {
+    if (isProcess) {
+      onCancel();
+      return;
+    }
+
     if (!text.trim()) return;
     onSend({
       text: text,
@@ -66,13 +73,12 @@ export default function ChatInput({
           }}
         />
         <Button
-          variant="outline"
+          variant={isProcess ? "destructive" : "outline"}
           size="icon"
           className="mb-0.5 shrink-0"
-          disabled={disabled || !text.trim()}
           onClick={handleSend}
         >
-          <SendIcon />
+          {isProcess ? <SquareIcon className="h-4 w-4 fill-current" /> : <SendIcon />}
         </Button>
       </div>
     </div>

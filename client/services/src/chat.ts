@@ -29,6 +29,8 @@ import {
   UpdateChatSessionModelSettingsEndpoint,
   type UpdateChatSessionModelSettingsRequest,
   type UpdateChatSessionModelSettingsResponse,
+  CancelChatEndpoint,
+  CancelChatRequest,
 } from "@nagare-app/dtos";
 import { catchError } from "./lib/errors.js";
 import type { Message } from "@nagare-app/messages";
@@ -239,9 +241,19 @@ export class ChatService {
     }
   }
 
-  static async submitToolApproval(
-    payload: SubmitToolApprovalEventPayload,
-  ) {
+  static async cancel(payload: CancelChatRequest) {
+    try {
+      const response = await instance.post<ApiResponse<{}>>(
+        CancelChatEndpoint,
+        payload,
+      );
+      return response.data.data;
+    } catch (error) {
+      catchError(error);
+    }
+  }
+
+  static async submitToolApproval(payload: SubmitToolApprovalEventPayload) {
     return websocket.request<
       SubmitToolApprovalEventPayload,
       SubmitToolApprovalSuccessEventPayload,

@@ -25,13 +25,14 @@ function RouteComponent() {
     text: "",
   });
   const isProcessing = useChat((c) => c.isProcessing);
+  const setIsProcessing = useChat((c) => c.setIsProcessing);
   const chatSession = useChat((c) => c.chatSession);
   const setChatSession = useChat((c) => c.setChatSession);
   const setPendingMessages = useChat((c) => c.setPendingMessages);
   const setIsConnected = useChat((c) => c.setIsConnected);
   const sessions = useChat((c) => c.sessions);
   const setSessions = useChat((c) => c.setSessions);
-
+  const invokeID = useChat((c) => c.invokeID);
   const handleSessionUpdated = (
     updatedSession: NonNullable<typeof chatSession>,
   ) => {
@@ -78,6 +79,12 @@ function RouteComponent() {
     }
   };
 
+  const onCancel = async () => {
+    if (!invokeID || !chatSession) return;
+    setIsProcessing(false);
+    await ChatService.cancel({ invokeID, sessionID: chatSession?.id });
+  };
+
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background sticky top-0 z-10">
@@ -118,7 +125,8 @@ function RouteComponent() {
           <ChatInput
             onSend={onSend}
             currentChatData={chatData}
-            disabled={isProcessing}
+            isProcess={isProcessing}
+            onCancel={onCancel}
           />
         )}
       </div>
