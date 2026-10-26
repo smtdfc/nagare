@@ -2,6 +2,7 @@ package adapters
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -200,6 +201,9 @@ func (o *OpenAICompatibleAdapter) Send(ctx context.Context, model string, listMe
 		}
 
 		if err := stream.Err(); err != nil {
+			if errors.Is(ctx.Err(), context.Canceled) || errors.Is(err, context.Canceled) {
+				return
+			}
 			o.logger.Error("stream error", "error", err)
 			if strings.Contains(err.Error(), "404") {
 				outputChannel <- messages.NewResponseFailedMessage(
