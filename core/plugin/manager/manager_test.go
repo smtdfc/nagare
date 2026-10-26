@@ -21,7 +21,7 @@ import (
 
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/core/mappers"
+	plugin2 "github.com/smtdfc/nagare/core/mappers/plugin"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"github.com/smtdfc/nagare/core/plugin"
@@ -487,7 +487,7 @@ func TestStartAllPlugin_ContinuesWhenPluginFails(t *testing.T) {
 	pm := &PluginManager{
 		logger:       log,
 		pluginRepo:   repo,
-		pluginMapper: mappers.NewPluginMapper(),
+		pluginMapper: plugin2.NewPluginMapper(),
 		connectCodes: make(map[string]string),
 	}
 

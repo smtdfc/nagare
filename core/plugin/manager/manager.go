@@ -22,7 +22,7 @@ import (
 	"github.com/shirou/gopsutil/v4/process"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/core/mappers"
+	plugin_mapper "github.com/smtdfc/nagare/core/mappers/plugin"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/pkgs/helpers"
@@ -352,7 +352,7 @@ func loadMetadata(metadataFile string) (*metadata.PluginMetadata, error) {
 type PluginManager struct {
 	mu           sync.RWMutex
 	pluginRepo   *repositories.PluginRepository
-	pluginMapper *mappers.PluginMapper
+	pluginMapper plugin_mapper.IPluginMapper
 	connectCodes map[string]string
 	socketPath   string
 	logger       *logger.BaseLogger
@@ -1039,7 +1039,7 @@ func (p *PluginManager) GetPluginStatus(ctx context.Context, id string) (*plugin
 // @Injectable
 func NewPluginManager(
 	pluginRepo *repositories.PluginRepository,
-	pluginMapper *mappers.PluginMapper,
+	pluginMapper plugin_mapper.IPluginMapper,
 	logger *logger.BaseLogger,
 ) *PluginManager {
 	return &PluginManager{
