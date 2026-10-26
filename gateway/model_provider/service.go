@@ -4,33 +4,12 @@ import (
 	"context"
 
 	model_provider_mgr "github.com/smtdfc/nagare/core/model_provider/manager"
-	"github.com/smtdfc/nagare/core/model_provider/provider"
 	"github.com/smtdfc/nagare/dtos/rest"
-	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
-func toModelProviderDTO(domain *provider.ModelProviderConfig) *rest.ModelProvider {
-	var credentialDTO *rest.Credential
-	if domain.Credential != nil {
-		credentialDTO = &rest.Credential{
-			ID:   domain.Credential.ID.String(),
-			Name: domain.Credential.Name,
-		}
-
-	}
-
-	return &rest.ModelProvider{
-		ID:         domain.ID.String(),
-		Name:       domain.Name,
-		Compatible: domain.Compatible.ToString(),
-		Models:     domain.Models,
-		BaseURL:    domain.BaseURL,
-		Credential: credentialDTO,
-	}
-}
-
 type ModelProviderService struct {
-	modelProviderMgr *model_provider_mgr.ModelProviderManager
+	modelProviderMgr       *model_provider_mgr.ModelProviderManager
+	modelProviderDtoMapper IModelProviderDtoMapper
 }
 
 func (l *ModelProviderService) ListProviders(ctx context.Context) (*rest.GetListModelProviderResponse, error) {
@@ -40,7 +19,7 @@ func (l *ModelProviderService) ListProviders(ctx context.Context) (*rest.GetList
 	}
 
 	return &rest.GetListModelProviderResponse{
-		Providers: helpers.SliceMap(providers, toModelProviderDTO),
+		Providers: l.modelProviderDtoMapper.ToModelProviderDTOs(providers),
 	}, nil
 }
 
@@ -51,7 +30,7 @@ func (l *ModelProviderService) GetProviderDetails(ctx context.Context, providerI
 	}
 
 	return &rest.GetModelProviderDetailsResponse{
-		Provider: toModelProviderDTO(modelProvider),
+		Provider: l.modelProviderDtoMapper.ToModelProviderDTO(modelProvider),
 	}, nil
 }
 
@@ -71,7 +50,7 @@ func (l *ModelProviderService) AddProvider(ctx context.Context, request *rest.Ad
 	}
 
 	return &rest.AddModelProviderResponse{
-		Provider: toModelProviderDTO(modelProvider),
+		Provider: l.modelProviderDtoMapper.ToModelProviderDTO(modelProvider),
 	}, nil
 }
 
@@ -93,8 +72,10 @@ func (l *ModelProviderService) GetModels(ctx context.Context, request *rest.GetM
 // @Injectable
 func NewModelProviderService(
 	modelProviderMgr *model_provider_mgr.ModelProviderManager,
+	modelProviderDtoMapper IModelProviderDtoMapper,
 ) *ModelProviderService {
 	return &ModelProviderService{
-		modelProviderMgr: modelProviderMgr,
+		modelProviderMgr:       modelProviderMgr,
+		modelProviderDtoMapper: modelProviderDtoMapper,
 	}
 }
