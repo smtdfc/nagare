@@ -103,6 +103,10 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, modelAdapt
 
 		llmOutput, err := modelAdapter.Send(ctx, model, a.state.GetFullMessage(), a.toolMgr.GetListTool())
 		if err != nil {
+			if ctx.Err() != nil {
+				isCancel = true
+				break
+			}
 			isError = true
 			a.logger.Error("Agent error", "error", err)
 			output <- messages.NewAgentErrorMessage(err.Error(), custom_errors.ErrModelProviderAdapter.Code)
@@ -137,6 +141,11 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, modelAdapt
 
 		flushText()
 
+		if ctx.Err() != nil {
+			isCancel = true
+			break
+		}
+
 		if executeError != nil {
 			isError = true
 			a.logger.Info("Agent loop exited due to an error")
@@ -149,8 +158,16 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, modelAdapt
 		}
 
 		for _, toolCall := range a.state.ToolCalls {
+			if ctx.Err() != nil {
+				isCancel = true
+				break
+			}
 			result := a.ExecuteTool(ctx, toolCall)
 			a.state.AppendMessage(result.ToMessage())
+		}
+
+		if isCancel {
+			break
 		}
 	}
 
