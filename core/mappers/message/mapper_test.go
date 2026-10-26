@@ -1,17 +1,16 @@
-package mappers
+package message
 
 import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/smtdfc/nagare/core/mappers/message"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
 func TestMessageMapper(t *testing.T) {
 	// Verify MessageMapper ToEntity and ToDomain
-	mapper := message.NewMessageMapper()
+	mapper := NewMessageMapper()
 	sessID := uuid.New()
 	invokeID := uuid.New()
 

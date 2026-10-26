@@ -121,6 +121,6 @@ func (m *MessageMapper) ToDomains(entities []*entities.Message) ([]messages.Mess
 }
 
 // @Injectable
-func NewMessageMapper() *MessageMapper {
+func NewMessageMapper() IMessageMapper {
 	return &MessageMapper{}
 }
