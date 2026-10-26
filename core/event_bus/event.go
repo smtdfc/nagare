@@ -19,11 +19,12 @@ const (
 type EventType string
 
 var (
-	SendEvent                 EventType = "event:send"
-	ChunkEvent                EventType = "event:chunk"
-	RefreshTaskEvent          EventType = "event:refresh_task"
-	PluginToolCallEvent       EventType = "event:plugin_tool_call"
-	PluginToolCallResultEvent EventType = "event:plugin_tool_call_result"
+	SendChatMessageEvent      EventType = "event:chat:send"
+	CancelChatEvent           EventType = "event:chat:cancel"
+	ChatMessageChunkEvent     EventType = "event:chat:chunk"
+	RefreshTaskEvent          EventType = "event:task:refresh"
+	PluginToolCallEvent       EventType = "event:plugin:tool:call"
+	PluginToolCallResultEvent EventType = "event:plugin:tool:result"
 )
 
 type EventPayload interface {
@@ -35,7 +36,7 @@ type TaskInfo struct {
 	SendResultIntoSession string `json:"sendResultIntoSession"`
 }
 
-type SendMessageEventPayload struct {
+type SendChatMessageEventPayload struct {
 	RequestID  string
 	InvokeID   string
 	SessionID  string
@@ -46,11 +47,11 @@ type SendMessageEventPayload struct {
 	Task       *TaskInfo
 }
 
-func (c *SendMessageEventPayload) GetEventType() EventType {
-	return SendEvent
+func (c *SendChatMessageEventPayload) GetEventType() EventType {
+	return SendChatMessageEvent
 }
 
-type ChatChunkEventPayload struct {
+type ChatMessageChunkEventPayload struct {
 	RequestID        string
 	SessionID        string
 	ChannelID        string
@@ -61,8 +62,8 @@ type ChatChunkEventPayload struct {
 	SessionOwnerType string
 }
 
-func (c *ChatChunkEventPayload) GetEventType() EventType {
-	return ChunkEvent
+func (c *ChatMessageChunkEventPayload) GetEventType() EventType {
+	return ChatMessageChunkEvent
 }
 
 type RefreshTaskEventPayload struct {
@@ -91,6 +92,15 @@ type PluginToolCallResultEventPayload struct {
 
 func (c *PluginToolCallResultEventPayload) GetEventType() EventType {
 	return PluginToolCallResultEvent
+}
+
+type CancelChatEventPayload struct {
+	RequestID string
+	InvokeID  string
+}
+
+func (e *CancelChatEventPayload) GetEventType() EventType {
+	return CancelChatEvent
 }
 
 type CoreEventBus struct {

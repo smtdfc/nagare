@@ -11,18 +11,18 @@ func TestEventPayload_GetEventType(t *testing.T) {
 	}
 
 	// Verify EventType values
-	if SendEvent != "event:send" || ChunkEvent != "event:chunk" || RefreshTaskEvent != "event:refresh_task" {
+	if SendChatMessageEvent != "event:chat:send" || ChatMessageChunkEvent != "event:chat:chunk" || RefreshTaskEvent != "event:task:refresh" {
 		t.Errorf("unexpected EventType constants")
 	}
 
 	// Verify GetEventType for each payload struct
-	sendPayload := &SendMessageEventPayload{RequestID: "req-1"}
-	if sendPayload.GetEventType() != SendEvent {
+	sendPayload := &SendChatMessageEventPayload{RequestID: "req-1"}
+	if sendPayload.GetEventType() != SendChatMessageEvent {
 		t.Errorf("expected SendEvent, got %s", sendPayload.GetEventType())
 	}
 
-	chunkPayload := &ChatChunkEventPayload{RequestID: "req-2"}
-	if chunkPayload.GetEventType() != ChunkEvent {
+	chunkPayload := &ChatMessageChunkEventPayload{RequestID: "req-2"}
+	if chunkPayload.GetEventType() != ChatMessageChunkEvent {
 		t.Errorf("expected ChunkEvent, got %s", chunkPayload.GetEventType())
 	}
 
