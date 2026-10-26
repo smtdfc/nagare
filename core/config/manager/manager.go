@@ -6,7 +6,7 @@ import (
 	"github.com/smtdfc/nagare/core/config"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/core/mappers"
+	kv_mapper "github.com/smtdfc/nagare/core/mappers/kv"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 )
 
@@ -14,7 +14,7 @@ const GeneralConfigScopeName = "nagare.config.general"
 
 type ConfigManager struct {
 	kvRepo   *repositories.KVRepository
-	kvMapper *mappers.KVMapper
+	kvMapper kv_mapper.IKVMapper
 	logger   *logger.BaseLogger
 }
 
@@ -42,7 +42,7 @@ func (c *ConfigManager) GetGeneralConfig(ctx context.Context) (*config.GeneralCo
 func (c *ConfigManager) SetGeneralConfig(ctx context.Context, conf *config.GeneralConfig) error {
 	var kvMap = map[string]string{
 		"DefaultModelProvider": conf.DefaultModelProvider,
-		"DefaultModel":    conf.DefaultModel,
+		"DefaultModel":         conf.DefaultModel,
 	}
 	err := c.kvRepo.Upsert(ctx, c.kvMapper.ToEntities(kvMap, GeneralConfigScopeName))
 	if err != nil {
@@ -55,7 +55,7 @@ func (c *ConfigManager) SetGeneralConfig(ctx context.Context, conf *config.Gener
 // @Injectable
 func NewConfigManager(
 	kvRepo *repositories.KVRepository,
-	kvMapper *mappers.KVMapper,
+	kvMapper kv_mapper.IKVMapper,
 	logger *logger.BaseLogger,
 ) *ConfigManager {
 	return &ConfigManager{

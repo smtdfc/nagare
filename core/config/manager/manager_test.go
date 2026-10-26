@@ -7,7 +7,7 @@ import (
 
 	"github.com/smtdfc/nagare/core/config"
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/core/mappers"
+	"github.com/smtdfc/nagare/core/mappers/kv"
 	"github.com/smtdfc/nagare/core/persistence/database/entities"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"gorm.io/driver/sqlite"
@@ -24,7 +24,7 @@ func TestConfigManager_GetAndSet(t *testing.T) {
 
 	l := &logger.BaseLogger{Logger: *slog.Default()}
 	kvRepo := repositories.NewKVRepository(db, l)
-	kvMapper := mappers.NewKVMapper()
+	kvMapper := kv.NewKVMapper()
 
 	mgr := NewConfigManager(kvRepo, kvMapper, l)
 	ctx := context.Background()
@@ -41,7 +41,7 @@ func TestConfigManager_GetAndSet(t *testing.T) {
 	// Set config
 	newCfg := &config.GeneralConfig{
 		DefaultModelProvider: "openai",
-		DefaultModel:    "gpt-4o",
+		DefaultModel:         "gpt-4o",
 	}
 	err = mgr.SetGeneralConfig(ctx, newCfg)
 	if err != nil {
