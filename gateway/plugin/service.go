@@ -8,27 +8,7 @@ import (
 	"github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/core/plugin/manager"
 	"github.com/smtdfc/nagare/dtos/rest"
-	"github.com/smtdfc/nagare/pkgs/helpers"
 )
-
-func toPluginDTO(domain *plugin.Plugin) *rest.Plugin {
-	features := make([]string, 0, len(domain.Features))
-	for _, f := range domain.Features {
-		features = append(features, f.ToString())
-	}
-
-	return &rest.Plugin{
-		ID:              domain.ID.String(),
-		PackageName:     domain.PackageName,
-		Name:            domain.Name,
-		Author:          domain.Author,
-		Features:        features,
-		Version:         domain.Version,
-		SignatureStatus: domain.SignatureStatus,
-		LastStatus:      domain.LastStatus,
-		IsActive:        domain.IsActive,
-	}
-}
 
 func signatureWarning(status string) string {
 	switch status {
@@ -42,8 +22,9 @@ func signatureWarning(status string) string {
 }
 
 type Service struct {
-	pluginMgr *manager.PluginManager
-	uploadMgr *upload.Manager
+	pluginMgr    *manager.PluginManager
+	uploadMgr    *upload.Manager
+	pluginMapper IPluginDtoMapper
 }
 
 func (p *Service) ListPlugins(ctx context.Context) (*rest.GetListPluginResponse, error) {
@@ -53,7 +34,7 @@ func (p *Service) ListPlugins(ctx context.Context) (*rest.GetListPluginResponse,
 	}
 
 	return &rest.GetListPluginResponse{
-		Plugins: helpers.SliceMap(plugins, toPluginDTO),
+		Plugins: p.pluginMapper.ToPluginDTOs(plugins),
 	}, nil
 }
 
@@ -73,7 +54,7 @@ func (p *Service) InstallLocalPlugin(ctx context.Context, request *rest.InstallL
 	}
 
 	return &rest.InstallLocalPluginResponse{
-		Plugin:  toPluginDTO(plg),
+		Plugin:  p.pluginMapper.ToPluginDTO(plg),
 		Warning: signatureWarning(plg.SignatureStatus),
 	}, nil
 }
@@ -138,7 +119,7 @@ func (p *Service) InstallPluginFromAttachment(ctx context.Context, request *rest
 	}
 
 	return &rest.InstallPluginFromAttachmentResponse{
-		Plugin:  toPluginDTO(plg),
+		Plugin:  p.pluginMapper.ToPluginDTO(plg),
 		Warning: signatureWarning(plg.SignatureStatus),
 	}, nil
 }
@@ -160,7 +141,7 @@ func (p *Service) UpdatePlugin(ctx context.Context, request *rest.UpdatePluginRe
 	}
 
 	return &rest.UpdatePluginResponse{
-		Plugin:  toPluginDTO(plg),
+		Plugin:  p.pluginMapper.ToPluginDTO(plg),
 		Warning: signatureWarning(plg.SignatureStatus),
 	}, nil
 }
@@ -169,9 +150,11 @@ func (p *Service) UpdatePlugin(ctx context.Context, request *rest.UpdatePluginRe
 func NewPluginService(
 	pluginMgr *manager.PluginManager,
 	uploadMgr *upload.Manager,
+	pluginMapper IPluginDtoMapper,
 ) *Service {
 	return &Service{
-		pluginMgr: pluginMgr,
-		uploadMgr: uploadMgr,
+		pluginMgr:    pluginMgr,
+		uploadMgr:    uploadMgr,
+		pluginMapper: pluginMapper,
 	}
 }
