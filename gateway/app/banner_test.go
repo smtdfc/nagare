@@ -15,7 +15,8 @@ func TestPrintStartupMessage(t *testing.T) {
 
 	got := buf.String()
 	for _, want := range []string{
-		"nagare gateway",
+		"G A T E W A Y",
+		"version: " + Version,
 		"http://localhost:9832",
 		"development",
 		strconv.Itoa(os.Getpid()),
