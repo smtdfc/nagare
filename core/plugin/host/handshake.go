@@ -3,6 +3,7 @@ package host
 import (
 	"context"
 
+	"github.com/smtdfc/nagare/core/custom_errors"
 	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 )
 
@@ -23,6 +24,25 @@ func (h *PluginHost) handleHandshake(conn *PluginConnection, payload *plugin_dto
 			Cause: err.Error(),
 		}, payload.RequestID)
 		return
+	}
+
+	groupName := getGroupName(pluginInfo.Features)
+
+	if groupName != NormalPluginGroup {
+		h.mu.Lock()
+
+		if _, exist := h.specialGroups[groupName]; exist {
+			h.mu.Unlock()
+			h.logger.Error("Handshake blocked! The plugin belongs to a special category that has already been registered. It cannot be registered a second time for security reasons.", "packageName", data.PackageName)
+			_ = conn.Send(plugin_dtos.HandshakeFailedEvent, &plugin_dtos.HandshakeFailedEventPayload{
+				Cause: custom_errors.ErrPluginBlockedBySpecialPluginGroupPolicy.Error(),
+			}, payload.RequestID)
+			conn.Close()
+			return
+		} else {
+			h.specialGroups[groupName] = conn
+			h.mu.Unlock()
+		}
 	}
 
 	scopes := make([]string, 0, len(pluginInfo.Features))

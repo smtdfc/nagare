@@ -22,15 +22,29 @@ type PluginHost struct {
 	pluginMgr     *manager.PluginManager
 	toolMgr       *manager2.ToolManager
 	sessionMgr    *session_mgr.SessionManager
-	chatEventBus  *event_bus.CoreEventBus
+	eventBus      *event_bus.CoreEventBus
 	approvalMgr   *hil.Manager
 	logger        *logger.BaseLogger
 	socketPath    string
 
-	listener    net.Listener
-	mu          sync.RWMutex
-	connections map[string]*PluginConnection
-	stopChan    chan struct{}
+	listener      net.Listener
+	mu            sync.RWMutex
+	connections   map[string]*PluginConnection
+	specialGroups map[PluginGroup]*PluginConnection
+	stopChan      chan struct{}
+}
+
+func (h *PluginHost) unregister(conn *PluginConnection) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for g, c := range h.specialGroups {
+		if c == conn {
+			delete(h.specialGroups, g)
+		}
+	}
+	if h.connections[conn.pluginID] == conn {
+		delete(h.connections, conn.pluginID)
+	}
 }
 
 func (h *PluginHost) SetSocketPath(path string) {
@@ -60,6 +74,7 @@ func (h *PluginHost) Start() error {
 	go h.acceptLoop()
 	go h.forwardPluginToolCalls()
 	go h.forwardChatChunks()
+	go h.forwardVectorIndexActions()
 
 	h.logger.Info("Plugin host started", "socketPath", path)
 	return nil
@@ -79,11 +94,16 @@ func (h *PluginHost) Stop() error {
 	}
 
 	h.mu.Lock()
-	for id, conn := range h.connections {
-		_ = conn.Close()
-		delete(h.connections, id)
+	conns := make([]*PluginConnection, 0, len(h.connections))
+	for _, c := range h.connections {
+		conns = append(conns, c)
 	}
 	h.mu.Unlock()
+
+	for _, c := range conns {
+		_ = c.Close()
+		h.unregister(c)
+	}
 
 	h.logger.Info("Plugin host stopped")
 	return nil
@@ -114,9 +134,7 @@ func (h *PluginHost) handleConnection(conn net.Conn) {
 	defer func() {
 		_ = pConn.Close()
 		if pConn.pluginID != "" {
-			h.mu.Lock()
-			delete(h.connections, pConn.pluginID)
-			h.mu.Unlock()
+			h.unregister(pConn)
 			h.logger.Info("Plugin disconnected", "pluginID", pConn.pluginID, "packageName", pConn.pluginName)
 		}
 	}()
@@ -168,7 +186,7 @@ func NewPluginHost(
 	sessionMgr *session_mgr.SessionManager,
 	toolMgr *manager2.ToolManager,
 	modelProvider *provider_mgr.ModelProviderManager,
-	chatEventBus *event_bus.CoreEventBus,
+	eventBus *event_bus.CoreEventBus,
 	approvalMgr *hil.Manager,
 	logger *logger.BaseLogger,
 ) *PluginHost {
@@ -176,11 +194,12 @@ func NewPluginHost(
 		pluginMgr:     pluginMgr,
 		sessionMgr:    sessionMgr,
 		toolMgr:       toolMgr,
-		chatEventBus:  chatEventBus,
+		eventBus:      eventBus,
 		approvalMgr:   approvalMgr,
 		modelProvider: modelProvider,
 		logger:        logger.With("module", "plugin-host"),
 		connections:   make(map[string]*PluginConnection),
+		specialGroups: make(map[PluginGroup]*PluginConnection),
 		socketPath:    paths.PluginSocketPath,
 	}
 }

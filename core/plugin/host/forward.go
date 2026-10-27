@@ -1,14 +1,18 @@
 package host
 
 import (
+	"context"
+
+	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/event_bus"
+	"github.com/smtdfc/nagare/core/plugin/internal"
 	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/pkgs/helpers"
 	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 )
 
 func (h *PluginHost) forwardPluginToolCalls() {
-	channel, unsubscribe := h.chatEventBus.Subscribe(event_bus.PluginToolCallEvent)
+	channel, unsubscribe := h.eventBus.Subscribe(event_bus.PluginToolCallEvent)
 	defer unsubscribe()
 
 	for {
@@ -47,7 +51,7 @@ func (h *PluginHost) forwardPluginToolCalls() {
 }
 
 func (h *PluginHost) forwardChatChunks() {
-	ch, unsubscribe := h.chatEventBus.Subscribe(event_bus.ChatMessageChunkEvent)
+	ch, unsubscribe := h.eventBus.Subscribe(event_bus.ChatMessageChunkEvent)
 	defer unsubscribe()
 
 	for {
@@ -92,6 +96,58 @@ func (h *PluginHost) forwardChatChunks() {
 				},
 				chunkPayload.RequestID,
 			)
+		}
+	}
+}
+
+func (h *PluginHost) forwardVectorIndexActions() {
+	chAddVectorAction, unsubscribeAddVector := h.eventBus.Subscribe(event_bus.AddVectorEvent)
+	defer unsubscribeAddVector()
+
+	handleChan := helpers.MergeChannel(
+		chAddVectorAction,
+	)
+
+	for {
+		select {
+		case <-h.stopChan:
+			return
+		case evt, ok := <-handleChan:
+			if !ok {
+				return
+			}
+			switch evt.GetEventType() {
+			case event_bus.AddVectorEvent:
+				payload, ok := evt.(*event_bus.AddVectorEventPayload)
+				if !ok {
+					continue
+				}
+
+				h.mu.RLock()
+				conn, exist := h.specialGroups[VectorIndexPluginGroup]
+				h.mu.RUnlock()
+
+				if !exist {
+					h.eventBus.Publish(context.Background(), event_bus.AddVectorErrorEvent, &event_bus.AddVectorErrorEventPayload{
+						RequestID: payload.RequestID,
+						Error:     custom_errors.ErrMissingVectorIndexPlugin,
+					})
+
+					continue
+				}
+				err := conn.Send(internal.AddVectorEvent, &internal.AddVectorEventPayload{
+					RequestID: payload.RequestID,
+					Vector:    payload.Vector,
+					IDs:       payload.IDs,
+				}, payload.RequestID)
+
+				if err != nil {
+					h.eventBus.Publish(context.Background(), event_bus.AddVectorErrorEvent, &event_bus.AddVectorErrorEventPayload{
+						RequestID: payload.RequestID,
+						Error:     err,
+					})
+				}
+			}
 		}
 	}
 }

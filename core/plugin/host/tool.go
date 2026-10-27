@@ -40,7 +40,7 @@ func (h *PluginHost) handleRegisterPluginTool(conn *PluginConnection, payload *p
 		data.Tool.Categories,
 		conn.pluginID,
 		true,
-		h.chatEventBus,
+		h.eventBus,
 	)
 
 	_ = conn.Send(plugin_dtos.RegisterPluginToolSuccessEvent, &plugin_dtos.RegisterPluginToolSuccessEventPayload{}, payload.RequestID)
@@ -80,7 +80,7 @@ func (h *PluginHost) handlePluginToolCallResult(conn *PluginConnection, payload 
 		return
 	}
 
-	h.chatEventBus.Publish(context.Background(), event_bus.PluginToolCallResultEvent, &event_bus.PluginToolCallResultEventPayload{
+	h.eventBus.Publish(context.Background(), event_bus.PluginToolCallResultEvent, &event_bus.PluginToolCallResultEventPayload{
 		RequestID: payload.RequestID,
 		Result:    data.Result,
 		Error:     data.Error,
