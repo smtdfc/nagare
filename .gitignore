@@ -9,3 +9,4 @@ routeTree.gen.ts
 target
 build
 *.generated.go
+checklist.txt
