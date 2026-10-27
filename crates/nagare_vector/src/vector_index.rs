@@ -18,4 +18,11 @@ impl VectorIndex {
             IdMapIndex::load(path).map_err(|err| format!("Failed to load IdMapIndex: {}", err))?;
         Ok(Self { index })
     }
+
+    pub fn add(&mut self, vector: &[f32], ids: &[u64]) -> Result<(), String> {
+        self.index
+            .add_with_ids(vector, ids)
+            .map_err(|e| e.to_string())?;
+        Ok(())
+    }
 }
