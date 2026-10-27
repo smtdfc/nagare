@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gofiber/fiber/v3"
 	"github.com/smtdfc/nagare/core/plugin/manager"
 	"github.com/smtdfc/nagare/core/setup"
 	"github.com/smtdfc/nagare/gateway/chat"
@@ -42,7 +43,16 @@ func StartApp(app *App, coreSetup *setup.CoreSetup, _ *Routes, chunkWorker *chat
 
 	go func() {
 		addr := fmt.Sprintf("%s:%s", app.config.Host, app.config.Port)
-		if err := app.fiberApp.Listen(addr); err != nil {
+		err := app.fiberApp.Listen(addr, fiber.ListenConfig{
+			// Replace Fiber's ASCII banner and process stats with a single
+			// structured log line from the gateway logger.
+			DisableStartupMessage: true,
+			BeforeServeFunc: func(*fiber.App) error {
+				app.logger.Info("Gateway started", "addr", addr)
+				return nil
+			},
+		})
+		if err != nil {
 			serverErrors <- err
 		}
 	}()
