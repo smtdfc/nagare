@@ -44,8 +44,6 @@ func StartApp(app *App, coreSetup *setup.CoreSetup, _ *Routes, chunkWorker *chat
 	go func() {
 		addr := fmt.Sprintf("%s:%s", app.config.Host, app.config.Port)
 		err := app.fiberApp.Listen(addr, fiber.ListenConfig{
-			// Replace Fiber's ASCII banner and process stats with a compact
-			// gateway-specific startup summary.
 			DisableStartupMessage: true,
 			BeforeServeFunc: func(*fiber.App) error {
 				printStartupMessage(os.Stdout, addr, app.config.DebugMode)
