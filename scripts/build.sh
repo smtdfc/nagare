@@ -104,7 +104,7 @@ cd - > /dev/null
 echo "Building Nagare Gateway..."
 cd "$GATEWAY_SOURCE"
 dix wire --workspace
-go build -o "$DIST_DIR/nagare-gateway${exe_ext}"
+go build -ldflags "-X github.com/smtdfc/nagare/gateway/app.Version=$VERSION" -o "$DIST_DIR/nagare-gateway${exe_ext}"
 cd - > /dev/null
 
 
