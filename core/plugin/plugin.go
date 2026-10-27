@@ -12,6 +12,8 @@ const (
 	ChatFeature          Feature = "chat"
 	ModelProviderFeature Feature = "model_provider"
 	ToolFeature          Feature = "plugin_tool"
+	// Internal features
+	VectorIndexFeature Feature = "core:vector:index"
 )
 
 func (p Feature) ToString() string {
@@ -30,6 +32,8 @@ func ParseFeatureString(raw string) []Feature {
 			features = append(features, ToolFeature)
 		case string(ModelProviderFeature):
 			features = append(features, ModelProviderFeature)
+		case string(VectorIndexFeature):
+			features = append(features, VectorIndexFeature)
 		}
 	}
 
