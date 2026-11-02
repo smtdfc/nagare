@@ -28,18 +28,18 @@ func (h *ExternalModuleHost) onHandshake(pConn *Connection, payload *Payload[any
 		return
 	}
 
-	h.mu.RLock()
+	h.mu.Lock()
 	if _, ok := h.connections[data.ModuleID]; ok {
-		h.mu.RUnlock()
+		h.mu.Unlock()
 		_ = pConn.Send(HandshakeFailedEvent, &HandshakeFailedEventPayload{
 			Cause: custom_errors.ErrModuleConnectionBlocked.Error(),
 		}, payload.RequestID)
 		return
 	}
-	h.mu.RUnlock()
 
 	isValid := h.externalModuleMgr.IsValidConnect(data.ModuleID, data.ConnectCode)
 	if !isValid {
+		h.mu.Unlock()
 		_ = pConn.Send(HandshakeFailedEvent, &HandshakeFailedEventPayload{
 			Cause: custom_errors.ErrInvalidModuleConnection.Error(),
 		}, payload.RequestID)
@@ -47,9 +47,12 @@ func (h *ExternalModuleHost) onHandshake(pConn *Connection, payload *Payload[any
 	}
 
 	h.externalModuleMgr.RevokeConnectCode(data.ConnectCode)
-	h.mu.Lock()
 	h.connections[data.ModuleID] = pConn
-	h.mu.Unlock()
 	pConn.moduleID = data.ModuleID
-	_ = pConn.Send(HandshakeSuccessEvent, &HandshakeSuccessEventPayload{}, payload.RequestID)
+	h.mu.Unlock()
+
+	if err := pConn.Send(HandshakeSuccessEvent, &HandshakeSuccessEventPayload{}, payload.RequestID); err != nil {
+		// Rollback
+		h.unregister(pConn)
+	}
 }

@@ -145,34 +145,34 @@ func (h *ExternalModuleHost) dispatch(pConn *Connection, payload *Payload[any]) 
 	}
 }
 
-func (e *ExternalModuleHost) StartAllModules() error {
-	err := e.Start()
+func (h *ExternalModuleHost) StartAllModules() error {
+	err := h.Start()
 	if err != nil {
 		return err
 	}
 
-	for moduleID, module := range e.externalModuleMgr.ExternalModules {
-		e.logger.Info("Starting external module", "external-module", module.ID)
-		connectCode := e.externalModuleMgr.CreateConnectCode(moduleID)
+	for moduleID, module := range h.externalModuleMgr.ExternalModules {
+		h.logger.Info("Starting external module", "external-module", module.ID)
+		connectCode := h.externalModuleMgr.CreateConnectCode(moduleID)
 		err := module.Start(connectCode)
 		if err != nil {
-			e.logger.Error("Failed to start external module", "external-module", module.ID)
+			h.logger.Error("Failed to start external module", "external-module", module.ID)
 		}
 	}
 
 	return nil
 }
 
-func (e *ExternalModuleHost) StopAllModules() error {
-	for _, module := range e.externalModuleMgr.ExternalModules {
-		e.logger.Info("Stopping external module", "external-module", module.ID)
+func (h *ExternalModuleHost) StopAllModules() error {
+	for _, module := range h.externalModuleMgr.ExternalModules {
+		h.logger.Info("Stopping external module", "external-module", module.ID)
 		err := module.Stop()
 		if err != nil {
-			e.logger.Error("Failed to stop external module", "external-module", module.ID)
+			h.logger.Error("Failed to stop external module", "external-module", module.ID)
 		}
 	}
 
-	err := e.Stop()
+	err := h.Stop()
 	if err != nil {
 		return err
 	}
