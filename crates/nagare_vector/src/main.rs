@@ -1,5 +1,6 @@
 use std::{
     path::{Path, PathBuf},
+    process::exit,
     sync::Arc,
 };
 
@@ -60,27 +61,29 @@ impl VectorModule {
                     }
                     Err(e) => {
                         error!("Failed to handshake: {e}");
+                        self.shutdown(false);
                     }
                 }
-
-                self.client.on_message(move |_event, _payload| {});
             })
             .await;
 
         match result {
             Ok(_) => {}
             Err(err) => {
-                eprintln!("Error: {}", err.to_string())
+                eprintln!("Error: {}", err.to_string());
+                self.shutdown(false);
             }
         }
     }
 
-    pub fn shutdown(&self) {
+    pub fn shutdown(&self, is_success: bool) {
         let vector_file = self.data_path.join(INDEX_FILE_NAME);
 
         if let Err(e) = self.vector_index.index.write(&vector_file) {
             error!("Failed to save vector index: {e}");
         }
+
+        exit(if is_success { 0 } else { 1 });
     }
 }
 
@@ -122,8 +125,11 @@ async fn main() {
                 _ = module.start() => {},
                 _ = wait_for_signal() => {},
             }
-            module.shutdown();
+            module.shutdown(true);
         }
-        Err(e) => eprintln!("Failed to start module: {e}"),
+        Err(e) => {
+            eprintln!("Failed to start module: {e}");
+            exit(1)
+        }
     };
 }

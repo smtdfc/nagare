@@ -9,5 +9,5 @@ pub struct AddVectorEventPayload {
     #[serde(rename = "vector")]
     pub vector: Vec<f32>,
     #[serde(rename = "ids")]
-    pub ids: Vec<u32>,
+    pub ids: Vec<u64>,
 }
