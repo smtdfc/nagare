@@ -9,13 +9,15 @@ $NAGARE_ASSETS_DIR = Join-Path $NAGARE_DATA_DIR "assets"
 $BUILTIN_PLUGINS_STORE_DIR = Join-Path $NAGARE_ASSETS_DIR "plugins\builtins"
 $CORE_PLUGINS_STORE_DIR = Join-Path $NAGARE_ASSETS_DIR "plugins\core"
 $WEB_STORE_DIR = Join-Path $NAGARE_ASSETS_DIR "web"
+$MODULES_STORE_DIR = Join-Path $NAGARE_DATA_DIR "modules"
 
 # Create installation directories
 @(
     $INSTALL_PATH,
     $BUILTIN_PLUGINS_STORE_DIR,
     $CORE_PLUGINS_STORE_DIR,
-    $WEB_STORE_DIR
+    $WEB_STORE_DIR,
+    $MODULES_STORE_DIR
 ) | ForEach-Object {
     New-Item -ItemType Directory -Path $_ -Force | Out-Null
 }
@@ -123,6 +125,10 @@ function Install-Distribution {
     Copy-Assets `
         -Source (Join-Path $Source "plugins\core") `
         -Destination $CORE_PLUGINS_STORE_DIR
+
+    Copy-Assets `
+        -Source (Join-Path $Source "modules") `
+        -Destination $MODULES_STORE_DIR
 
     # Local build: dist/web
     # Release archive: web or plugins/web
