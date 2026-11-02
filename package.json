@@ -12,7 +12,7 @@
     "prettier": "^3.9.10"
   },
   "scripts": {
-    "gen:ts": "go run ./scripts/ts.go",
+    "gen:ts": "go run ./scripts/go/ts.go",
     "gateway:dev": "cd ./cli && go run -tags debug . gateway start -d",
     "gateway:stop": "cd ./cli && go run -tags debug . gateway stop",
     "build": "./build.sh",
