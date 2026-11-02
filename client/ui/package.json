@@ -17,6 +17,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@animate-ui/react": "^2.4.1",
     "@base-ui/react": "^1.8.0",
     "@nagare-app/dtos": "workspace:*",
     "@nagare-app/messages": "workspace:*",
@@ -27,6 +28,7 @@
     "cn": "^0.3.0",
     "katex": "^0.19.1",
     "lucide-react": "^1.45.0",
+    "motion": "^14.9.0",
     "react-markdown": "^10.1.0",
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
