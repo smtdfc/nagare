@@ -3,7 +3,6 @@ module github.com/smtdfc/nagare/core
 go 1.26.6
 
 require (
-	github.com/ebitengine/purego v0.11.2
 	github.com/google/uuid v1.6.0
 	github.com/invopop/jsonschema v0.14.0
 	github.com/openai/openai-go/v3 v3.81.0
@@ -17,6 +16,7 @@ require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.6.1 // indirect
 	github.com/coder/websocket v1.8.15 // indirect
+	github.com/ebitengine/purego v0.11.1 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
@@ -25,6 +25,7 @@ require (
 	github.com/pb33f/go-yaml v0.1.1 // indirect
 	github.com/pb33f/ordered-map/v2 v2.3.2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20260916203055-22a1a467d9f0 // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
