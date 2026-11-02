@@ -6,6 +6,8 @@ edition = "2024"
 
 [dependencies]
 turbovec = "1.1.1"
-nagare_plugin = { path = "../nagare_plugin" }
+nagare_module = { path = "../nagare_module" }
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal"] }
 log = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

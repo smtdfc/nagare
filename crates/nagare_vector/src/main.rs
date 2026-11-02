@@ -4,20 +4,19 @@ use std::{
 };
 
 use log::{error, info};
-use nagare_plugin::PluginClient;
+use nagare_module::ModuleClient;
 
 use crate::vector_index::VectorIndex;
 
+mod event;
 mod vector_index;
-
-const PLUGIN_METADATA: &str = include_str!("../metadata.json");
 
 const INDEX_DIM: usize = 1024;
 const INDEX_BITS: usize = 4;
 const INDEX_FILE_NAME: &str = "vector_index.tvim";
 
 struct VectorModule {
-    plugin: Arc<PluginClient>,
+    client: Arc<ModuleClient>,
     vector_index: VectorIndex,
     data_path: PathBuf,
 }
@@ -25,7 +24,7 @@ struct VectorModule {
 impl VectorModule {
     pub fn new() -> Result<Self, String> {
         let data_path = PathBuf::from(
-            std::env::var("NAGARE_DATA_PATH").unwrap_or_else(|_| "./data".to_string()),
+            std::env::var("NAGARE_MODULE_DATA_DIR").unwrap_or_else(|_| "./data".to_string()),
         );
 
         std::fs::create_dir_all(&data_path)
@@ -35,7 +34,7 @@ impl VectorModule {
 
         Ok(Self {
             data_path,
-            plugin: PluginClient::new_with_logger(),
+            client: ModuleClient::new_with_logger(),
             vector_index,
         })
     }
@@ -51,20 +50,11 @@ impl VectorModule {
     }
 
     pub async fn start(&self) {
-        match self.plugin.load_metadata(PLUGIN_METADATA) {
-            Ok(_) => {
-                info!("Plugin metadata loaded")
-            }
-            Err(e) => {
-                error!("Failed to load plugin metadata {e}");
-            }
-        }
-
         let result = self
-            .plugin
+            .client
             .start(|| async {
-                info!("starting plugin ....");
-                match self.plugin.handshake().await {
+                info!("starting module ....");
+                match self.client.handshake().await {
                     Ok(_) => {
                         info!("hanshake success")
                     }
@@ -72,6 +62,8 @@ impl VectorModule {
                         error!("Failed to handshake: {e}");
                     }
                 }
+
+                self.client.on_message(move |_event, _payload| {});
             })
             .await;
 
@@ -125,12 +117,12 @@ async fn wait_for_signal() {
 #[tokio::main]
 async fn main() {
     match VectorModule::new() {
-        Ok(plugin) => {
+        Ok(module) => {
             tokio::select! {
-                _ = plugin.start() => {},
+                _ = module.start() => {},
                 _ = wait_for_signal() => {},
             }
-            plugin.shutdown();
+            module.shutdown();
         }
         Err(e) => eprintln!("Failed to start module: {e}"),
     };
