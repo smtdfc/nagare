@@ -6,13 +6,13 @@ use schemars::JsonSchema;
 use serde::{Serialize, de::DeserializeOwned};
 
 use crate::dtos::{
-    PluginToolCallEventPayload, PluginToolCallResultEventPayload, PluginToolInfo,
-    REGISTER_PLUGIN_TOOL_EVENT, REGISTER_PLUGIN_TOOL_FAILED_EVENT,
-    REGISTER_PLUGIN_TOOL_SUCCESS_EVENT, REGISTER_TOOL_CATEGORIES_EVENT,
-    REGISTER_TOOL_CATEGORIES_FAILED_EVENT, REGISTER_TOOL_CATEGORIES_SUCCESS_EVENT,
-    RegisterPluginToolEventPayload, RegisterPluginToolFailedEventPayload,
-    RegisterPluginToolSuccessEventPayload, RegisterToolCategoriesEventPayload,
-    RegisterToolCategoriesFailedEventPayload, RegisterToolCategoriesSuccessEventPayload,
+    PluginToolCallEventPayload, PluginToolInfo, REGISTER_PLUGIN_TOOL_EVENT,
+    REGISTER_PLUGIN_TOOL_FAILED_EVENT, REGISTER_PLUGIN_TOOL_SUCCESS_EVENT,
+    REGISTER_TOOL_CATEGORIES_EVENT, REGISTER_TOOL_CATEGORIES_FAILED_EVENT,
+    REGISTER_TOOL_CATEGORIES_SUCCESS_EVENT, RegisterPluginToolEventPayload,
+    RegisterPluginToolFailedEventPayload, RegisterPluginToolSuccessEventPayload,
+    RegisterToolCategoriesEventPayload, RegisterToolCategoriesFailedEventPayload,
+    RegisterToolCategoriesSuccessEventPayload,
 };
 use crate::errors::PluginError;
 use crate::helpers::{marshal_json, unmarshal_json};
@@ -231,7 +231,8 @@ impl PluginClient {
                     .await;
             }
             Ok(Ok(Ok(output))) => {
-                self.send_plugin_tool_result(&request_id, output.as_str(), "").await;
+                self.send_plugin_tool_result(&request_id, output.as_str(), "")
+                    .await;
             }
         }
     }
@@ -242,17 +243,16 @@ impl PluginClient {
         result: &str,
         call_error: &str,
     ) {
-        use crate::dtos::PLUGIN_TOOL_CALL_RESULT_EVENT;
-        let payload = PluginToolCallResultEventPayload {
-            result: result.to_string(),
-            error: call_error.to_string(),
+        use crate::dtos::{PLUGIN_TOOL_CALL_RESULT_EVENT, Payload};
+        let payload = Payload {
+            event: PLUGIN_TOOL_CALL_RESULT_EVENT.to_string(),
+            request_id: request_id.to_string(),
+            data: serde_json::json!({
+                "result": result,
+                "error": call_error,
+            }),
         };
-        if let Err(e) = self
-            .inner
-            .connector
-            .send(PLUGIN_TOOL_CALL_RESULT_EVENT, &payload, request_id)
-            .await
-        {
+        if let Err(e) = self.inner.connector.send(&payload).await {
             tracing::error!(error = %e, request_id = %request_id, "failed to send plugin tool result");
         }
     }

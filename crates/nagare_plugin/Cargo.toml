@@ -17,6 +17,7 @@ tracing = "0.1"
 log = "0.4"
 fern = "0.7"
 humantime = "2.4.0"
+nagare_ipc = { path = "../nagare_ipc" }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }

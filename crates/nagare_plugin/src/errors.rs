@@ -44,6 +44,18 @@ pub enum PluginError {
     Other(String),
 }
 
+impl From<nagare_ipc::IpcError> for PluginError {
+    fn from(e: nagare_ipc::IpcError) -> Self {
+        match e {
+            nagare_ipc::IpcError::ConnectionFailed(msg) => Self::ConnectionFailed(msg),
+            nagare_ipc::IpcError::ConnectionNotReady => Self::ConnectionNotReady,
+            nagare_ipc::IpcError::Io(msg) => Self::Io(msg),
+            nagare_ipc::IpcError::Json(msg) => Self::Json(msg),
+            nagare_ipc::IpcError::MessageTooLarge => Self::Other(e.to_string()),
+        }
+    }
+}
+
 impl From<std::io::Error> for PluginError {
     fn from(e: std::io::Error) -> Self {
         Self::Io(e.to_string())

@@ -1,23 +1,19 @@
 use crate::client::PluginClient;
 use crate::dtos::{
-    PrepareChatSessionEventPayload, PrepareChatSessionFailedEventPayload,
-    PrepareChatSessionSuccessEventPayload, ResetChatChannelEventPayload,
-    ResetChatChannelFailedEventPayload, ResetChatChannelSuccessEventPayload,
-    SendChatMessageEventPayload, SendChatMessageFailedEventPayload,
-    SendChatMessageSuccessEventPayload, PREPARE_CHAT_SESSION_EVENT,
-    PREPARE_CHAT_SESSION_FAILED_EVENT, PREPARE_CHAT_SESSION_SUCCESS_EVENT,
-    RESET_CHAT_CHANNEL_EVENT, RESET_CHAT_CHANNEL_FAILED_EVENT,
-    RESET_CHAT_CHANNEL_SUCCESS_EVENT, SEND_CHAT_MESSAGE_EVENT,
-    SEND_CHAT_MESSAGE_FAILED_EVENT, SEND_CHAT_MESSAGE_SUCCESS_EVENT,
+    PREPARE_CHAT_SESSION_EVENT, PREPARE_CHAT_SESSION_FAILED_EVENT,
+    PREPARE_CHAT_SESSION_SUCCESS_EVENT, PrepareChatSessionEventPayload,
+    PrepareChatSessionFailedEventPayload, PrepareChatSessionSuccessEventPayload,
+    RESET_CHAT_CHANNEL_EVENT, RESET_CHAT_CHANNEL_FAILED_EVENT, RESET_CHAT_CHANNEL_SUCCESS_EVENT,
+    ResetChatChannelEventPayload, ResetChatChannelFailedEventPayload,
+    ResetChatChannelSuccessEventPayload, SEND_CHAT_MESSAGE_EVENT, SEND_CHAT_MESSAGE_FAILED_EVENT,
+    SEND_CHAT_MESSAGE_SUCCESS_EVENT, SendChatMessageEventPayload,
+    SendChatMessageFailedEventPayload, SendChatMessageSuccessEventPayload,
 };
 use crate::errors::PluginError;
 
 impl PluginClient {
     /// Mirror of Go `PrepareChatSession(ctx, channelID)`.
-    pub async fn prepare_chat_session(
-        &self,
-        channel_id: &str,
-    ) -> Result<String, PluginError> {
+    pub async fn prepare_chat_session(&self, channel_id: &str) -> Result<String, PluginError> {
         let payload = PrepareChatSessionEventPayload {
             channel_id: channel_id.to_string(),
         };
@@ -49,20 +45,13 @@ impl PluginClient {
     }
 
     /// Mirror of Go `SendChatMessage(ctx, sessionID, text)`.
-    pub async fn send_chat_message(
-        &self,
-        session_id: &str,
-        text: &str,
-    ) -> Result<(), PluginError> {
+    pub async fn send_chat_message(&self, session_id: &str, text: &str) -> Result<(), PluginError> {
         let payload = SendChatMessageEventPayload {
             session_id: session_id.to_string(),
             text: text.to_string(),
         };
         let resp = self
-            .send_and_wait::<
-                SendChatMessageSuccessEventPayload,
-                SendChatMessageFailedEventPayload,
-            >(
+            .send_and_wait::<SendChatMessageSuccessEventPayload, SendChatMessageFailedEventPayload>(
                 SEND_CHAT_MESSAGE_EVENT,
                 &payload,
                 SEND_CHAT_MESSAGE_FAILED_EVENT,

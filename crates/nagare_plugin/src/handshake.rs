@@ -1,7 +1,7 @@
 use crate::client::PluginClient;
 use crate::dtos::{
-    HandshakeEventPayload, HandshakeFailedEventPayload, HandshakeSuccessEventPayload,
-    HANDSHAKE_EVENT, HANDSHAKE_FAILED_EVENT, HANDSHAKE_SUCCESS_EVENT,
+    HANDSHAKE_EVENT, HANDSHAKE_FAILED_EVENT, HANDSHAKE_SUCCESS_EVENT, HandshakeEventPayload,
+    HandshakeFailedEventPayload, HandshakeSuccessEventPayload,
 };
 use crate::errors::PluginError;
 

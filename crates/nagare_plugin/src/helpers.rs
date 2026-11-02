@@ -1,11 +1,38 @@
 use crate::errors::PluginError;
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 
 use crate::dtos::Payload;
 
+/// Mirror of Go `ipc.GetDefaultSocketPath`.
+pub fn default_socket_path() -> String {
+    if let Ok(p) = std::env::var("NAGARE_PLUGIN_SOCKET_PATH") {
+        if !p.is_empty() {
+            return p;
+        }
+    }
+    #[cfg(windows)]
+    {
+        return r"\\.\pipe\nagare-plugin".to_string();
+    }
+    #[cfg(not(windows))]
+    {
+        if let Some(home) = dirs_home() {
+            return format!("{home}/.nagare/nagare-plugin.sock");
+        }
+        "/tmp/nagare-plugin.sock".to_string()
+    }
+}
+
+#[cfg(not(windows))]
+fn dirs_home() -> Option<String> {
+    std::env::var("HOME").ok()
+}
+
 /// Mirror of Go `GetData[T]`: re-decode the generic `data` field into `T`.
-pub fn get_data<T: DeserializeOwned>(payload: &Payload<serde_json::Value>) -> Result<T, PluginError> {
+pub fn get_data<T: DeserializeOwned>(
+    payload: &Payload<serde_json::Value>,
+) -> Result<T, PluginError> {
     if payload.data.is_null() {
         return Err(PluginError::NilPayload);
     }

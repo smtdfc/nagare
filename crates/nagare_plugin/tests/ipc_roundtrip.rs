@@ -1,3 +1,5 @@
+#![cfg(unix)]
+
 use nagare_plugin::PluginClient;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 

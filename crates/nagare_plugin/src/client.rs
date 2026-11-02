@@ -6,8 +6,9 @@ use serde::{Serialize, de::DeserializeOwned};
 use tokio::sync::oneshot;
 use uuid::Uuid;
 
+use nagare_ipc::Connector;
+
 use crate::config::ConnectConfig;
-use crate::connector::Connector;
 use crate::dtos::{
     HANDSHAKE_FAILED_EVENT, HANDSHAKE_SUCCESS_EVENT, PLUGIN_TOOL_CALL_EVENT,
     PREPARE_CHAT_SESSION_FAILED_EVENT, PREPARE_CHAT_SESSION_SUCCESS_EVENT, Payload,
@@ -18,8 +19,7 @@ use crate::dtos::{
     SEND_CHAT_MESSAGE_FAILED_EVENT, SEND_CHAT_MESSAGE_SUCCESS_EVENT,
 };
 use crate::errors::PluginError;
-use crate::helpers::get_data;
-use crate::ipc::default_socket_path;
+use crate::helpers::{default_socket_path, get_data};
 use crate::logger::init_logging_once;
 use crate::metadata::PluginMetadata;
 use crate::tool::PluginTool;
@@ -46,7 +46,7 @@ pub(crate) struct PluginInner {
     pub(crate) tools: Mutex<Vec<Arc<dyn PluginTool>>>,
     pub(crate) on_received_chat_message: RwLock<OnReceivedChatMessage>,
     pub(crate) on_other_message: RwLock<OnOtherMessage>,
-    pub(crate) connector: Connector,
+    pub(crate) connector: Connector<Payload<serde_json::Value>>,
 }
 
 /// Mirror of Go `PluginClient`.
@@ -167,7 +167,7 @@ impl PluginClient {
         let path = self.resolve_socket_path();
         self.inner.connector.connect(&path).await.map_err(|e| {
             tracing::error!(error = %e, "Start plugin error");
-            e
+            PluginError::from(e)
         })
     }
 
@@ -217,7 +217,15 @@ impl PluginClient {
                 .insert(request_id.clone(), tx);
         }
 
-        let send_result = self.inner.connector.send(event, payload, &request_id).await;
+        let send_result = self
+            .inner
+            .connector
+            .send(&Payload {
+                event: event.to_string(),
+                request_id: request_id.clone(),
+                data: serde_json::to_value(payload)?,
+            })
+            .await;
         if let Err(e) = send_result {
             self.inner
                 .pending_requests
@@ -225,11 +233,22 @@ impl PluginClient {
                 .unwrap()
                 .remove(&request_id);
             tracing::error!(event = %event, error = %e, "failed to send event");
-            return Err(e);
+            return Err(e.into());
         }
 
-        let resp = rx.await?;
-        // Cleanup, mirrors Go `defer delete(pendingRequests, requestID)`.
+        // Cleanup on every exit path, mirrors Go
+        // `defer delete(pendingRequests, requestID)`.
+        let resp = match rx.await {
+            Ok(resp) => resp,
+            Err(e) => {
+                self.inner
+                    .pending_requests
+                    .lock()
+                    .unwrap()
+                    .remove(&request_id);
+                return Err(e.into());
+            }
+        };
         self.inner
             .pending_requests
             .lock()
