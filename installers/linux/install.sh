@@ -8,12 +8,14 @@ NAGARE_ASSETS_DIR="$NAGARE_DATA_DIR/assets"
 BUILTIN_PLUGINS_STORE_DIR="$NAGARE_ASSETS_DIR/plugins/builtins"
 CORE_PLUGINS_STORE_DIR="$NAGARE_ASSETS_DIR/plugins/core"
 WEB_STORE_DIR="$NAGARE_ASSETS_DIR/web"
+MODULES_STORE_DIR="$NAGARE_DATA_DIR/modules"
 
 mkdir -p "$NAGARE_ASSETS_DIR"
 mkdir -p "$INSTALL_PATH"
 mkdir -p "$BUILTIN_PLUGINS_STORE_DIR"
 mkdir -p "$CORE_PLUGINS_STORE_DIR"
 mkdir -p "$WEB_STORE_DIR"
+mkdir -p "$MODULES_STORE_DIR"
 
 install_binary() {
     local src="$1"
@@ -82,6 +84,8 @@ if [ -d "$LOCAL_DIST" ] && [ -f "$LOCAL_DIST/nagare" ]; then
     [ -d "$LOCAL_DIST/plugins/builtins" ] && cp -r "$LOCAL_DIST/plugins/builtins/." "$BUILTIN_PLUGINS_STORE_DIR/"
     [ -d "$LOCAL_DIST/plugins/core" ] && cp -r "$LOCAL_DIST/plugins/core/." "$CORE_PLUGINS_STORE_DIR/"
     [ -d "$LOCAL_DIST/web" ] && cp -r "$LOCAL_DIST/web/." "$WEB_STORE_DIR/"
+    [ -d "$LOCAL_DIST/modules" ] && cp -r "$LOCAL_DIST/modules/." "$MODULES_STORE_DIR/"
+    chmod -R +x "$MODULES_STORE_DIR" 2>/dev/null || true
 
     echo "========================================="
     echo " Nagare local installation completed!"
@@ -132,6 +136,8 @@ if curl -sL -f "$ARCHIVE_URL" -o "$TMP_DIR/$ARCHIVE_NAME"; then
     [ -d "$TMP_DIR/plugins/builtins" ] && cp -r "$TMP_DIR/plugins/builtins/." "$BUILTIN_PLUGINS_STORE_DIR/"
     [ -d "$TMP_DIR/plugins/core" ] && cp -r "$TMP_DIR/plugins/core/." "$CORE_PLUGINS_STORE_DIR/"
     [ -d "$TMP_DIR/plugins/web" ] && cp -r "$TMP_DIR/plugins/web/." "$WEB_STORE_DIR/"
+    [ -d "$TMP_DIR/modules" ] && cp -r "$TMP_DIR/modules/." "$MODULES_STORE_DIR/"
+    chmod -R +x "$MODULES_STORE_DIR" 2>/dev/null || true
 else
     echo "Error: Could not download release archive for this configuration from GitHub."
     exit 1
