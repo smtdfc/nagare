@@ -209,7 +209,7 @@ func checkKeyring() checkResult {
 func checkModules() []checkResult {
 	var results []checkResult
 	for _, name := range requiredModules() {
-		path := paths.ModulesDir + "/" + name
+		path := paths.ModuleDir + "/" + name
 		r := checkResult{name: fmt.Sprintf("Module: %s", name)}
 		if _, err := os.Stat(path); err == nil {
 			r.ok = true

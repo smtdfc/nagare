@@ -29,15 +29,39 @@ func TestInitializedPaths(t *testing.T) {
 		t.Fatalf("expected PluginDir to be under DataDir: %s", PluginDir)
 	}
 
+	for name, path := range map[string]string{
+		"PluginDataDir":   PluginDataDir,
+		"ModuleDir":       ModuleDir,
+		"ModuleLogDir":    ModuleLogDir,
+		"ModuleDataDir":   ModuleDataDir,
+		"ModuleConfigDir": ModuleConfigDir,
+	} {
+		if !strings.HasPrefix(path, DataDir) {
+			t.Fatalf("expected %s to be under DataDir: %s", name, path)
+		}
+	}
+
+	if expected := filepath.Join(DataDir, "modules"); ModuleDir != expected {
+		t.Fatalf("expected ModuleDir %q, got %q", expected, ModuleDir)
+	}
+
 	if runtime.GOOS == "windows" {
 		expectedPipe := `\\.\pipe\nagare-plugin`
 		if PluginSocketPath != expectedPipe {
 			t.Fatalf("expected Windows socket %q, got %q", expectedPipe, PluginSocketPath)
 		}
+		expectedModulePipe := `\\.\pipe\nagare-external-module`
+		if ModuleSocketPath != expectedModulePipe {
+			t.Fatalf("expected Windows module socket %q, got %q", expectedModulePipe, ModuleSocketPath)
+		}
 	} else {
-		expectedSock := filepath.Join(DataDir, "nagare.sock")
+		expectedSock := filepath.Join(DataDir, "nagare-plugin.sock")
 		if PluginSocketPath != expectedSock {
 			t.Fatalf("expected Unix socket %q, got %q", expectedSock, PluginSocketPath)
+		}
+		expectedModuleSock := filepath.Join(DataDir, "nagare-external-module.sock")
+		if ModuleSocketPath != expectedModuleSock {
+			t.Fatalf("expected Unix module socket %q, got %q", expectedModuleSock, ModuleSocketPath)
 		}
 	}
 }

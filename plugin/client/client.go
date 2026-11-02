@@ -20,6 +20,7 @@ type PluginClient struct {
 	Metadata              *metadata.PluginMetadata
 	ConnectConfig         *ConnectConfig
 	ConfigDir             string
+	DataDir               string
 	Logger                *slog.Logger
 	connector             *Connector
 	pendingRequests       map[string]chan *plugin_dtos.Payload[any]
@@ -173,6 +174,7 @@ func NewPlugin() *PluginClient {
 	}
 
 	p.ConfigDir = os.Getenv("NAGARE_PLUGIN_CONFIG_DIR")
+	p.DataDir = os.Getenv("NAGARE_PLUGIN_DATA_DIR")
 	p.connector = NewConnector(p.handleEvent)
 	return p
 }
