@@ -50,14 +50,10 @@ func printCheck(r checkResult) {
 }
 
 func requiredModules() []string {
-	switch runtime.GOOS {
-	case "darwin":
-		return []string{"libnagare_vector.dylib"}
-	case "windows":
-		return []string{"nagare_vector.dll"}
-	default:
-		return []string{"libnagare_vector.so"}
+	if runtime.GOOS == "windows" {
+		return []string{"nagare_vector.exe"}
 	}
+	return []string{"nagare_vector"}
 }
 
 func gatewayPort() string {
