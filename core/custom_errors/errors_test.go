@@ -17,7 +17,7 @@ func TestSentinelErrors(t *testing.T) {
 		{"ErrUnknown", ErrUnknown, "UNKNOWN_ERROR"},
 		{"ErrMissingDefaultProvider", ErrMissingDefaultProvider, "MISSING_DEFAULT_PROVIDER"},
 		{"ErrGetSessionFailed", ErrGetSessionFailed, "GET_SESSION_FAILED"},
-		{"ErrCreateTaskFailed", ErrCreateTaskFailed, "CREATE_TASK_FAILED"},
+		{"ErrCreateCronJobFailed", ErrCreateCronJobFailed, "CREATE_CRONJOB_FAILED"},
 	}
 
 	for _, tc := range tests {
