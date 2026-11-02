@@ -11,7 +11,7 @@ import (
 )
 
 type mockExecuteBindings struct {
-	mockTaskBindings
+	mockCronJobBindings
 	calledName string
 	calledArgs string
 	result     *tool.Result

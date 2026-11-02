@@ -6,10 +6,10 @@ import (
 	"sync"
 
 	"github.com/smtdfc/nagare/core/context"
+	cronjob_manager "github.com/smtdfc/nagare/core/cronjob/manager"
 	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/hil"
 	"github.com/smtdfc/nagare/core/logger"
-	task_manager "github.com/smtdfc/nagare/core/task/manager"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/core/tool/registry"
 	"github.com/smtdfc/nagare/pkgs/helpers"
@@ -19,7 +19,7 @@ type ToolManager struct {
 	mu                   sync.RWMutex
 	cachedList           tool.ListTool
 	logger               *logger.BaseLogger
-	taskMgr              *task_manager.TaskManager
+	cronJobMgr           *cronjob_manager.CronJobManager
 	eventBus             *event_bus.CoreEventBus
 	approvalMgr          *hil.Manager
 	toolCategories       map[string]string
@@ -28,7 +28,7 @@ type ToolManager struct {
 
 func (t *ToolManager) createBindings() *ToolBindings {
 	return &ToolBindings{
-		taskMgr:     t.taskMgr,
+		cronJobMgr:  t.cronJobMgr,
 		eventBus:    t.eventBus,
 		toolMgr:     t,
 		approvalMgr: t.approvalMgr,
@@ -156,10 +156,10 @@ func (t *ToolManager) AddPluginToolCategories(pluginID string, categories map[st
 }
 
 // @Injectable
-func NewToolManager(logger *logger.BaseLogger, taskMgr *task_manager.TaskManager, eventBus *event_bus.CoreEventBus, approvalMgr *hil.Manager) *ToolManager {
+func NewToolManager(logger *logger.BaseLogger, cronJobMgr *cronjob_manager.CronJobManager, eventBus *event_bus.CoreEventBus, approvalMgr *hil.Manager) *ToolManager {
 	return &ToolManager{
 		logger:      logger.With("module", "tool-manager"),
-		taskMgr:     taskMgr,
+		cronJobMgr:  cronJobMgr,
 		eventBus:    eventBus,
 		approvalMgr: approvalMgr,
 		toolCategories: map[string]string{
@@ -170,7 +170,7 @@ func NewToolManager(logger *logger.BaseLogger, taskMgr *task_manager.TaskManager
 			tool.BrowserCategory:           "Browser",
 			tool.WeatherCategory:           "Weather",
 			tool.NetworkingCategory:        "Networking",
-			tool.TaskManagementCategory:    "Task Management",
+			tool.CronJobManagementCategory: "CronJob Management",
 			tool.RoutingCategory:           "Tool Routing",
 			tool.TimingCategory:            "Timing",
 		},

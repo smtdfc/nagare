@@ -37,7 +37,7 @@ func RegisterPluginTool(name string, args string, description string, categories
 func init() {
 	RegisterTool(declarations.FindToolByCategories, false)
 	RegisterTool(declarations.ExecuteTool, false)
-	RegisterTool(declarations.CreateTaskTool, false)
+	RegisterTool(declarations.CreateCronJobTool, false)
 	RegisterTool(declarations.TimeTool, false)
 
 	// requires router

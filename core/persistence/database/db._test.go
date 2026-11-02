@@ -21,7 +21,7 @@ func TestAutoMigrate_InMemory(t *testing.T) {
 		&entities.Message{},
 		&entities.Plugin{},
 		&entities.ModelProvider{},
-		&entities.Task{},
+		&entities.CronJob{},
 		&entities.Credential{},
 	)
 	if err != nil {

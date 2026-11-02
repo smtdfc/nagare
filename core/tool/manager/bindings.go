@@ -3,23 +3,21 @@ package manager
 import (
 	"errors"
 	"slices"
-	"time"
 
 	"github.com/google/uuid"
 
 	"github.com/smtdfc/nagare/core/context"
+	cronjob_manager "github.com/smtdfc/nagare/core/cronjob/manager"
 	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/hil"
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/core/task"
-	task_manager "github.com/smtdfc/nagare/core/task/manager"
 	"github.com/smtdfc/nagare/core/tool"
 	"github.com/smtdfc/nagare/core/tool/registry"
 )
 
 type ToolBindings struct {
 	approvalMgr *hil.Manager
-	taskMgr     *task_manager.TaskManager
+	cronJobMgr  *cronjob_manager.CronJobManager
 	toolMgr     *ToolManager
 	eventBus    *event_bus.CoreEventBus
 	logger      *logger.BaseLogger
@@ -29,64 +27,25 @@ func (t *ToolBindings) FindToolsByKeywords(keywords []string) ([]tool.Metadata, 
 	return t.toolMgr.FindToolsByKeywords(keywords)
 }
 
-func (t *ToolBindings) RefreshTask(ctx *context.ExecuteContext) {
-	t.eventBus.Publish(ctx, event_bus.RefreshTaskEvent, &event_bus.RefreshTaskEventPayload{})
+func (t *ToolBindings) RefreshCronJob(ctx *context.ExecuteContext) {
+	t.eventBus.Publish(ctx, event_bus.RefreshCronJobEvent, &event_bus.RefreshCronJobEventPayload{})
 }
 
-func (t *ToolBindings) CreateTask(ctx *context.ExecuteContext, sessionID, name, prompt string, triggerBy string, repeat bool, repeatRule string, startTime string, endTime string) (string, error) {
-	var triggerSources = []string{"scheduled"}
-	var repeatRules = []string{"no_repeat", "daily"}
-	if !slices.Contains(triggerSources, triggerBy) {
-		return "", errors.New("trigger source does not valid")
+func (t *ToolBindings) CreateCronJob(ctx *context.ExecuteContext, sessionID, name, prompt, cronExpr string) (string, error) {
+	if cronExpr == "" {
+		return "", errors.New("cron expression cannot be empty")
 	}
 
-	r := task.NoRepeat
-	if repeat {
-		if !slices.Contains(repeatRules, repeatRule) {
-			return "", errors.New("repeat rule does not valid")
-		}
-		r = task.MapTaskRepeatRuleToTaskRepeatRule(repeatRule)
-	}
-
-	var parsedStartTime *time.Time
-	if startTime != "" {
-		tStart, err := time.Parse(time.RFC3339, startTime)
-		if err != nil {
-			tStart, err = time.Parse("2006-01-02 15:04:05", startTime)
-			if err != nil {
-				return "", errors.New("startTime format is invalid, expected RFC3339 or YYYY-MM-DD HH:MM:SS")
-			}
-		}
-		parsedStartTime = &tStart
-	}
-
-	var parsedEndTime *time.Time
-	if endTime != "" {
-		tEnd, err := time.Parse(time.RFC3339, endTime)
-		if err != nil {
-			tEnd, err = time.Parse("2006-01-02 15:04:05", endTime)
-			if err != nil {
-				return "", errors.New("endTime format is invalid, expected RFC3339 or YYYY-MM-DD HH:MM:SS")
-			}
-		}
-		parsedEndTime = &tEnd
-	}
-
-	newTask, err := t.taskMgr.Create(ctx, name, sessionID, prompt, &task.TriggerRule{
-		By:        task.MapTaskTriggerSourceToTaskSource(triggerBy),
-		StartTime: parsedStartTime,
-		EndTime:   parsedEndTime,
-		Repeat:    r,
-	})
+	newJob, err := t.cronJobMgr.Create(ctx, name, sessionID, prompt, cronExpr)
 	if err != nil {
 		return "", err
 	}
 
-	return newTask.ID.String(), nil
+	return newJob.ID.String(), nil
 }
 
-func (t *ToolBindings) GetTaskManager() *task_manager.TaskManager {
-	return t.taskMgr
+func (t *ToolBindings) GetCronJobManager() *cronjob_manager.CronJobManager {
+	return t.cronJobMgr
 }
 
 func (t *ToolBindings) CallTool(ctx *context.ExecuteContext, toolName string, args string) *tool.Result {

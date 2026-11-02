@@ -9,23 +9,30 @@ import (
 	pkgs_messages "github.com/smtdfc/nagare/pkgs/messages"
 )
 
-type fakeApprovalBindings struct {
-	approve bool
-	calls   []string
-}
+type mockCronJobBindings struct{}
 
-func (f *fakeApprovalBindings) RefreshTask(*core_context.ExecuteContext) {}
+func (m *mockCronJobBindings) RefreshCronJob(*core_context.ExecuteContext) {}
 
-func (f *fakeApprovalBindings) CreateTask(*core_context.ExecuteContext, string, string, string, string, bool, string, string, string) (string, error) {
+func (m *mockCronJobBindings) CreateCronJob(*core_context.ExecuteContext, string, string, string, string) (string, error) {
 	return "", nil
 }
 
-func (f *fakeApprovalBindings) FindToolsByCategories(*core_context.ExecuteContext, []string) ([]tool.Metadata, error) {
+func (m *mockCronJobBindings) FindToolsByCategories(*core_context.ExecuteContext, []string) ([]tool.Metadata, error) {
 	return nil, nil
 }
 
-func (f *fakeApprovalBindings) CallTool(*core_context.ExecuteContext, string, string) *tool.Result {
+func (m *mockCronJobBindings) CallTool(*core_context.ExecuteContext, string, string) *tool.Result {
 	return nil
+}
+
+func (m *mockCronJobBindings) RequestToolApproval(*core_context.ExecuteContext, string) bool {
+	return true
+}
+
+type fakeApprovalBindings struct {
+	mockCronJobBindings
+	approve bool
+	calls   []string
 }
 
 func (f *fakeApprovalBindings) RequestToolApproval(_ *core_context.ExecuteContext, title string) bool {

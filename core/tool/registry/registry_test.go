@@ -14,7 +14,7 @@ func TestRegistry_Init(t *testing.T) {
 		"time_tool",
 		"execute_tool",
 		"find_tool_by_categories",
-		"create_task_tool",
+		"create_cronjob_tool",
 		"weather_tool",
 		"list_process_tool",
 		"create_process_tool",

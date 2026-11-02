@@ -13,10 +13,10 @@ func (m *mockBindings) RequestToolApproval(ctx *context2.ExecuteContext, title s
 	panic("unimplemented")
 }
 
-func (m *mockBindings) RefreshTask(*context2.ExecuteContext) {}
+func (m *mockBindings) RefreshCronJob(*context2.ExecuteContext) {}
 
-func (m *mockBindings) CreateTask(*context2.ExecuteContext, string, string, string, string, bool, string, string, string) (string, error) {
-	return "task-1", nil
+func (m *mockBindings) CreateCronJob(*context2.ExecuteContext, string, string, string, string) (string, error) {
+	return "cronjob-1", nil
 }
 
 func (m *mockBindings) FindToolsByCategories(*context2.ExecuteContext, []string) ([]Metadata, error) {
@@ -31,9 +31,9 @@ func TestBindings_Interface(t *testing.T) {
 	// Verify mock struct implements Bindings interface
 	var b Bindings = &mockBindings{}
 
-	taskID, err := b.CreateTask(nil, "sess-1", "task-name", "prompt", "scheduled", false, "no_repeat", "", "")
-	if err != nil || taskID != "task-1" {
-		t.Errorf("expected task-1, got %s (err: %v)", taskID, err)
+	jobID, err := b.CreateCronJob(nil, "sess-1", "job-name", "prompt", "0 9 * * *")
+	if err != nil || jobID != "cronjob-1" {
+		t.Errorf("expected cronjob-1, got %s (err: %v)", jobID, err)
 	}
 
 	tools, err := b.FindToolsByCategories(nil, []string{"system"})

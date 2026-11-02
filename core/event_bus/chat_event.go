@@ -16,7 +16,7 @@ type SendChatMessageEventPayload struct {
 	Messages   messages.ListMessage
 	SenderType SenderType
 	SenderID   string
-	Task       *TaskInfo
+	CronJob    *CronJobInfo
 }
 
 func (c *SendChatMessageEventPayload) GetEventType() EventType {

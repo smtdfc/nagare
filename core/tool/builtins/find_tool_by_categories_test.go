@@ -10,7 +10,7 @@ import (
 )
 
 type mockFindBindings struct {
-	mockTaskBindings
+	mockCronJobBindings
 	gotCategories []string
 	tools         []tool.Metadata
 	err           error

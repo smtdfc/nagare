@@ -23,7 +23,7 @@ func setupTestDB(t *testing.T) (*gorm.DB, *logger.BaseLogger) {
 		&entities.Message{},
 		&entities.Plugin{},
 		&entities.ModelProvider{},
-		&entities.Task{},
+		&entities.CronJob{},
 	)
 	if err != nil {
 		t.Fatalf("failed to automigrate: %v", err)

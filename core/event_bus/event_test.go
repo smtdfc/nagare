@@ -11,7 +11,7 @@ func TestEventPayload_GetEventType(t *testing.T) {
 	}
 
 	// Verify EventType values
-	if SendChatMessageEvent != "event:chat:send" || ChatMessageChunkEvent != "event:chat:chunk" || RefreshTaskEvent != "event:task:refresh" {
+	if SendChatMessageEvent != "event:chat:send" || ChatMessageChunkEvent != "event:chat:chunk" || RefreshCronJobEvent != "event:cronjob:refresh" {
 		t.Errorf("unexpected EventType constants")
 	}
 
@@ -26,9 +26,9 @@ func TestEventPayload_GetEventType(t *testing.T) {
 		t.Errorf("expected ChunkEvent, got %s", chunkPayload.GetEventType())
 	}
 
-	refreshPayload := &RefreshTaskEventPayload{}
-	if refreshPayload.GetEventType() != RefreshTaskEvent {
-		t.Errorf("expected RefreshTaskEvent, got %s", refreshPayload.GetEventType())
+	refreshPayload := &RefreshCronJobEventPayload{}
+	if refreshPayload.GetEventType() != RefreshCronJobEvent {
+		t.Errorf("expected RefreshCronJobEvent, got %s", refreshPayload.GetEventType())
 	}
 
 	toolCallPayload := &PluginToolCallEventPayload{RequestID: "req-3"}

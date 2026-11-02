@@ -8,7 +8,7 @@ const (
 	BrowserCategory           = "browser"
 	WeatherCategory           = "weather"
 	NetworkingCategory        = "networking"
-	TaskManagementCategory    = "task_management"
+	CronJobManagementCategory = "cronjob_management"
 	RoutingCategory           = "tool_routing"
 	TimingCategory            = "timing"
 )

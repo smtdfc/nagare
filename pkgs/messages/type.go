@@ -17,7 +17,7 @@ const (
 	AgentStartedMessageType      MessageType = "AGENT_STARTED_MESSAGE"
 	AgentCompletedMessageType    MessageType = "AGENT_COMPLETED_MESSAGE"
 	AgentErrorMessageType        MessageType = "AGENT_ERROR_MESSAGE"
-	TaskTriggerMessageType       MessageType = "TASK_TRIGGER_MESSAGE"
+	CronJobTriggerMessageType    MessageType = "CRONJOB_TRIGGER_MESSAGE"
 	ApprovalRequestMessageType   MessageType = "APPROVAL_REQUEST_MESSAGE"
 	ApprovalResponseMessageType  MessageType = "APPROVAL_RESPONSE_MESSAGE"
 )

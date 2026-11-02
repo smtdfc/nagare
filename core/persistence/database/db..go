@@ -27,8 +27,7 @@ func InitDatabase(logger *logger.BaseLogger) (*gorm.DB, error) {
 		&entities.Message{},
 		&entities.Plugin{},
 		&entities.ModelProvider{},
-		&entities.Task{},
-		&entities.Plugin{},
+		&entities.CronJob{},
 		&entities.Credential{},
 	)
 	if err != nil {
@@ -50,6 +49,11 @@ func migrateModelProviderSchema(db *gorm.DB, databaseLogger *logger.BaseLogger) 
 	if db.Migrator().HasTable("embedding_providers") {
 		if err := db.Migrator().DropTable("embedding_providers"); err != nil {
 			databaseLogger.Error("Failed to drop legacy embedding_providers table", "error", err)
+		}
+	}
+	if db.Migrator().HasTable("tasks") {
+		if err := db.Migrator().DropTable("tasks"); err != nil {
+			databaseLogger.Error("Failed to drop legacy tasks table", "error", err)
 		}
 	}
 }

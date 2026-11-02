@@ -51,7 +51,7 @@ func TestDefineTool_Execution(t *testing.T) {
 	}
 
 	// Test WithBindings
-	mockB := &mockBindings{}
+	var mockB Bindings = &mockBindings{}
 	tl = tl.WithBindings(mockB)
 	if tl.GetBindings() != mockB {
 		t.Errorf("expected bindings attached")

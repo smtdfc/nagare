@@ -18,7 +18,7 @@ func TestToolCategoryConstants(t *testing.T) {
 		{"Browser", BrowserCategory, "browser"},
 		{"Weather", WeatherCategory, "weather"},
 		{"Networking", NetworkingCategory, "networking"},
-		{"TaskManagement", TaskManagementCategory, "task_management"},
+		{"CronJobManagement", CronJobManagementCategory, "cronjob_management"},
 		{"ToolRouting", RoutingCategory, "tool_routing"},
 		{"Timing", TimingCategory, "timing"},
 	}
