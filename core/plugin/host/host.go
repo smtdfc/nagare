@@ -27,21 +27,15 @@ type PluginHost struct {
 	logger        *logger.BaseLogger
 	socketPath    string
 
-	listener      net.Listener
-	mu            sync.RWMutex
-	connections   map[string]*PluginConnection
-	specialGroups map[PluginGroup]*PluginConnection
-	stopChan      chan struct{}
+	listener    net.Listener
+	mu          sync.RWMutex
+	connections map[string]*PluginConnection
+	stopChan    chan struct{}
 }
 
 func (h *PluginHost) unregister(conn *PluginConnection) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	for g, c := range h.specialGroups {
-		if c == conn {
-			delete(h.specialGroups, g)
-		}
-	}
 	if h.connections[conn.pluginID] == conn {
 		delete(h.connections, conn.pluginID)
 	}
@@ -74,7 +68,6 @@ func (h *PluginHost) Start() error {
 	go h.acceptLoop()
 	go h.forwardPluginToolCalls()
 	go h.forwardChatChunks()
-	go h.forwardVectorIndexActions()
 
 	h.logger.Info("Plugin host started", "socketPath", path)
 	return nil
@@ -199,7 +192,6 @@ func NewPluginHost(
 		modelProvider: modelProvider,
 		logger:        logger.With("module", "plugin-host"),
 		connections:   make(map[string]*PluginConnection),
-		specialGroups: make(map[PluginGroup]*PluginConnection),
 		socketPath:    paths.PluginSocketPath,
 	}
 }
