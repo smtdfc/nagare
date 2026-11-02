@@ -23,6 +23,24 @@ const (
 	moduleLogFileEnv     = "NAGARE_MODULE_LOG_FILE"
 )
 
+func stopGracefully(p *os.Process) {
+	if p == nil || !alive(p) {
+		return
+	}
+	if err := terminate(p); err != nil {
+		return
+	}
+
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		if !alive(p) {
+			return
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	_ = p.Kill()
+}
+
 type ExternalModule struct {
 	ID        string
 	Bin       string
@@ -92,9 +110,7 @@ func (e *ExternalModule) Stop() error {
 
 	proc, err := os.FindProcess(pid)
 	if err == nil {
-		_ = proc.Signal(os.Interrupt)
-		time.After(500)
-		_ = proc.Kill()
+		stopGracefully(proc)
 	}
 
 	if err := os.Remove(pidPath); err != nil && !errors.Is(err, os.ErrNotExist) {
