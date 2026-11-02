@@ -1,15 +1,11 @@
 package manager
 
 import (
-	"archive/zip"
 	"context"
 	"crypto/ed25519"
-	"crypto/sha256"
 	"crypto/subtle"
-	"encoding/hex"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -27,6 +23,7 @@ import (
 	"github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/pkgs/helpers"
 	"github.com/smtdfc/nagare/pkgs/paths"
+	"github.com/smtdfc/nagare/pkgs/security"
 	"github.com/smtdfc/nagare/plugin/metadata"
 )
 
@@ -35,53 +32,13 @@ const (
 	maxPluginTotalSize int64 = 500 * 1024 * 1024 // 500MB total uncompressed limit
 )
 
-func computeFileChecksum(filePath string) (string, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return "", fmt.Errorf("failed to open file %s: %w", filePath, err)
-	}
-	defer func(file *os.File) {
-		_ = file.Close()
-	}(file)
-
-	hasher := sha256.New()
-	if _, err := io.Copy(hasher, file); err != nil {
-		return "", fmt.Errorf("failed to hash file %s: %w", filePath, err)
-	}
-
-	return hex.EncodeToString(hasher.Sum(nil)), nil
-}
-
-func verifyFileSignature(binFile, sigFile string) error {
-	sigData, err := os.ReadFile(sigFile)
-	if err != nil {
-		return fmt.Errorf("failed to read signature file %s: %w", sigFile, err)
-	}
-
-	expectedSig := strings.TrimSpace(string(sigData))
-	if expectedSig == "" {
-		return errors.New("signature file is empty")
-	}
-
-	file, err := os.Open(binFile)
-	if err != nil {
-		return fmt.Errorf("failed to open binary file %s: %w", binFile, err)
-	}
-	defer func(file *os.File) {
-		_ = file.Close()
-	}(file)
-
-	hasher := sha256.New()
-	if _, err := io.Copy(hasher, file); err != nil {
-		return fmt.Errorf("failed to compute binary hash: %w", err)
-	}
-
-	actualSig := hex.EncodeToString(hasher.Sum(nil))
-	if subtle.ConstantTimeCompare([]byte(strings.ToLower(expectedSig)), []byte(strings.ToLower(actualSig))) != 1 {
-		return fmt.Errorf("signature verification failed: expected %s, got %s", expectedSig, actualSig)
-	}
-
-	return nil
+type PluginManager struct {
+	mu           sync.RWMutex
+	pluginRepo   *repositories.PluginRepository
+	pluginMapper plugin_mapper.IPluginMapper
+	connectCodes map[string]string
+	socketPath   string
+	logger       *logger.BaseLogger
 }
 
 func (p *PluginManager) loadTrustedPublicKeys() ([]ed25519.PublicKey, error) {
@@ -174,7 +131,7 @@ func (p *PluginManager) verifyPluginChecksum(plg *plugin.Plugin) error {
 		return nil
 	}
 
-	actual, err := computeFileChecksum(plg.Bin)
+	actual, err := security.ComputeFileChecksum(plg.Bin)
 	if err != nil {
 		p.logger.Error("Failed to compute plugin binary checksum", "error", err, "packageName", plg.PackageName)
 		return custom_errors.ErrPluginChecksumMismatch
@@ -198,7 +155,7 @@ func (p *PluginManager) ensureChecksum(ctx context.Context, plg *plugin.Plugin) 
 		return
 	}
 
-	checksum, err := computeFileChecksum(plg.Bin)
+	checksum, err := security.ComputeFileChecksum(plg.Bin)
 	if err != nil {
 		p.logger.Warn("Failed to backfill plugin checksum", "error", err, "packageName", plg.PackageName)
 		return
@@ -208,126 +165,6 @@ func (p *PluginManager) ensureChecksum(ctx context.Context, plg *plugin.Plugin) 
 	if err := p.pluginRepo.Update(ctx, p.pluginMapper.ToEntity(plg)); err != nil {
 		p.logger.Warn("Failed to persist plugin checksum", "error", err, "packageName", plg.PackageName)
 	}
-}
-
-func extractFile(fpath string, file *zip.File) error {
-	if file.UncompressedSize64 > uint64(maxPluginFileSize) {
-		return fmt.Errorf("file %s exceeds maximum allowed size (%d bytes)", file.Name, maxPluginFileSize)
-	}
-
-	outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
-	if err != nil {
-		return err
-	}
-	defer func(outFile *os.File) {
-		err := outFile.Close()
-		if err != nil {
-
-		}
-	}(outFile)
-
-	rc, err := file.Open()
-	if err != nil {
-		return err
-	}
-	defer func(rc io.ReadCloser) {
-		err := rc.Close()
-		if err != nil {
-
-		}
-	}(rc)
-
-	limitedReader := io.LimitReader(rc, maxPluginFileSize+1)
-	written, err := io.Copy(outFile, limitedReader)
-	if err != nil {
-		return err
-	}
-	if written > maxPluginFileSize {
-		return fmt.Errorf("file %s exceeded maximum decompression limit", file.Name)
-	}
-
-	mode := file.Mode() & 0755
-	if mode&0111 == 0 {
-		mode = 0644
-	} else {
-		mode = 0755
-	}
-
-	return os.Chmod(fpath, mode)
-}
-
-func unpackPlugin(archivePath, destDir string) error {
-	reader, err := zip.OpenReader(archivePath)
-	if err != nil {
-		return fmt.Errorf("failed to open plugin archive: %w", err)
-	}
-	defer func(reader *zip.ReadCloser) {
-		_ = reader.Close()
-	}(reader)
-
-	absDestDir, err := filepath.Abs(destDir)
-	if err != nil {
-		return fmt.Errorf("failed to resolve destination directory: %w", err)
-	}
-	absDestDir = filepath.Clean(absDestDir)
-	if err := os.MkdirAll(absDestDir, 0775); err != nil {
-		return fmt.Errorf("failed to create destination directory: %w", err)
-	}
-
-	var totalUncompressedBytes int64
-
-	for _, file := range reader.File {
-		// Reject symlinks to prevent symlink traversal
-		if file.Mode()&os.ModeSymlink != 0 {
-			return fmt.Errorf("illegal symlink detected in archive: %s", file.Name)
-		}
-
-		if filepath.IsAbs(file.Name) {
-			return fmt.Errorf("illegal absolute file path detected in archive: %s", file.Name)
-		}
-
-		normalizedName := strings.ReplaceAll(file.Name, "\\", "/")
-		if strings.Contains(normalizedName, "../") || normalizedName == ".." || strings.HasPrefix(normalizedName, "/") {
-			return fmt.Errorf("illegal file path detected in archive: %s", file.Name)
-		}
-
-		fpath := filepath.Clean(filepath.Join(absDestDir, file.Name))
-		destPrefix := absDestDir + string(filepath.Separator)
-		if fpath != absDestDir && !strings.HasPrefix(fpath, destPrefix) {
-			return fmt.Errorf("illegal file path detected in archive: %s", file.Name)
-		}
-
-		dirPath := filepath.Dir(fpath)
-		if evalDir, err := filepath.EvalSymlinks(dirPath); err == nil {
-			if evalDest, err := filepath.EvalSymlinks(absDestDir); err == nil {
-				if evalDir != evalDest && !strings.HasPrefix(evalDir, evalDest+string(filepath.Separator)) {
-					return fmt.Errorf("illegal directory traversal detected in archive: %s", file.Name)
-				}
-			}
-		}
-
-		if file.FileInfo().IsDir() {
-			if err := os.MkdirAll(fpath, 0775); err != nil {
-				return err
-			}
-			continue
-		}
-
-		totalUncompressedBytes += int64(file.UncompressedSize64)
-		if totalUncompressedBytes > maxPluginTotalSize {
-			return fmt.Errorf("archive total uncompressed size exceeds limit (%d bytes)", maxPluginTotalSize)
-		}
-
-		if err := os.MkdirAll(dirPath, 0775); err != nil {
-			return err
-		}
-
-		if err := extractFile(fpath, file); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func loadMetadata(metadataFile string) (*metadata.PluginMetadata, error) {
@@ -347,15 +184,6 @@ func loadMetadata(metadataFile string) (*metadata.PluginMetadata, error) {
 	}
 
 	return pluginMetadata, nil
-}
-
-type PluginManager struct {
-	mu           sync.RWMutex
-	pluginRepo   *repositories.PluginRepository
-	pluginMapper plugin_mapper.IPluginMapper
-	connectCodes map[string]string
-	socketPath   string
-	logger       *logger.BaseLogger
 }
 
 func (p *PluginManager) getPluginByID(ctx context.Context, id string) (*plugin.Plugin, error) {
@@ -467,6 +295,7 @@ func (p *PluginManager) StartPlugin(ctx context.Context, plg *plugin.Plugin) err
 		fmt.Sprintf("NAGARE_PLUGIN_SOCKET_PATH=%s", socketPath),
 		fmt.Sprintf("NAGARE_PLUGIN_LOG_FILE=%s", filepath.Join(paths.PluginLogDir, plg.PackageName+".log")),
 		fmt.Sprintf("NAGARE_PLUGIN_CONFIG_DIR=%s", filepath.Join(paths.PluginConfigDir, plg.PackageName)),
+		fmt.Sprintf("NAGARE_PLUGIN_DATA_DIR=%s", filepath.Join(paths.PluginDataDir, plg.PackageName)),
 	)
 
 	err := cmd.Start()
@@ -560,12 +389,12 @@ func (p *PluginManager) install(ctx context.Context, pluginPath, signaturePath s
 
 	tempBinFile := filepath.Join(tempDir, cleanRelBin)
 	tempSigFile := filepath.Join(tempDir, pluginMetadata.PackageName+".sig")
-	if err := verifyFileSignature(tempBinFile, tempSigFile); err != nil {
+	if err := security.VerifyFileSignature(tempBinFile, tempSigFile); err != nil {
 		p.logger.Error("Install plugin failed: signature verification failed", "error", err, "plugin", pluginPath)
 		return nil, custom_errors.ErrPluginSignatureInvalid
 	}
 
-	binChecksum, err := computeFileChecksum(tempBinFile)
+	binChecksum, err := security.ComputeFileChecksum(tempBinFile)
 	if err != nil {
 		p.logger.Error("Install plugin failed: compute binary checksum", "error", err, "plugin", pluginPath)
 		return nil, custom_errors.ErrInstallPluginFailed
@@ -590,7 +419,7 @@ func (p *PluginManager) install(ctx context.Context, pluginPath, signaturePath s
 		return nil, custom_errors.ErrInstallPluginFailed
 	}
 
-	destChecksum, err := computeFileChecksum(destBinFile)
+	destChecksum, err := security.ComputeFileChecksum(destBinFile)
 	if err != nil {
 		p.logger.Error("Install plugin failed: compute installed binary checksum", "error", err, "plugin", pluginPath)
 		return nil, custom_errors.ErrInstallPluginFailed
@@ -713,12 +542,12 @@ func (p *PluginManager) update(ctx context.Context, pluginPath, signaturePath st
 
 	tempBinFile := filepath.Join(tempDir, cleanRelBin)
 	tempSigFile := filepath.Join(tempDir, pluginMetadata.PackageName+".sig")
-	if err := verifyFileSignature(tempBinFile, tempSigFile); err != nil {
+	if err := security.VerifyFileSignature(tempBinFile, tempSigFile); err != nil {
 		p.logger.Error("Update plugin failed: signature verification failed", "error", err, "plugin", pluginPath)
 		return nil, custom_errors.ErrPluginSignatureInvalid
 	}
 
-	binChecksum, err := computeFileChecksum(tempBinFile)
+	binChecksum, err := security.ComputeFileChecksum(tempBinFile)
 	if err != nil {
 		p.logger.Error("Update plugin failed: compute binary checksum", "error", err, "plugin", pluginPath)
 		return nil, custom_errors.ErrPluginUpdateFailed
@@ -763,7 +592,7 @@ func (p *PluginManager) update(ctx context.Context, pluginPath, signaturePath st
 		return nil, custom_errors.ErrPluginUpdateFailed
 	}
 
-	destChecksum, err := computeFileChecksum(destBinFile)
+	destChecksum, err := security.ComputeFileChecksum(destBinFile)
 	if err != nil {
 		p.logger.Error("Update plugin failed: compute installed binary checksum", "error", err, "plugin", pluginPath)
 		return nil, custom_errors.ErrPluginUpdateFailed

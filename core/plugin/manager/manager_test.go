@@ -26,6 +26,7 @@ import (
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/pkgs/paths"
+	"github.com/smtdfc/nagare/pkgs/security"
 	"github.com/smtdfc/nagare/plugin/metadata"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -186,7 +187,7 @@ func TestVerifyFileSignature(t *testing.T) {
 	}
 
 	// Valid signature test
-	if err := verifyFileSignature(binFile.Name(), sigFile.Name()); err != nil {
+	if err := security.VerifyFileSignature(binFile.Name(), sigFile.Name()); err != nil {
 		t.Fatalf("expected signature verification to pass, got: %v", err)
 	}
 
@@ -202,12 +203,12 @@ func TestVerifyFileSignature(t *testing.T) {
 		t.Fatalf("failed to write tampered sig: %v", err)
 	}
 
-	if err := verifyFileSignature(binFile.Name(), tamperedSigFile.Name()); err == nil {
+	if err := security.VerifyFileSignature(binFile.Name(), tamperedSigFile.Name()); err == nil {
 		t.Fatalf("expected signature verification to fail for tampered signature, but it passed")
 	}
 
 	// Missing signature test
-	if err := verifyFileSignature(binFile.Name(), "non_existent_file.sig"); err == nil {
+	if err := security.VerifyFileSignature(binFile.Name(), "non_existent_file.sig"); err == nil {
 		t.Fatalf("expected signature verification to fail for missing signature file, but it passed")
 	}
 }
@@ -227,7 +228,7 @@ func TestVerifyPluginChecksum(t *testing.T) {
 		t.Fatalf("failed to write binary: %v", err)
 	}
 
-	checksum, err := computeFileChecksum(binPath)
+	checksum, err := security.ComputeFileChecksum(binPath)
 	if err != nil {
 		t.Fatalf("failed to compute checksum: %v", err)
 	}
