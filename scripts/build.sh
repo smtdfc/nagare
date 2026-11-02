@@ -29,9 +29,10 @@ DIST_DIR="$ROOT_DIR/dist"
 WEB_DIR="$DIST_DIR/web"
 CORE_PLUGINS="$DIST_DIR/plugins/core"
 BUILTIN_PLUGINS="$DIST_DIR/plugins/builtins"
+MODULES_DIR="$DIST_DIR/modules"
 CLI_SCRIPT="$CLI_SOURCE/main.go"
-RUST_CORE_PLUGIN=(
-    "crates/nagare_vector"
+RUST_MODULES=(
+    "nagare_vector"
 )
 
 GO_BUILTIN_PLUGINS=(
@@ -42,6 +43,7 @@ mkdir -p "$DIST_DIR"
 mkdir -p "$CORE_PLUGINS"
 mkdir -p "$WEB_DIR"
 mkdir -p "$BUILTIN_PLUGINS"
+mkdir -p "$MODULES_DIR"
 
 case "$(uname -s)" in
     Linux*|Darwin*)
@@ -69,12 +71,13 @@ rm -rf "$WEB_DIR"
 cp -r "$WEB_DIST_DIR" "$CLI_WEB_DIST_DIR"
 cp -r "$WEB_DIST_DIR" "$WEB_DIR"
 
-echo "Building Rust core plugins ..."
-for plugin in "${RUST_CORE_PLUGIN[@]}"; do
+echo "Building Rust modules ..."
+for module in "${RUST_MODULES[@]}"; do
     (
-        cd "$plugin" || exit 1
-        go run "$CLI_SCRIPT" plugin build
-        cp ./*.nagare_plugin "$CORE_PLUGINS/"
+        cd "crates/$module" || exit 1
+        cargo build --release
+        cp "$ROOT_DIR/target/release/${module}${exe_ext}" "$MODULES_DIR/"
+        chmod +x "$MODULES_DIR/${module}${exe_ext}"
     )
 done
 
