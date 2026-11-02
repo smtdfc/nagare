@@ -173,7 +173,7 @@ This catalogue is exhaustive for the current repository. When a change introduce
 | `core/prompt` | Prompt builder and system prompt. |
 | `core/session` | Session model, state, and manager. Sub-scope: `core/session/manager`. |
 | `core/setup` | Dependency wiring and bootstrap hooks. Sub-scope: `core/setup/hooks`. |
-| `core/task` | Task model, triggers, repeat rules, scheduler, and cron worker. Sub-scopes: `core/task/manager`, `core/task/workers`. |
+| `core/cronjob` | CronJob model, scheduler, and worker. Sub-scopes: `core/cronjob/manager`, `core/cronjob/workers`. |
 | `core/tool` | Tool contracts and types. Sub-scopes: `core/tool/builtins`, `core/tool/manager`, `core/tool/plugin`, `core/tool/registry`. |
 
 ### 4.2 `gateway`
