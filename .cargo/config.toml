@@ -1,5 +1,11 @@
 [env]
 NAGARE_PLUGIN_LOG_FILE = "/tmp/nagare-plugin-test.log"
-NAGARE_PLUGIN_CONFIG_DIR= "/tmp/nagare-plugin-test.json"
-NAGARE_PLUGIN_CONNECT_CODE="test"
-NAGARE_PLUGIN_SOCKET_PATH="/tmp/nagare-plugin-test.sock"
+NAGARE_PLUGIN_CONFIG_DIR = "/tmp/nagare-plugin-test.json"
+NAGARE_PLUGIN_CONNECT_CODE = "test"
+NAGARE_PLUGIN_SOCKET_PATH = "/tmp/nagare-plugin-test.sock"
+
+NAGARE_MODULE_LOG_FILE = "/tmp/nagare-module-test.log"
+NAGARE_MODULE_CONFIG_DIR = "/tmp/nagare-module-test/config"
+NAGARE_MODULE_DATA_DIR = "/tmp/nagare-module-test/data"
+NAGARE_MODULE_SOCKET_PATH = "/tmp/nagare-module-test.sock"
+NAGARE_MODULE_CONNECT_CODE = "1234"

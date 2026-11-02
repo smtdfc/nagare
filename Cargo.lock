@@ -227,12 +227,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "nagare_ipc"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
+name = "nagare_module"
+version = "0.1.0"
+dependencies = [
+ "fern",
+ "humantime",
+ "log",
+ "nagare_ipc",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "nagare_plugin"
 version = "0.1.0"
 dependencies = [
  "fern",
  "humantime",
  "log",
+ "nagare_ipc",
  "schemars",
  "serde",
  "serde_json",
@@ -247,7 +275,9 @@ name = "nagare_vector"
 version = "0.1.0"
 dependencies = [
  "log",
- "nagare_plugin",
+ "nagare_module",
+ "serde",
+ "serde_json",
  "tokio",
  "turbovec",
 ]
