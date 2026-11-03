@@ -1,9 +1,13 @@
 import { LoginForm, type LoginInput } from "#/components/login-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AuthService, envConfig, refresh } from "@nagare-app/services";
+import {
+  AuthService,
+  envConfig,
+  normalizeGateway,
+  refresh,
+} from "@nagare-app/services";
 import { showToastError } from "#/lib/toast.ts";
 import { useAuth } from "#/hooks/use-auth.ts";
-import { normalizeGateway } from "#/lib/gateway.ts";
 
 export const Route = createFileRoute("/auth")({
   component: RouteComponent,
@@ -23,7 +27,7 @@ function RouteComponent() {
   };
 
   const handleSubmit = async (input: LoginInput) => {
-    const gateway = normalizeGateway(input.gateway ?? "");
+    const gateway = normalizeGateway(input.gateway ?? envConfig.baseRestApiUrl);
     if (!gateway.rest || !input.token) {
       setAuth(false);
       showToastError(new Error("Gateway URL and token are required."));

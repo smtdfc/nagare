@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "#/components/ui/button";
 import { KeyIcon, ExternalLinkIcon } from "lucide-react";
 
-export const Route = createFileRoute('/helps/how-to-get-a-token')({
+export const Route = createFileRoute("/helps/how-to-get-a-token")({
   component: RouteComponent,
 });
 
@@ -15,12 +15,12 @@ function RouteComponent() {
         <div className="flex flex-col gap-6">
           <div className="flex items-center gap-3">
             <KeyIcon className="size-5 text-primary" />
-            <h1 className="text-xl font-bold">How to get a token</h1>
+            <h1 className="text-xl font-bold">How to sign in</h1>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            A token is required to sign in to the Nagare web dashboard. Generate
-            one with the Nagare CLI, then enter it together with your Gateway
-            URL on the sign-in page.
+            The easiest way to sign in is to let the CLI open the dashboard for
+            you. It generates a token, attaches the Gateway URL, and the
+            dashboard signs in automatically.
           </p>
 
           <section className="flex flex-col gap-4">
@@ -29,7 +29,8 @@ function RouteComponent() {
             </h2>
             <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
               <li>
-                Nagare is installed (<span className="font-mono">nagare --version</span>)
+                Nagare is installed (
+                <span className="font-mono">nagare --version</span>)
               </li>
             </ul>
           </section>
@@ -49,30 +50,30 @@ function RouteComponent() {
                 </p>
               </Step>
 
-              <Step number={2} title="Generate a token">
+              <Step number={2} title="Start the Web UI">
                 Run:
-                <CodeBlock>nagare auth token</CodeBlock>
+                <CodeBlock>nagare web</CodeBlock>
                 <p className="pt-2 text-xs text-muted-foreground">
-                  Copy the printed token (for example:{" "}
-                  <span className="font-mono">Your token is: abc123...</span>).
+                  The dashboard opens in your browser already signed in. Use{" "}
+                  <span className="font-mono">--no-open</span> to print the
+                  sign-in URL instead, or{" "}
+                  <span className="font-mono">--gateway</span> when the Gateway
+                  runs on another host.
                 </p>
               </Step>
 
-              <Step number={3} title="Sign in to the dashboard">
-                Open <a href="http://localhost:3005" className="underline">
-                  http://localhost:3005
-                </a>{" "}
-                and sign in with:
-                <ul className="list-disc list-inside text-xs text-muted-foreground space-y-1 mt-4">
-                  <li>
-                    <b>Gateway URL:</b> <span className="font-mono">http://localhost:9832</span>
-                  </li>
-                  <li>
-                    <b>Token:</b> the token copied in the previous step
-                  </li>
-                </ul>
+              <Step number={3} title="Sign in manually (optional)">
+                If you open the dashboard yourself, generate a token and paste
+                it on the sign-in page:
+                <CodeBlock>nagare auth token</CodeBlock>
+                <p className="pt-2 text-xs text-muted-foreground">
+                  The gateway defaults to{" "}
+                  <span className="font-mono">http://localhost:9832</span>. Use
+                  the <b>Advanced</b> link on the sign-in page to point at
+                  another gateway.
+                </p>
               </Step>
-          </div>
+            </div>
           </section>
 
           <div className="flex items-center justify-between gap-2 pt-4 border-t border-border">
@@ -107,7 +108,7 @@ function Step({
       </div>
       <div className="flex flex-col gap-3">
         <h3 className="text-sm font-semibold">{title}</h3>
-        <div >{children}</div>
+        <div>{children}</div>
       </div>
     </div>
   );
