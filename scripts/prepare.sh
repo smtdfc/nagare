@@ -12,6 +12,10 @@ mkdir -p ./cli/helpers/web_dist
 echo "Generating Go sources ..."
 goverter gen "$CORE_SOURCE/mappers/..."
 goverter gen "$GATEWAY_SOURCE/..."
+cd "$GATEWAY_SOURCE" || exit
+dix wire --workspace 
+cd -
 
 echo "Generating TypeScript code..."
 go run ./scripts/go/ts.go
+
