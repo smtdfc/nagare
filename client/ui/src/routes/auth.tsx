@@ -1,13 +1,9 @@
 import { LoginForm, type LoginInput } from "#/components/login-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import {
-  AuthService,
-  envConfig,
-  refresh,
-  websocket,
-} from "@nagare-app/services";
+import { AuthService, envConfig, refresh } from "@nagare-app/services";
 import { showToastError } from "#/lib/toast.ts";
 import { useAuth } from "#/hooks/use-auth.ts";
+import { normalizeGateway } from "#/lib/gateway.ts";
 
 export const Route = createFileRoute("/auth")({
   component: RouteComponent,
@@ -27,28 +23,40 @@ function RouteComponent() {
   };
 
   const handleSubmit = async (input: LoginInput) => {
-    envConfig.baseRestApiUrl = input.gateway!;
-    envConfig.baseWebsocketUrl = `${input.gateway}/ws`;
-    window.bindings.setToken(input.token!);
+    const gateway = normalizeGateway(input.gateway ?? "");
+    if (!gateway.rest || !input.token) {
+      setAuth(false);
+      showToastError(new Error("Gateway URL and token are required."));
+      return;
+    }
+
+    envConfig.baseRestApiUrl = gateway.rest;
+    envConfig.baseWebsocketUrl = gateway.ws;
+    await window.bindings.setToken(input.token);
     refresh();
+
+    let isAuth = false;
     try {
-      const isAuth = await AuthService.isAuthenticated();
-      await websocket.connect();
-      await AuthService.websocketAuth();
-      if (isAuth) {
-        setAuth(true);
-        window.bindings.saveConfig();
-        await redirect();
-      } else {
-        setAuth(false);
-        showToastError(
-          "Authentication failed; please check the Gateway or Token!",
-        );
-      }
+      isAuth = await AuthService.isAuthenticated();
     } catch (e) {
       setAuth(false);
       showToastError(e);
+      return;
     }
+
+    if (!isAuth) {
+      setAuth(false);
+      showToastError(
+        new Error("Authentication failed; please check the Gateway or Token!"),
+      );
+      return;
+    }
+
+    // The REST session is valid. The dashboard owns the websocket connection,
+    // so a socket failure cannot turn a successful login into a failed one.
+    setAuth(true);
+    await window.bindings.saveConfig();
+    await redirect();
   };
 
   return (

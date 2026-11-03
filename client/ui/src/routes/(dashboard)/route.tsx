@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { AppSidebar } from "#/components/app-sidebar.tsx";
 import { SidebarInset, SidebarProvider } from "#/components/ui/sidebar.tsx";
 import { useEffect, useState } from "react";
-import { AuthService, websocket } from "@nagare-app/services";
+import { ApiError, AuthService, websocket } from "@nagare-app/services";
 import { showToastError } from "#/lib/toast";
 import LoadingLayout from "#/components/loading-layout";
 import { useAuth } from "#/hooks/use-auth.ts";
@@ -28,9 +28,35 @@ function RouteComponent() {
   useEffect(() => {
     let isMounted = true;
 
+    const connectWebsocket = async () => {
+      try {
+        if (!websocket.isConnected()) {
+          await websocket.connect();
+        }
+        await AuthService.websocketAuth();
+      } catch (e) {
+        // The REST session is already valid, so a socket problem must not log
+        // the user out. Reconnect handlers re-authenticate once it is back.
+        showToastError(e);
+      }
+    };
+
     const initDashboard = async () => {
       try {
-        const isAuth = isAuthenticated || (await AuthService.isAuthenticated());
+        let isAuth = isAuthenticated;
+
+        if (!isAuth) {
+          try {
+            isAuth = await AuthService.isAuthenticated();
+          } catch (e) {
+            // A missing or expired token is the normal first-load path, so
+            // redirect silently instead of showing an unauthorized toast.
+            if (!(e instanceof ApiError && e.apiError.statusCode === 401)) {
+              showToastError(e);
+            }
+            isAuth = false;
+          }
+        }
 
         if (!isAuth) {
           setAuth(false);
@@ -39,18 +65,11 @@ function RouteComponent() {
         }
 
         setAuth(true);
-
-        if (!websocket.isConnected()) {
-          await websocket.connect();
-        }
-        await AuthService.websocketAuth();
-      } catch (e) {
-        setAuth(false);
-        showToastError(e);
-        await redirectToAuth();
       } finally {
         if (isMounted) setIsLoading(false);
       }
+
+      await connectWebsocket();
     };
 
     initDashboard();
