@@ -7,7 +7,9 @@ export function refresh() {
 }
 
 export * from "./auth";
+export * from "./bootstrap";
 export * from "./env";
+export * from "./lib/gateway";
 export * from "./lib/errors";
 export * from "./chat";
 export * from "./lib/websocket";
