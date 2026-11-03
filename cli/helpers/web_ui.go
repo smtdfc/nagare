@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"log"
 	"mime"
+	"net"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -70,12 +71,23 @@ func Handler() http.Handler {
 	}
 }
 
-func StartServer(addr string) error {
+// StartServer serves the Web UI on addr. When the listener is ready, onReady
+// runs before the server blocks serving requests, so callers can open a browser
+// without racing the bind.
+func StartServer(addr string, onReady func()) error {
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		return err
+	}
+
 	server := &http.Server{
-		Addr:    addr,
 		Handler: Handler(),
 	}
 
 	log.Printf("Nagare Web UI listening on http://%s", addr)
-	return server.ListenAndServe()
+	if onReady != nil {
+		onReady()
+	}
+
+	return server.Serve(listener)
 }

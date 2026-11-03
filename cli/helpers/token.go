@@ -3,11 +3,34 @@ package helpers
 import (
 	"fmt"
 	"os"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/pkgs/security"
 )
 
 const SERVICE_NAME = "nagare.security.keyring"
+
+// DefaultTokenTTL is how long a token minted by the CLI stays valid.
+const DefaultTokenTTL = 60 * time.Hour
+
+// GenerateUserToken mints a user token signed with the keyring private key.
+// It creates a new RSA key pair when none exists yet.
+func GenerateUserToken(ttl time.Duration) (string, error) {
+	_, privateKey, err := GetRSAKey()
+	if err != nil {
+		return "", err
+	}
+
+	payload := security.AuthPayload{
+		ID:         uuid.Nil.String(),
+		TargetType: "user",
+		Name:       "User",
+		Scopes:     []string{},
+	}
+
+	return security.GenerateRSAToken(payload, []byte(privateKey), ttl)
+}
 
 func GetRSAKey() (string, string, error) {
 	privateKey, err := security.GetKey(SERVICE_NAME, "pk")
