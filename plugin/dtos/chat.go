@@ -7,9 +7,9 @@ const (
 	HandshakeSuccessEvent Event = "plugin:handshake:success"
 	HandshakeFailedEvent  Event = "plugin:handshake:failed"
 
-	PrepareChatSessionEvent        Event = "plugin:prepare_chat_session"
-	PrepareChatSessionSuccessEvent Event = "plugin:prepare_chat_session:success"
-	PrepareChatSessionFailedEvent  Event = "plugin:prepare_chat_session:failed"
+	PrepareChatChannelEvent        Event = "plugin:prepare_chat_channel"
+	PrepareChatChannelSuccessEvent Event = "plugin:prepare_chat_channel:success"
+	PrepareChatChannelFailedEvent  Event = "plugin:prepare_chat_channel:failed"
 
 	GetModelProvidersEvent        Event = "plugin:GetModelProvidersEvent"
 	GetModelProvidersSuccessEvent Event = "plugin:GetModelProvidersSuccessEvent:success"
@@ -40,7 +40,6 @@ type GetModelProvidersFailedEventPayload struct {
 }
 
 type ReceivedChatMessageEventPayload struct {
-	SessionID string `json:"sessionID"`
 	ChannelID string `json:"channelID"`
 	Message   string `json:"message"`
 }
@@ -63,27 +62,26 @@ type HandshakeFailedEventPayload struct {
 	Cause string `json:"cause"`
 }
 
-type PrepareChatSessionEventPayload struct {
+type PrepareChatChannelEventPayload struct {
 	ChannelID string `json:"channelID"`
 }
 
-type PrepareChatSessionSuccessEventPayload struct {
+type PrepareChatChannelSuccessEventPayload struct {
 	ChannelID string `json:"channelID"`
-	SessionID string `json:"sessionID"`
 }
 
-type PrepareChatSessionFailedEventPayload struct {
+type PrepareChatChannelFailedEventPayload struct {
 	ChannelID string `json:"channelID"`
 	Cause     string `json:"cause"`
 }
 
 type SendChatMessageEventPayload struct {
-	SessionID string `json:"sessionID"`
+	ChannelID string `json:"channelID"`
 	Text      string `json:"text"`
 }
 
 type SendChatMessageSuccessEventPayload struct {
-	SessionID string `json:"sessionID"`
+	ChannelID string `json:"channelID"`
 }
 
 type SendChatMessageFailedEventPayload struct {
@@ -103,7 +101,7 @@ type ResetChatChannelFailedEventPayload struct {
 }
 
 type SubmitToolApprovalEventPayload struct {
-	SessionID         string `json:"sessionID"`
+	ChannelID         string `json:"channelID"`
 	ApprovalRequestID string `json:"approvalRequestID"`
 	Accept            bool   `json:"accept"`
 }

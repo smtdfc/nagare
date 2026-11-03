@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
+	"log/slog"
 	"strings"
 	"sync"
 	"time"
@@ -12,11 +14,24 @@ import (
 	"github.com/smtdfc/nagare/plugin/client"
 )
 
+// discardLogger is used when the plugin client is not wired up, so unit tests
+// can construct a TelegramPlugin without a logger.
+var discardLogger = slog.New(slog.NewTextHandler(io.Discard, nil))
+
+// logger returns the plugin logger, falling back to a no-op logger when the
+// plugin client is missing.
+func (tp *TelegramPlugin) logger() *slog.Logger {
+	if tp.pluginClient != nil && tp.pluginClient.Logger != nil {
+		return tp.pluginClient.Logger
+	}
+	return discardLogger
+}
+
 type TelegramPlugin struct {
 	mu           sync.Mutex
 	bot          *telego.Bot
 	pluginClient *client.PluginClient
-	channels     map[string]string
+	channels     map[string]struct{}
 	idleTimers   map[string]*time.Timer
 
 	queues         map[string][]telego.Update
@@ -26,8 +41,7 @@ type TelegramPlugin struct {
 }
 
 type pendingToolApproval struct {
-	chatID    string
-	sessionID string
+	channelID string
 	messageID int
 }
 
@@ -35,7 +49,7 @@ func NewTelegramPlugin(bot *telego.Bot, pluginClient *client.PluginClient) *Tele
 	return &TelegramPlugin{
 		bot:          bot,
 		pluginClient: pluginClient,
-		channels:     make(map[string]string),
+		channels:     make(map[string]struct{}),
 		idleTimers:   make(map[string]*time.Timer),
 		queues:       make(map[string][]telego.Update),
 		isProcessing: make(map[string]bool),
@@ -117,7 +131,7 @@ func (tp *TelegramPlugin) sendTextMessage(ctx context.Context, chatID int64, tex
 	params := tu.Message(tu.ID(chatID), text)
 	_, err := tp.bot.SendMessage(ctx, params)
 	if err != nil {
-		tp.pluginClient.Logger.Error("Error sending messages to telegram", "chatID", chatID, "error", err)
+		tp.logger().Error("Error sending messages to telegram", "chatID", chatID, "error", err)
 	}
 	return err
 }

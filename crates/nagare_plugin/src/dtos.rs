@@ -8,9 +8,9 @@ pub const HANDSHAKE_EVENT: &str = "plugin:handshake";
 pub const HANDSHAKE_SUCCESS_EVENT: &str = "plugin:handshake:success";
 pub const HANDSHAKE_FAILED_EVENT: &str = "plugin:handshake:failed";
 
-pub const PREPARE_CHAT_SESSION_EVENT: &str = "plugin:prepare_chat_session";
-pub const PREPARE_CHAT_SESSION_SUCCESS_EVENT: &str = "plugin:prepare_chat_session:success";
-pub const PREPARE_CHAT_SESSION_FAILED_EVENT: &str = "plugin:prepare_chat_session:failed";
+pub const PREPARE_CHAT_CHANNEL_EVENT: &str = "plugin:prepare_chat_channel";
+pub const PREPARE_CHAT_CHANNEL_SUCCESS_EVENT: &str = "plugin:prepare_chat_channel:success";
+pub const PREPARE_CHAT_CHANNEL_FAILED_EVENT: &str = "plugin:prepare_chat_channel:failed";
 
 pub const SEND_CHAT_MESSAGE_EVENT: &str = "plugin:send_chat_message";
 pub const SEND_CHAT_MESSAGE_SUCCESS_EVENT: &str = "plugin:send_chat_message:success";
@@ -45,8 +45,6 @@ pub struct Payload<T> {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReceivedChatMessageEventPayload {
-    #[serde(rename = "sessionID")]
-    pub session_id: String,
     #[serde(rename = "channelID")]
     pub channel_id: String,
     pub message: String,
@@ -76,21 +74,19 @@ pub struct HandshakeFailedEventPayload {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrepareChatSessionEventPayload {
+pub struct PrepareChatChannelEventPayload {
     #[serde(rename = "channelID")]
     pub channel_id: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrepareChatSessionSuccessEventPayload {
+pub struct PrepareChatChannelSuccessEventPayload {
     #[serde(rename = "channelID")]
     pub channel_id: String,
-    #[serde(rename = "sessionID")]
-    pub session_id: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrepareChatSessionFailedEventPayload {
+pub struct PrepareChatChannelFailedEventPayload {
     #[serde(rename = "channelID")]
     pub channel_id: String,
     pub cause: String,
@@ -98,15 +94,15 @@ pub struct PrepareChatSessionFailedEventPayload {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SendChatMessageEventPayload {
-    #[serde(rename = "sessionID")]
-    pub session_id: String,
+    #[serde(rename = "channelID")]
+    pub channel_id: String,
     pub text: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SendChatMessageSuccessEventPayload {
-    #[serde(rename = "sessionID")]
-    pub session_id: String,
+    #[serde(rename = "channelID")]
+    pub channel_id: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

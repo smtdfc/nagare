@@ -9,19 +9,19 @@ import (
 
 func TestTelegramHandlerChunkParsing(t *testing.T) {
 	tp := &TelegramPlugin{
-		channels:     make(map[string]string),
+		channels:     make(map[string]struct{}),
 		idleTimers:   make(map[string]*time.Timer),
 		queues:       make(map[string][]telego.Update),
 		isProcessing: make(map[string]bool),
 	}
 
 	// Test malformed chunk does not panic
-	tp.OnReceivedChatMessage("sess-1", "12345", `{invalid_chunk`)
+	tp.OnReceivedChatMessage("12345", `{invalid_chunk`)
 
 	// Test TextMessageType chunk accumulation
 	validChunk := `{"type":"TEXT_MESSAGE","content":"Hello world"}`
-	tp.OnReceivedChatMessage("sess-1", "12345", validChunk)
-	buf := tp.getOrCreateBuffer("sess-1")
+	tp.OnReceivedChatMessage("12345", validChunk)
+	buf := tp.getOrCreateBuffer("12345")
 	if buf.String() != "Hello world" {
 		t.Fatalf("expected buffered content 'Hello world', got %q", buf.String())
 	}

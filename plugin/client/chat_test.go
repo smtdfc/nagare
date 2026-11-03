@@ -9,14 +9,14 @@ func TestChatClientOperationsWithoutConnection(t *testing.T) {
 	p := NewPlugin()
 	ctx := context.Background()
 
-	// Test PrepareChatSession failure without connection
-	_, err := p.PrepareChatSession(ctx, "chat-123")
+	// Test PrepareChatChannel failure without connection
+	err := p.PrepareChatChannel(ctx, "chat-123")
 	if err == nil {
-		t.Fatalf("expected error when preparing chat session without connection, got nil")
+		t.Fatalf("expected error when preparing chat channel without connection, got nil")
 	}
 
 	// Test SendChatMessage failure without connection
-	err = p.SendChatMessage(ctx, "session-1", "hello")
+	err = p.SendChatMessage(ctx, "chat-123", "hello")
 	if err == nil {
 		t.Fatalf("expected error when sending chat message without connection, got nil")
 	}

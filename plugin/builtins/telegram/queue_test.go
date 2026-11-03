@@ -10,16 +10,16 @@ import (
 
 func TestTelegramQueueFlow(t *testing.T) {
 	tp := &TelegramPlugin{
-		channels:     make(map[string]string),
+		channels:     make(map[string]struct{}),
 		idleTimers:   make(map[string]*time.Timer),
 		queues:       make(map[string][]telego.Update),
 		isProcessing: make(map[string]bool),
 	}
 
-	tp.clearSessionID("123456")
-	_, exists := tp.getSessionID("123456")
-	if exists {
-		t.Fatalf("expected session not to exist")
+	tp.setChannel("123456")
+	tp.clearChannel("123456")
+	if tp.hasChannel("123456") {
+		t.Fatalf("expected channel not to exist")
 	}
 
 	// Test processQueue with empty queue terminates loop immediately

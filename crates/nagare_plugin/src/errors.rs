@@ -16,8 +16,8 @@ pub enum PluginError {
     HandshakeTimeout,
     #[error("handshake cancelled")]
     HandshakeCancelled,
-    #[error("prepare chat session failed: {0}")]
-    PrepareChatSessionFailed(String),
+    #[error("prepare chat channel failed: {0}")]
+    PrepareChatChannelFailed(String),
     #[error("incorrect tool args")]
     IncorrectToolArgs,
     #[error("marshal results failed: {0}")]

@@ -152,8 +152,8 @@ func (h *PluginHost) dispatch(pConn *PluginConnection, payload *plugin_dtos.Payl
 	switch payload.Event {
 	case plugin_dtos.HandshakeEvent:
 		h.handleHandshake(pConn, payload)
-	case plugin_dtos.PrepareChatSessionEvent:
-		go h.handlePrepareChatSession(pConn, payload)
+	case plugin_dtos.PrepareChatChannelEvent:
+		go h.handlePrepareChatChannel(pConn, payload)
 	case plugin_dtos.SendChatMessageEvent:
 		go h.handleSendChatMessage(pConn, payload)
 	case plugin_dtos.ResetChatChannelEvent:

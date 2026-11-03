@@ -13,7 +13,7 @@ func TestCustomErrors(t *testing.T) {
 		ErrHandshakeFailed,
 		ErrHandshakeTimeout,
 		ErrHandshakeCancelled,
-		ErrPrepareChatSessionFailed,
+		ErrPrepareChatChannelFailed,
 		ErrIncorrectToolArgs,
 		ErrMarshalToolResultFailed,
 		ErrTimeout,

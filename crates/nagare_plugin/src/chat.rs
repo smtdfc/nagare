@@ -1,8 +1,8 @@
 use crate::client::PluginClient;
 use crate::dtos::{
-    PREPARE_CHAT_SESSION_EVENT, PREPARE_CHAT_SESSION_FAILED_EVENT,
-    PREPARE_CHAT_SESSION_SUCCESS_EVENT, PrepareChatSessionEventPayload,
-    PrepareChatSessionFailedEventPayload, PrepareChatSessionSuccessEventPayload,
+    PREPARE_CHAT_CHANNEL_EVENT, PREPARE_CHAT_CHANNEL_FAILED_EVENT,
+    PREPARE_CHAT_CHANNEL_SUCCESS_EVENT, PrepareChatChannelEventPayload,
+    PrepareChatChannelFailedEventPayload, PrepareChatChannelSuccessEventPayload,
     RESET_CHAT_CHANNEL_EVENT, RESET_CHAT_CHANNEL_FAILED_EVENT, RESET_CHAT_CHANNEL_SUCCESS_EVENT,
     ResetChatChannelEventPayload, ResetChatChannelFailedEventPayload,
     ResetChatChannelSuccessEventPayload, SEND_CHAT_MESSAGE_EVENT, SEND_CHAT_MESSAGE_FAILED_EVENT,
@@ -12,24 +12,24 @@ use crate::dtos::{
 use crate::errors::PluginError;
 
 impl PluginClient {
-    /// Mirror of Go `PrepareChatSession(ctx, channelID)`.
-    pub async fn prepare_chat_session(&self, channel_id: &str) -> Result<String, PluginError> {
-        let payload = PrepareChatSessionEventPayload {
+    /// Mirror of Go `PrepareChatChannel(ctx, channelID)`.
+    pub async fn prepare_chat_channel(&self, channel_id: &str) -> Result<(), PluginError> {
+        let payload = PrepareChatChannelEventPayload {
             channel_id: channel_id.to_string(),
         };
         let resp = self
             .send_and_wait::<
-                PrepareChatSessionSuccessEventPayload,
-                PrepareChatSessionFailedEventPayload,
+                PrepareChatChannelSuccessEventPayload,
+                PrepareChatChannelFailedEventPayload,
             >(
-                PREPARE_CHAT_SESSION_EVENT,
+                PREPARE_CHAT_CHANNEL_EVENT,
                 &payload,
-                PREPARE_CHAT_SESSION_FAILED_EVENT,
-                PREPARE_CHAT_SESSION_SUCCESS_EVENT,
+                PREPARE_CHAT_CHANNEL_FAILED_EVENT,
+                PREPARE_CHAT_CHANNEL_SUCCESS_EVENT,
             )
             .await
             .map_err(|e| {
-                tracing::error!(error = %e, "failed to prepare chat session");
+                tracing::error!(error = %e, "failed to prepare chat channel");
                 e
             })?;
 
@@ -38,16 +38,16 @@ impl PluginClient {
                 .error
                 .map(|e| e.cause)
                 .unwrap_or_else(|| "unknown".to_string());
-            tracing::error!(cause = %cause, "failed to prepare chat session");
-            return Err(PluginError::PrepareChatSessionFailed(cause));
+            tracing::error!(cause = %cause, "failed to prepare chat channel");
+            return Err(PluginError::PrepareChatChannelFailed(cause));
         }
-        Ok(resp.data.map(|d| d.session_id).unwrap_or_default())
+        Ok(())
     }
 
-    /// Mirror of Go `SendChatMessage(ctx, sessionID, text)`.
-    pub async fn send_chat_message(&self, session_id: &str, text: &str) -> Result<(), PluginError> {
+    /// Mirror of Go `SendChatMessage(ctx, channelID, text)`.
+    pub async fn send_chat_message(&self, channel_id: &str, text: &str) -> Result<(), PluginError> {
         let payload = SendChatMessageEventPayload {
-            session_id: session_id.to_string(),
+            channel_id: channel_id.to_string(),
             text: text.to_string(),
         };
         let resp = self
@@ -59,7 +59,7 @@ impl PluginClient {
             )
             .await
             .map_err(|e| {
-                tracing::error!(error = %e, "failed to send chat session messages");
+                tracing::error!(error = %e, "failed to send chat message");
                 e
             })?;
 
@@ -68,7 +68,7 @@ impl PluginClient {
                 .error
                 .map(|e| e.cause)
                 .unwrap_or_else(|| "unknown".to_string());
-            tracing::error!(cause = %cause, "failed to send chat session messages");
+            tracing::error!(cause = %cause, "failed to send chat message");
             return Err(PluginError::Other(cause));
         }
         Ok(())

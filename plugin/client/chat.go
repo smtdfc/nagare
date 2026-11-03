@@ -7,35 +7,35 @@ import (
 	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
 )
 
-func (p *PluginClient) PrepareChatSession(ctx context.Context, channelID string) (string, error) {
-	payload := plugin_dtos.PrepareChatSessionEventPayload{
+func (p *PluginClient) PrepareChatChannel(ctx context.Context, channelID string) error {
+	payload := plugin_dtos.PrepareChatChannelEventPayload{
 		ChannelID: channelID,
 	}
 
-	resp, err := sendAndWait[plugin_dtos.PrepareChatSessionSuccessEventPayload, plugin_dtos.PrepareChatSessionFailedEventPayload](
+	resp, err := sendAndWait[plugin_dtos.PrepareChatChannelSuccessEventPayload, plugin_dtos.PrepareChatChannelFailedEventPayload](
 		p,
 		ctx,
-		plugin_dtos.PrepareChatSessionEvent,
+		plugin_dtos.PrepareChatChannelEvent,
 		payload,
-		plugin_dtos.PrepareChatSessionFailedEvent,
-		plugin_dtos.PrepareChatSessionSuccessEvent,
+		plugin_dtos.PrepareChatChannelFailedEvent,
+		plugin_dtos.PrepareChatChannelSuccessEvent,
 	)
 	if err != nil {
-		p.Logger.Error("failed to prepare chat session", "error", err)
-		return "", err
+		p.Logger.Error("failed to prepare chat channel", "channelID", channelID, "error", err)
+		return err
 	}
 
 	if !resp.IsSuccess {
-		p.Logger.Error("failed to prepare chat session", "error", resp.Error)
-		return "", errors.New(resp.Error.Cause)
+		p.Logger.Error("failed to prepare chat channel", "channelID", channelID, "error", resp.Error)
+		return errors.New(resp.Error.Cause)
 	}
 
-	return resp.Data.SessionID, nil
+	return nil
 }
 
-func (p *PluginClient) SendChatMessage(ctx context.Context, sessionID string, text string) error {
+func (p *PluginClient) SendChatMessage(ctx context.Context, channelID string, text string) error {
 	payload := plugin_dtos.SendChatMessageEventPayload{
-		SessionID: sessionID,
+		ChannelID: channelID,
 		Text:      text,
 	}
 
@@ -48,12 +48,12 @@ func (p *PluginClient) SendChatMessage(ctx context.Context, sessionID string, te
 		plugin_dtos.SendChatMessageSuccessEvent,
 	)
 	if err != nil {
-		p.Logger.Error("failed to send chat session messages", "error", err)
+		p.Logger.Error("failed to send chat message", "channelID", channelID, "error", err)
 		return err
 	}
 
 	if !resp.IsSuccess {
-		p.Logger.Error("failed to send chat session messages", "error", resp.Error)
+		p.Logger.Error("failed to send chat message", "channelID", channelID, "error", resp.Error)
 		return errors.New(resp.Error.Cause)
 	}
 
@@ -86,13 +86,13 @@ func (p *PluginClient) ResetChatChannel(ctx context.Context, channelID string) e
 	return nil
 }
 
-func (p *PluginClient) SubmitToolApproval(ctx context.Context, sessionID, approvalRequestID string, accept bool) error {
+func (p *PluginClient) SubmitToolApproval(ctx context.Context, channelID, approvalRequestID string, accept bool) error {
 	resp, err := sendAndWait[plugin_dtos.SubmitToolApprovalSuccessEventPayload, plugin_dtos.SubmitToolApprovalFailedEventPayload](
 		p,
 		ctx,
 		plugin_dtos.SubmitToolApprovalEvent,
 		plugin_dtos.SubmitToolApprovalEventPayload{
-			SessionID:         sessionID,
+			ChannelID:         channelID,
 			ApprovalRequestID: approvalRequestID,
 			Accept:            accept,
 		},

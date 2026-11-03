@@ -86,7 +86,6 @@ func (h *PluginHost) forwardChatChunks() {
 			_ = conn.Send(
 				plugin_dtos.ReceivedChatMessageEvent,
 				&plugin_dtos.ReceivedChatMessageEventPayload{
-					SessionID: chunkPayload.SessionID,
 					Message:   chunkJSON,
 					ChannelID: chunkPayload.ChannelID,
 				},

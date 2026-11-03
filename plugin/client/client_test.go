@@ -15,8 +15,8 @@ func TestPluginClientNewAndHandleEvent(t *testing.T) {
 	}
 
 	received := false
-	p.OnReceivedChatMessage = func(sessionID, channelID, chunk string) {
-		if sessionID == "sess-1" && channelID == "chan-1" && chunk == "test chunk" {
+	p.OnReceivedChatMessage = func(channelID, chunk string) {
+		if channelID == "chan-1" && chunk == "test chunk" {
 			received = true
 		}
 	}
@@ -25,7 +25,6 @@ func TestPluginClientNewAndHandleEvent(t *testing.T) {
 	payload := &plugin_dtos.Payload[any]{
 		Event: plugin_dtos.ReceivedChatMessageEvent,
 		Data: map[string]interface{}{
-			"sessionID": "sess-1",
 			"channelID": "chan-1",
 			"message":   "test chunk",
 		},

@@ -25,7 +25,7 @@ type PluginClient struct {
 	connector             *Connector
 	pendingRequests       map[string]chan *plugin_dtos.Payload[any]
 	tools                 []PluginTool
-	OnReceivedChatMessage func(sessionID string, channelID string, chunk string)
+	OnReceivedChatMessage func(channelID string, chunk string)
 }
 
 func (p *PluginClient) Start(ctx context.Context, onStart func()) error {
@@ -56,9 +56,9 @@ func (p *PluginClient) handleEvent(payload *plugin_dtos.Payload[any]) {
 		plugin_dtos.HandshakeSuccessEvent,
 		plugin_dtos.HandshakeFailedEvent,
 
-		// Prepare chat
-		plugin_dtos.PrepareChatSessionFailedEvent,
-		plugin_dtos.PrepareChatSessionSuccessEvent,
+		// Prepare chat channel
+		plugin_dtos.PrepareChatChannelFailedEvent,
+		plugin_dtos.PrepareChatChannelSuccessEvent,
 
 		// Register plugin tool
 		plugin_dtos.RegisterPluginToolSuccessEvent,
@@ -99,7 +99,7 @@ func (p *PluginClient) handleEvent(payload *plugin_dtos.Payload[any]) {
 			p.Logger.Warn("failed to parse ReceivedChatMessageEvent", "error", err)
 			return
 		}
-		p.OnReceivedChatMessage(d.SessionID, d.ChannelID, d.Message)
+		p.OnReceivedChatMessage(d.ChannelID, d.Message)
 
 	default:
 		p.Logger.Warn("Unknown event", "event", payload.Event)
@@ -168,7 +168,7 @@ func NewPlugin() *PluginClient {
 	p := &PluginClient{
 		ConnectConfig:         &ConnectConfig{},
 		pendingRequests:       make(map[string]chan *plugin_dtos.Payload[any]),
-		OnReceivedChatMessage: func(sessionID string, _ string, chunk string) {},
+		OnReceivedChatMessage: func(channelID string, chunk string) {},
 		Logger:                slog.New(handler),
 		tools:                 make([]PluginTool, 0),
 	}

@@ -22,7 +22,7 @@ func TestMessageBuffer(t *testing.T) {
 	b1 := tp.getOrCreateBuffer("sess-1")
 	b2 := tp.getOrCreateBuffer("sess-1")
 	if b1 != b2 {
-		t.Fatalf("expected identical buffer instance for same sessionID")
+		t.Fatalf("expected identical buffer instance for same channelID")
 	}
 
 	tp.clearBuffer("sess-1")

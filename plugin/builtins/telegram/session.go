@@ -1,90 +1,84 @@
 package main
 
 import (
-	"strconv"
 	"time"
 )
 
 const idleTimeout = 2 * time.Hour
 
-func (tp *TelegramPlugin) getSessionID(chatID string) (string, bool) {
+func (tp *TelegramPlugin) hasChannel(channelID string) bool {
 	tp.mu.Lock()
 	defer tp.mu.Unlock()
-	sessionID, ok := tp.channels[chatID]
-	return sessionID, ok
+
+	_, ok := tp.channels[channelID]
+	return ok
 }
 
-func (tp *TelegramPlugin) setSessionID(chatID, sessionID string) {
+func (tp *TelegramPlugin) setChannel(channelID string) {
 	tp.mu.Lock()
 	defer tp.mu.Unlock()
-	tp.channels[chatID] = sessionID
+
+	tp.channels[channelID] = struct{}{}
 }
 
-func (tp *TelegramPlugin) getChatIDBySessionID(sessionID string) (string, int64, bool) {
+func (tp *TelegramPlugin) clearChannel(channelID string) {
 	tp.mu.Lock()
 	defer tp.mu.Unlock()
 
-	for chatID, sID := range tp.channels {
-		if sID == sessionID {
-			chatIntID, err := strconv.ParseInt(chatID, 10, 64)
-			if err != nil {
-				return chatID, 0, false
-			}
-			return chatID, chatIntID, true
+	delete(tp.channels, channelID)
+}
+
+func (tp *TelegramPlugin) releaseChannel(channelID string) {
+	tp.mu.Lock()
+	defer tp.mu.Unlock()
+
+	if _, active := tp.channels[channelID]; !active {
+		return
+	}
+
+	delete(tp.channels, channelID)
+	delete(tp.idleTimers, channelID)
+	delete(tp.queues, channelID)
+	delete(tp.isProcessing, channelID)
+	for requestID, approval := range tp.approvals {
+		if approval.channelID == channelID {
+			delete(tp.approvals, requestID)
 		}
 	}
-	return "", 0, false
+	tp.logger().Info("release chat channel due to 2 hours of inactivity.", "channelID", channelID)
 }
 
-func (tp *TelegramPlugin) releaseSession(chatID string) {
-	tp.mu.Lock()
-	defer tp.mu.Unlock()
-
-	if sessionID, active := tp.channels[chatID]; active {
-		delete(tp.channels, chatID)
-		delete(tp.idleTimers, chatID)
-		delete(tp.queues, chatID)
-		delete(tp.isProcessing, chatID)
-		for requestID, approval := range tp.approvals {
-			if approval.chatID == chatID {
-				delete(tp.approvals, requestID)
-			}
-		}
-		tp.pluginClient.Logger.Info("release chat session due to 2 hours of inactivity.", "chatID", chatID, "sessionID", sessionID)
-	}
-}
-
-func (tp *TelegramPlugin) resetIdleTimer(chatID string) {
-	if t, ok := tp.idleTimers[chatID]; ok {
+func (tp *TelegramPlugin) resetIdleTimer(channelID string) {
+	if t, ok := tp.idleTimers[channelID]; ok {
 		t.Stop()
 	}
-	tp.idleTimers[chatID] = time.AfterFunc(idleTimeout, func() {
-		tp.releaseSession(chatID)
+	tp.idleTimers[channelID] = time.AfterFunc(idleTimeout, func() {
+		tp.releaseChannel(channelID)
 	})
 }
 
-func (tp *TelegramPlugin) finishProcessing(chatID, sessionID string) {
+func (tp *TelegramPlugin) finishProcessing(channelID string) {
 	tp.mu.Lock()
-	tp.isProcessing[chatID] = false
+	tp.isProcessing[channelID] = false
 	tp.mu.Unlock()
 
-	tp.clearBuffer(sessionID)
+	tp.clearBuffer(channelID)
 }
 
-func (tp *TelegramPlugin) setPendingApproval(requestID, chatID, sessionID string, messageID int) {
+func (tp *TelegramPlugin) setPendingApproval(requestID, channelID string, messageID int) {
 	tp.mu.Lock()
 	defer tp.mu.Unlock()
 	if tp.approvals == nil {
 		tp.approvals = make(map[string]pendingToolApproval)
 	}
-	tp.approvals[requestID] = pendingToolApproval{chatID: chatID, sessionID: sessionID, messageID: messageID}
+	tp.approvals[requestID] = pendingToolApproval{channelID: channelID, messageID: messageID}
 }
 
-func (tp *TelegramPlugin) getPendingApproval(requestID, chatID string) (pendingToolApproval, bool) {
+func (tp *TelegramPlugin) getPendingApproval(requestID, channelID string) (pendingToolApproval, bool) {
 	tp.mu.Lock()
 	defer tp.mu.Unlock()
 	approval, ok := tp.approvals[requestID]
-	return approval, ok && approval.chatID == chatID
+	return approval, ok && approval.channelID == channelID
 }
 
 func (tp *TelegramPlugin) clearPendingApproval(requestID string) {

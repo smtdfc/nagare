@@ -10,23 +10,10 @@ import (
 	"github.com/smtdfc/nagare/pkgs/messages"
 )
 
-func (tp *TelegramPlugin) OnReceivedChatMessage(sessionID, channelID, chunk string) {
-	var chatID string
-	var chatIntID int64
-
-	if channelID != "" {
-		num, err := strconv.ParseInt(channelID, 10, 64)
-		if err != nil {
-			return
-		}
-		chatID = channelID
-		chatIntID = num
-	} else {
-		var ok bool
-		chatID, chatIntID, ok = tp.getChatIDBySessionID(sessionID)
-		if !ok {
-			return
-		}
+func (tp *TelegramPlugin) OnReceivedChatMessage(channelID, chunk string) {
+	chatIntID, err := strconv.ParseInt(channelID, 10, 64)
+	if err != nil {
+		return
 	}
 
 	msg, err := helpers.UnmarshalJson[messages.AnyMessage](chunk)
@@ -50,18 +37,18 @@ func (tp *TelegramPlugin) OnReceivedChatMessage(sessionID, channelID, chunk stri
 
 		sent, err := tp.bot.SendMessage(context.Background(), params)
 		if err != nil {
-			tp.pluginClient.Logger.Error("failed to send approval request", "requestID", approval.RequestID, "chatID", chatID, "error", err)
+			tp.logger().Error("failed to send approval request", "requestID", approval.RequestID, "channelID", channelID, "error", err)
 			return
 		}
 
-		tp.setPendingApproval(approval.RequestID, chatID, sessionID, sent.MessageID)
+		tp.setPendingApproval(approval.RequestID, channelID, sent.MessageID)
 
 	case messages.TextMessageType:
 		textMsg, err := helpers.UnmarshalJson[messages.TextMessage](chunk)
 		if err != nil {
 			return
 		}
-		buf := tp.getOrCreateBuffer(sessionID)
+		buf := tp.getOrCreateBuffer(channelID)
 		buf.Append(textMsg.Content)
 
 	case messages.AgentErrorMessageType:
@@ -69,9 +56,9 @@ func (tp *TelegramPlugin) OnReceivedChatMessage(sessionID, channelID, chunk stri
 		if err != nil {
 			return
 		}
-		tp.pluginClient.Logger.Error("Agent error message received", "chatID", chatID, "sessionID", sessionID, "error", errMsg.Error, "code", errMsg.Code)
+		tp.logger().Error("Agent error message received", "channelID", channelID, "error", errMsg.Error, "code", errMsg.Code)
 		_ = tp.sendTextMessage(context.Background(), chatIntID, errMsg.Error)
-		tp.finishProcessing(chatID, sessionID)
+		tp.finishProcessing(channelID)
 
 	case messages.AgentCompletedMessageType:
 		completedMsg, err := helpers.UnmarshalJson[messages.AgentCompletedMessage](chunk)
@@ -79,9 +66,9 @@ func (tp *TelegramPlugin) OnReceivedChatMessage(sessionID, channelID, chunk stri
 			return
 		}
 		if completedMsg.Success {
-			buf := tp.getOrCreateBuffer(sessionID)
+			buf := tp.getOrCreateBuffer(channelID)
 			_ = tp.sendTextMessage(context.Background(), chatIntID, buf.String())
 		}
-		tp.finishProcessing(chatID, sessionID)
+		tp.finishProcessing(channelID)
 	}
 }

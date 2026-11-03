@@ -11,100 +11,91 @@ import (
 )
 
 func (tp *TelegramPlugin) enqueueMessage(update telego.Update) {
-	chatID := strconv.FormatInt(update.Message.Chat.ID, 10)
+	channelID := strconv.FormatInt(update.Message.Chat.ID, 10)
 
-	tp.pluginClient.Logger.Info("enqueueMessage", "chatID", chatID)
+	tp.logger().Info("enqueueMessage", "channelID", channelID)
 	tp.mu.Lock()
-	tp.resetIdleTimer(chatID)
-	tp.queues[chatID] = append(tp.queues[chatID], update)
+	tp.resetIdleTimer(channelID)
+	tp.queues[channelID] = append(tp.queues[channelID], update)
 
-	if !tp.isProcessing[chatID] {
-		tp.isProcessing[chatID] = true
-		tp.pluginClient.Logger.Info("processing", "chatID", chatID)
-		go tp.processQueue(context.Background(), chatID)
+	if !tp.isProcessing[channelID] {
+		tp.isProcessing[channelID] = true
+		tp.logger().Info("processing", "channelID", channelID)
+		go tp.processQueue(context.Background(), channelID)
 	}
 	tp.mu.Unlock()
 }
 
-func (tp *TelegramPlugin) processQueue(ctx context.Context, chatID string) {
+func (tp *TelegramPlugin) processQueue(ctx context.Context, channelID string) {
 	for {
 		tp.mu.Lock()
-		q := tp.queues[chatID]
+		q := tp.queues[channelID]
 		if len(q) == 0 {
-			tp.isProcessing[chatID] = false
+			tp.isProcessing[channelID] = false
 			tp.mu.Unlock()
 			return
 		}
 
 		update := q[0]
-		tp.queues[chatID] = q[1:]
+		tp.queues[channelID] = q[1:]
 		tp.mu.Unlock()
 
 		tp.handleSingleMessage(ctx, &update)
 	}
 }
 
-func (tp *TelegramPlugin) clearSessionID(chatID string) {
-	tp.mu.Lock()
-	defer tp.mu.Unlock()
-
-	delete(tp.channels, chatID)
-}
-
 func (tp *TelegramPlugin) handleSingleMessage(ctx context.Context, update *telego.Update) {
 	chatIntID := update.Message.Chat.ID
-	chatID := strconv.FormatInt(chatIntID, 10)
-	sessionID, exist := tp.getSessionID(chatID)
-	if !exist {
-		var err error
-		sessionID, err = tp.pluginClient.PrepareChatSession(ctx, chatID)
-		if err != nil {
-			_ = tp.sendTextMessage(ctx, chatIntID, "Oops! Error while preparing chat session")
+	channelID := strconv.FormatInt(chatIntID, 10)
+
+	if !tp.hasChannel(channelID) {
+		if err := tp.pluginClient.PrepareChatChannel(ctx, channelID); err != nil {
+			_ = tp.sendTextMessage(ctx, chatIntID, "Oops! Error while preparing chat channel")
 			return
 		}
-		tp.setSessionID(chatID, sessionID)
+		tp.setChannel(channelID)
 	}
 
-	if tp.handleApprovalCommand(ctx, chatID, chatIntID, update.Message.Text) {
+	if tp.handleApprovalCommand(ctx, channelID, chatIntID, update.Message.Text) {
 		return
 	}
 
 	switch update.Message.Text {
 	case "/start":
 		_ = tp.sendTextMessage(ctx, chatIntID, "Hello! I'm your Nagare bot. How can I assist you today?")
-		tp.finishProcessing(chatID, sessionID)
+		tp.finishProcessing(channelID)
 		return
 	case "/help":
 		_ = tp.sendTextMessage(ctx, chatIntID, "You can send me any messages and I'll process it for you.")
-		tp.finishProcessing(chatID, sessionID)
+		tp.finishProcessing(channelID)
 		return
 	case "/ping":
 		_ = tp.sendTextMessage(ctx, chatIntID, "Pong!")
-		tp.finishProcessing(chatID, sessionID)
+		tp.finishProcessing(channelID)
 		return
 	case "/chat_id":
-		_ = tp.sendTextMessage(ctx, chatIntID, "Your chat ID is: "+chatID)
-		tp.finishProcessing(chatID, sessionID)
+		_ = tp.sendTextMessage(ctx, chatIntID, "Your channel ID is: "+channelID)
+		tp.finishProcessing(channelID)
 		return
 	case "/reset":
-		err := tp.pluginClient.ResetChatChannel(ctx, chatID)
+		err := tp.pluginClient.ResetChatChannel(ctx, channelID)
 		if err != nil {
-			tp.pluginClient.Logger.Error("failed to reset chat session", "chatID", chatID, "error", err)
-			_ = tp.sendTextMessage(ctx, chatIntID, "Oops! Error while resetting chat session")
-			tp.finishProcessing(chatID, sessionID)
+			tp.logger().Error("failed to reset chat channel", "channelID", channelID, "error", err)
+			_ = tp.sendTextMessage(ctx, chatIntID, "Oops! Error while resetting chat channel")
+			tp.finishProcessing(channelID)
 			return
 		}
-		tp.clearSessionID(chatID)
-		_ = tp.sendTextMessage(ctx, chatIntID, "Chat session has been reset.")
-		tp.finishProcessing(chatID, sessionID)
+		tp.clearChannel(channelID)
+		_ = tp.sendTextMessage(ctx, chatIntID, "Chat channel has been reset.")
+		tp.finishProcessing(channelID)
 		return
 
 	case "/model_providers":
 		providers, err := tp.pluginClient.GetListModelProvider(ctx)
 		if err != nil {
-			tp.pluginClient.Logger.Error("failed to get list model provider", "chatID", chatID, "error", err)
+			tp.logger().Error("failed to get list model provider", "channelID", channelID, "error", err)
 			_ = tp.sendTextMessage(ctx, chatIntID, "Oops! Error while getting list model providers")
-			tp.finishProcessing(chatID, sessionID)
+			tp.finishProcessing(channelID)
 			return
 		}
 
@@ -116,19 +107,19 @@ func (tp *TelegramPlugin) handleSingleMessage(ctx context.Context, update *teleg
 			idx = idx + 1
 		}
 		_ = tp.sendTextMessage(ctx, chatIntID, msg.String())
-		tp.finishProcessing(chatID, sessionID)
+		tp.finishProcessing(channelID)
 		return
 	}
 
-	err := tp.pluginClient.SendChatMessage(ctx, sessionID, update.Message.Text)
+	err := tp.pluginClient.SendChatMessage(ctx, channelID, update.Message.Text)
 	if err != nil {
 		_ = tp.sendTextMessage(ctx, chatIntID, "Oops! Error while sending messages")
-		tp.finishProcessing(chatID, sessionID)
+		tp.finishProcessing(channelID)
 		return
 	}
 }
 
-func (tp *TelegramPlugin) handleApprovalCommand(ctx context.Context, chatID string, chatIntID int64, text string) bool {
+func (tp *TelegramPlugin) handleApprovalCommand(ctx context.Context, channelID string, chatIntID int64, text string) bool {
 	fields := strings.Fields(text)
 	if len(fields) == 0 {
 		return false
@@ -142,14 +133,14 @@ func (tp *TelegramPlugin) handleApprovalCommand(ctx context.Context, chatID stri
 		return true
 	}
 
-	approval, ok := tp.getPendingApproval(fields[1], chatID)
+	approval, ok := tp.getPendingApproval(fields[1], channelID)
 	if !ok {
 		_ = tp.sendTextMessage(ctx, chatIntID, "That approval request is no longer pending.")
 		return true
 	}
 	accept := command == "/approve"
-	if err := tp.pluginClient.SubmitToolApproval(ctx, approval.sessionID, fields[1], accept); err != nil {
-		tp.pluginClient.Logger.Error("failed to submit tool approval", "requestID", fields[1], "error", err)
+	if err := tp.pluginClient.SubmitToolApproval(ctx, approval.channelID, fields[1], accept); err != nil {
+		tp.logger().Error("failed to submit tool approval", "requestID", fields[1], "error", err)
 		_ = tp.sendTextMessage(ctx, chatIntID, "Could not submit your decision. Please try again.")
 		return true
 	}
@@ -169,7 +160,7 @@ func (tp *TelegramPlugin) handleCallbackQuery(update telego.Update) {
 	}
 
 	chatIntID := cq.Message.GetChat().ID
-	chatID := strconv.FormatInt(chatIntID, 10)
+	channelID := strconv.FormatInt(chatIntID, 10)
 
 	parts := strings.SplitN(cq.Data, ":", 2)
 	if len(parts) != 2 {
@@ -197,7 +188,7 @@ func (tp *TelegramPlugin) handleCallbackQuery(update telego.Update) {
 		return
 	}
 
-	approval, ok := tp.getPendingApproval(requestID, chatID)
+	approval, ok := tp.getPendingApproval(requestID, channelID)
 	if !ok {
 		_ = tp.bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 			CallbackQueryID: cq.ID,
@@ -206,8 +197,8 @@ func (tp *TelegramPlugin) handleCallbackQuery(update telego.Update) {
 		return
 	}
 
-	if err := tp.pluginClient.SubmitToolApproval(context.Background(), approval.sessionID, requestID, accept); err != nil {
-		tp.pluginClient.Logger.Error("failed to submit tool approval via button", "requestID", requestID, "error", err)
+	if err := tp.pluginClient.SubmitToolApproval(context.Background(), approval.channelID, requestID, accept); err != nil {
+		tp.logger().Error("failed to submit tool approval via button", "requestID", requestID, "error", err)
 		_ = tp.bot.AnswerCallbackQuery(context.Background(), &telego.AnswerCallbackQueryParams{
 			CallbackQueryID: cq.ID,
 			Text:            "Could not submit your decision. Please try again.",

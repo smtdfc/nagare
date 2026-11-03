@@ -11,7 +11,7 @@ use nagare_ipc::Connector;
 use crate::config::ConnectConfig;
 use crate::dtos::{
     HANDSHAKE_FAILED_EVENT, HANDSHAKE_SUCCESS_EVENT, PLUGIN_TOOL_CALL_EVENT,
-    PREPARE_CHAT_SESSION_FAILED_EVENT, PREPARE_CHAT_SESSION_SUCCESS_EVENT, Payload,
+    PREPARE_CHAT_CHANNEL_FAILED_EVENT, PREPARE_CHAT_CHANNEL_SUCCESS_EVENT, Payload,
     PluginToolCallEventPayload, RECEIVED_CHAT_MESSAGE_EVENT, REGISTER_PLUGIN_TOOL_FAILED_EVENT,
     REGISTER_PLUGIN_TOOL_SUCCESS_EVENT, REGISTER_TOOL_CATEGORIES_FAILED_EVENT,
     REGISTER_TOOL_CATEGORIES_SUCCESS_EVENT, RESET_CHAT_CHANNEL_FAILED_EVENT,
@@ -33,7 +33,7 @@ pub struct ActionResult<S, F> {
 }
 
 /// Callback for incoming chat chunks.
-pub type OnReceivedChatMessage = Arc<dyn Fn(String, String, String) + Send + Sync>;
+pub type OnReceivedChatMessage = Arc<dyn Fn(String, String) + Send + Sync>;
 
 pub type OnOtherMessage = Arc<dyn Fn(String, Payload<serde_json::Value>) + Send + Sync>;
 
@@ -78,9 +78,7 @@ impl PluginClient {
                 ),
                 pending_requests: Mutex::new(HashMap::new()),
                 tools: Mutex::new(Vec::new()),
-                on_received_chat_message: RwLock::new(Arc::new(
-                    |_: String, _: String, _: String| {},
-                )),
+                on_received_chat_message: RwLock::new(Arc::new(|_: String, _: String| {})),
                 on_other_message: RwLock::new(Arc::new(
                     |_: String, _: Payload<serde_json::Value>| {},
                 )),
@@ -127,7 +125,7 @@ impl PluginClient {
 
     pub fn set_on_received_chat_message(
         &self,
-        cb: impl Fn(String, String, String) + Send + Sync + 'static,
+        cb: impl Fn(String, String) + Send + Sync + 'static,
     ) {
         *self.inner.on_received_chat_message.write().unwrap() = Arc::new(cb);
     }
@@ -299,8 +297,8 @@ impl PluginClient {
         match payload.event.as_str() {
             HANDSHAKE_SUCCESS_EVENT
             | HANDSHAKE_FAILED_EVENT
-            | PREPARE_CHAT_SESSION_FAILED_EVENT
-            | PREPARE_CHAT_SESSION_SUCCESS_EVENT
+            | PREPARE_CHAT_CHANNEL_FAILED_EVENT
+            | PREPARE_CHAT_CHANNEL_SUCCESS_EVENT
             | REGISTER_PLUGIN_TOOL_SUCCESS_EVENT
             | REGISTER_PLUGIN_TOOL_FAILED_EVENT
             | SEND_CHAT_MESSAGE_SUCCESS_EVENT
@@ -345,7 +343,7 @@ impl PluginClient {
                     }
                     Ok(d) => {
                         let cb = self.inner.on_received_chat_message.read().unwrap().clone();
-                        cb(d.session_id, d.channel_id, d.message);
+                        cb(d.channel_id, d.message);
                     }
                 }
             }
@@ -390,8 +388,8 @@ mod tests {
     async fn operations_without_connection_fail() {
         let p = PluginClient::new();
         assert!(p.handshake().await.is_err());
-        assert!(p.prepare_chat_session("chat-123").await.is_err());
-        assert!(p.send_chat_message("session-1", "hello").await.is_err());
+        assert!(p.prepare_chat_channel("chat-123").await.is_err());
+        assert!(p.send_chat_message("chat-123", "hello").await.is_err());
         assert!(p.reset_chat_channel("chat-123").await.is_err());
     }
 
@@ -410,8 +408,8 @@ mod tests {
         let p = PluginClient::new();
         let received = Arc::new(Mutex::new(false));
         let r2 = received.clone();
-        p.set_on_received_chat_message(move |s, c, m| {
-            if s == "sess-1" && c == "chan-1" && m == "test chunk" {
+        p.set_on_received_chat_message(move |c, m| {
+            if c == "chan-1" && m == "test chunk" {
                 *r2.lock().unwrap() = true;
             }
         });
@@ -419,7 +417,6 @@ mod tests {
             event: RECEIVED_CHAT_MESSAGE_EVENT.to_string(),
             request_id: "r1".to_string(),
             data: serde_json::json!({
-                "sessionID": "sess-1",
                 "channelID": "chan-1",
                 "message": "test chunk",
             }),
@@ -442,7 +439,6 @@ mod tests {
             event: "other-message".to_owned(),
             request_id: "r1".to_string(),
             data: serde_json::json!({
-                "sessionID": "sess-1",
                 "channelID": "chan-1",
                 "message": "test chunk",
             }),
