@@ -115,8 +115,8 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          chmod +x ./build.sh
-          ./build.sh
+          chmod +x ./scripts/build.sh
+          ./scripts/build.sh
 
       # Unix platforms use tar.gz.
       - name: Archive binaries (Unix)
