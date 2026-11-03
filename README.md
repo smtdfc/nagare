@@ -73,7 +73,14 @@ Launch the web UI:
 nagare web
 ```
 
-Then visit [http://localhost:3005](http://localhost:3005) to configure your API keys, chat with your assistant, and manage plugins.
+The dashboard opens in your browser already signed in: the CLI generates a token
+and hands the gateway URL to the UI. Use `--no-open` to print the sign-in URL
+instead, or `--gateway http://host:9832` when the gateway runs on another
+machine.
+
+To open the dashboard manually, visit [http://localhost:3005](http://localhost:3005)
+and paste a token. The gateway defaults to `http://localhost:9832`; use the
+**Advanced** link on the sign-in page to point somewhere else.
 
 ---
 
