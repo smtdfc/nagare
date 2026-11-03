@@ -365,6 +365,36 @@ func (s *SessionManager) GetPluginSession(ctx context.Context, sessionID string,
 	return s.sessionMapper.ToDomain(sessionEntity), nil
 }
 
+// GetPluginSessionByChannel resolves the chat session a plugin channel maps to.
+// Plugins only ever deal with channel ids; the session id stays inside core.
+func (s *SessionManager) GetPluginSessionByChannel(ctx context.Context, channelID string, targetID string) (*session.Info, error) {
+	plugin, err := s.pluginRepo.FindById(ctx, targetID)
+	if err != nil {
+		s.logger.Error("failed to get session", "channel_id", channelID, "target_id", targetID, "err", err)
+		return nil, custom_errors.ErrGetSessionFailed
+	}
+	if plugin == nil {
+		return nil, custom_errors.ErrPluginNotFound
+	}
+
+	sessionEntity, err := s.sessionRepo.FindByChannelID(
+		ctx,
+		session.PLUGIN.ToString(),
+		plugin.ID.String(),
+		channelID,
+	)
+	if err != nil {
+		s.logger.Error("failed to get session", "channel_id", channelID, "package_name", plugin.PackageName, "err", err)
+		return nil, custom_errors.ErrGetSessionFailed
+	}
+
+	if sessionEntity == nil {
+		return nil, custom_errors.ErrSessionNotFound
+	}
+
+	return s.sessionMapper.ToDomain(sessionEntity), nil
+}
+
 func (s *SessionManager) GetChatState(ctx context.Context, sessionID string) (*session.State, error) {
 	chatSession, err := s.sessionRepo.FindSessionWithMessages(ctx, sessionID)
 	if err != nil {
