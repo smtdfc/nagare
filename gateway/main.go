@@ -1,5 +1,5 @@
-//go:build !dix
-// +build !dix
+//go:build !dix && !goverter
+// +build !dix,!goverter
 
 //go:generate dix wire
 package main
