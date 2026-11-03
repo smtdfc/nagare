@@ -98,19 +98,11 @@ jobs:
             Write-Host "No standalone GCC/Clang found; checking the Go build environment."
           }
 
-      - name: Install project dependencies
-        run: pnpm install
-
-      - name: Install Dix
-        run: go install github.com/smtdfc/dix@latest
-
-      - name: Install Wails CLI
-        run: go install github.com/wailsapp/wails/v3/cmd/wails3@latest
-
-      - name: Verify Wails CLI
+      - name: Prepare
         shell: bash
         run: |
-          wails3 version
+          chmod +x ./scripts/prepare.sh
+          ./scripts/prepare.sh
 
       - name: Build
         shell: bash
