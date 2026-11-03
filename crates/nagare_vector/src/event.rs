@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use serde::{Deserialize, Serialize};
 
 pub const ADD_VECTOR_EVENT: &str = "internal:vector:add";
