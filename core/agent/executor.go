@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"errors"
 	"strings"
 	"time"
 
@@ -36,24 +37,36 @@ func (a *Executor) ExecuteTool(ctx *context.ExecuteContext, toolCall *tool.Call)
 	return result
 }
 
-func (a *Executor) HandleError(message *messages.ResponseFailedMessage) error {
+func (a *Executor) HandleError(message *messages.ResponseFailedMessage) *custom_errors.NagareCoreError {
+	cause := strings.TrimSpace(message.Cause)
+
+	withCause := func(base *custom_errors.NagareCoreError) *custom_errors.NagareCoreError {
+		if cause == "" {
+			return base
+		}
+
+		return custom_errors.NewNagareCoreError(base.Code, cause)
+	}
+
 	switch message.Code {
 	case "429":
-		return custom_errors.ErrModelQuotaExceed
+		return withCause(custom_errors.ErrModelQuotaExceed)
 	case "402":
-		return custom_errors.ErrModelPaymentRequired
-	case "500":
-		return custom_errors.ErrModelProviderAdapter
-	case "503":
-		return custom_errors.ErrModelProviderAdapter
-	case "504":
-		return custom_errors.ErrModelProviderAdapter
+		return withCause(custom_errors.ErrModelPaymentRequired)
+	case "404":
+		return withCause(custom_errors.ErrModelProviderNotFound)
+	case "500", "502", "503", "504":
+		return withCause(custom_errors.ErrModelProviderAdapter)
+	}
+
+	if cause != "" {
+		return custom_errors.NewNagareCoreError(custom_errors.ErrUnknown.Code, cause)
 	}
 
 	return custom_errors.ErrUnknown
 }
 
-func (a *Executor) Execute(ctx *context.ExecuteContext, model string, modelAdapter provider.ModelProviderAdapter, output message.WriteOnlyChannel) {
+func (a *Executor) Execute(ctx *context.ExecuteContext, model string, modelAdapter provider.ModelProviderAdapter, output message.WriteOnlyChannel, opts *InvokeOption) {
 	defer close(output)
 
 	isError := false
@@ -61,16 +74,20 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, modelAdapt
 	var textBuilder strings.Builder
 	isTextItem := false
 	flushText := func() {
+
 		if !isTextItem {
 			return
 		}
 
-		a.state.AppendMessage(
-			messages.NewTextMessage(
-				messages.AGENT,
-				textBuilder.String(),
-			),
-		)
+		if !opts.DryMode {
+			a.state.AppendMessage(
+				messages.NewTextMessage(
+					messages.AGENT,
+					textBuilder.String(),
+				),
+			)
+		}
+
 		isTextItem = false
 		textBuilder.Reset()
 	}
@@ -80,7 +97,7 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, modelAdapt
 	for {
 		a.state.ResetToolCall()
 		a.state.IncreaseLoopCounter()
-		var executeError error
+		var executeError *custom_errors.NagareCoreError
 		select {
 		case <-ctx.Done():
 			a.logger.Error("Agent received cancel request")
@@ -109,7 +126,16 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, modelAdapt
 			}
 			isError = true
 			a.logger.Error("Agent error", "error", err)
-			output <- messages.NewAgentErrorMessage(err.Error(), custom_errors.ErrModelProviderAdapter.Code)
+
+			code := custom_errors.ErrModelProviderAdapter.Code
+			details := err.Error()
+			var coreErr *custom_errors.NagareCoreError
+			if errors.As(err, &coreErr) && coreErr != nil {
+				code = coreErr.Code
+				details = coreErr.Details
+			}
+
+			output <- messages.NewAgentErrorMessage(details, code)
 			break
 		}
 
@@ -122,8 +148,11 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, modelAdapt
 				isTextItem = true
 
 			case messages.ToolCallMessageType:
-				flushText()
 				_, msg := helpers.SafeCast[*messages.ToolCallMessage](chunk)
+				if opts.DryMode {
+					continue
+				}
+				flushText()
 				a.state.AddToolCall(tool.NewToolCall(
 					msg.CallID,
 					msg.Name,
@@ -148,12 +177,12 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, modelAdapt
 
 		if executeError != nil {
 			isError = true
-			a.logger.Info("Agent loop exited due to an error")
-			output <- messages.NewAgentErrorMessage(executeError.Error(), custom_errors.ErrAgentLoop.Code)
+			a.logger.Info("Agent loop exited due to an error", "code", executeError.Code)
+			output <- messages.NewAgentErrorMessage(executeError.Details, executeError.Code)
 			break
 		}
 
-		if !a.state.IsToolCall() {
+		if !a.state.IsToolCall() || opts.NoToolCall {
 			break
 		}
 

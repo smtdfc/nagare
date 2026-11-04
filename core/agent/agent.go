@@ -13,7 +13,9 @@ import (
 )
 
 type InvokeOption struct {
-	SessionID string
+	SessionID  string
+	NoToolCall bool
+	DryMode    bool
 }
 
 type Agent struct {
@@ -59,7 +61,7 @@ func (a *Agent) Invoke(ctx context.Context, inputMessages messages.ListMessage, 
 			ectx.SessionID = options.SessionID
 		}
 
-		a.executor.Execute(ectx, model, a.modelAdapter, output)
+		a.executor.Execute(ectx, model, a.modelAdapter, output, options)
 	})()
 	return output, nil
 }

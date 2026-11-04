@@ -2,7 +2,6 @@ package agent
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	context2 "github.com/smtdfc/nagare/core/context"
@@ -44,10 +43,27 @@ func TestExecutor_HandleError(t *testing.T) {
 		t.Run(tc.code, func(t *testing.T) {
 			errMsg := messages.NewResponseFailedMessage(tc.code, "error details")
 			err := ex.HandleError(errMsg)
-			if !errors.Is(err, tc.expectedErr) {
-				t.Errorf("expected %v, got %v", tc.expectedErr, err)
+			if err.Code != tc.expectedErr.Code {
+				t.Errorf("expected code %v, got %v", tc.expectedErr.Code, err.Code)
+			}
+			// The provider cause must survive, otherwise the UI can only show a
+			// generic message.
+			if err.Details != "error details" {
+				t.Errorf("expected provider cause to be preserved, got %q", err.Details)
 			}
 		})
+	}
+}
+
+func TestExecutor_HandleError_FallsBackWithoutCause(t *testing.T) {
+	ex := &Executor{}
+
+	err := ex.HandleError(messages.NewResponseFailedMessage("500", ""))
+	if err.Code != custom_errors.ErrModelProviderAdapter.Code {
+		t.Errorf("expected %q, got %q", custom_errors.ErrModelProviderAdapter.Code, err.Code)
+	}
+	if err.Details != custom_errors.ErrModelProviderAdapter.Details {
+		t.Errorf("expected default details, got %q", err.Details)
 	}
 }
 
@@ -68,14 +84,14 @@ func TestExecutor_Execute_ContextCancelled(t *testing.T) {
 		state:  state,
 		logger: baseLogger,
 	}
-
+	opts := &InvokeOption{}
 	out := make(chan messages.Message)
 	ectx := &context2.ExecuteContext{
 		Context:        ctx,
 		MessageChannel: out,
 	}
 
-	go ex.Execute(ectx, "test-model", &mockCancelAdapter{}, out)
+	go ex.Execute(ectx, "test-model", &mockCancelAdapter{}, out, opts)
 
 	var received []messages.Message
 	for msg := range out {
