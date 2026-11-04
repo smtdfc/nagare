@@ -103,23 +103,33 @@ package main
 
 import (
 	"context"
-	"github.com/smtdfc/nagare/plugin/client"
+	"fmt"
+
+	"github.com/smtdfc/nagare/pkgs/plugin/sdk"
 )
 
+type BatteryArgs struct{}
+
 func main() {
-	plugin := client.NewPlugin()
+	ctx := context.Background()
+	plugin := sdk.NewPlugin()
 
-	// Register a new tool the AI assistant can call
-	plugin.RegisterTool(
-		"get_battery_status",
-		"Check the current battery level of the laptop",
-		func(ctx context.Context, args struct{}) (string, error) {
-			// Query OS battery status...
-			return "Battery is at 85%, discharging", nil
-		},
-	)
+	plugin.Start(ctx, func() {
+		tool := sdk.DefineTool[BatteryArgs, string](
+			"get_battery_status",
+			"Check the current battery level of the laptop",
+			func(ctx *context.Context, args *BatteryArgs) (*string, error) {
+				// Query OS battery status...
+				status := "Battery is at 85%, discharging"
+				return &status, nil
+			},
+			nil,
+		)
 
-	plugin.ConnectAndServe()
+		if err := plugin.RegisterPluginTool(ctx, tool); err != nil {
+			fmt.Println("failed to register tool:", err)
+		}
+	})
 }
 ```
 

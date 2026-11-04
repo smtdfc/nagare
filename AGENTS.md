@@ -70,7 +70,7 @@ chore(repo): bump root pnpm dependencies
 Allowed module/domain prefixes (``docs`` is a logical domain, not a directory):
 
 ```
-core  gateway  client  plugin  pkgs  cli  dtos  crates  installers  scripts  repo  docs
+core  gateway  client  pkgs  cli  plugins  crates  installers  scripts  repo  docs
 ```
 
 The scope MUST mirror the real directory name, including underscores:
@@ -103,7 +103,7 @@ Correct:
 
 ```
 fix(gateway/chat): reject empty message
-feat(plugin/builtins/telegram): add telegram command
+feat(plugins/telegram): add telegram command
 refactor(core/tool/builtins): split approval helper
 ```
 
@@ -122,13 +122,15 @@ Use the deepest directory that owns the change:
 | `gateway/main.go` | `gateway` |
 | `gateway/chat/controller.go` | `gateway/chat` |
 | `gateway/common/middlewares/auth.go` | `gateway/common/middlewares` |
+| `gateway/dtos/rest/base.go` | `gateway/dtos/rest` |
 | `pkgs/messages/hil.go` | `pkgs/messages` |
-| `plugin/builtins/telegram/handler.go` | `plugin/builtins/telegram` |
+| `pkgs/plugin/sdk/client.go` | `pkgs/plugin/sdk` |
+| `plugins/telegram/handler.go` | `plugins/telegram` |
 | `client/web/vite.config.ts` | `client/web` |
 | `README.md`, `AGENTS.md`, or any documentation file | `docs` |
 | `.github/workflows/release.yml` | `repo` |
 
-Module-only scopes (`core`, `gateway`, `client`, `plugin`, `pkgs`, `cli`, `dtos`, `crates`, `installers`, `scripts`) are reserved for module-root files and genuinely cross-domain changes inside that module.
+Module-only scopes (`core`, `gateway`, `client`, `pkgs`, `cli`, `plugins`, `crates`, `installers`, `scripts`) are reserved for module-root files and genuinely cross-domain changes inside that module.
 
 Documentation is the exception to the deepest-directory rule: every documentation change uses `docs`, even when the file lives inside a module directory.
 
@@ -186,6 +188,7 @@ This catalogue is exhaustive for the current repository. When a change introduce
 | `gateway/chat` | Chat REST/WebSocket controllers, service, and worker. |
 | `gateway/common` | Shared gateway infrastructure. Sub-scopes: `gateway/common/config`, `gateway/common/custom_errors`, `gateway/common/guards`, `gateway/common/middlewares`, `gateway/common/websocket`. |
 | `gateway/credential` | Credential endpoints and service. |
+| `gateway/dtos` | Wire DTOs used by the gateway. Sub-scopes: `gateway/dtos/rest`, `gateway/dtos/websocket`. |
 | `gateway/model_provider` | Model provider endpoints and service. |
 | `gateway/plugin` | Plugin endpoints and service. |
 | `gateway/settings` | Settings endpoints and service. |
@@ -202,15 +205,11 @@ This catalogue is exhaustive for the current repository. When a change introduce
 | `client/ui` | Shared React components and styles. |
 | `client/web` | React web application, routes, and web build configuration. |
 
-### 4.4 `plugin`
+### 4.4 `plugins`
 
 | Scope | Use for |
 |---|---|
-| `plugin/builder` | Plugin compiler, packager, metadata, and build tooling. |
-| `plugin/client` | Plugin runtime client, handshake, tool bridge, and model provider bridge. |
-| `plugin/dtos` | Plugin-facing DTOs. |
-| `plugin/metadata` | Plugin metadata contract. |
-| `plugin/builtins/telegram` | Telegram built-in plugin. |
+| `plugins/telegram` | Telegram built-in plugin. |
 
 ### 4.5 `pkgs`
 
@@ -221,18 +220,17 @@ This catalogue is exhaustive for the current repository. When a change introduce
 | `pkgs/ipc` | Unix and Windows IPC transport, dialer, and listener. |
 | `pkgs/messages` | Wire message types, including HIL approval messages. |
 | `pkgs/paths` | Application path resolution. |
+| `pkgs/plugin` | Plugin SDK modules. Sub-scopes: `pkgs/plugin/builder`, `pkgs/plugin/contracts`, `pkgs/plugin/metadata`, `pkgs/plugin/sdk`. |
 | `pkgs/security` | Keyring, RSA, token, and payload security helpers. |
 | `pkgs/system` | OS integrations: browser, files, power, processes, and volume. |
 
-### 4.6 `cli`, `dtos`, `crates`, `installers`, `scripts`
+### 4.6 `cli`, `crates`, `installers`, `scripts`
 
 | Scope | Use for |
 |---|---|
 | `cli` | CLI entrypoint and root command. |
 | `cli/cmd` | CLI subcommands (`gateway`, `plugin`, `auth`, `doctor`, `web`, `desktop`). |
 | `cli/helpers` | Gateway process, signal, token, and web UI helpers. |
-| `dtos/rest` | REST request and response DTOs. |
-| `dtos/websocket` | WebSocket DTOs. |
 | `crates/nagare_plugin` | Rust plugin crate. |
 | `crates/nagare_vector` | Rust vector extension crate. |
 | `installers/linux` | Linux installer. |
@@ -293,7 +291,7 @@ docs(docs): document local gateway setup
 docs(docs): update AGENTS.md commit rules
 chore(pkgs/security): bump keyring dependency
 chore(client/web): bump react-router
-feat(plugin/builtins/telegram): deduplicate updates by message id
+feat(plugins/telegram): deduplicate updates by message id
 feat(client/web): add approval prompt
 feat(crates/nagare_vector): expose batch search
 chore(repo): add release workflow
