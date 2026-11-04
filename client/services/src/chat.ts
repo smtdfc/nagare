@@ -31,6 +31,8 @@ import {
   type UpdateChatSessionModelSettingsResponse,
   CancelChatEndpoint,
   CancelChatRequest,
+  CompactConversationEndpoint,
+  type CompactConversationResponse,
 } from "@nagare-app/dtos";
 import { catchError } from "./lib/errors.js";
 import type { Message } from "@nagare-app/messages";
@@ -247,6 +249,17 @@ export class ChatService {
         CancelChatEndpoint,
         payload,
       );
+      return response.data.data;
+    } catch (error) {
+      catchError(error);
+    }
+  }
+
+  static async compactConversation(sessionID: string) {
+    try {
+      const response = await instance.post<
+        ApiResponse<CompactConversationResponse>
+      >(CompactConversationEndpoint, { sessionID });
       return response.data.data;
     } catch (error) {
       catchError(error);
