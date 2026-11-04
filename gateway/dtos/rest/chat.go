@@ -5,6 +5,7 @@ import "github.com/smtdfc/nagare/pkgs/messages"
 const (
 	SendChatMessageEndpoint                = "/api/v1/user/chat/send"
 	CancelChatEndpoint                     = "/api/v1/user/chat/cancel"
+	CompactConversationEndpoint            = "/api/v1/user/chat/compact"
 	CreateChatSessionEndpoint              = "/api/v1/user/chat/session/create"
 	ListChatSessionsEndpoint               = "/api/v1/user/chat/session/list"
 	GetChatSessionEndpoint                 = "/api/v1/user/chat/session/:id"
@@ -29,6 +30,14 @@ type SendChatMessageRequest struct {
 }
 
 type SendChatMessageResponse struct {
+	InvokeID string `json:"invokeID"`
+}
+
+type CompactConversationRequest struct {
+	SessionID string `json:"sessionID"`
+}
+
+type CompactConversationResponse struct {
 	InvokeID string `json:"invokeID"`
 }
 
