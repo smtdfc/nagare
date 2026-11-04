@@ -63,6 +63,25 @@ func (c *Controller) CancelChat(ctx fiber.Ctx) error {
 	return utils.ResponseSuccess(ctx, map[any]any{}, 200)
 }
 
+func (c *Controller) CompactConversation(ctx fiber.Ctx) error {
+	ownerID, err := authenticatedUserID(ctx)
+	if err != nil {
+		return err
+	}
+
+	request, err := utils.ParseBody[*rest.CompactConversationRequest](ctx)
+	if err != nil {
+		return err
+	}
+
+	data, err := c.chatService.CompactConversation(ctx, ownerID, request)
+	if err != nil {
+		return err
+	}
+
+	return utils.ResponseSuccess(ctx, data, 200)
+}
+
 func (c *Controller) CreateSession(ctx fiber.Ctx) error {
 	ownerID, err := authenticatedUserID(ctx)
 	if err != nil {

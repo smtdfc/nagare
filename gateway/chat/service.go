@@ -43,6 +43,26 @@ func (c *Service) SendMessage(ctx context.Context, ownerID string, request *rest
 	}, nil
 }
 
+func (c *Service) CompactConversation(ctx context.Context, ownerID string, request *rest.CompactConversationRequest) (*rest.CompactConversationResponse, error) {
+	invokeID := uuid.New().String()
+	_, err := c.sessionMgr.GetUserSession(ctx, request.SessionID, ownerID)
+	if err != nil {
+		return nil, err
+	}
+
+	c.chatEventBus.Publish(ctx, event_bus.CompactConversationEvent, &event_bus.CompactConversationEventPayload{
+		InvokeID:   invokeID,
+		RequestID:  uuid.New().String(),
+		SessionID:  request.SessionID,
+		SenderType: event_bus.User,
+		SenderID:   ownerID,
+	})
+
+	return &rest.CompactConversationResponse{
+		InvokeID: invokeID,
+	}, nil
+}
+
 func (c *Service) CancelChat(ctx context.Context, ownerID string, request *rest.CancelChatRequest) error {
 	_, err := c.sessionMgr.GetUserSession(ctx, request.SessionID, ownerID)
 	if err != nil {
