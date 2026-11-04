@@ -19,7 +19,10 @@ import {
 import type { AddModelProviderRequest, Credential } from "@nagare-app/dtos";
 import { useEffect, useState } from "react";
 
-const COMPATIBLE_OPTIONS = [{ value: "OpenAI", label: "OpenAI" }];
+const COMPATIBLE_OPTIONS = [
+  { value: "OpenAI", label: "OpenAI" },
+  { value: "Google", label: "Google (Gemini)" },
+];
 
 interface ModelProviderSheetProps {
   open: boolean;
