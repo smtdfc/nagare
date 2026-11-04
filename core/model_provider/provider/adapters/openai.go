@@ -70,6 +70,22 @@ func (o *OpenAICompatibleAdapter) TransformToProviderMessage(msg messages.Messag
 			}, nil
 		}
 
+	case *messages.ConversationSummaryMessage:
+		item := &responses.ResponseInputItemMessageParam{
+			Type: "message",
+			Content: responses.ResponseInputMessageContentListParam{
+				responses.ResponseInputContentUnionParam{
+					OfInputText: &responses.ResponseInputTextParam{
+						Text: fmt.Sprintf("Chat summary: %s", t.Summary),
+					},
+				},
+			},
+			Role: "system",
+		}
+		return responses.ResponseInputItemUnionParam{
+			OfInputMessage: item,
+		}, nil
+
 	case *messages.ToolResultMessage:
 		return responses.ResponseInputItemUnionParam{
 			OfFunctionCallOutput: &responses.ResponseInputItemFunctionCallOutputParam{
