@@ -66,6 +66,7 @@ export type Message =
     | ResponseCompletedMessage
     | ResponseFailedMessage
     | ResponseStartedMessage
+	| ConversationSummaryMessage
     | TextMessage
     | ToolCallMessage
     | ToolResultMessage;
