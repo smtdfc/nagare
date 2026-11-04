@@ -3,9 +3,10 @@ package event_bus
 import "github.com/smtdfc/nagare/pkgs/messages"
 
 var (
-	SendChatMessageEvent  EventType = "event:chat:send"
-	CancelChatEvent       EventType = "event:chat:cancel"
-	ChatMessageChunkEvent EventType = "event:chat:chunk"
+	SendChatMessageEvent     EventType = "event:chat:send"
+	CompactConversationEvent EventType = "event:chat:compact"
+	CancelChatEvent          EventType = "event:chat:cancel"
+	ChatMessageChunkEvent    EventType = "event:chat:chunk"
 )
 
 type SendChatMessageEventPayload struct {
@@ -21,6 +22,19 @@ type SendChatMessageEventPayload struct {
 
 func (c *SendChatMessageEventPayload) GetEventType() EventType {
 	return SendChatMessageEvent
+}
+
+type CompactConversationEventPayload struct {
+	RequestID  string
+	InvokeID   string
+	SessionID  string
+	ChannelID  string
+	SenderType SenderType
+	SenderID   string
+}
+
+func (c *CompactConversationEventPayload) GetEventType() EventType {
+	return CompactConversationEvent
 }
 
 type ChatMessageChunkEventPayload struct {
