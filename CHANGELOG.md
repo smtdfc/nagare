@@ -1,5 +1,104 @@
 # Changelog
 
+## [2.0.0](https://github.com/smtdfc/nagare/compare/v1.14.0...v2.0.0) (2026-11-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* **pkgs/plugin:** plugin authors must import pkgs/plugin/sdk and call sdk.NewPlugin instead of plugin/client.NewPlugin.
+* **plugin/dtos:** plugin event plugin:prepare_chat_session is now plugin:prepare_chat_channel, and plugins built against the old SDK must be rebuilt.
+
+### Features
+
+* **cli/cmd:** accept -sign as alias for --sign ([22b3766](https://github.com/smtdfc/nagare/commit/22b3766f595fbf59047794cc5ca4d76700b2b84b))
+* **cli:** add -v / --version flag to print version info ([e2df73d](https://github.com/smtdfc/nagare/commit/e2df73d002d5b744bfd7fbceec30fd20a45397f5))
+* **client/desktop:** add custom event "time" with automatic generation ([71e3932](https://github.com/smtdfc/nagare/commit/71e3932b926a9058b3e07b3785d412c613d50a21))
+* **client/desktop:** bootstrap session from launch url ([2b7ee05](https://github.com/smtdfc/nagare/commit/2b7ee05856c16f772189395e17d48de5158e44d2))
+* **client/services:** add compactConversation method to chat service ([71bdada](https://github.com/smtdfc/nagare/commit/71bdada0846e26f98966db29fed41d95f55532c0))
+* **client/services:** apply gateway and token from launch url ([c81c675](https://github.com/smtdfc/nagare/commit/c81c675604f591eefff8ac091aeff5a64071f6b7))
+* **client/services:** pass optional plugin signature attachment ([67f3f08](https://github.com/smtdfc/nagare/commit/67f3f08ed7e99dac0bbc67e902a6fad2aaba1d2a))
+* **client/services:** return plugin signature warnings ([e0833a7](https://github.com/smtdfc/nagare/commit/e0833a71811beef74a4b9c424a1c32fae388023e))
+* **client/ui:** add cancel functionality to ChatService and integrate with ChatInput ([3f77813](https://github.com/smtdfc/nagare/commit/3f7781394bd0613e32b0bf1b3793acb675667adf))
+* **client/ui:** add compact action trigger and conversation marker ([6a14c9e](https://github.com/smtdfc/nagare/commit/6a14c9e2ec4ecb67ba8c3635a09f72259df1e30c))
+* **client/ui:** add Google provider option ([dfed533](https://github.com/smtdfc/nagare/commit/dfed533f73c52499fbc23145960596e852e90d4c))
+* **client/ui:** hide gateway behind advanced on sign-in ([41cc982](https://github.com/smtdfc/nagare/commit/41cc982017a97a1b2e3b8dae6b6033a5e49405d0))
+* **client/ui:** render LaTeX math in chat messages ([d058b95](https://github.com/smtdfc/nagare/commit/d058b95c7a581196e448c6db80f9a07083addd3a))
+* **client/ui:** show warnings for unsigned plugins ([e0eeb54](https://github.com/smtdfc/nagare/commit/e0eeb54d9062d1cdc1f9ac5da5f9f7494864100d))
+* **client/ui:** upload plugin signatures from install sheet ([6b4bb21](https://github.com/smtdfc/nagare/commit/6b4bb2160c9e2fbe45fea8fd75b7ec7e464e3855))
+* **client/web:** bootstrap session from launch url ([952d5ef](https://github.com/smtdfc/nagare/commit/952d5ef9780ca7c081864fcebda6c485c3a61be1))
+* **cli:** start web ui with automatic sign-in ([9bc5fe5](https://github.com/smtdfc/nagare/commit/9bc5fe550ccf1f33dd8f928511124fb929005730))
+* **core/agent:** implement context cancellation handling in Execute method and add corresponding test ([3a71425](https://github.com/smtdfc/nagare/commit/3a71425d1853709e6f165e544ad0cd24a1c4f2b6))
+* **core/chat:** implement conversation compact invoker and worker ([a6033c7](https://github.com/smtdfc/nagare/commit/a6033c705c691c2d28c51aee09bb12b2d1379e42))
+* **core/custom_errors:** add cronjob and module sentinel errors ([e96bf0e](https://github.com/smtdfc/nagare/commit/e96bf0e5fef10d6e2def517df95c13b163d17ce4))
+* **core/custom_errors:** add plugin checksum mismatch error ([96d7ccc](https://github.com/smtdfc/nagare/commit/96d7ccca60dd8c0f20bd04349c78d1357655cada))
+* **core/custom_errors:** add provider message and stream errors ([0790fa2](https://github.com/smtdfc/nagare/commit/0790fa228b91140c296e6cc81382719f441954eb))
+* **core/event_bus:** add compact conversation event payload ([3060b53](https://github.com/smtdfc/nagare/commit/3060b535df968a6bd216d05d548b5bba0e0a857b))
+* **core/external_module:** add external module host scaffold ([f9e9ed9](https://github.com/smtdfc/nagare/commit/f9e9ed9af59b4b9fa9c16c625bd17024e9bb1fe3))
+* **core/mappers:** support conversation summary message mapping ([2b54426](https://github.com/smtdfc/nagare/commit/2b54426d598c409258d843bc1e1b5fd5b94ba0d9))
+* **core/model_provider:** add stateless Google Gemini adapter ([7f1057a](https://github.com/smtdfc/nagare/commit/7f1057ab61c19df25d21c99960f57a86f665aa19))
+* **core/persistence:** support saving conversation summary ([edad86b](https://github.com/smtdfc/nagare/commit/edad86b4509cbfb2cba435c2a21aa315bf97e942))
+* **core/plugin/host:** add special group policy and vector forwarding ([af90b5e](https://github.com/smtdfc/nagare/commit/af90b5e3380517e23ef3abc26c9fe81613bd92fd))
+* **core/plugin/manager:** verify detached signature files on install ([afbfad3](https://github.com/smtdfc/nagare/commit/afbfad32886a27b17f8c6b319213e62b859e4990))
+* **core/plugin/manager:** verify plugin archives and binaries ([51deac6](https://github.com/smtdfc/nagare/commit/51deac6daf282267260f94ed3a7c242414b85005))
+* **core/plugin:** add vector index feature and event contract ([6ef018d](https://github.com/smtdfc/nagare/commit/6ef018dfbcaeb604d655c66dbee1616d0c4edeb0))
+* **core/prompt:** add compact conversation prompt template ([dfc1419](https://github.com/smtdfc/nagare/commit/dfc1419d444202f90144ca977f9258f4609cb92d))
+* **core/prompt:** instruct model to use standard math delimiters ([be6baeb](https://github.com/smtdfc/nagare/commit/be6baeb3feea9f33631a434a95b78770f91ba8df))
+* **core:** persist plugin checksum and signature status ([c46c869](https://github.com/smtdfc/nagare/commit/c46c869ed387599dfd8d3e0a367692f0784750d7))
+* **core:** persist plugin last status ([5c905c6](https://github.com/smtdfc/nagare/commit/5c905c65c2dcf9a52503a1b2ea25ae3e5ebdf071))
+* **core:** replace task scheduling with cronjob scheduling ([14b1bd8](https://github.com/smtdfc/nagare/commit/14b1bd8e7dbba3a9f8097f7a21c1a8f952728c49))
+* **crates/nagare_ipc:** extract shared ipc transport ([34b0413](https://github.com/smtdfc/nagare/commit/34b04132419b28905f4fb6ec737d97bb0d1171a0))
+* **crates/nagare_module:** add external module sdk ([e3abddf](https://github.com/smtdfc/nagare/commit/e3abddfbc53602ac60719d33581b8e47ea637158))
+* **crates/nagare_vector:** run as a vector index plugin ([91ab769](https://github.com/smtdfc/nagare/commit/91ab76908c3dcbe692b0f2d771d1d38a45ee7ccc))
+* **dtos/rest:** accept detached plugin signature attachments ([221b0f3](https://github.com/smtdfc/nagare/commit/221b0f3253280406edcdf3de381f854a005c4de0))
+* **dtos/rest:** add CancelChat endpoint and request structure ([69cea5d](https://github.com/smtdfc/nagare/commit/69cea5dafeb011b5d84def15cab603af5f3d92de))
+* **dtos/rest:** expose plugin last status ([56091bf](https://github.com/smtdfc/nagare/commit/56091bf83c8ad95a6d4b4ef04a36220282236daf))
+* **dtos/rest:** expose plugin signature status and warnings ([e2042f3](https://github.com/smtdfc/nagare/commit/e2042f39debfa0354f1ab5006a5572f2dd0c6e54))
+* **gateway/app:** add branded gateway startup banner ([ba69312](https://github.com/smtdfc/nagare/commit/ba69312f5f41b375c5805ada97a2b3b130146395))
+* **gateway/app:** replace fiber banner with compact startup summary ([77ac66f](https://github.com/smtdfc/nagare/commit/77ac66fd21a6a4f527d0bd72a49d8e4cb79b3cbb))
+* **gateway/chat:** add CancelChat functionality and update routes ([6b749b1](https://github.com/smtdfc/nagare/commit/6b749b1582afd4a795a66cb845e2cd02ddcaef87))
+* **gateway/chat:** expose compact conversation REST endpoint ([e84e79a](https://github.com/smtdfc/nagare/commit/e84e79ad115dd1c8941aaa31e18c657a39767bc3))
+* **gateway/dtos:** add compact conversation endpoint DTOs ([935fdff](https://github.com/smtdfc/nagare/commit/935fdff875bb9ac9d8d3c194ea4d11a41863d36f))
+* **gateway/plugin:** resolve uploaded signature attachments ([94502ca](https://github.com/smtdfc/nagare/commit/94502cacf39e097ae78e4851aef4630cc2d091c1))
+* **gateway/plugin:** return plugin last status ([034b41a](https://github.com/smtdfc/nagare/commit/034b41a1dbfc0190c4b93da6914d3e65a3d9f2e0))
+* **gateway/plugin:** warn about unsigned plugin installs ([019654a](https://github.com/smtdfc/nagare/commit/019654ad0950a5e0d1ec8e9b68a728c7d91ec30b))
+* **installers/linux:** install external module binaries ([f962a54](https://github.com/smtdfc/nagare/commit/f962a548758dd47d6222605ee459c6b00c7cbf76))
+* **installers/window:** install external module binaries ([dc3784e](https://github.com/smtdfc/nagare/commit/dc3784e8b8fe9e6cd86fe9b1499d75c741d3b9f9))
+* **pkgs/helpers:** add channel merge helper ([d461ee2](https://github.com/smtdfc/nagare/commit/d461ee2009b691078a7b485cc625eea27ab6250a))
+* **pkgs/messages:** add conversation summary message types ([748b41b](https://github.com/smtdfc/nagare/commit/748b41bbad899032ca65e9043f2f48f853c23f2f))
+* **pkgs/paths:** add module directories and plugin data dir ([a9c8433](https://github.com/smtdfc/nagare/commit/a9c8433d19a458090b538efa33a2bb6de89d7916))
+* **pkgs/paths:** add trusted plugin key directory ([1c3e84e](https://github.com/smtdfc/nagare/commit/1c3e84ec839d1b402cedec09b22477a7ad6a23ab))
+* **pkgs/security:** add checksum and signature helpers ([ff17221](https://github.com/smtdfc/nagare/commit/ff17221cd7023f510ee7bd08bf961831bf5fa4c1))
+* **plugin/builder:** sign plugin archives during build ([d16491a](https://github.com/smtdfc/nagare/commit/d16491af558c44444b79c818db1bee524e8d477a))
+* **plugin/metadata:** add Ed25519 archive signing helpers ([4316727](https://github.com/smtdfc/nagare/commit/4316727f2b7dc7244a75f918aacf4e920af86c71))
+
+
+### Bug Fixes
+
+* **chat:** prevent agent pool leak and duplicate chat worker ([73db0b3](https://github.com/smtdfc/nagare/commit/73db0b3c60283a6216a5b6f1f452cacb9c63361f))
+* **cli/cmd:** check the module binary name in doctor ([52aabfb](https://github.com/smtdfc/nagare/commit/52aabfb56d57b9b23d9880666acbf467f8f132b3))
+* **client/services:** restore websocket auth and rooms after reconnect ([6847762](https://github.com/smtdfc/nagare/commit/684776255d579df0d6539adeefd1ff299b06028f))
+* **client/ui:** keep login state when websocket fails ([a4019a0](https://github.com/smtdfc/nagare/commit/a4019a050729d4b1029e4bbc3434f97145db8be4))
+* **core/external_module:** register handshake connection atomically ([2f3775d](https://github.com/smtdfc/nagare/commit/2f3775d5ed3737cafad8b9fbb2956c592e325c8a))
+* **core/external_module:** wait for modules to exit before killing ([c494f35](https://github.com/smtdfc/nagare/commit/c494f35821bce39cf390e584477a75eef551af1f))
+* **core/open-ai-adapter:** handle context cancellation in Send method stream error ([ffc6817](https://github.com/smtdfc/nagare/commit/ffc68170bac2e636075406046d2e5cb78de7c7b9))
+* **core/plugin/manager:** keep gateway up when a plugin fails ([210ffef](https://github.com/smtdfc/nagare/commit/210ffefded80131c87c5c150f922b67b5df9e572))
+* **core/tool:** handle missing result from dynamic tool calls ([bf1f63f](https://github.com/smtdfc/nagare/commit/bf1f63fdf53acbc53f70c9dc02c04c6b771ca617))
+* **core/tool:** require human approval for destructive built-in tools ([917b92b](https://github.com/smtdfc/nagare/commit/917b92b1fa6aaa1d3c2be66a97cc88ac573fd93e))
+* **crates/nagare_vector:** allow dead code for event module ([3c1b418](https://github.com/smtdfc/nagare/commit/3c1b41897f0f75aca3a11ff8a90e01b4cc0e637e))
+* **crates/nagare_vector:** flush index before exit and use u64 ids ([c794d53](https://github.com/smtdfc/nagare/commit/c794d53d79a04e58a094a2e41e18cb589fca837d))
+* **crates/nagare_vector:** reintroduce dead code allowance in vector_index ([2029299](https://github.com/smtdfc/nagare/commit/202929944c4aea0c469a9426116f082d5ee7a80e))
+* **gateway/app:** replace fiber startup banner with structured log ([af346ca](https://github.com/smtdfc/nagare/commit/af346cac5992c94f0de1e5ef22c785a429a43527))
+* **gateway/chat:** broadcast chunks without per-session workers ([c112a28](https://github.com/smtdfc/nagare/commit/c112a2807524497344369a7b411290b1665a804b))
+* **gateway:** start chat chunk broadcast worker ([1da6f7e](https://github.com/smtdfc/nagare/commit/1da6f7e15c41b1dcdcd889c39f3c2a225b5e7249))
+* **gateway:** update build constraints to exclude goverter ([4117b08](https://github.com/smtdfc/nagare/commit/4117b0873a6922a2e27069319ef9d45c6fd9b144))
+* **scripts:** ensure proper directory navigation before generating Go sources ([0b589c1](https://github.com/smtdfc/nagare/commit/0b589c149d88d1e56cc566138756d4956b10acc2))
+
+
+### Code Refactoring
+
+* **pkgs/plugin:** relocate plugin sdk, contracts and builder ([5791cf1](https://github.com/smtdfc/nagare/commit/5791cf170112357c5121f1792b1d1b5c572cc4dc))
+* **plugin/dtos:** expose only channel ids to plugin sdk ([8247098](https://github.com/smtdfc/nagare/commit/824709847cf5864ad732da165e42a579088d1f1e))
+
 ## [1.14.0](https://github.com/smtdfc/nagare/compare/v1.13.0...v1.14.0) (2026-10-24)
 
 
