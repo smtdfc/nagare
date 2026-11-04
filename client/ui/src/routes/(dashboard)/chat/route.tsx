@@ -14,6 +14,7 @@ import { useChat } from "#/hooks/use-chat.ts";
 import { ChatService } from "@nagare-app/services";
 import { MessageType, Role } from "@nagare-app/messages";
 import { useState } from "react";
+import { Archive, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/(dashboard)/chat")({
   component: RouteComponent,
@@ -120,7 +121,26 @@ function RouteComponent() {
           <Outlet />
         </div>
         {chatSession?.isArchive ? (
-          "Chat has been archived"
+          <div className="border-t border-border/60 bg-background/80 backdrop-blur-xl p-4">
+            <div className="mx-auto flex max-w-3xl items-center gap-4 rounded-2xl border border-border/60 bg-muted/40 p-4">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-background shadow-sm">
+                <Archive className="size-5 text-muted-foreground" />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold">
+                    Archived conversation
+                  </span>
+                </div>
+
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  This conversation is archived. Restore it to continue
+                  chatting.
+                </p>
+              </div>
+            </div>
+          </div>
         ) : (
           <ChatInput
             onSend={onSend}

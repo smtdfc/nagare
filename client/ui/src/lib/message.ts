@@ -3,6 +3,8 @@ import {
   type AgentCompletedMessage,
   type AgentErrorMessage,
   type ApprovalRequestMessage,
+  type CompactSuccessMessage,
+  type ConversationSummaryMessage,
   type TextMessage,
   type ToolCallMessage,
 } from "@nagare-app/messages";
@@ -34,6 +36,18 @@ export function isApprovalRequestMessage(
   message: ChatMessage,
 ): message is ApprovalRequestMessage {
   return message.type === MessageType.ApprovalRequestMessageType;
+}
+
+export function isConversationSummaryMessage(
+  message: ChatMessage,
+): message is ConversationSummaryMessage {
+  return message.type === MessageType.ConversationSummaryMessageType;
+}
+
+export function isCompactSuccessMessage(
+  message: ChatMessage,
+): message is CompactSuccessMessage {
+  return message.type === MessageType.CompactSuccessMessageType;
 }
 
 export function getMessageRole(message: ChatMessage) {

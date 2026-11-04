@@ -17,6 +17,8 @@ import {
   isAgentCompletedMessage,
   isAgentErrorMessage,
   isApprovalRequestMessage,
+  isCompactSuccessMessage,
+  isConversationSummaryMessage,
   isTextMessage,
   isToolCallMessage,
 } from "#/lib/message";
@@ -25,6 +27,7 @@ import ChatMessageItem from "#/components/chat-message-item.tsx";
 import { Button } from "@/components/ui/button";
 import { HistoryIcon } from "lucide-react";
 import { showToastError } from "#/lib/toast";
+import { toast } from "#/components/ui/toast.tsx";
 
 const HISTORY_PAGE_SIZE = 20;
 
@@ -35,6 +38,7 @@ export const Route = createFileRoute("/(dashboard)/chat/$id")({
 const allowShowMessageTypes = [
   MessageType.TextMessageType,
   MessageType.ApprovalRequestMessageType,
+  MessageType.ConversationSummaryMessageType,
 ];
 const allowHandleMessageTypes = [
   MessageType.TextMessageType,
@@ -42,6 +46,8 @@ const allowHandleMessageTypes = [
   MessageType.AgentCompletedMessageType,
   MessageType.AgentErrorMessageType,
   MessageType.ApprovalRequestMessageType,
+  MessageType.ConversationSummaryMessageType,
+  MessageType.CompactSuccessMessageType,
 ];
 
 function renderMessageContent(message: ChatMessage) {
@@ -85,6 +91,15 @@ function RouteComponent() {
       return;
     }
 
+    if (isCompactSuccessMessage(chunk)) {
+      toast.add({
+        title: "Conversation compacted",
+        type: "success",
+        description: "Your conversation history has been summarized.",
+      });
+      return;
+    }
+
     setMessages((prev) => {
       const lastMsg = prev[prev.length - 1];
       const isChunkText = isTextMessage(chunk);
@@ -108,8 +123,6 @@ function RouteComponent() {
         }
       }
 
-      // A tool/approval event may be the latest visible item. The next text
-      // chunk must start a new message instead of being dropped.
       if (isChunkText) {
         setStatusText("Responding...");
         return [...prev, chunk];
@@ -133,6 +146,10 @@ function RouteComponent() {
         setIsProcessing(false);
         console.error("Agent error:", chunk.error);
         showToastError(new Error(chunk.error));
+      }
+
+      if (isConversationSummaryMessage(chunk)) {
+        return [...prev, chunk];
       }
 
       return prev;

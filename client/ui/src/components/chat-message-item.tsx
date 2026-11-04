@@ -1,6 +1,7 @@
 import {
   getMessageRole,
   isApprovalRequestMessage,
+  isConversationSummaryMessage,
   isTextMessage,
 } from "#/lib/message.ts";
 import { Bubble, BubbleContent } from "#/components/ui/bubble.tsx";
@@ -12,6 +13,7 @@ import {
 import { ChatService } from "@nagare-app/services";
 import { useState } from "react";
 import { Button } from "./ui/button";
+import { Layers } from "lucide-react";
 
 type ChatMessageItemProps = {
   message: ChatMessage;
@@ -45,6 +47,11 @@ export default function ChatMessageItem({ message }: ChatMessageItemProps) {
   if (isApprovalRequestMessage(message)) {
     return <ToolApproval message={message} />;
   }
+
+  if (isConversationSummaryMessage(message)) {
+    return <ConversationSummary message={message} />;
+  }
+
   return null;
 }
 
@@ -96,6 +103,21 @@ function ToolApproval({
           {decision ? "Approved" : "Rejected"}
         </p>
       )}
+    </div>
+  );
+}
+
+function ConversationSummary() {
+  return (
+    <div className="my-6 w-full">
+      <div className="relative flex items-center gap-3">
+        <div className="h-px flex-1 bg-border/60" />
+        <div className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/60 bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground">
+          <Layers className="size-3" />
+          <span>Context compacted</span>
+        </div>
+        <div className="h-px flex-1 bg-border/60" />
+      </div>
     </div>
   );
 }

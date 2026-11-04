@@ -49,6 +49,7 @@ type ChatNavActionsProps = {
   onSessionUpdated: (session: Session) => void;
   onSessionDeleted: () => void;
   onSessionDuplicated: (session: Session) => void;
+  onCompact?: () => void;
 };
 
 function ChatModelSelector({
@@ -218,6 +219,7 @@ export function ChatNavActions({
   onSessionUpdated,
   onSessionDeleted,
   onSessionDuplicated,
+  onCompact,
 }: ChatNavActionsProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isActionLoading, setIsActionLoading] = React.useState(false);
@@ -265,9 +267,25 @@ export function ChatNavActions({
     }
   };
 
+  const handleCompact = async () => {
+    setIsActionLoading(true);
+    try {
+      await ChatService.compactConversation(session.id);
+      onCompact?.();
+      setIsOpen(false);
+    } catch (error) {
+      showToastError(error);
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
   return (
     <div className="flex items-center gap-2 text-sm">
-      <ChatModelSelector session={session} onSessionUpdated={onSessionUpdated} />
+      <ChatModelSelector
+        session={session}
+        onSessionUpdated={onSessionUpdated}
+      />
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger
           render={
@@ -323,26 +341,14 @@ export function ChatNavActions({
                   <SidebarMenu>
                     <SidebarMenuItem>
                       <SidebarMenuButton>
-                        <GalleryVerticalEndIcon /> <span>Checkpoints</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton>
-                        <ArrowRightFromLine /> <span>Restore to point</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton>
                         <Search /> <span>Search in chat</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                      <SidebarMenuButton>
-                        <BrushCleaning /> <span>Reset this chat</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton>
+                      <SidebarMenuButton
+                        disabled={isActionLoading}
+                        onClick={() => void handleCompact()}
+                      >
                         <Layers /> <span>Compact</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
