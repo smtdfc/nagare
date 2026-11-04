@@ -7,7 +7,7 @@ import (
 	core_credential "github.com/smtdfc/nagare/core/credential"
 	credential_manager "github.com/smtdfc/nagare/core/credential/manager"
 	"github.com/smtdfc/nagare/core/custom_errors"
-	"github.com/smtdfc/nagare/dtos/rest"
+	"github.com/smtdfc/nagare/gateway/dtos/rest"
 )
 
 type Service struct {

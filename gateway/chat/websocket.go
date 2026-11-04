@@ -8,9 +8,9 @@ import (
 	"github.com/smtdfc/nagare/core/hil"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/session/manager"
-	"github.com/smtdfc/nagare/dtos/websocket"
 	"github.com/smtdfc/nagare/gateway/common/guards"
 	websocket2 "github.com/smtdfc/nagare/gateway/common/websocket"
+	"github.com/smtdfc/nagare/gateway/dtos/websocket"
 )
 
 type WebsocketHandler struct {

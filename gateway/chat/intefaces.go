@@ -4,7 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/model_provider/provider"
 	"github.com/smtdfc/nagare/core/session"
-	"github.com/smtdfc/nagare/dtos/rest"
+	"github.com/smtdfc/nagare/gateway/dtos/rest"
 )
 
 func uuidToString(id uuid.UUID) string {

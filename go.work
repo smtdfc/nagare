@@ -4,7 +4,6 @@ use (
 	./cli
 	./client/desktop
 	./core
-	./dtos
 	./gateway
 	./pkgs/event_bus
 	./pkgs/helpers

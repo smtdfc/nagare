@@ -10,7 +10,7 @@ import (
 	"github.com/smtdfc/nagare/pkgs/helpers"
 	"github.com/smtdfc/nagare/pkgs/messages"
 
-	websocket_dtos "github.com/smtdfc/nagare/dtos/websocket"
+	websocket_dtos "github.com/smtdfc/nagare/gateway/dtos/websocket"
 )
 
 type SessionJob struct {

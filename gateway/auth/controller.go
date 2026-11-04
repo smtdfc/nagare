@@ -3,8 +3,8 @@ package auth
 import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/dtos/rest"
 	"github.com/smtdfc/nagare/gateway/common/custom_errors"
+	"github.com/smtdfc/nagare/gateway/dtos/rest"
 	"github.com/smtdfc/nagare/gateway/utils"
 )
 

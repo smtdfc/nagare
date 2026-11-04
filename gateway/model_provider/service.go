@@ -4,7 +4,7 @@ import (
 	"context"
 
 	model_provider_mgr "github.com/smtdfc/nagare/core/model_provider/manager"
-	"github.com/smtdfc/nagare/dtos/rest"
+	"github.com/smtdfc/nagare/gateway/dtos/rest"
 )
 
 type ModelProviderService struct {

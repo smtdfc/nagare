@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/olahol/melody"
-	websocket_dtos "github.com/smtdfc/nagare/dtos/websocket"
+	websocket_dtos "github.com/smtdfc/nagare/gateway/dtos/websocket"
 	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 

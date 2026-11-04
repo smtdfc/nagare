@@ -6,8 +6,8 @@ import (
 
 	"github.com/smtdfc/nagare/core/config"
 	"github.com/smtdfc/nagare/core/config/manager"
-	"github.com/smtdfc/nagare/dtos/rest"
 	"github.com/smtdfc/nagare/gateway/common/custom_errors"
+	"github.com/smtdfc/nagare/gateway/dtos/rest"
 )
 
 type Service struct {
@@ -22,7 +22,7 @@ func (s *Service) SetGeneralSettings(ctx context.Context, request *rest.SetGener
 
 	generalConfig := &config.GeneralConfig{
 		DefaultModelProvider: request.GeneralSettings.DefaultModelProvider,
-		DefaultModel:    request.GeneralSettings.DefaultModel,
+		DefaultModel:         request.GeneralSettings.DefaultModel,
 	}
 
 	err := s.configMgr.SetGeneralConfig(ctx, generalConfig)
@@ -42,7 +42,7 @@ func (s *Service) GetGeneralSettings(ctx context.Context) (*rest.GetGeneralSetti
 
 	return &rest.GetGeneralSettingsResponse{
 		GeneralSettings: &rest.GeneralSettings{
-			DefaultModel:    generalConfig.DefaultModel,
+			DefaultModel:         generalConfig.DefaultModel,
 			DefaultModelProvider: generalConfig.DefaultModelProvider,
 		},
 	}, nil

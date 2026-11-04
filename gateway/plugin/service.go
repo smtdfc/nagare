@@ -7,7 +7,7 @@ import (
 	"github.com/smtdfc/nagare/core/media/upload"
 	"github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/core/plugin/manager"
-	"github.com/smtdfc/nagare/dtos/rest"
+	"github.com/smtdfc/nagare/gateway/dtos/rest"
 )
 
 func signatureWarning(status string) string {

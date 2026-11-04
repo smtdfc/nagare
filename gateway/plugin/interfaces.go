@@ -3,7 +3,7 @@ package plugin
 import (
 	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/plugin"
-	"github.com/smtdfc/nagare/dtos/rest"
+	"github.com/smtdfc/nagare/gateway/dtos/rest"
 )
 
 func uuidToString(id uuid.UUID) string {

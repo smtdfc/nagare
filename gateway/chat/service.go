@@ -8,7 +8,7 @@ import (
 	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/logger"
 	"github.com/smtdfc/nagare/core/session/manager"
-	"github.com/smtdfc/nagare/dtos/rest"
+	"github.com/smtdfc/nagare/gateway/dtos/rest"
 	"github.com/smtdfc/nagare/pkgs/messages"
 )
 

@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/logger"
-	"github.com/smtdfc/nagare/dtos/rest"
+	"github.com/smtdfc/nagare/gateway/dtos/rest"
 	"github.com/smtdfc/nagare/gateway/utils"
 	"github.com/smtdfc/nagare/pkgs/paths"
 )

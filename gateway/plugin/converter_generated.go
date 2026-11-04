@@ -5,7 +5,7 @@ package plugin
 
 import (
 	plugin "github.com/smtdfc/nagare/core/plugin"
-	rest "github.com/smtdfc/nagare/dtos/rest"
+	rest "github.com/smtdfc/nagare/gateway/dtos/rest"
 )
 
 type IPluginDtoMapperImpl struct{}

@@ -3,7 +3,7 @@ package credential
 import (
 	"github.com/google/uuid"
 	core_credential "github.com/smtdfc/nagare/core/credential"
-	"github.com/smtdfc/nagare/dtos/rest"
+	"github.com/smtdfc/nagare/gateway/dtos/rest"
 )
 
 func uuidToString(id uuid.UUID) string {

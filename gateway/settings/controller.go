@@ -2,7 +2,7 @@ package settings
 
 import (
 	"github.com/gofiber/fiber/v3"
-	"github.com/smtdfc/nagare/dtos/rest"
+	"github.com/smtdfc/nagare/gateway/dtos/rest"
 	"github.com/smtdfc/nagare/gateway/utils"
 )
 
