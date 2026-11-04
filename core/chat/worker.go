@@ -24,25 +24,27 @@ func (c *Worker) Handle(evt event_bus.EventPayload) {
 	case event_bus.CancelChatEvent:
 		payload := evt.(*event_bus.CancelChatEventPayload)
 		c.HandleCancelEvent(payload)
+	case event_bus.CompactConversationEvent:
+		payload := evt.(*event_bus.CompactConversationEventPayload)
+		c.HandleCompactConversationEvent(payload)
 	}
 }
 
-func (c *Worker) Do() {
+func (c *Worker) subscribeAndHandle(event event_bus.EventType) {
 	go func() {
-		ch, unsubscribe := c.chatEventBus.Subscribe(event_bus.SendChatMessageEvent)
+		ch, unsubscribe := c.chatEventBus.Subscribe(event)
 		defer unsubscribe()
-		for chunkEventPayload := range ch {
-			go c.Handle(chunkEventPayload)
-		}
-	}()
 
-	go func() {
-		ch, unsubscribe := c.chatEventBus.Subscribe(event_bus.CancelChatEvent)
-		defer unsubscribe()
-		for cancelEventPayload := range ch {
-			go c.Handle(cancelEventPayload)
+		for payload := range ch {
+			go c.Handle(payload)
 		}
 	}()
+}
+
+func (c *Worker) Do() {
+	c.subscribeAndHandle(event_bus.SendChatMessageEvent)
+	c.subscribeAndHandle(event_bus.CancelChatEvent)
+	c.subscribeAndHandle(event_bus.CompactConversationEvent)
 }
 
 func (c *Worker) HandleSendMessageEvent(payload *event_bus.SendChatMessageEventPayload) {
@@ -88,6 +90,37 @@ func (c *Worker) HandleCancelEvent(payload *event_bus.CancelChatEventPayload) {
 	if ok && cancelFn != nil {
 		cancelFn()
 	}
+}
+
+func (c *Worker) HandleCompactConversationEvent(payload *event_bus.CompactConversationEventPayload) {
+	ctx, cancelFn := context.WithCancel(context.Background())
+	c.cancelFnMu.Lock()
+	c.cancelFn[payload.InvokeID] = cancelFn
+	c.cancelFnMu.Unlock()
+
+	output, err := c.agentInvoker.Compact(ctx, &ConversationCompactParams{
+		SessionID:        payload.SessionID,
+		SenderType:       payload.SenderType,
+		SenderID:         payload.SenderID,
+		SendIntoEventBus: true,
+		InvokeID:         payload.InvokeID,
+	})
+	if err != nil {
+		c.cancelFnMu.Lock()
+		delete(c.cancelFn, payload.InvokeID)
+		c.cancelFnMu.Unlock()
+		return
+	}
+
+	go func() {
+		defer func() {
+			c.cancelFnMu.Lock()
+			delete(c.cancelFn, payload.InvokeID)
+			c.cancelFnMu.Unlock()
+		}()
+		for range output {
+		}
+	}()
 }
 
 // @Injectable
