@@ -23,8 +23,8 @@ import (
 	"github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/pkgs/helpers"
 	"github.com/smtdfc/nagare/pkgs/paths"
+	"github.com/smtdfc/nagare/pkgs/plugin/metadata"
 	"github.com/smtdfc/nagare/pkgs/security"
-	"github.com/smtdfc/nagare/plugin/metadata"
 )
 
 const (

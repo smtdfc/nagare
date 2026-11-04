@@ -3,7 +3,7 @@ package host
 import (
 	"testing"
 
-	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
+	contracts "github.com/smtdfc/nagare/pkgs/plugin/contracts"
 )
 
 type sampleData struct {
@@ -13,7 +13,7 @@ type sampleData struct {
 
 func TestGetPayloadData(t *testing.T) {
 	// Verify getPayloadData on valid payload
-	payload := &plugin_dtos.Payload[any]{
+	payload := &contracts.Payload[any]{
 		Data: map[string]any{
 			"name": "Nagare",
 			"age":  3,
@@ -35,7 +35,7 @@ func TestGetPayloadData(t *testing.T) {
 	}
 
 	// Verify nil data error
-	nilDataPayload := &plugin_dtos.Payload[any]{Data: nil}
+	nilDataPayload := &contracts.Payload[any]{Data: nil}
 	_, err = getPayloadData[sampleData](nilDataPayload)
 	if err == nil {
 		t.Errorf("expected error for nil payload data")

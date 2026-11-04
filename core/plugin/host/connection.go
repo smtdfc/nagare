@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/smtdfc/nagare/pkgs/ipc"
-	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
+	contracts "github.com/smtdfc/nagare/pkgs/plugin/contracts"
 )
 
 type PluginConnection struct {
@@ -19,7 +19,7 @@ type PluginConnection struct {
 	closed     bool
 }
 
-func (pc *PluginConnection) Send(event plugin_dtos.Event, data any, requestID string) error {
+func (pc *PluginConnection) Send(event contracts.Event, data any, requestID string) error {
 	pc.mu.Lock()
 	defer pc.mu.Unlock()
 
@@ -27,7 +27,7 @@ func (pc *PluginConnection) Send(event plugin_dtos.Event, data any, requestID st
 		return errors.New("connection closed")
 	}
 
-	payload := plugin_dtos.Payload[any]{
+	payload := contracts.Payload[any]{
 		Event:     event,
 		RequestID: requestID,
 		Data:      data,

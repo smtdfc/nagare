@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
+	contracts "github.com/smtdfc/nagare/pkgs/plugin/contracts"
 )
 
-func getPayloadData[T any](payload *plugin_dtos.Payload[any]) (*T, error) {
+func getPayloadData[T any](payload *contracts.Payload[any]) (*T, error) {
 	if payload == nil || payload.Data == nil {
 		return nil, errors.New("payload or data is nil")
 	}

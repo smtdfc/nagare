@@ -14,7 +14,7 @@ import (
 	manager2 "github.com/smtdfc/nagare/core/tool/manager"
 	"github.com/smtdfc/nagare/pkgs/ipc"
 	"github.com/smtdfc/nagare/pkgs/paths"
-	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
+	contracts "github.com/smtdfc/nagare/pkgs/plugin/contracts"
 )
 
 type PluginHost struct {
@@ -138,7 +138,7 @@ func (h *PluginHost) handleConnection(conn net.Conn) {
 			break
 		}
 
-		var payload plugin_dtos.Payload[any]
+		var payload contracts.Payload[any]
 		if err := json.Unmarshal(msgBytes, &payload); err != nil {
 			h.logger.Error("Failed to unmarshal payload", "error", err)
 			continue
@@ -148,25 +148,25 @@ func (h *PluginHost) handleConnection(conn net.Conn) {
 	}
 }
 
-func (h *PluginHost) dispatch(pConn *PluginConnection, payload *plugin_dtos.Payload[any]) {
+func (h *PluginHost) dispatch(pConn *PluginConnection, payload *contracts.Payload[any]) {
 	switch payload.Event {
-	case plugin_dtos.HandshakeEvent:
+	case contracts.HandshakeEvent:
 		h.handleHandshake(pConn, payload)
-	case plugin_dtos.PrepareChatChannelEvent:
+	case contracts.PrepareChatChannelEvent:
 		go h.handlePrepareChatChannel(pConn, payload)
-	case plugin_dtos.SendChatMessageEvent:
+	case contracts.SendChatMessageEvent:
 		go h.handleSendChatMessage(pConn, payload)
-	case plugin_dtos.ResetChatChannelEvent:
+	case contracts.ResetChatChannelEvent:
 		go h.handleResetChatChannel(pConn, payload)
-	case plugin_dtos.SubmitToolApprovalEvent:
+	case contracts.SubmitToolApprovalEvent:
 		go h.handleSubmitToolApproval(pConn, payload)
-	case plugin_dtos.RegisterPluginToolEvent:
+	case contracts.RegisterPluginToolEvent:
 		go h.handleRegisterPluginTool(pConn, payload)
-	case plugin_dtos.RegisterToolCategoriesEvent:
+	case contracts.RegisterToolCategoriesEvent:
 		go h.handleRegisterToolCategories(pConn, payload)
-	case plugin_dtos.PluginToolCallResultEvent:
+	case contracts.PluginToolCallResultEvent:
 		h.handlePluginToolCallResult(pConn, payload)
-	case plugin_dtos.GetModelProvidersEvent:
+	case contracts.GetModelProvidersEvent:
 		h.handleGetModelProviders(pConn, payload)
 	default:
 		h.logger.Warn("Unknown event received from plugin", "event", payload.Event, "pluginID", pConn.pluginID)

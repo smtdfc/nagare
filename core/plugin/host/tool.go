@@ -6,27 +6,27 @@ import (
 	"github.com/smtdfc/nagare/core/event_bus"
 	core_plugin "github.com/smtdfc/nagare/core/plugin"
 	tool_registry "github.com/smtdfc/nagare/core/tool/registry"
-	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
+	contracts "github.com/smtdfc/nagare/pkgs/plugin/contracts"
 )
 
-func (h *PluginHost) handleRegisterPluginTool(conn *PluginConnection, payload *plugin_dtos.Payload[any]) {
+func (h *PluginHost) handleRegisterPluginTool(conn *PluginConnection, payload *contracts.Payload[any]) {
 	if conn.pluginID == "" {
-		_ = conn.Send(plugin_dtos.RegisterPluginToolFailedEvent, &plugin_dtos.RegisterPluginToolFailedEventPayload{
+		_ = conn.Send(contracts.RegisterPluginToolFailedEvent, &contracts.RegisterPluginToolFailedEventPayload{
 			Cause: "access denied",
 		}, payload.RequestID)
 		return
 	}
 
-	data, err := getPayloadData[plugin_dtos.RegisterPluginToolEventPayload](payload)
+	data, err := getPayloadData[contracts.RegisterPluginToolEventPayload](payload)
 	if err != nil {
-		_ = conn.Send(plugin_dtos.RegisterPluginToolFailedEvent, &plugin_dtos.RegisterPluginToolFailedEventPayload{
+		_ = conn.Send(contracts.RegisterPluginToolFailedEvent, &contracts.RegisterPluginToolFailedEventPayload{
 			Cause: "failed to parse payload",
 		}, payload.RequestID)
 		return
 	}
 
 	if !RequireScopes(conn.scopes, core_plugin.ToolFeature) {
-		_ = conn.Send(plugin_dtos.RegisterPluginToolFailedEvent, &plugin_dtos.RegisterPluginToolFailedEventPayload{
+		_ = conn.Send(contracts.RegisterPluginToolFailedEvent, &contracts.RegisterPluginToolFailedEventPayload{
 			Cause: "Plugin not supported this feature",
 		}, payload.RequestID)
 		return
@@ -43,27 +43,27 @@ func (h *PluginHost) handleRegisterPluginTool(conn *PluginConnection, payload *p
 		h.eventBus,
 	)
 
-	_ = conn.Send(plugin_dtos.RegisterPluginToolSuccessEvent, &plugin_dtos.RegisterPluginToolSuccessEventPayload{}, payload.RequestID)
+	_ = conn.Send(contracts.RegisterPluginToolSuccessEvent, &contracts.RegisterPluginToolSuccessEventPayload{}, payload.RequestID)
 }
 
-func (h *PluginHost) handleRegisterToolCategories(conn *PluginConnection, payload *plugin_dtos.Payload[any]) {
+func (h *PluginHost) handleRegisterToolCategories(conn *PluginConnection, payload *contracts.Payload[any]) {
 	if conn.pluginID == "" {
-		_ = conn.Send(plugin_dtos.RegisterToolCategoriesFailedEvent, &plugin_dtos.RegisterToolCategoriesFailedEventPayload{
+		_ = conn.Send(contracts.RegisterToolCategoriesFailedEvent, &contracts.RegisterToolCategoriesFailedEventPayload{
 			Cause: "access denied",
 		}, payload.RequestID)
 		return
 	}
 
-	data, err := getPayloadData[plugin_dtos.RegisterToolCategoriesEventPayload](payload)
+	data, err := getPayloadData[contracts.RegisterToolCategoriesEventPayload](payload)
 	if err != nil {
-		_ = conn.Send(plugin_dtos.RegisterToolCategoriesFailedEvent, &plugin_dtos.RegisterToolCategoriesFailedEventPayload{
+		_ = conn.Send(contracts.RegisterToolCategoriesFailedEvent, &contracts.RegisterToolCategoriesFailedEventPayload{
 			Cause: "failed to parse payload",
 		}, payload.RequestID)
 		return
 	}
 
 	if !RequireScopes(conn.scopes, core_plugin.ToolFeature) {
-		_ = conn.Send(plugin_dtos.RegisterToolCategoriesFailedEvent, &plugin_dtos.RegisterToolCategoriesFailedEventPayload{
+		_ = conn.Send(contracts.RegisterToolCategoriesFailedEvent, &contracts.RegisterToolCategoriesFailedEventPayload{
 			Cause: "Plugin not supported this feature",
 		}, payload.RequestID)
 		return
@@ -71,11 +71,11 @@ func (h *PluginHost) handleRegisterToolCategories(conn *PluginConnection, payloa
 
 	h.toolMgr.AddPluginToolCategories(conn.pluginID, data.Categories)
 	h.logger.Info("Registered plugin tool categories", "categories", data.Categories, "pluginID", conn.pluginID)
-	_ = conn.Send(plugin_dtos.RegisterToolCategoriesSuccessEvent, &plugin_dtos.RegisterToolCategoriesSuccessEventPayload{}, payload.RequestID)
+	_ = conn.Send(contracts.RegisterToolCategoriesSuccessEvent, &contracts.RegisterToolCategoriesSuccessEventPayload{}, payload.RequestID)
 }
 
-func (h *PluginHost) handlePluginToolCallResult(conn *PluginConnection, payload *plugin_dtos.Payload[any]) {
-	data, err := getPayloadData[plugin_dtos.PluginToolCallResultEventPayload](payload)
+func (h *PluginHost) handlePluginToolCallResult(conn *PluginConnection, payload *contracts.Payload[any]) {
+	data, err := getPayloadData[contracts.PluginToolCallResultEventPayload](payload)
 	if err != nil {
 		return
 	}

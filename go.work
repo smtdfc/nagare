@@ -12,10 +12,10 @@ use (
 	./pkgs/paths
 	./pkgs/security
 	./pkgs/system
-	./plugin/builder
-	./plugin/builtins/telegram
-	./plugin/client
-	./plugin/dtos
-	./plugin/metadata
+	./pkgs/plugin/builder
+	./plugins/telegram
+	./pkgs/plugin/sdk
+	./pkgs/plugin/contracts
+	./pkgs/plugin/metadata
 	./scripts/go
 )

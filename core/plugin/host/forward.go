@@ -4,7 +4,7 @@ import (
 	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/pkgs/helpers"
-	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
+	contracts "github.com/smtdfc/nagare/pkgs/plugin/contracts"
 )
 
 func (h *PluginHost) forwardPluginToolCalls() {
@@ -33,7 +33,7 @@ func (h *PluginHost) forwardPluginToolCalls() {
 				continue
 			}
 
-			err := conn.Send(plugin_dtos.PluginToolCallEvent, plugin_dtos.PluginToolCallEventPayload{
+			err := conn.Send(contracts.PluginToolCallEvent, contracts.PluginToolCallEventPayload{
 				Name: call.Name,
 				Args: call.Args,
 			}, call.RequestID)
@@ -84,8 +84,8 @@ func (h *PluginHost) forwardChatChunks() {
 			}
 
 			_ = conn.Send(
-				plugin_dtos.ReceivedChatMessageEvent,
-				&plugin_dtos.ReceivedChatMessageEventPayload{
+				contracts.ReceivedChatMessageEvent,
+				&contracts.ReceivedChatMessageEventPayload{
 					Message:   chunkJSON,
 					ChannelID: chunkPayload.ChannelID,
 				},

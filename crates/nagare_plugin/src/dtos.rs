@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-// ---- Event names (mirror Go plugin/dtos) ----
+// ---- Event names (mirror Go pkgs/plugin/contracts) ----
 
 pub const RECEIVED_CHAT_MESSAGE_EVENT: &str = "ReceivedChatMessageEvent";
 

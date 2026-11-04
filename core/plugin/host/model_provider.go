@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	core_plugin "github.com/smtdfc/nagare/core/plugin"
-	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
+	contracts "github.com/smtdfc/nagare/pkgs/plugin/contracts"
 )
 
-func (h *PluginHost) handleGetModelProviders(conn *PluginConnection, payload *plugin_dtos.Payload[any]) {
+func (h *PluginHost) handleGetModelProviders(conn *PluginConnection, payload *contracts.Payload[any]) {
 	if conn.pluginID == "" {
-		_ = conn.Send(plugin_dtos.GetModelProvidersFailedEvent, &plugin_dtos.GetModelProvidersFailedEventPayload{
+		_ = conn.Send(contracts.GetModelProvidersFailedEvent, &contracts.GetModelProvidersFailedEventPayload{
 			Cause: "access denied",
 		}, payload.RequestID)
 		return
@@ -18,7 +18,7 @@ func (h *PluginHost) handleGetModelProviders(conn *PluginConnection, payload *pl
 	fmt.Println(2)
 	if !RequireScopes(conn.scopes, core_plugin.ModelProviderFeature) {
 		fmt.Println(2)
-		_ = conn.Send(plugin_dtos.GetModelProvidersFailedEvent, &plugin_dtos.GetModelProvidersFailedEventPayload{
+		_ = conn.Send(contracts.GetModelProvidersFailedEvent, &contracts.GetModelProvidersFailedEventPayload{
 			Cause: "plugin not supported this feature",
 		}, payload.RequestID)
 		return
@@ -28,7 +28,7 @@ func (h *PluginHost) handleGetModelProviders(conn *PluginConnection, payload *pl
 	providers, err := h.modelProvider.GetAllProvider(ctx)
 	fmt.Println(3)
 	if err != nil {
-		_ = conn.Send(plugin_dtos.GetModelProvidersFailedEvent, &plugin_dtos.GetModelProvidersFailedEventPayload{
+		_ = conn.Send(contracts.GetModelProvidersFailedEvent, &contracts.GetModelProvidersFailedEventPayload{
 			Cause: err.Error(),
 		}, payload.RequestID)
 		return
@@ -39,7 +39,7 @@ func (h *PluginHost) handleGetModelProviders(conn *PluginConnection, payload *pl
 		providerMap[provider.ID.String()] = provider.Name
 	}
 
-	_ = conn.Send(plugin_dtos.GetModelProvidersSuccessEvent, &plugin_dtos.GetModelProvidersSuccessEventPayload{
+	_ = conn.Send(contracts.GetModelProvidersSuccessEvent, &contracts.GetModelProvidersSuccessEventPayload{
 		List: providerMap,
 	}, payload.RequestID)
 }

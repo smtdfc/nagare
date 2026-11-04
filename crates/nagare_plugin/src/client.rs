@@ -24,7 +24,7 @@ use crate::logger::init_logging_once;
 use crate::metadata::PluginMetadata;
 use crate::tool::PluginTool;
 
-/// Result of a request/response round trip (mirror of Go `plugin_dtosActionResult`).
+/// Result of a request/response round trip (mirror of Go `contractsActionResult`).
 #[derive(Debug)]
 pub struct ActionResult<S, F> {
     pub is_success: bool,

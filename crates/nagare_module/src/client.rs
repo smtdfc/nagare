@@ -15,7 +15,7 @@ use crate::errors::ModuleError;
 use crate::helpers::{default_socket_path, get_data};
 use crate::logger::init_logging_once;
 
-/// Result of a request/response round trip (mirror of Go `plugin_dtosActionResult`).
+/// Result of a request/response round trip (mirror of Go `contractsActionResult`).
 #[derive(Debug)]
 pub struct ActionResult<S, F> {
     pub is_success: bool,

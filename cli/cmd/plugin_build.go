@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/smtdfc/nagare/plugin/builder"
+	"github.com/smtdfc/nagare/pkgs/plugin/builder"
 	"github.com/spf13/cobra"
 )
 

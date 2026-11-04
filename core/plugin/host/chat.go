@@ -7,27 +7,27 @@ import (
 	"github.com/smtdfc/nagare/core/event_bus"
 	core_plugin "github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/pkgs/messages"
-	plugin_dtos "github.com/smtdfc/nagare/plugin/dtos"
+	contracts "github.com/smtdfc/nagare/pkgs/plugin/contracts"
 )
 
-func (h *PluginHost) handlePrepareChatChannel(conn *PluginConnection, payload *plugin_dtos.Payload[any]) {
+func (h *PluginHost) handlePrepareChatChannel(conn *PluginConnection, payload *contracts.Payload[any]) {
 	if conn.pluginID == "" {
-		_ = conn.Send(plugin_dtos.PrepareChatChannelFailedEvent, &plugin_dtos.PrepareChatChannelFailedEventPayload{
+		_ = conn.Send(contracts.PrepareChatChannelFailedEvent, &contracts.PrepareChatChannelFailedEventPayload{
 			Cause: "access denied",
 		}, payload.RequestID)
 		return
 	}
 
-	data, err := getPayloadData[plugin_dtos.PrepareChatChannelEventPayload](payload)
+	data, err := getPayloadData[contracts.PrepareChatChannelEventPayload](payload)
 	if err != nil {
-		_ = conn.Send(plugin_dtos.PrepareChatChannelFailedEvent, &plugin_dtos.PrepareChatChannelFailedEventPayload{
+		_ = conn.Send(contracts.PrepareChatChannelFailedEvent, &contracts.PrepareChatChannelFailedEventPayload{
 			Cause: "failed to parse payload",
 		}, payload.RequestID)
 		return
 	}
 
 	if !RequireScopes(conn.scopes, core_plugin.ChatFeature) {
-		_ = conn.Send(plugin_dtos.PrepareChatChannelFailedEvent, &plugin_dtos.PrepareChatChannelFailedEventPayload{
+		_ = conn.Send(contracts.PrepareChatChannelFailedEvent, &contracts.PrepareChatChannelFailedEventPayload{
 			ChannelID: data.ChannelID,
 			Cause:     "plugin not supported this feature",
 		}, payload.RequestID)
@@ -37,7 +37,7 @@ func (h *PluginHost) handlePrepareChatChannel(conn *PluginConnection, payload *p
 	h.logger.Info("Prepare chat channel", "channelID", data.ChannelID, "pluginID", conn.pluginID)
 	if _, err := h.sessionMgr.PreparePluginSession(context.Background(), data.ChannelID, conn.pluginID); err != nil {
 		h.logger.Error("Prepare chat channel failed", "channelID", data.ChannelID, "err", err)
-		_ = conn.Send(plugin_dtos.PrepareChatChannelFailedEvent, &plugin_dtos.PrepareChatChannelFailedEventPayload{
+		_ = conn.Send(contracts.PrepareChatChannelFailedEvent, &contracts.PrepareChatChannelFailedEventPayload{
 			ChannelID: data.ChannelID,
 			Cause:     err.Error(),
 		}, payload.RequestID)
@@ -45,29 +45,29 @@ func (h *PluginHost) handlePrepareChatChannel(conn *PluginConnection, payload *p
 	}
 
 	h.logger.Info("Done prepare chat channel", "channelID", data.ChannelID)
-	_ = conn.Send(plugin_dtos.PrepareChatChannelSuccessEvent, &plugin_dtos.PrepareChatChannelSuccessEventPayload{
+	_ = conn.Send(contracts.PrepareChatChannelSuccessEvent, &contracts.PrepareChatChannelSuccessEventPayload{
 		ChannelID: data.ChannelID,
 	}, payload.RequestID)
 }
 
-func (h *PluginHost) handleSendChatMessage(conn *PluginConnection, payload *plugin_dtos.Payload[any]) {
+func (h *PluginHost) handleSendChatMessage(conn *PluginConnection, payload *contracts.Payload[any]) {
 	if conn.pluginID == "" {
-		_ = conn.Send(plugin_dtos.SendChatMessageFailedEvent, &plugin_dtos.SendChatMessageFailedEventPayload{
+		_ = conn.Send(contracts.SendChatMessageFailedEvent, &contracts.SendChatMessageFailedEventPayload{
 			Cause: "access denied",
 		}, payload.RequestID)
 		return
 	}
 
-	data, err := getPayloadData[plugin_dtos.SendChatMessageEventPayload](payload)
+	data, err := getPayloadData[contracts.SendChatMessageEventPayload](payload)
 	if err != nil {
-		_ = conn.Send(plugin_dtos.SendChatMessageFailedEvent, &plugin_dtos.SendChatMessageFailedEventPayload{
+		_ = conn.Send(contracts.SendChatMessageFailedEvent, &contracts.SendChatMessageFailedEventPayload{
 			Cause: "failed to parse payload",
 		}, payload.RequestID)
 		return
 	}
 
 	if !RequireScopes(conn.scopes, core_plugin.ChatFeature) {
-		_ = conn.Send(plugin_dtos.SendChatMessageFailedEvent, &plugin_dtos.SendChatMessageFailedEventPayload{
+		_ = conn.Send(contracts.SendChatMessageFailedEvent, &contracts.SendChatMessageFailedEventPayload{
 			Cause: "plugin not supported this feature",
 		}, payload.RequestID)
 		return
@@ -76,7 +76,7 @@ func (h *PluginHost) handleSendChatMessage(conn *PluginConnection, payload *plug
 	ctx := context.Background()
 	session, err := h.sessionMgr.GetPluginSessionByChannel(ctx, data.ChannelID, conn.pluginID)
 	if err != nil {
-		_ = conn.Send(plugin_dtos.SendChatMessageFailedEvent, &plugin_dtos.SendChatMessageFailedEventPayload{
+		_ = conn.Send(contracts.SendChatMessageFailedEvent, &contracts.SendChatMessageFailedEventPayload{
 			Cause: err.Error(),
 		}, payload.RequestID)
 		return
@@ -93,29 +93,29 @@ func (h *PluginHost) handleSendChatMessage(conn *PluginConnection, payload *plug
 		SenderType: event_bus.Plugin,
 	})
 
-	_ = conn.Send(plugin_dtos.SendChatMessageSuccessEvent, &plugin_dtos.SendChatMessageSuccessEventPayload{
+	_ = conn.Send(contracts.SendChatMessageSuccessEvent, &contracts.SendChatMessageSuccessEventPayload{
 		ChannelID: data.ChannelID,
 	}, payload.RequestID)
 }
 
-func (h *PluginHost) handleResetChatChannel(conn *PluginConnection, payload *plugin_dtos.Payload[any]) {
+func (h *PluginHost) handleResetChatChannel(conn *PluginConnection, payload *contracts.Payload[any]) {
 	if conn.pluginID == "" {
-		_ = conn.Send(plugin_dtos.ResetChatChannelFailedEvent, &plugin_dtos.ResetChatChannelFailedEventPayload{
+		_ = conn.Send(contracts.ResetChatChannelFailedEvent, &contracts.ResetChatChannelFailedEventPayload{
 			Cause: "access denied",
 		}, payload.RequestID)
 		return
 	}
 
-	data, err := getPayloadData[plugin_dtos.ResetChatChannelEventPayload](payload)
+	data, err := getPayloadData[contracts.ResetChatChannelEventPayload](payload)
 	if err != nil {
-		_ = conn.Send(plugin_dtos.ResetChatChannelFailedEvent, &plugin_dtos.ResetChatChannelFailedEventPayload{
+		_ = conn.Send(contracts.ResetChatChannelFailedEvent, &contracts.ResetChatChannelFailedEventPayload{
 			Cause: "failed to parse payload",
 		}, payload.RequestID)
 		return
 	}
 
 	if !RequireScopes(conn.scopes, core_plugin.ChatFeature) {
-		_ = conn.Send(plugin_dtos.ResetChatChannelFailedEvent, &plugin_dtos.ResetChatChannelFailedEventPayload{
+		_ = conn.Send(contracts.ResetChatChannelFailedEvent, &contracts.ResetChatChannelFailedEventPayload{
 			Cause: "plugin not supported this feature",
 		}, payload.RequestID)
 		return
@@ -123,41 +123,41 @@ func (h *PluginHost) handleResetChatChannel(conn *PluginConnection, payload *plu
 
 	err = h.sessionMgr.ResetChatChannel(context.Background(), data.ChannelID, conn.pluginID)
 	if err != nil {
-		_ = conn.Send(plugin_dtos.ResetChatChannelFailedEvent, &plugin_dtos.ResetChatChannelFailedEventPayload{
+		_ = conn.Send(contracts.ResetChatChannelFailedEvent, &contracts.ResetChatChannelFailedEventPayload{
 			Cause: err.Error(),
 		}, payload.RequestID)
 		return
 	}
 
-	_ = conn.Send(plugin_dtos.ResetChatChannelSuccessEvent, &plugin_dtos.ResetChatChannelSuccessEventPayload{
+	_ = conn.Send(contracts.ResetChatChannelSuccessEvent, &contracts.ResetChatChannelSuccessEventPayload{
 		ChannelID: data.ChannelID,
 	}, payload.RequestID)
 }
 
-func (h *PluginHost) handleSubmitToolApproval(conn *PluginConnection, payload *plugin_dtos.Payload[any]) {
+func (h *PluginHost) handleSubmitToolApproval(conn *PluginConnection, payload *contracts.Payload[any]) {
 	if conn.pluginID == "" {
-		_ = conn.Send(plugin_dtos.SubmitToolApprovalFailedEvent, &plugin_dtos.SubmitToolApprovalFailedEventPayload{Cause: "access denied"}, payload.RequestID)
+		_ = conn.Send(contracts.SubmitToolApprovalFailedEvent, &contracts.SubmitToolApprovalFailedEventPayload{Cause: "access denied"}, payload.RequestID)
 		return
 	}
 
-	data, err := getPayloadData[plugin_dtos.SubmitToolApprovalEventPayload](payload)
+	data, err := getPayloadData[contracts.SubmitToolApprovalEventPayload](payload)
 	if err != nil || data == nil || data.ChannelID == "" || data.ApprovalRequestID == "" {
-		_ = conn.Send(plugin_dtos.SubmitToolApprovalFailedEvent, &plugin_dtos.SubmitToolApprovalFailedEventPayload{Cause: "invalid approval payload"}, payload.RequestID)
+		_ = conn.Send(contracts.SubmitToolApprovalFailedEvent, &contracts.SubmitToolApprovalFailedEventPayload{Cause: "invalid approval payload"}, payload.RequestID)
 		return
 	}
 	if !RequireScopes(conn.scopes, core_plugin.ChatFeature) {
-		_ = conn.Send(plugin_dtos.SubmitToolApprovalFailedEvent, &plugin_dtos.SubmitToolApprovalFailedEventPayload{Cause: "plugin not supported this feature"}, payload.RequestID)
+		_ = conn.Send(contracts.SubmitToolApprovalFailedEvent, &contracts.SubmitToolApprovalFailedEventPayload{Cause: "plugin not supported this feature"}, payload.RequestID)
 		return
 	}
 	session, err := h.sessionMgr.GetPluginSessionByChannel(context.Background(), data.ChannelID, conn.pluginID)
 	if err != nil {
-		_ = conn.Send(plugin_dtos.SubmitToolApprovalFailedEvent, &plugin_dtos.SubmitToolApprovalFailedEventPayload{Cause: err.Error()}, payload.RequestID)
+		_ = conn.Send(contracts.SubmitToolApprovalFailedEvent, &contracts.SubmitToolApprovalFailedEventPayload{Cause: err.Error()}, payload.RequestID)
 		return
 	}
 	if err := h.approvalMgr.Respond(data.ApprovalRequestID, session.ID.String(), data.Accept); err != nil {
-		_ = conn.Send(plugin_dtos.SubmitToolApprovalFailedEvent, &plugin_dtos.SubmitToolApprovalFailedEventPayload{Cause: err.Error()}, payload.RequestID)
+		_ = conn.Send(contracts.SubmitToolApprovalFailedEvent, &contracts.SubmitToolApprovalFailedEventPayload{Cause: err.Error()}, payload.RequestID)
 		return
 	}
 
-	_ = conn.Send(plugin_dtos.SubmitToolApprovalSuccessEvent, &plugin_dtos.SubmitToolApprovalSuccessEventPayload{}, payload.RequestID)
+	_ = conn.Send(contracts.SubmitToolApprovalSuccessEvent, &contracts.SubmitToolApprovalSuccessEventPayload{}, payload.RequestID)
 }
