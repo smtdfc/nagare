@@ -37,6 +37,8 @@ func (m *MessageMapper) ToDomain(entity *entities.Message) (messages.Message, er
 		return helpers.UnmarshalJson[messages.ToolCallMessage](entity.Content)
 	case string(messages.ToolResultMessageType):
 		return helpers.UnmarshalJson[messages.ToolResultMessage](entity.Content)
+	case string(messages.ConversationSummaryMessageType):
+		return helpers.UnmarshalJson[messages.ConversationSummaryMessage](entity.Content)
 	default:
 		return nil, fmt.Errorf("failed to covert")
 	}
