@@ -118,6 +118,17 @@ func (m *ModelProviderManager) GetAdapter(provider *model_provider.ModelProvider
 			provider.Models,
 			m.adapterLogger.Clone(),
 		), nil
+	case model_provider.GoogleCompatible:
+		apiKey := provider.ApiKey
+		if provider.ApiKey == "" && provider.Credential != nil {
+			apiKey = provider.Credential.ApiKey
+		}
+		return adapters.NewGoogleAdapter(
+			provider.BaseURL,
+			apiKey,
+			provider.Models,
+			m.adapterLogger.Clone(),
+		)
 	}
 	return nil, custom_errors.ErrModelProviderNotSupported
 }

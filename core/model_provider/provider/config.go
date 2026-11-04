@@ -9,6 +9,7 @@ type ModelProviderCompatible string
 
 const (
 	OpenAICompatible  ModelProviderCompatible = "OpenAI"
+	GoogleCompatible  ModelProviderCompatible = "Google"
 	UnknownCompatible ModelProviderCompatible = "Unknown"
 )
 
@@ -20,6 +21,8 @@ func GetCompatibleFromString(s string) ModelProviderCompatible {
 	switch s {
 	case string(OpenAICompatible):
 		return OpenAICompatible
+	case string(GoogleCompatible):
+		return GoogleCompatible
 	default:
 		return UnknownCompatible
 	}
