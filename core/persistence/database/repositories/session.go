@@ -143,7 +143,7 @@ func (s *SessionRepository) UpdateModelSettings(ctx context.Context, sessionID s
 		Where("id = ?", sessionID).
 		Updates(map[string]any{
 			"model_provider_id": providerID,
-			"current_model":   model,
+			"current_model":     model,
 		})
 	if result.Error != nil {
 		s.logger.Error("failed to update session model settings", "id", sessionID, "error", result.Error)
@@ -213,9 +213,7 @@ func (s *SessionRepository) FindSessionWithMessages(ctx context.Context, session
 
 	err := s.db.WithContext(ctx).
 		Preload("ModelProvider").
-		Preload("Messages", func(db *gorm.DB) *gorm.DB {
-			return db.Order("created_at ASC, rowid ASC")
-		}).
+		Preload("Messages", preloadMessages).
 		First(&session, "id = ?", sessionId).Error
 
 	if err != nil {
@@ -234,9 +232,7 @@ func (s *SessionRepository) FindUserSessionWithMessages(ctx context.Context, ses
 
 	err := s.db.WithContext(ctx).
 		Preload("ModelProvider").
-		Preload("Messages", func(db *gorm.DB) *gorm.DB {
-			return db.Order("created_at ASC, rowid ASC")
-		}).
+		Preload("Messages", preloadMessages).
 		First(&session, "owner_type = ? AND owner_id = ? AND id = ?", "user", ownerID, sessionId).Error
 
 	if err != nil {
@@ -255,9 +251,7 @@ func (s *SessionRepository) FindPluginSessionWithMessages(ctx context.Context, s
 
 	err := s.db.WithContext(ctx).
 		Preload("ModelProvider").
-		Preload("Messages", func(db *gorm.DB) *gorm.DB {
-			return db.Order("created_at ASC, rowid ASC")
-		}).
+		Preload("Messages", preloadMessages).
 		First(&session, "owner_type = ? AND owner_id = ? AND id = ?", "plugin", pluginID, sessionId).Error
 
 	if err != nil {
