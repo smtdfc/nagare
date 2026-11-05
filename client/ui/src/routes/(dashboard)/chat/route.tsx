@@ -14,7 +14,8 @@ import { useChat } from "#/hooks/use-chat.ts";
 import { ChatService } from "@nagare-app/services";
 import { MessageType, Role } from "@nagare-app/messages";
 import { useState } from "react";
-import { Archive, Lock } from "lucide-react";
+import { Archive } from "lucide-react";
+import { clearLiveChatSnapshot } from "#/lib/live-chat";
 
 export const Route = createFileRoute("/(dashboard)/chat")({
   component: RouteComponent,
@@ -59,6 +60,10 @@ function RouteComponent() {
   };
 
   const onSend = async (data: ChatData) => {
+    if (chatSession) {
+      clearLiveChatSnapshot(chatSession.id);
+    }
+
     setPendingMessages([
       {
         id: crypto.randomUUID(),
@@ -82,6 +87,7 @@ function RouteComponent() {
 
   const onCancel = async () => {
     if (!invokeID || !chatSession) return;
+    clearLiveChatSnapshot(chatSession.id);
     setIsProcessing(false);
     await ChatService.cancel({ invokeID, sessionID: chatSession?.id });
   };

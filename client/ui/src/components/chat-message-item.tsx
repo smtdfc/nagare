@@ -1,19 +1,22 @@
 import {
   getMessageRole,
+  isAgentErrorMessage,
   isApprovalRequestMessage,
   isConversationSummaryMessage,
   isTextMessage,
 } from "#/lib/message.ts";
+import { describeAgentError } from "#/lib/agent-error.ts";
 import { Bubble, BubbleContent } from "#/components/ui/bubble.tsx";
 import MarkdownDisplay from "#/components/markdown-display.tsx";
 import {
+  type AgentErrorMessage,
   type ApprovalRequestMessage,
   type Message as ChatMessage,
 } from "@nagare-app/messages";
 import { ChatService } from "@nagare-app/services";
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { Layers } from "lucide-react";
+import { Layers, TriangleAlertIcon } from "lucide-react";
 
 type ChatMessageItemProps = {
   message: ChatMessage;
@@ -52,14 +55,36 @@ export default function ChatMessageItem({ message }: ChatMessageItemProps) {
     return <ConversationSummary message={message} />;
   }
 
+  if (isAgentErrorMessage(message)) {
+    return <AgentError message={message} />;
+  }
+
   return null;
 }
 
-function ToolApproval({
-  message,
-}: {
-  message: ApprovalRequestMessage;
-}) {
+function AgentError({ message }: { message: AgentErrorMessage }) {
+  const { title, hint, detail } = describeAgentError(
+    message.code,
+    message.error,
+  );
+
+  return (
+    <div className="my-1 w-full rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm">
+      <div className="flex items-start gap-2">
+        <TriangleAlertIcon className="mt-0.5 size-4 shrink-0 text-destructive" />
+        <div className="min-w-0 flex-1">
+          <p className="font-medium text-destructive">{title}</p>
+          {detail && (
+            <p className="mt-1 break-words text-foreground/80">{detail}</p>
+          )}
+          {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ToolApproval({ message }: { message: ApprovalRequestMessage }) {
   const [decision, setDecision] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
