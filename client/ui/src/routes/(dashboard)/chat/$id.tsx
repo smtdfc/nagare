@@ -21,7 +21,6 @@ import {
   isAgentCompletedMessage,
   isAgentErrorMessage,
   isApprovalRequestMessage,
-  isCompactSuccessMessage,
   isConversationSummaryMessage,
   isTextMessage,
   isToolCallMessage,
@@ -182,7 +181,9 @@ function RouteComponent() {
       return;
     }
 
-    if (isCompactSuccessMessage(chunk)) {
+    // Compare the type directly: negating a bare {id,type,invokeID}
+    // guard would exclude every other message from the union.
+    if (chunk.type === MessageType.CompactSuccessMessageType) {
       toast.add({
         title: "Conversation compacted",
         type: "success",
