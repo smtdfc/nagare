@@ -44,6 +44,8 @@ const HISTORY_PAGE_SIZE = 20;
 // the completion event was missed, so the DB is the only source of truth.
 const LIVE_CHAT_POLL_INTERVAL_MS = 4_000;
 const LIVE_CHAT_POLL_TIMEOUT_MS = 3 * 60 * 1000;
+// Writing sessionStorage on every streamed chunk is O(n^2) for long replies.
+const LIVE_CHAT_SAVE_THROTTLE_MS = 250;
 
 export const Route = createFileRoute("/(dashboard)/chat/$id")({
   component: RouteComponent,
@@ -128,7 +130,10 @@ function isSnapshotPersisted(
     .map((message) => message.content)
     .join("\n");
 
-  return persistedText.includes(assistantText);
+  // Whitespace can differ between streamed chunks and persisted messages
+  // (tool calls split a reply into several rows), so compare ignoring it.
+  const normalize = (value: string) => value.replace(/\s+/g, "");
+  return normalize(persistedText).includes(normalize(assistantText));
 }
 
 function ChatEmptyState() {
@@ -169,6 +174,8 @@ function RouteComponent() {
   const isLoadingHistoryRef = useRef(false);
   const isSessionReadyRef = useRef(false);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const liveSaveTimerRef = useRef<number | undefined>(undefined);
+  const liveSnapshotRef = useRef<LiveChatSnapshot | null>(null);
 
   const handleMessage = useCallback(async (chunk: ChatMessage) => {
     if (!allowHandleMessageTypes.includes(chunk.type)) {
@@ -235,6 +242,11 @@ function RouteComponent() {
       if (isAgentErrorMessage(chunk)) {
         setIsProcessing(false);
         setStatusText("");
+        if (liveSaveTimerRef.current !== undefined) {
+          window.clearTimeout(liveSaveTimerRef.current);
+          liveSaveTimerRef.current = undefined;
+        }
+        liveSnapshotRef.current = null;
         clearLiveChatSnapshot(historySessionRef.current);
         setRestoredSnapshot(null);
         return [...prev, chunk];
@@ -454,14 +466,40 @@ function RouteComponent() {
       .map((message) => message.content)
       .join("");
 
-    saveLiveChatSnapshot({
+    liveSnapshotRef.current = {
       sessionID: id,
       userText: userMessage.content,
       assistantText,
       status: statusText,
       updatedAt: Date.now(),
-    });
+    };
+
+    if (liveSaveTimerRef.current !== undefined) return;
+
+    liveSaveTimerRef.current = window.setTimeout(() => {
+      liveSaveTimerRef.current = undefined;
+      const pending = liveSnapshotRef.current;
+      if (pending) {
+        saveLiveChatSnapshot(pending);
+      }
+    }, LIVE_CHAT_SAVE_THROTTLE_MS);
   }, [id, messages, isProcessing, statusText]);
+
+  // Flush the last snapshot when leaving the chat or switching sessions so the
+  // tail of an in-progress reply is not lost.
+  useEffect(() => {
+    return () => {
+      if (liveSaveTimerRef.current !== undefined) {
+        window.clearTimeout(liveSaveTimerRef.current);
+        liveSaveTimerRef.current = undefined;
+      }
+
+      if (liveSnapshotRef.current) {
+        saveLiveChatSnapshot(liveSnapshotRef.current);
+        liveSnapshotRef.current = null;
+      }
+    };
+  }, [id]);
 
   // If the turn finished while the tab was reloading, the completion event is
   // gone. Poll until the saved turn appears, then replace the optimistic
@@ -486,6 +524,11 @@ function RouteComponent() {
 
         const latest = history?.messages ?? [];
         if (isSnapshotPersisted(restoredSnapshot, latest)) {
+          if (liveSaveTimerRef.current !== undefined) {
+            window.clearTimeout(liveSaveTimerRef.current);
+            liveSaveTimerRef.current = undefined;
+          }
+          liveSnapshotRef.current = null;
           clearLiveChatSnapshot(id);
           setRestoredSnapshot(null);
           setMessages(latest);
