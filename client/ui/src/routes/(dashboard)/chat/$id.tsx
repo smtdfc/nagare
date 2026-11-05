@@ -551,6 +551,21 @@ function RouteComponent() {
           () => void reconcile(),
           LIVE_CHAT_POLL_INTERVAL_MS,
         );
+        return;
+      }
+
+      if (!cancelled) {
+        // Give up waiting: a stale snapshot must not lock the composer for
+        // good. The optimistic bubble stays, but the chat becomes usable.
+        if (liveSaveTimerRef.current !== undefined) {
+          window.clearTimeout(liveSaveTimerRef.current);
+          liveSaveTimerRef.current = undefined;
+        }
+        liveSnapshotRef.current = null;
+        clearLiveChatSnapshot(id);
+        setRestoredSnapshot(null);
+        setIsProcessing(false);
+        setStatusText("");
       }
     };
 
