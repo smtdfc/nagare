@@ -2,7 +2,6 @@ import { SettingItem, type SettingSection } from "#/components/setting-item";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Settings,
-  Palette,
   Puzzle,
   Brain,
   Database,
