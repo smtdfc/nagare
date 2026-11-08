@@ -63,9 +63,14 @@ func (c *Worker) Do() {
 					continue
 				}
 
+				invokeID := chunkPayload.RequestID
+				if invokeID == "" && chunkPayload.Chunk != nil {
+					invokeID = chunkPayload.Chunk.GetInvokeID()
+				}
+
 				c.HandleChunkMessage(chunkPayload.SessionID, &SessionJob{
 					Chunk:            chunkPayload.Chunk,
-					InvokeID:         chunkPayload.RequestID,
+					InvokeID:         invokeID,
 					ChannelID:        chunkPayload.ChannelID,
 					SessionOwnerType: chunkPayload.SessionOwnerType,
 					SessionOwnerID:   chunkPayload.SessionOwnerID,
