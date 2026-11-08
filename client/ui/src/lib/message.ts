@@ -57,6 +57,32 @@ export function isCompactSuccessMessage(
   return message.type === MessageType.CompactSuccessMessageType;
 }
 
+const visibleMessageTypes = new Set<MessageType>([
+  MessageType.TextMessageType,
+  MessageType.ApprovalRequestMessageType,
+  MessageType.ConversationSummaryMessageType,
+  MessageType.CronJobTriggerMessageType,
+  MessageType.AgentErrorMessageType,
+]);
+
+const handledMessageTypes = new Set<MessageType>([
+  MessageType.TextMessageType,
+  MessageType.ToolCallMessageType,
+  MessageType.AgentCompletedMessageType,
+  MessageType.AgentErrorMessageType,
+  MessageType.ApprovalRequestMessageType,
+  MessageType.ConversationSummaryMessageType,
+  MessageType.CompactSuccessMessageType,
+]);
+
+export function isVisibleChatMessage(message: ChatMessage) {
+  return visibleMessageTypes.has(message.type);
+}
+
+export function isHandledChatMessage(message: ChatMessage) {
+  return handledMessageTypes.has(message.type);
+}
+
 export function getMessageRole(message: ChatMessage) {
   if (isTextMessage(message)) {
     return (message.role as string).toLowerCase();
