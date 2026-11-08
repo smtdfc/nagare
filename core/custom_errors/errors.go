@@ -75,5 +75,8 @@ var (
 	ErrInvalidModuleConnection     = NewNagareCoreError("INVALID_MODULE_CONNECTION", "Invalid module connection")
 	ErrModuleConnectionBlocked     = NewNagareCoreError("MODULE_CONNECTION_BLOCKED", "Module connection has blocked")
 	ErrMultipleChatListeners       = NewNagareCoreError("MULTIPLE_CHAT_LISTENERS", "Multiple chat listeners registered for this session")
+	ErrSourceProviderNotFound      = NewNagareCoreError("SOURCE_PROVIDER_NOT_FOUND", "Source provider not found")
+	ErrDiscoveryFailed             = NewNagareCoreError("DISCOVERY_FAILED", "Failed to discovery this resource")
+	ErrResourceNotFound            = NewNagareCoreError("RESOURCE_NOT_FOUND", "Resource not found")
 	ErrUnknown                     = NewNagareCoreError("UNKNOWN_ERROR", "Unknown error occurred")
 )
