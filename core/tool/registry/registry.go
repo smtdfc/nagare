@@ -55,4 +55,6 @@ func init() {
 	RegisterTool(declarations.ListDirectoryTool, true)
 	RegisterTool(declarations.DeleteFileTool, true)
 	RegisterTool(declarations.GetUserDirectoriesTool, true)
+	RegisterTool(declarations.GetActiveDisplayTool, true)
+	RegisterTool(declarations.ScreenshotTool, true)
 }

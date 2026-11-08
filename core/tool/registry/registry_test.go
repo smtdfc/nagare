@@ -27,6 +27,10 @@ func TestRegistry_Init(t *testing.T) {
 		"list_directory_tool",
 		"delete_file_tool",
 		"get_user_directories_tool",
+		"search_tool",
+		"fetch_content_tool",
+		"get_active_display_tool",
+		"screenshot_tool",
 	}
 
 	for _, name := range expectedTools {
