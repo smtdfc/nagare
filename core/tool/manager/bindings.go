@@ -59,9 +59,6 @@ func (t *ToolBindings) CallTool(ctx *context.ExecuteContext, toolName string, ar
 func (t *ToolBindings) FindToolsByCategories(_ *context.ExecuteContext, categories []string) ([]tool.Metadata, error) {
 	list := make([]tool.Metadata, 0)
 	for _, item := range registry.Registry {
-		if !item.RequiresRouter {
-			continue
-		}
 
 		categoriesMatch := false
 		for _, category := range item.Tool.GetCategories() {
@@ -99,7 +96,7 @@ func (t *ToolBindings) RequestToolApproval(ctx *context.ExecuteContext, title st
 
 	accepted, err := t.approvalMgr.Wait(ctx, request.RequestID)
 	if err != nil {
-		t.logger.Error("Error when request user approve action", "sessionID", ctx.SessionID, "title", title)
+		t.logger.Error("Error when request user approve action", "sessionID", ctx.SessionID, "title", title, "err", err)
 		return false
 	}
 
