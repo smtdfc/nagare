@@ -1,4 +1,4 @@
-go 1.27.2
+go 1.27.3
 
 use (
 	./cli
@@ -10,12 +10,12 @@ use (
 	./pkgs/ipc
 	./pkgs/messages
 	./pkgs/paths
-	./pkgs/security
-	./pkgs/system
 	./pkgs/plugin/builder
-	./plugins/telegram
-	./pkgs/plugin/sdk
 	./pkgs/plugin/contracts
 	./pkgs/plugin/metadata
+	./pkgs/plugin/sdk
+	./pkgs/security
+	./pkgs/system
+	./plugins/telegram
 	./scripts/go
 )
