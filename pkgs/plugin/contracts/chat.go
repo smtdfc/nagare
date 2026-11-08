@@ -7,6 +7,10 @@ const (
 	HandshakeSuccessEvent Event = "plugin:handshake:success"
 	HandshakeFailedEvent  Event = "plugin:handshake:failed"
 
+	RegisterChatListenerEvent        Event = "plugin:register_chat_listener"
+	RegisterChatListenerSuccessEvent Event = "plugin:register_chat_listener:success"
+	RegisterChatListenerFailedEvent  Event = "plugin:register_chat_listener:failed"
+
 	PrepareChatChannelEvent        Event = "plugin:prepare_chat_channel"
 	PrepareChatChannelSuccessEvent Event = "plugin:prepare_chat_channel:success"
 	PrepareChatChannelFailedEvent  Event = "plugin:prepare_chat_channel:failed"
@@ -27,6 +31,16 @@ const (
 	SubmitToolApprovalSuccessEvent Event = "plugin:submit_tool_approval:success"
 	SubmitToolApprovalFailedEvent  Event = "plugin:submit_tool_approval:failed"
 )
+
+type RegisterChatListenerEventPayload struct {
+	SessionID string `json:"sessionID"`
+}
+
+type RegisterChaListenerSuccessEventPayload struct{}
+
+type RegisterChaListenerFailedEventPayload struct {
+	Cause string `json:"cause"`
+}
 
 type GetModelProvidersEventPayload struct {
 }

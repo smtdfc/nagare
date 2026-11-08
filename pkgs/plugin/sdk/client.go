@@ -80,9 +80,19 @@ func (p *PluginClient) handleEvent(payload *contracts.Payload[any]) {
 		contracts.GetModelProvidersSuccessEvent,
 		contracts.GetModelProvidersFailedEvent,
 
+		// Register chat listener
+		contracts.RegisterChatListenerSuccessEvent,
+		contracts.RegisterChatListenerFailedEvent,
+
 		// Register tool categories
 		contracts.RegisterToolCategoriesSuccessEvent,
-		contracts.RegisterToolCategoriesFailedEvent:
+		contracts.RegisterToolCategoriesFailedEvent,
+
+		// System prompt injection
+		contracts.InjectSystemPromptSuccessEvent,
+		contracts.InjectSystemPromptFailedEvent,
+		contracts.ClearSystemPromptSuccessEvent,
+		contracts.ClearSystemPromptFailedEvent:
 
 		p.mu.Lock()
 		if ch, exists := p.pendingRequests[payload.RequestID]; exists {

@@ -33,6 +33,32 @@ func (p *PluginClient) PrepareChatChannel(ctx context.Context, channelID string)
 	return nil
 }
 
+func (p *PluginClient) RegisterChatListener(ctx context.Context, sessionID string) error {
+	payload := contracts.RegisterChatListenerEventPayload{
+		SessionID: sessionID,
+	}
+
+	resp, err := sendAndWait[contracts.RegisterChaListenerSuccessEventPayload, contracts.RegisterChaListenerFailedEventPayload](
+		p,
+		ctx,
+		contracts.RegisterChatListenerEvent,
+		payload,
+		contracts.RegisterChatListenerFailedEvent,
+		contracts.RegisterChatListenerSuccessEvent,
+	)
+	if err != nil {
+		p.Logger.Error("failed to register chat listener", "sessionID", sessionID, "error", err)
+		return err
+	}
+
+	if !resp.IsSuccess {
+		p.Logger.Error("failed to register chat listener", "sessionID", sessionID, "error", err)
+		return errors.New(resp.Error.Cause)
+	}
+
+	return nil
+}
+
 func (p *PluginClient) SendChatMessage(ctx context.Context, channelID string, text string) error {
 	payload := contracts.SendChatMessageEventPayload{
 		ChannelID: channelID,

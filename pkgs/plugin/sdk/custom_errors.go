@@ -13,6 +13,7 @@ var (
 	ErrPrepareChatChannelFailed = errors.New("prepare chat channel failed")
 	ErrIncorrectToolArgs        = errors.New("incorrect tool args")
 	ErrMarshalToolResultFailed  = errors.New("marshal results failed")
+	ErrSystemPromptTooLarge     = errors.New("system prompt too large")
 	ErrTimeout                  = errors.New("timeout")
 	ErrActionCancelled          = errors.New("action cancelled")
 )
