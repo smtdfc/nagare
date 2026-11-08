@@ -54,8 +54,10 @@ const allowShowMessageTypes = [
   MessageType.TextMessageType,
   MessageType.ApprovalRequestMessageType,
   MessageType.ConversationSummaryMessageType,
+  MessageType.CronJobTriggerMessageType,
   MessageType.AgentErrorMessageType,
 ];
+
 const allowHandleMessageTypes = [
   MessageType.TextMessageType,
   MessageType.ToolCallMessageType,

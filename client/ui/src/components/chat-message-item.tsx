@@ -3,6 +3,7 @@ import {
   isAgentErrorMessage,
   isApprovalRequestMessage,
   isConversationSummaryMessage,
+  isCronJobTriggerMessage,
   isTextMessage,
 } from "#/lib/message.ts";
 import { describeAgentError } from "#/lib/agent-error.ts";
@@ -52,7 +53,11 @@ export default function ChatMessageItem({ message }: ChatMessageItemProps) {
   }
 
   if (isConversationSummaryMessage(message)) {
-    return <ConversationSummary message={message} />;
+    return <ConversationSummary />;
+  }
+
+  if (isCronJobTriggerMessage(message)) {
+    return <CronJobTrigger />;
   }
 
   if (isAgentErrorMessage(message)) {
@@ -140,6 +145,21 @@ function ConversationSummary() {
         <div className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/60 bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground">
           <Layers className="size-3" />
           <span>Context compacted</span>
+        </div>
+        <div className="h-px flex-1 bg-border/60" />
+      </div>
+    </div>
+  );
+}
+
+function CronJobTrigger() {
+  return (
+    <div className="my-6 w-full">
+      <div className="relative flex items-center gap-3">
+        <div className="h-px flex-1 bg-border/60" />
+        <div className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/60 bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground">
+          <Layers className="size-3" />
+          <span>Cronjob triggered</span>
         </div>
         <div className="h-px flex-1 bg-border/60" />
       </div>

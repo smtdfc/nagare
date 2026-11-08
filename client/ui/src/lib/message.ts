@@ -5,6 +5,7 @@ import {
   type ApprovalRequestMessage,
   type CompactSuccessMessage,
   type ConversationSummaryMessage,
+  type CronJobTriggerMessage,
   type TextMessage,
   type ToolCallMessage,
 } from "@nagare-app/messages";
@@ -42,6 +43,12 @@ export function isConversationSummaryMessage(
   message: ChatMessage,
 ): message is ConversationSummaryMessage {
   return message.type === MessageType.ConversationSummaryMessageType;
+}
+
+export function isCronJobTriggerMessage(
+  message: ChatMessage,
+): message is CronJobTriggerMessage {
+  return message.type === MessageType.CronJobTriggerMessageType;
 }
 
 export function isCompactSuccessMessage(
