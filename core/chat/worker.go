@@ -60,6 +60,7 @@ func (c *Worker) HandleSendMessageEvent(payload *event_bus.SendChatMessageEventP
 		SenderID:         payload.SenderID,
 		SendIntoEventBus: true,
 		InvokeID:         payload.InvokeID,
+		ContextIsolate:   payload.ContextIsolate,
 	})
 	if err != nil {
 		c.cancelFnMu.Lock()

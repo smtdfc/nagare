@@ -74,6 +74,6 @@ var (
 	ErrInvalidPayload              = NewNagareCoreError("INVALID_PAYLOAD", "Invalid payload")
 	ErrInvalidModuleConnection     = NewNagareCoreError("INVALID_MODULE_CONNECTION", "Invalid module connection")
 	ErrModuleConnectionBlocked     = NewNagareCoreError("MODULE_CONNECTION_BLOCKED", "Module connection has blocked")
-
-	ErrUnknown = NewNagareCoreError("UNKNOWN_ERROR", "Unknown error occurred")
+	ErrMultipleChatListeners       = NewNagareCoreError("MULTIPLE_CHAT_LISTENERS", "Multiple chat listeners registered for this session")
+	ErrUnknown                     = NewNagareCoreError("UNKNOWN_ERROR", "Unknown error occurred")
 )

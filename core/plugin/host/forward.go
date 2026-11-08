@@ -66,15 +66,25 @@ func (h *PluginHost) forwardChatChunks() {
 				continue
 			}
 
-			if chunkPayload.SessionOwnerType != string(session.PLUGIN) && chunkPayload.SessionOwnerType != string(event_bus.Plugin) {
+			var conn *PluginConnection
+			if chunkPayload.SessionOwnerType == string(session.PLUGIN) ||
+				chunkPayload.SessionOwnerType == string(event_bus.Plugin) {
+				h.mu.RLock()
+				c, exists := h.connections[chunkPayload.SessionOwnerID]
+				h.mu.RUnlock()
+
+				if !exists {
+					continue
+				}
+
+				conn = c
+			} else if c, exist := h.chatListeners[chunkPayload.SessionID]; exist {
+				conn = c
+			} else {
 				continue
 			}
 
-			h.mu.RLock()
-			conn, exists := h.connections[chunkPayload.SessionOwnerID]
-			h.mu.RUnlock()
-
-			if !exists {
+			if conn == nil {
 				continue
 			}
 

@@ -11,6 +11,7 @@ type Feature string
 const (
 	ChatFeature          Feature = "chat"
 	ModelProviderFeature Feature = "model_provider"
+	SystemPromptFeature  Feature = "system_prompt"
 	ToolFeature          Feature = "plugin_tool"
 )
 
@@ -30,6 +31,8 @@ func ParseFeatureString(raw string) []Feature {
 			features = append(features, ToolFeature)
 		case string(ModelProviderFeature):
 			features = append(features, ModelProviderFeature)
+		case string(SystemPromptFeature):
+			features = append(features, SystemPromptFeature)
 		}
 	}
 

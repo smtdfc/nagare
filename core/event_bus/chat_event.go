@@ -10,14 +10,15 @@ var (
 )
 
 type SendChatMessageEventPayload struct {
-	RequestID  string
-	InvokeID   string
-	SessionID  string
-	ChannelID  string
-	Messages   messages.ListMessage
-	SenderType SenderType
-	SenderID   string
-	CronJob    *CronJobInfo
+	RequestID      string
+	InvokeID       string
+	SessionID      string
+	ChannelID      string
+	Messages       messages.ListMessage
+	SenderType     SenderType
+	SenderID       string
+	ContextIsolate bool
+	CronJob        *CronJobInfo
 }
 
 func (c *SendChatMessageEventPayload) GetEventType() EventType {

@@ -14,6 +14,9 @@ func TestFeature_ToString(t *testing.T) {
 	if ToolFeature.ToString() != "plugin_tool" {
 		t.Errorf("expected 'plugin_tool', got '%s'", ToolFeature.ToString())
 	}
+	if SystemPromptFeature.ToString() != "system_prompt" {
+		t.Errorf("expected 'system_prompt', got '%s'", SystemPromptFeature.ToString())
+	}
 }
 
 func TestParseFeatureString(t *testing.T) {
@@ -25,6 +28,7 @@ func TestParseFeatureString(t *testing.T) {
 		{"chat,plugin_tool", []Feature{ChatFeature, ToolFeature}},
 		{"chat", []Feature{ChatFeature}},
 		{"plugin_tool", []Feature{ToolFeature}},
+		{"system_prompt", []Feature{SystemPromptFeature}},
 		{" chat , plugin_tool ", []Feature{ChatFeature, ToolFeature}},
 		{"unknown,chat", []Feature{ChatFeature}},
 		{"", nil},

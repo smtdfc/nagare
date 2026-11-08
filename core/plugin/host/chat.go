@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/event_bus"
 	core_plugin "github.com/smtdfc/nagare/core/plugin"
 	"github.com/smtdfc/nagare/pkgs/messages"
@@ -48,6 +49,52 @@ func (h *PluginHost) handlePrepareChatChannel(conn *PluginConnection, payload *c
 	_ = conn.Send(contracts.PrepareChatChannelSuccessEvent, &contracts.PrepareChatChannelSuccessEventPayload{
 		ChannelID: data.ChannelID,
 	}, payload.RequestID)
+}
+
+func (h *PluginHost) handleRegisterChatListener(conn *PluginConnection, payload *contracts.Payload[any]) {
+	if conn.pluginID == "" {
+		_ = conn.Send(contracts.RegisterChatListenerFailedEvent, &contracts.RegisterChaListenerFailedEventPayload{
+			Cause: "access denied",
+		}, payload.RequestID)
+		return
+	}
+
+	data, err := getPayloadData[contracts.RegisterChatListenerEventPayload](payload)
+	if err != nil {
+		_ = conn.Send(contracts.RegisterChatListenerFailedEvent, &contracts.RegisterChaListenerFailedEventPayload{
+			Cause: "failed to parse payload",
+		}, payload.RequestID)
+		return
+	}
+
+	if !RequireScopes(conn.scopes, core_plugin.ChatFeature) {
+		_ = conn.Send(contracts.RegisterChatListenerFailedEvent, &contracts.RegisterChaListenerFailedEventPayload{
+			Cause: "plugin not supported this feature",
+		}, payload.RequestID)
+		return
+	}
+
+	h.logger.Info("Registering chat listener", "sessionID", data.SessionID, "pluginID", conn.pluginID)
+	if _, err := h.sessionMgr.GetSession(context.Background(), data.SessionID); err != nil {
+		h.logger.Error("Register chat listener failed", "sessionID", data.SessionID, "err", err)
+		_ = conn.Send(contracts.RegisterChatListenerFailedEvent, &contracts.RegisterChaListenerFailedEventPayload{
+			Cause: err.Error(),
+		}, payload.RequestID)
+		return
+	}
+
+	h.mu.Lock()
+	if _, exist := h.chatListeners[data.SessionID]; exist {
+		h.mu.Unlock()
+		_ = conn.Send(contracts.RegisterChatListenerFailedEvent, &contracts.RegisterChaListenerFailedEventPayload{
+			Cause: custom_errors.ErrMultipleChatListeners.Error(),
+		}, payload.RequestID)
+		return
+	}
+	h.chatListeners[data.SessionID] = conn
+	h.mu.Unlock()
+
+	_ = conn.Send(contracts.RegisterChatListenerSuccessEvent, &contracts.RegisterChaListenerSuccessEventPayload{}, payload.RequestID)
 }
 
 func (h *PluginHost) handleSendChatMessage(conn *PluginConnection, payload *contracts.Payload[any]) {

@@ -114,6 +114,20 @@ func (s *SessionManager) GetListUserSessionPage(ctx context.Context, ownerID str
 	return s.sessionMapper.ToDomains(sessions), nil
 }
 
+func (s *SessionManager) GetSession(ctx context.Context, sessionID string) (*session.Info, error) {
+	userSession, err := s.sessionRepo.FindByID(ctx, sessionID)
+	if err != nil {
+		s.logger.Error("failed to get session", "session_id", sessionID, "err", err)
+		return nil, custom_errors.ErrGetSessionFailed
+	}
+
+	if userSession == nil {
+		return nil, custom_errors.ErrSessionNotFound
+	}
+
+	return s.sessionMapper.ToDomain(userSession), nil
+}
+
 func (s *SessionManager) GetUserSession(ctx context.Context, sessionID string, ownerID string) (*session.Info, error) {
 	userSession, err := s.sessionRepo.FindUserSession(ctx, sessionID, ownerID)
 	if err != nil {

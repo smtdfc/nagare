@@ -3,7 +3,6 @@ package chat
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -41,6 +40,7 @@ type AgentInvokeParams struct {
 	SenderType       event_bus.SenderType
 	SenderID         string
 	SendIntoEventBus bool
+	ContextIsolate   bool
 	InvokeID         string
 }
 
@@ -90,6 +90,7 @@ func (a *AgentInvoker) Invoke(ctx context.Context, params *AgentInvokeParams) (m
 			output <- msg
 			if sendIntoEventBus && a.eventBus != nil {
 				a.eventBus.Publish(ctx, event_bus.ChatMessageChunkEvent, &event_bus.ChatMessageChunkEventPayload{
+					RequestID:        invokeID,
 					SessionID:        sessionID,
 					ChannelID:        channelID,
 					Chunk:            msg,
@@ -101,21 +102,7 @@ func (a *AgentInvoker) Invoke(ctx context.Context, params *AgentInvokeParams) (m
 			}
 		}
 
-		systemPrompt, err := prompt.SystemPromptTemplate.Build(struct {
-			ToolCategories string
-		}{
-			ToolCategories: a.toolMgr.GetCategoriesPrompt(),
-		})
-		if err != nil {
-			code, details := extractErrorDetails(err)
-			emit(messages.NewAgentErrorMessage(details, code))
-			return
-		}
-
-		systemMessage := messages.NewTextMessage(messages.SYSTEM, systemPrompt)
-		systemMessage.SetInvokeID(invokeID)
-		history := messages.ListMessage{systemMessage}
-
+		var err error
 		switch senderType {
 		case event_bus.User:
 			sessionState, err = a.sessionMgr.GetUserChatState(ctx, sessionID, senderID)
@@ -129,13 +116,25 @@ func (a *AgentInvoker) Invoke(ctx context.Context, params *AgentInvokeParams) (m
 			emit(messages.NewAgentErrorMessage(details, code))
 			return
 		}
+
 		channelID = sessionState.ChannelID
-		for _, msg := range sessionState.Messages {
-			fmt.Println(msg.GetMessageType())
-		}
-		history = append(history, sessionState.Messages...)
 		sessionOwnerID = sessionState.OwnerID
 		sessionOwnerType = sessionState.OwnerType.ToString()
+
+		systemPrompt, err := prompt.BuildSystemPrompt(a.toolMgr.GetCategoriesPrompt(), prompt.GetPluginSystemPrompts())
+		if err != nil {
+			code, details := extractErrorDetails(err)
+			emit(messages.NewAgentErrorMessage(details, code))
+			return
+		}
+
+		systemMessage := messages.NewTextMessage(messages.SYSTEM, systemPrompt)
+		systemMessage.SetInvokeID(invokeID)
+		history := messages.ListMessage{systemMessage}
+		if !params.ContextIsolate {
+			history = append(history, sessionState.Messages...)
+		}
+
 		currentModelProviderID := sessionState.CurrentModelProvider
 		currentModel := sessionState.CurrentModel
 
@@ -237,6 +236,7 @@ func (a *AgentInvoker) Compact(ctx context.Context, params *ConversationCompactP
 			output <- msg
 			if sendIntoEventBus && a.eventBus != nil {
 				a.eventBus.Publish(ctx, event_bus.ChatMessageChunkEvent, &event_bus.ChatMessageChunkEventPayload{
+					RequestID:        invokeID,
 					SessionID:        sessionID,
 					ChannelID:        channelID,
 					Chunk:            msg,

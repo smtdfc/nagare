@@ -10,6 +10,7 @@ import (
 	"github.com/smtdfc/nagare/core/logger"
 	provider_mgr "github.com/smtdfc/nagare/core/model_provider/manager"
 	"github.com/smtdfc/nagare/core/plugin/manager"
+	"github.com/smtdfc/nagare/core/prompt"
 	session_mgr "github.com/smtdfc/nagare/core/session/manager"
 	manager2 "github.com/smtdfc/nagare/core/tool/manager"
 	"github.com/smtdfc/nagare/pkgs/ipc"
@@ -27,10 +28,11 @@ type PluginHost struct {
 	logger        *logger.BaseLogger
 	socketPath    string
 
-	listener    net.Listener
-	mu          sync.RWMutex
-	connections map[string]*PluginConnection
-	stopChan    chan struct{}
+	listener      net.Listener
+	mu            sync.RWMutex
+	connections   map[string]*PluginConnection
+	chatListeners map[string]*PluginConnection
+	stopChan      chan struct{}
 }
 
 func (h *PluginHost) unregister(conn *PluginConnection) {
@@ -38,6 +40,12 @@ func (h *PluginHost) unregister(conn *PluginConnection) {
 	defer h.mu.Unlock()
 	if h.connections[conn.pluginID] == conn {
 		delete(h.connections, conn.pluginID)
+		prompt.ClearPluginSystemPrompt(conn.pluginID)
+		for sessionID, c := range h.chatListeners {
+			if c == conn {
+				delete(h.chatListeners, sessionID)
+			}
+		}
 	}
 }
 
@@ -168,6 +176,12 @@ func (h *PluginHost) dispatch(pConn *PluginConnection, payload *contracts.Payloa
 		h.handlePluginToolCallResult(pConn, payload)
 	case contracts.GetModelProvidersEvent:
 		h.handleGetModelProviders(pConn, payload)
+	case contracts.RegisterChatListenerEvent:
+		h.handleRegisterChatListener(pConn, payload)
+	case contracts.InjectSystemPromptEvent:
+		go h.handleInjectSystemPrompt(pConn, payload)
+	case contracts.ClearSystemPromptEvent:
+		go h.handleClearSystemPrompt(pConn, payload)
 	default:
 		h.logger.Warn("Unknown event received from plugin", "event", payload.Event, "pluginID", pConn.pluginID)
 	}
@@ -192,6 +206,7 @@ func NewPluginHost(
 		modelProvider: modelProvider,
 		logger:        logger.With("module", "plugin-host"),
 		connections:   make(map[string]*PluginConnection),
+		chatListeners: make(map[string]*PluginConnection),
 		socketPath:    paths.PluginSocketPath,
 	}
 }
