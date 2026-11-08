@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { ChatService, ModelProviderService } from "@nagare-app/services";
 import type { ModelProvider, Session } from "@nagare-app/dtos";
+import { useChat } from "#/hooks/use-chat.ts";
 import { showToastError } from "#/lib/toast";
 import {
   Popover,
@@ -223,6 +224,8 @@ export function ChatNavActions({
 }: ChatNavActionsProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isActionLoading, setIsActionLoading] = React.useState(false);
+  const setInvokeID = useChat((c) => c.setInvokeID);
+  const setIsProcessing = useChat((c) => c.setIsProcessing);
 
   const handleArchive = async () => {
     setIsActionLoading(true);
@@ -270,7 +273,11 @@ export function ChatNavActions({
   const handleCompact = async () => {
     setIsActionLoading(true);
     try {
-      await ChatService.compactConversation(session.id);
+      const res = await ChatService.compactConversation(session.id);
+      if (res?.invokeID) {
+        setInvokeID(res.invokeID);
+        setIsProcessing(true);
+      }
       onCompact?.();
       setIsOpen(false);
     } catch (error) {
