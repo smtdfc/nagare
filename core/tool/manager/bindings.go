@@ -8,6 +8,7 @@ import (
 
 	"github.com/smtdfc/nagare/core/context"
 	cronjob_manager "github.com/smtdfc/nagare/core/cronjob/manager"
+	"github.com/smtdfc/nagare/core/discovery/manager"
 	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/hil"
 	"github.com/smtdfc/nagare/core/logger"
@@ -16,11 +17,17 @@ import (
 )
 
 type ToolBindings struct {
-	approvalMgr *hil.Manager
-	cronJobMgr  *cronjob_manager.CronJobManager
-	toolMgr     *ToolManager
-	eventBus    *event_bus.CoreEventBus
-	logger      *logger.BaseLogger
+	approvalMgr  *hil.Manager
+	cronJobMgr   *cronjob_manager.CronJobManager
+	toolMgr      *ToolManager
+	eventBus     *event_bus.CoreEventBus
+	discoveryMgr *manager.DiscoveryManager
+	logger       *logger.BaseLogger
+}
+
+// GetDiscoveryMgr implements [tool.Bindings].
+func (t *ToolBindings) GetDiscoveryMgr() *manager.DiscoveryManager {
+	return t.discoveryMgr
 }
 
 func (t *ToolBindings) FindToolsByKeywords(keywords []string) ([]tool.Metadata, error) {

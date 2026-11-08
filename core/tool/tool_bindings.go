@@ -2,6 +2,7 @@ package tool
 
 import (
 	context2 "github.com/smtdfc/nagare/core/context"
+	"github.com/smtdfc/nagare/core/discovery/manager"
 )
 
 type Bindings interface {
@@ -10,4 +11,5 @@ type Bindings interface {
 	FindToolsByCategories(ctx *context2.ExecuteContext, categories []string) ([]Metadata, error)
 	CallTool(ctx *context2.ExecuteContext, toolName string, args string) *Result
 	RequestToolApproval(ctx *context2.ExecuteContext, title string) bool
+	GetDiscoveryMgr() *manager.DiscoveryManager
 }

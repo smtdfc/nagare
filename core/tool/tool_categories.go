@@ -11,4 +11,6 @@ const (
 	CronJobManagementCategory = "cronjob_management"
 	RoutingCategory           = "tool_routing"
 	TimingCategory            = "timing"
+	SystemCategory            = "system"
+	ResearchCategory          = "research"
 )

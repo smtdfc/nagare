@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	core_context "github.com/smtdfc/nagare/core/context"
+	"github.com/smtdfc/nagare/core/discovery/manager"
 	"github.com/smtdfc/nagare/core/tool"
 	pkgs_messages "github.com/smtdfc/nagare/pkgs/messages"
 )
@@ -33,6 +34,11 @@ type fakeApprovalBindings struct {
 	mockCronJobBindings
 	approve bool
 	calls   []string
+}
+
+// GetDiscoveryMgr implements [tool.Bindings].
+func (f *fakeApprovalBindings) GetDiscoveryMgr() *manager.DiscoveryManager {
+	panic("unimplemented")
 }
 
 func (f *fakeApprovalBindings) RequestToolApproval(_ *core_context.ExecuteContext, title string) bool {

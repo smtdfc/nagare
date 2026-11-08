@@ -4,9 +4,15 @@ import (
 	"testing"
 
 	context2 "github.com/smtdfc/nagare/core/context"
+	"github.com/smtdfc/nagare/core/discovery/manager"
 )
 
 type mockBindings struct{}
+
+// GetDiscoveryMgr implements [Bindings].
+func (m *mockBindings) GetDiscoveryMgr() *manager.DiscoveryManager {
+	panic("unimplemented")
+}
 
 // RequestToolApproval implements [Bindings].
 func (m *mockBindings) RequestToolApproval(ctx *context2.ExecuteContext, title string) bool {

@@ -39,6 +39,8 @@ func init() {
 	RegisterTool(declarations.ExecuteTool, false)
 	RegisterTool(declarations.CreateCronJobTool, false)
 	RegisterTool(declarations.TimeTool, false)
+	RegisterTool(declarations.SearchTool, false)
+	RegisterTool(declarations.FetchContentTool, false)
 
 	// requires router
 	RegisterTool(declarations.WeatherTool, true)

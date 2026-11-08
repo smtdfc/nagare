@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	core_context "github.com/smtdfc/nagare/core/context"
+	"github.com/smtdfc/nagare/core/discovery/manager"
 	"github.com/smtdfc/nagare/core/tool"
 )
 
@@ -14,6 +15,11 @@ type mockFindBindings struct {
 	gotCategories []string
 	tools         []tool.Metadata
 	err           error
+}
+
+// GetDiscoveryMgr implements [tool.Bindings].
+func (m *mockFindBindings) GetDiscoveryMgr() *manager.DiscoveryManager {
+	panic("unimplemented")
 }
 
 func (m *mockFindBindings) FindToolsByCategories(_ *core_context.ExecuteContext, categories []string) ([]tool.Metadata, error) {

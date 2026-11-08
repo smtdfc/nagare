@@ -7,6 +7,7 @@ import (
 
 	"github.com/smtdfc/nagare/core/context"
 	cronjob_manager "github.com/smtdfc/nagare/core/cronjob/manager"
+	discovery_manager "github.com/smtdfc/nagare/core/discovery/manager"
 	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/hil"
 	"github.com/smtdfc/nagare/core/logger"
@@ -22,16 +23,18 @@ type ToolManager struct {
 	cronJobMgr           *cronjob_manager.CronJobManager
 	eventBus             *event_bus.CoreEventBus
 	approvalMgr          *hil.Manager
+	discoveryMgr         *discovery_manager.DiscoveryManager
 	toolCategories       map[string]string
 	pluginToolCategories map[string]map[string]string
 }
 
 func (t *ToolManager) createBindings() *ToolBindings {
 	return &ToolBindings{
-		cronJobMgr:  t.cronJobMgr,
-		eventBus:    t.eventBus,
-		toolMgr:     t,
-		approvalMgr: t.approvalMgr,
+		cronJobMgr:   t.cronJobMgr,
+		eventBus:     t.eventBus,
+		toolMgr:      t,
+		approvalMgr:  t.approvalMgr,
+		discoveryMgr: t.discoveryMgr,
 	}
 }
 
@@ -156,12 +159,13 @@ func (t *ToolManager) AddPluginToolCategories(pluginID string, categories map[st
 }
 
 // @Injectable
-func NewToolManager(logger *logger.BaseLogger, cronJobMgr *cronjob_manager.CronJobManager, eventBus *event_bus.CoreEventBus, approvalMgr *hil.Manager) *ToolManager {
+func NewToolManager(logger *logger.BaseLogger, cronJobMgr *cronjob_manager.CronJobManager, eventBus *event_bus.CoreEventBus, approvalMgr *hil.Manager, discoveryMgr *discovery_manager.DiscoveryManager) *ToolManager {
 	return &ToolManager{
-		logger:      logger.With("module", "tool-manager"),
-		cronJobMgr:  cronJobMgr,
-		eventBus:    eventBus,
-		approvalMgr: approvalMgr,
+		logger:       logger.With("module", "tool-manager"),
+		cronJobMgr:   cronJobMgr,
+		eventBus:     eventBus,
+		approvalMgr:  approvalMgr,
+		discoveryMgr: discoveryMgr,
 		toolCategories: map[string]string{
 			tool.ProcessManagementCategory: "Process Management",
 			tool.PowerManagementCategory:   "Power Management",
@@ -173,6 +177,8 @@ func NewToolManager(logger *logger.BaseLogger, cronJobMgr *cronjob_manager.CronJ
 			tool.CronJobManagementCategory: "CronJob Management",
 			tool.RoutingCategory:           "Tool Routing",
 			tool.TimingCategory:            "Timing",
+			tool.SystemCategory:            "System",
+			tool.ResearchCategory:          "Research",
 		},
 		pluginToolCategories: make(map[string]map[string]string),
 	}

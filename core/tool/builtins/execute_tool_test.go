@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	core_context "github.com/smtdfc/nagare/core/context"
+	"github.com/smtdfc/nagare/core/discovery/manager"
 	"github.com/smtdfc/nagare/core/tool"
 )
 
@@ -15,6 +16,11 @@ type mockExecuteBindings struct {
 	calledName string
 	calledArgs string
 	result     *tool.Result
+}
+
+// GetDiscoveryMgr implements [tool.Bindings].
+func (m *mockExecuteBindings) GetDiscoveryMgr() *manager.DiscoveryManager {
+	panic("unimplemented")
 }
 
 func (m *mockExecuteBindings) CallTool(_ *core_context.ExecuteContext, toolName string, args string) *tool.Result {
