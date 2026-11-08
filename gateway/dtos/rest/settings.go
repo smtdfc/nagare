@@ -8,6 +8,8 @@ const (
 type GeneralSettings struct {
 	DefaultModel         string `json:"defaultModel"`
 	DefaultModelProvider string `json:"defaultModelProvider"`
+	SummaryModel         string `json:"summaryModel"`
+	SummaryModelProvider string `json:"summaryModelProvider"`
 }
 
 type GetGeneralSettingsResponse struct {

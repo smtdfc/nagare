@@ -23,6 +23,8 @@ func (s *Service) SetGeneralSettings(ctx context.Context, request *rest.SetGener
 	generalConfig := &config.GeneralConfig{
 		DefaultModelProvider: request.GeneralSettings.DefaultModelProvider,
 		DefaultModel:         request.GeneralSettings.DefaultModel,
+		SummaryModelProvider: request.GeneralSettings.SummaryModelProvider,
+		SummaryModel:         request.GeneralSettings.SummaryModel,
 	}
 
 	err := s.configMgr.SetGeneralConfig(ctx, generalConfig)
@@ -44,6 +46,8 @@ func (s *Service) GetGeneralSettings(ctx context.Context) (*rest.GetGeneralSetti
 		GeneralSettings: &rest.GeneralSettings{
 			DefaultModel:         generalConfig.DefaultModel,
 			DefaultModelProvider: generalConfig.DefaultModelProvider,
+			SummaryModel:         generalConfig.SummaryModel,
+			SummaryModelProvider: generalConfig.SummaryModelProvider,
 		},
 	}, nil
 }
