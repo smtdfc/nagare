@@ -37,6 +37,8 @@ var ModuleDataDir = ""
 var ModuleConfigDir = ""
 var ModuleSocketPath = ""
 
+var ArtifactsDir = ""
+
 func init() {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -65,6 +67,7 @@ func init() {
 	ModuleConfigDir = filepath.Join(ConfigDir, "modules")
 	ModuleDataDir = filepath.Join(DataDir, "data", "modules")
 
+	ArtifactsDir = filepath.Join(DataDir, "artifacts")
 	if runtime.GOOS == "windows" {
 		PluginSocketPath = `\\.\pipe\nagare-plugin`
 		ModuleSocketPath = `\\.\pipe\nagare-external-module`
@@ -92,6 +95,8 @@ func init() {
 		ModuleLogDir,
 		ModuleConfigDir,
 		ModuleDataDir,
+
+		ArtifactsDir,
 	}
 
 	for _, p := range paths {
