@@ -99,18 +99,11 @@ func (c *CronJobWorker) ExecuteJob(jobID uuid.UUID, job *cronjob.CronJob) {
 		RequestID: uuid.New().String(),
 		SessionID: job.SessionID.String(),
 		Messages: messages.ListMessage{
-			messages.NewTextMessage(messages.SYSTEM, fmt.Sprintf(`
-			<cronjob>
-				<id>%s</id>
-				<name>%s</name>
-				<request>%s</request>
-				<note>Add \"[CronJob: %s] triggered\" before the text response.</note>
-				<constraint>You MUST reply using the EXACT same language that the user is currently using in their prompt/request.</constraint>
-			</cronjob>
-		`, jobID, job.Name, job.Prompt, jobID)),
+			messages.NewCronJobTriggerMessage(fmt.Sprintf(`%s`, job.Prompt)),
 		},
-		SenderType: event_bus.System,
-		SenderID:   "",
+		SenderType:     event_bus.System,
+		SenderID:       "",
+		ContextIsolate: true,
 	})
 
 	// Re-check upcoming jobs after advancing

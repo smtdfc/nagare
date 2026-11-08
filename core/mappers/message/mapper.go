@@ -39,8 +39,10 @@ func (m *MessageMapper) ToDomain(entity *entities.Message) (messages.Message, er
 		return helpers.UnmarshalJson[messages.ToolResultMessage](entity.Content)
 	case string(messages.ConversationSummaryMessageType):
 		return helpers.UnmarshalJson[messages.ConversationSummaryMessage](entity.Content)
+	case string(messages.CronJobTriggerMessageType):
+		return helpers.UnmarshalJson[messages.CronJobTriggerMessage](entity.Content)
 	default:
-		return nil, fmt.Errorf("failed to covert")
+		return nil, fmt.Errorf("failed to convert")
 	}
 }
 
