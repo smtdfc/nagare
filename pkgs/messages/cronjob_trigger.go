@@ -1,10 +1,13 @@
 package messages
 
-import "github.com/smtdfc/nagare/pkgs/helpers"
+import (
+	"github.com/smtdfc/nagare/pkgs/helpers"
+)
 
 type CronJobTriggerMessage struct {
 	ID       string      `json:"id"`
 	Type     MessageType `json:"type"`
+	Prompt   string      `json:"prompt"`
 	InvokeID string      `json:"invokeID"`
 }
 
@@ -24,9 +27,10 @@ func (c *CronJobTriggerMessage) SetInvokeID(invokeID string) {
 	c.InvokeID = invokeID
 }
 
-func NewCronJobTriggerMessage() *CronJobTriggerMessage {
+func NewCronJobTriggerMessage(prompt string) *CronJobTriggerMessage {
 	return &CronJobTriggerMessage{
-		ID:   helpers.GenerateUUID(),
-		Type: CronJobTriggerMessageType,
+		ID:     helpers.GenerateUUID(),
+		Type:   CronJobTriggerMessageType,
+		Prompt: prompt,
 	}
 }

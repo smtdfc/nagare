@@ -67,6 +67,7 @@ export type Message =
     | ResponseFailedMessage
     | ResponseStartedMessage
 	| ConversationSummaryMessage
+	| CronJobTriggerMessage
     | TextMessage
     | ToolCallMessage
     | ToolResultMessage;

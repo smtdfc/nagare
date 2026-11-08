@@ -5,7 +5,7 @@ import (
 )
 
 func TestCronJobTriggerMessage(t *testing.T) {
-	msg := NewCronJobTriggerMessage()
+	msg := NewCronJobTriggerMessage("")
 	if msg.GetMessageType() != CronJobTriggerMessageType {
 		t.Fatalf("expected type %s, got %s", CronJobTriggerMessageType, msg.GetMessageType())
 	}
