@@ -123,15 +123,20 @@ func escapeMarkdownV2(text string) string {
 	return replacer.Replace(text)
 }
 
-// sendTextMessage sends a text messages to a Telegram chat and logs any error.
+// sendTextMessage sends a text message to a Telegram chat, splitting it into
+// multiple messages when it exceeds Telegram's message length limit.
 func (tp *TelegramPlugin) sendTextMessage(ctx context.Context, chatID int64, text string) error {
-	if text == "" {
+	if strings.TrimSpace(text) == "" {
 		return nil
 	}
-	params := tu.Message(tu.ID(chatID), text)
-	_, err := tp.bot.SendMessage(ctx, params)
-	if err != nil {
-		tp.logger().Error("Error sending messages to telegram", "chatID", chatID, "error", err)
+
+	for _, chunk := range splitMessage(text, telegramMaxMessageLength) {
+		params := tu.Message(tu.ID(chatID), chunk)
+		if _, err := tp.bot.SendMessage(ctx, params); err != nil {
+			tp.logger().Error("Error sending messages to telegram", "chatID", chatID, "error", err)
+			return err
+		}
 	}
-	return err
+
+	return nil
 }
