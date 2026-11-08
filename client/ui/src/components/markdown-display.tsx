@@ -8,12 +8,6 @@ type MarkdownDisplayProps = {
   content: string;
 };
 
-/**
- * Language models commonly emit LaTeX with \(...\) or \[...\] delimiters.
- * CommonMark treats the leading backslash as an escape, so those formulas end
- * up rendered as plain bracketed text. Rewrite them into the dollar delimiters
- * understood by remark-math before the document is parsed.
- */
 export function normalizeMathDelimiters(content: string) {
   return content
     .replace(/\\\[([\s\S]*?)\\\]/g, (_match: string, expression: string) => {
@@ -28,7 +22,9 @@ export default function MarkdownDisplay({ content }: MarkdownDisplayProps) {
   return (
     <Markdown
       remarkPlugins={[remarkGfm, remarkMath]}
-      rehypePlugins={[[rehypeKatex, { throwOnError: false, errorColor: "#ef4444" }]]}
+      rehypePlugins={[
+        [rehypeKatex, { throwOnError: false, errorColor: "#ef4444" }],
+      ]}
       components={{
         h1: ({ node, ...props }) => (
           <h1 className="text-2xl font-bold my-4" {...props} />

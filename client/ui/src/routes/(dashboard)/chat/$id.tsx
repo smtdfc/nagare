@@ -9,42 +9,27 @@ import {
 } from "@/components/ui/message-scroller";
 import { useChat } from "#/hooks/use-chat.ts";
 import { type UIEvent, useEffect, useState, useRef, useCallback } from "react";
-
 import { ChatService } from "@nagare-app/services";
-import {
-  MessageType,
-  Role,
-  type Message as ChatMessage,
-} from "@nagare-app/messages";
+import { MessageType, type Message as ChatMessage } from "@nagare-app/messages";
 import {
   getMessageRole,
   isAgentCompletedMessage,
   isAgentErrorMessage,
   isApprovalRequestMessage,
   isConversationSummaryMessage,
+  isCronJobTriggerMessage,
   isTextMessage,
   isToolCallMessage,
 } from "#/lib/message";
 import { Spinner } from "#/components/ui/spinner";
 import ChatMessageItem from "#/components/chat-message-item.tsx";
 import { Button } from "@/components/ui/button";
-import { HistoryIcon, MessageSquareIcon } from "lucide-react";
+import { HistoryIcon } from "lucide-react";
 import { showToastError } from "#/lib/toast";
 import { toast } from "#/components/ui/toast.tsx";
-import {
-  clearLiveChatSnapshot,
-  loadLiveChatSnapshot,
-  saveLiveChatSnapshot,
-  type LiveChatSnapshot,
-} from "#/lib/live-chat";
+import { ChatEmptyState } from "#/components/chat-empty-stare";
 
 const HISTORY_PAGE_SIZE = 20;
-// Polling is the safety net for a reload that happens while a turn finishes:
-// the completion event was missed, so the DB is the only source of truth.
-const LIVE_CHAT_POLL_INTERVAL_MS = 4_000;
-const LIVE_CHAT_POLL_TIMEOUT_MS = 3 * 60 * 1000;
-// Writing sessionStorage on every streamed chunk is O(n^2) for long replies.
-const LIVE_CHAT_SAVE_THROTTLE_MS = 250;
 
 export const Route = createFileRoute("/(dashboard)/chat/$id")({
   component: RouteComponent,
@@ -80,75 +65,6 @@ function renderMessageContent(message: ChatMessage) {
   );
 }
 
-function lastIndexWhere<T>(
-  items: T[],
-  predicate: (item: T) => boolean,
-): number {
-  for (let index = items.length - 1; index >= 0; index -= 1) {
-    const item = items[index];
-    if (item !== undefined && predicate(item)) {
-      return index;
-    }
-  }
-
-  return -1;
-}
-
-// The snapshot is only useful while the turn is still missing from the DB. If
-// the turn was persisted before the reload, restoring it would duplicate it.
-function isSnapshotPersisted(
-  snapshot: LiveChatSnapshot,
-  history: ChatMessage[],
-): boolean {
-  const userText = snapshot.userText.trim();
-  if (!userText) return false;
-
-  const lastUserIndex = lastIndexWhere(
-    history,
-    (message) => isTextMessage(message) && getMessageRole(message) === "user",
-  );
-  const userIndex = lastIndexWhere(
-    history,
-    (message) =>
-      isTextMessage(message) &&
-      getMessageRole(message) === "user" &&
-      message.content.trim() === userText,
-  );
-
-  if (userIndex === -1 || userIndex !== lastUserIndex) {
-    return false;
-  }
-
-  const assistantText = snapshot.assistantText.trim();
-  if (!assistantText) {
-    return true;
-  }
-
-  const persistedText = history
-    .slice(userIndex + 1)
-    .filter(isTextMessage)
-    .filter((message) => getMessageRole(message) !== "user")
-    .map((message) => message.content)
-    .join("\n");
-
-  // Whitespace can differ between streamed chunks and persisted messages
-  // (tool calls split a reply into several rows), so compare ignoring it.
-  const normalize = (value: string) => value.replace(/\s+/g, "");
-  return normalize(persistedText).includes(normalize(assistantText));
-}
-
-function ChatEmptyState() {
-  return (
-    <div className="flex min-h-[50vh] flex-col items-center justify-center gap-2 text-center">
-      <MessageSquareIcon className="size-8 text-muted-foreground/60" />
-      <p className="text-sm font-medium">No messages yet</p>
-      <p className="max-w-sm text-sm text-muted-foreground">
-        Send a message below to start the conversation.
-      </p>
-    </div>
-  );
-}
-
 function RouteComponent() {
   const { id } = useParams({ from: "/(dashboard)/chat/$id" });
   const [statusText, setStatusText] = useState("Processing...");
@@ -156,18 +72,19 @@ function RouteComponent() {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [canLoadOlderHistory, setCanLoadOlderHistory] = useState(false);
-  const [restoredSnapshot, setRestoredSnapshot] =
-    useState<LiveChatSnapshot | null>(null);
 
   const pendingMessages = useChat((c) => c.pendingMessages);
   const setPendingMessages = useChat((c) => c.setPendingMessages);
   const setChatSession = useChat((c) => c.setChatSession);
   const setIsConnected = useChat((c) => c.setIsConnected);
   const setInvokeID = useChat((c) => c.setInvokeID);
+  const invokeID = useChat((c) => c.invokeID);
   const isConnected = useChat((c) => c.isConnected);
   const isProcessing = useChat((c) => c.isProcessing);
   const setIsProcessing = useChat((c) => c.setIsProcessing);
 
+  const currentInvokeIDRef = useRef<string | null>(null);
+  currentInvokeIDRef.current = invokeID;
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
   const historyCursorRef = useRef<string | null>("");
@@ -175,11 +92,16 @@ function RouteComponent() {
   const isLoadingHistoryRef = useRef(false);
   const isSessionReadyRef = useRef(false);
   const viewportRef = useRef<HTMLDivElement>(null);
-  const liveSaveTimerRef = useRef<number | undefined>(undefined);
-  const liveSnapshotRef = useRef<LiveChatSnapshot | null>(null);
 
   const handleMessage = useCallback(async (chunk: ChatMessage) => {
     if (!allowHandleMessageTypes.includes(chunk.type)) {
+      return;
+    }
+
+    if (
+      !currentInvokeIDRef.current ||
+      chunk.invokeID !== currentInvokeIDRef.current
+    ) {
       return;
     }
 
@@ -191,6 +113,9 @@ function RouteComponent() {
         type: "success",
         description: "Your conversation history has been summarized.",
       });
+      setIsProcessing(false);
+      currentInvokeIDRef.current = null;
+      setInvokeID(null);
       return;
     }
 
@@ -227,8 +152,8 @@ function RouteComponent() {
       if (isAgentCompletedMessage(chunk)) {
         setStatusText(`Finishing ...`);
         setIsProcessing(false);
-        // Keep the snapshot until the poll sees the saved turn. This covers a
-        // reload in the short window between completion and SaveHistory.
+        currentInvokeIDRef.current = null;
+        setInvokeID(null);
         return prev;
       }
 
@@ -245,17 +170,15 @@ function RouteComponent() {
       if (isAgentErrorMessage(chunk)) {
         setIsProcessing(false);
         setStatusText("");
-        if (liveSaveTimerRef.current !== undefined) {
-          window.clearTimeout(liveSaveTimerRef.current);
-          liveSaveTimerRef.current = undefined;
-        }
-        liveSnapshotRef.current = null;
-        clearLiveChatSnapshot(historySessionRef.current);
-        setRestoredSnapshot(null);
+        currentInvokeIDRef.current = null;
+        setInvokeID(null);
         return [...prev, chunk];
       }
 
-      if (isConversationSummaryMessage(chunk)) {
+      if (
+        isConversationSummaryMessage(chunk) ||
+        isCronJobTriggerMessage(chunk)
+      ) {
         return [...prev, chunk];
       }
 
@@ -357,7 +280,8 @@ function RouteComponent() {
     setIsConnected(false);
     setIsProcessing(false);
     setIsInitialLoading(true);
-    setRestoredSnapshot(null);
+    currentInvokeIDRef.current = null;
+    setInvokeID(null);
     isLoadingHistoryRef.current = false;
     isSessionReadyRef.current = false;
     setIsLoadingHistory(false);
@@ -386,36 +310,6 @@ function RouteComponent() {
 
         const savedMessages = history?.messages ?? [];
         setMessages(savedMessages);
-
-        const snapshot = loadLiveChatSnapshot(id);
-        if (snapshot && !isSnapshotPersisted(snapshot, savedMessages)) {
-          const restored: ChatMessage[] = [
-            {
-              id: `live-user-${id}`,
-              type: MessageType.TextMessageType,
-              role: Role.USER,
-              invokeID: "",
-              content: snapshot.userText,
-            },
-          ];
-
-          if (snapshot.assistantText.trim()) {
-            restored.push({
-              id: `live-assistant-${id}`,
-              type: MessageType.TextMessageType,
-              role: Role.AGENT,
-              invokeID: "",
-              content: snapshot.assistantText,
-            });
-          }
-
-          setMessages([...savedMessages, ...restored]);
-          setStatusText(snapshot.status || "Responding...");
-          setIsProcessing(true);
-          setRestoredSnapshot(snapshot);
-        } else if (snapshot) {
-          clearLiveChatSnapshot(id);
-        }
 
         requestAnimationFrame(() => {
           const viewport = viewportRef.current;
@@ -446,143 +340,10 @@ function RouteComponent() {
       isSessionReadyRef.current = false;
       unListener?.();
       setIsConnected(false);
+      currentInvokeIDRef.current = null;
+      setInvokeID(null);
     };
   }, [id, setChatSession, setIsConnected, handleMessage]);
-
-  // Keep a tab-local copy of the in-progress turn so a reload can restore it.
-  useEffect(() => {
-    if (!isProcessing) return;
-
-    const lastUserIndex = lastIndexWhere(
-      messages,
-      (message) => isTextMessage(message) && getMessageRole(message) === "user",
-    );
-    if (lastUserIndex === -1) return;
-
-    const userMessage = messages[lastUserIndex];
-    if (!userMessage || !isTextMessage(userMessage)) return;
-
-    const assistantText = messages
-      .slice(lastUserIndex + 1)
-      .filter(isTextMessage)
-      .filter((message) => getMessageRole(message) !== "user")
-      .map((message) => message.content)
-      .join("");
-
-    liveSnapshotRef.current = {
-      sessionID: id,
-      userText: userMessage.content,
-      assistantText,
-      status: statusText,
-      updatedAt: Date.now(),
-    };
-
-    if (liveSaveTimerRef.current !== undefined) return;
-
-    liveSaveTimerRef.current = window.setTimeout(() => {
-      liveSaveTimerRef.current = undefined;
-      const pending = liveSnapshotRef.current;
-      if (pending) {
-        saveLiveChatSnapshot(pending);
-      }
-    }, LIVE_CHAT_SAVE_THROTTLE_MS);
-  }, [id, messages, isProcessing, statusText]);
-
-  // Flush the last snapshot when leaving the chat or switching sessions so the
-  // tail of an in-progress reply is not lost.
-  useEffect(() => {
-    return () => {
-      if (liveSaveTimerRef.current !== undefined) {
-        window.clearTimeout(liveSaveTimerRef.current);
-        liveSaveTimerRef.current = undefined;
-      }
-
-      if (liveSnapshotRef.current) {
-        saveLiveChatSnapshot(liveSnapshotRef.current);
-        liveSnapshotRef.current = null;
-      }
-    };
-  }, [id]);
-
-  // If the turn finished while the tab was reloading, the completion event is
-  // gone. Poll until the saved turn appears, then replace the optimistic
-  // messages with the persisted ones.
-  useEffect(() => {
-    if (!restoredSnapshot) return;
-
-    let cancelled = false;
-    let timer: number | undefined;
-    const startedAt = Date.now();
-
-    const reconcile = async () => {
-      if (cancelled) return;
-
-      try {
-        const history = await ChatService.getChatHistory(
-          id,
-          HISTORY_PAGE_SIZE,
-          "",
-        );
-        if (cancelled || historySessionRef.current !== id) return;
-
-        const latest = history?.messages ?? [];
-        if (isSnapshotPersisted(restoredSnapshot, latest)) {
-          if (liveSaveTimerRef.current !== undefined) {
-            window.clearTimeout(liveSaveTimerRef.current);
-            liveSaveTimerRef.current = undefined;
-          }
-          liveSnapshotRef.current = null;
-          clearLiveChatSnapshot(id);
-          setRestoredSnapshot(null);
-          setMessages(latest);
-          historyCursorRef.current = latest.length ? history.nextCursor : null;
-          setCanLoadOlderHistory(Boolean(latest.length && history.nextCursor));
-          setIsProcessing(false);
-          requestAnimationFrame(() => {
-            const viewport = viewportRef.current;
-            if (viewport) viewport.scrollTop = viewport.scrollHeight;
-          });
-          return;
-        }
-      } catch {
-        // A failed poll is harmless: keep the restored bubble and retry.
-      }
-
-      if (!cancelled && Date.now() - startedAt < LIVE_CHAT_POLL_TIMEOUT_MS) {
-        timer = window.setTimeout(
-          () => void reconcile(),
-          LIVE_CHAT_POLL_INTERVAL_MS,
-        );
-        return;
-      }
-
-      if (!cancelled) {
-        // Give up waiting: a stale snapshot must not lock the composer for
-        // good. The optimistic bubble stays, but the chat becomes usable.
-        if (liveSaveTimerRef.current !== undefined) {
-          window.clearTimeout(liveSaveTimerRef.current);
-          liveSaveTimerRef.current = undefined;
-        }
-        liveSnapshotRef.current = null;
-        clearLiveChatSnapshot(id);
-        setRestoredSnapshot(null);
-        setIsProcessing(false);
-        setStatusText("");
-      }
-    };
-
-    timer = window.setTimeout(
-      () => void reconcile(),
-      LIVE_CHAT_POLL_INTERVAL_MS,
-    );
-
-    return () => {
-      cancelled = true;
-      if (timer !== undefined) {
-        window.clearTimeout(timer);
-      }
-    };
-  }, [id, restoredSnapshot]);
 
   useEffect(() => {
     const processPending = async () => {
@@ -602,6 +363,7 @@ function RouteComponent() {
             firstMessage.content,
           );
           if (response?.invokeID) {
+            currentInvokeIDRef.current = response.invokeID;
             setMessages((prev) =>
               prev.map((message) =>
                 message.id === firstMessage.id

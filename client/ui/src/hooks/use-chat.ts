@@ -10,7 +10,7 @@ export type ChatState = {
   sessions: Session[];
   pendingMessages: Message[];
   invokeID: string | null;
-  setInvokeID: (id: string) => void;
+  setInvokeID: (id: string | null) => void;
   setChatSession: (session: Session | null) => void;
   setSessions: (sessions: Session[]) => void;
   setIsConnected: (isConnected: boolean) => void;
@@ -28,7 +28,7 @@ export const useChat = create<ChatState>((set) => ({
   pendingMessages: [],
   invokeID: null,
 
-  setInvokeID: (id: string) => {
+  setInvokeID: (id: string | null) => {
     set({ invokeID: id });
   },
 
@@ -64,5 +64,6 @@ export const useChat = create<ChatState>((set) => ({
       isConnected: false,
       isProcessing: false,
       pendingMessages: [],
+      invokeID: null,
     }),
 }));
