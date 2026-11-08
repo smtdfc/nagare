@@ -1,11 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Save, Loader2 } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
 import { Button } from "#/components/ui/button.tsx";
-import { ModelProviderService, SettingsService } from "@nagare-app/services";
-import { showToastError } from "#/lib/toast.ts";
-import { toast } from "#/components/ui/toast.tsx";
-import type { GeneralSettings, ModelProvider } from "@nagare-app/dtos";
 import {
   Select,
   SelectContent,
@@ -16,6 +11,10 @@ import {
 } from "#/components/ui/select.tsx";
 import { Skeleton } from "#/components/ui/skeleton";
 import { SettingsHeader } from "#/components/settings-header";
+import {
+  USE_CONVERSATION_MODEL,
+  useGeneralSettings,
+} from "#/hooks/use-general-settings.ts";
 
 export const Route = createFileRoute("/(dashboard)/settings/general/")({
   component: RouteComponent,
@@ -25,83 +24,21 @@ export const Route = createFileRoute("/(dashboard)/settings/general/")({
 });
 
 function RouteComponent() {
-  const [settings, setSettings] = useState<GeneralSettings | null>(null);
-  const [providers, setProviders] = useState<ModelProvider[]>([]);
-  const [models, setModels] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isLoadingModels, setIsLoadingModels] = useState(false);
-
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const [generalSettings, providerList] = await Promise.all([
-        SettingsService.getGeneralSettings(),
-        ModelProviderService.list(),
-      ]);
-      setSettings(generalSettings);
-      setProviders(providerList);
-
-      if (generalSettings?.defaultModelProvider) {
-        const providerModels = await ModelProviderService.getModels({
-          id: generalSettings.defaultModelProvider,
-        });
-        setModels(providerModels);
-      }
-    } catch (e) {
-      showToastError(e);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
-
-  const handleProviderChange = async (providerId: string | null) => {
-    if (!providerId) return;
-    setSettings((prev) =>
-      prev ? { ...prev, defaultModelProvider: providerId, defaultModel: "" } : prev,
-    );
-    setModels([]);
-
-    setIsLoadingModels(true);
-    try {
-      const providerModels = await ModelProviderService.getModels({
-        id: providerId,
-      });
-      setModels(providerModels);
-    } catch (e) {
-      showToastError(e);
-    } finally {
-      setIsLoadingModels(false);
-    }
-  };
-
-  const handleModelChange = (model: string | null) => {
-    setSettings((prev) =>
-      prev ? { ...prev, defaultModel: model ?? "" } : prev,
-    );
-  };
-
-  const handleSave = async () => {
-    if (!settings) return;
-    setIsSaving(true);
-    try {
-      await SettingsService.setGeneralSettings(settings);
-      toast.add({
-        title: "Saved",
-        type: "success",
-        priority: "high",
-        description: "General settings updated successfully.",
-      });
-    } catch (e) {
-      showToastError(e);
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const {
+    settings,
+    providers,
+    models,
+    summaryModels,
+    isLoading,
+    isSaving,
+    isLoadingModels,
+    isLoadingSummaryModels,
+    handleProviderChange,
+    handleModelChange,
+    handleSummaryProviderChange,
+    handleSummaryModelChange,
+    handleSave,
+  } = useGeneralSettings();
 
   return (
     <div className="flex flex-col items-center w-full p-6">
@@ -131,8 +68,9 @@ function RouteComponent() {
               >
                 <SelectTrigger className="w-full mt-1.5">
                   <SelectValue placeholder="Select a provider">
-                    {providers.find((p) => p.id === settings?.defaultModelProvider)
-                      ?.name ?? "Select a provider"}
+                    {providers.find(
+                      (p) => p.id === settings?.defaultModelProvider,
+                    )?.name ?? "Select a provider"}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -175,6 +113,90 @@ function RouteComponent() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="flex flex-col gap-5 border-t pt-5">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium">
+                  Conversation summarization
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  Select the model used to summarize conversations when
+                  compacting. Leave it on the conversation model to reuse the
+                  model of the current session.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium">
+                  Summary model provider
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  Select the provider for the summarization model.
+                </p>
+                <Select
+                  value={
+                    settings?.summaryModelProvider || USE_CONVERSATION_MODEL
+                  }
+                  onValueChange={handleSummaryProviderChange}
+                >
+                  <SelectTrigger className="w-full mt-1.5">
+                    <SelectValue placeholder="Use conversation model">
+                      {settings?.summaryModelProvider
+                        ? (providers.find(
+                            (p) => p.id === settings.summaryModelProvider,
+                          )?.name ?? "Select a provider")
+                        : "Use conversation model"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value={USE_CONVERSATION_MODEL}>
+                        Use conversation model
+                      </SelectItem>
+                      {providers.map((item) => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {settings?.summaryModelProvider && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium">Summary model</label>
+                  <p className="text-xs text-muted-foreground">
+                    Select the model used to summarize the conversation.
+                  </p>
+                  <div className="relative mt-1.5">
+                    {isLoadingSummaryModels && (
+                      <Loader2 className="absolute right-8 top-2.5 w-4 h-4 animate-spin text-muted-foreground z-10" />
+                    )}
+                    <Select
+                      value={settings?.summaryModel ?? ""}
+                      disabled={
+                        isLoadingSummaryModels || summaryModels.length === 0
+                      }
+                      onValueChange={handleSummaryModelChange}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {summaryModels.map((m) => (
+                            <SelectItem key={m} value={m}>
+                              {m}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end pt-5">
