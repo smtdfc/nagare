@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/smtdfc/nagare/core/agent"
+	"github.com/smtdfc/nagare/core/config"
 	config_mgr "github.com/smtdfc/nagare/core/config/manager"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/event_bus"
@@ -58,6 +59,42 @@ func extractErrorDetails(err error) (string, string) {
 		return coreErr.Code, coreErr.Details
 	}
 	return custom_errors.ErrAgentChat.Details, custom_errors.ErrAgentChat.Code
+}
+
+func (a *AgentInvoker) resolveCompactModel(ctx context.Context, sessionState *session.State) (uuid.UUID, string) {
+	sessionProviderID := sessionState.CurrentModelProvider
+	sessionModel := sessionState.CurrentModel
+
+	if a.configMgr == nil {
+		return sessionProviderID, sessionModel
+	}
+
+	generalConfig, err := a.configMgr.GetGeneralConfig(ctx)
+	if err != nil {
+		a.logger.Warn("failed to load general config, using session model for compaction", "err", err)
+		return sessionProviderID, sessionModel
+	}
+
+	providerID, model, err := selectCompactModel(sessionProviderID, sessionModel, generalConfig)
+	if err != nil {
+		a.logger.Error("invalid summary model provider, using session model for compaction", "err", err)
+		return sessionProviderID, sessionModel
+	}
+
+	return providerID, model
+}
+
+func selectCompactModel(sessionProviderID uuid.UUID, sessionModel string, generalConfig *config.GeneralConfig) (uuid.UUID, string, error) {
+	if generalConfig == nil || generalConfig.SummaryModelProvider == "" || generalConfig.SummaryModel == "" {
+		return sessionProviderID, sessionModel, nil
+	}
+
+	summaryProviderID, err := uuid.Parse(generalConfig.SummaryModelProvider)
+	if err != nil {
+		return uuid.Nil, "", err
+	}
+
+	return summaryProviderID, generalConfig.SummaryModel, nil
 }
 
 func (a *AgentInvoker) Invoke(ctx context.Context, params *AgentInvokeParams) (message.ReadOnlyChannel, error) {
@@ -286,8 +323,7 @@ func (a *AgentInvoker) Compact(ctx context.Context, params *ConversationCompactP
 		history = append(history, sessionState.Messages...)
 		sessionOwnerID = sessionState.OwnerID
 		sessionOwnerType = sessionState.OwnerType.ToString()
-		currentModelProviderID := sessionState.CurrentModelProvider
-		currentModel := sessionState.CurrentModel
+		currentModelProviderID, currentModel := a.resolveCompactModel(ctx, sessionState)
 
 		if currentModelProviderID == uuid.Nil {
 			emit(messages.NewAgentErrorMessage(

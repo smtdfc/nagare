@@ -35,6 +35,8 @@ func (c *ConfigManager) GetGeneralConfig(ctx context.Context) (*config.GeneralCo
 	if conf.DefaultModel == "" {
 		conf.DefaultModel = kvMap["DefaultLLMModel"]
 	}
+	conf.SummaryModelProvider = kvMap["SummaryModelProvider"]
+	conf.SummaryModel = kvMap["SummaryModel"]
 
 	return &conf, nil
 }
@@ -43,6 +45,8 @@ func (c *ConfigManager) SetGeneralConfig(ctx context.Context, conf *config.Gener
 	var kvMap = map[string]string{
 		"DefaultModelProvider": conf.DefaultModelProvider,
 		"DefaultModel":         conf.DefaultModel,
+		"SummaryModelProvider": conf.SummaryModelProvider,
+		"SummaryModel":         conf.SummaryModel,
 	}
 	err := c.kvRepo.Upsert(ctx, c.kvMapper.ToEntities(kvMap, GeneralConfigScopeName))
 	if err != nil {

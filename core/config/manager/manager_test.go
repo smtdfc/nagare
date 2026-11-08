@@ -34,7 +34,7 @@ func TestConfigManager_GetAndSet(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error on GetGeneralConfig: %v", err)
 	}
-	if cfg.DefaultModelProvider != "" || cfg.DefaultModel != "" {
+	if cfg.DefaultModelProvider != "" || cfg.DefaultModel != "" || cfg.SummaryModelProvider != "" || cfg.SummaryModel != "" {
 		t.Errorf("expected empty initial config")
 	}
 
@@ -42,6 +42,8 @@ func TestConfigManager_GetAndSet(t *testing.T) {
 	newCfg := &config.GeneralConfig{
 		DefaultModelProvider: "openai",
 		DefaultModel:         "gpt-4o",
+		SummaryModelProvider: "anthropic",
+		SummaryModel:         "claude-3-5-sonnet",
 	}
 	err = mgr.SetGeneralConfig(ctx, newCfg)
 	if err != nil {
@@ -55,5 +57,8 @@ func TestConfigManager_GetAndSet(t *testing.T) {
 	}
 	if updated.DefaultModelProvider != "openai" || updated.DefaultModel != "gpt-4o" {
 		t.Errorf("expected updated config, got %+v", updated)
+	}
+	if updated.SummaryModelProvider != "anthropic" || updated.SummaryModel != "claude-3-5-sonnet" {
+		t.Errorf("expected updated summary model config, got %+v", updated)
 	}
 }
