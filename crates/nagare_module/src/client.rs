@@ -110,6 +110,36 @@ impl ModuleClient {
         self.inner.data_dir.read().unwrap().clone()
     }
 
+    pub async fn reply(
+        &self,
+        action: &str,
+        request_id: impl Into<String>,
+        data: &impl Serialize,
+    ) -> Result<(), ModuleError> {
+        let event = crate::dtos::make_reply_event(action);
+        self.inner
+            .connector
+            .send(&Payload {
+                event,
+                request_id: request_id.into(),
+                data: serde_json::to_value(data)?,
+            })
+            .await
+            .map_err(ModuleError::from)
+    }
+
+    pub fn on_invoke<F>(&self, cb: F)
+    where
+        F: Fn(String, Payload<serde_json::Value>) + Send + Sync + 'static,
+    {
+        self.on_message(move |_event, payload| {
+            if payload.is_invoke() {
+                let action = payload.action().unwrap_or("").to_string();
+                cb(action, payload);
+            }
+        });
+    }
+
     pub fn on_message(
         &self,
         cb: impl Fn(String, Payload<serde_json::Value>) + Send + Sync + 'static,
@@ -366,5 +396,53 @@ mod tests {
             .expect("callback not called");
         assert_eq!(captured.0, "module:vector:add");
         assert_eq!(captured.1.request_id, "host-1");
+    }
+
+    #[tokio::test]
+    async fn on_invoke_filters_and_extracts_action() {
+        let p = ModuleClient::new();
+        let received = Arc::new(Mutex::new(None));
+        let sink = Arc::clone(&received);
+
+        p.on_invoke(move |action, payload| {
+            *sink.lock().unwrap() = Some((action, payload));
+        });
+
+        // Non-invoke message should be ignored by on_invoke
+        Arc::clone(&p).handle_event(Payload {
+            event: "module:reply:some_action".to_string(),
+            request_id: "ignore-1".to_string(),
+            data: serde_json::json!({}),
+        });
+        assert!(received.lock().unwrap().is_none());
+
+        // Invoke message with action
+        #[derive(serde::Deserialize, PartialEq, Debug)]
+        struct SearchReq {
+            query: String,
+        }
+
+        Arc::clone(&p).handle_event(Payload {
+            event: "module:invoke:search".to_string(),
+            request_id: "inv-1".to_string(),
+            data: serde_json::json!({"query": "rust"}),
+        });
+
+        let (action, payload) = received
+            .lock()
+            .unwrap()
+            .take()
+            .expect("on_invoke should be triggered");
+        assert_eq!(action, "search");
+        assert_eq!(payload.request_id, "inv-1");
+
+        // Test bind_data directly on payload
+        let req: SearchReq = payload.bind_data().expect("bind_data should succeed");
+        assert_eq!(
+            req,
+            SearchReq {
+                query: "rust".to_string()
+            }
+        );
     }
 }
