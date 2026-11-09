@@ -33,6 +33,7 @@ MODULES_DIR="$DIST_DIR/modules"
 CLI_SCRIPT="$CLI_SOURCE/main.go"
 RUST_MODULES=(
     "nagare_vector"
+    "nagare_computer_use"
 )
 
 GO_BUILTIN_PLUGINS=(
