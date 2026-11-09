@@ -219,6 +219,7 @@ This catalogue is exhaustive for the current repository. When a change introduce
 | `pkgs/helpers` | JSON, cast, slice, string, and path helpers. |
 | `pkgs/ipc` | Unix and Windows IPC transport, dialer, and listener. |
 | `pkgs/messages` | Wire message types, including HIL approval messages. |
+| `pkgs/network` | HTTP access guard, capped request/response helpers, and file download. |
 | `pkgs/paths` | Application path resolution. |
 | `pkgs/plugin` | Plugin SDK modules. Sub-scopes: `pkgs/plugin/builder`, `pkgs/plugin/contracts`, `pkgs/plugin/metadata`, `pkgs/plugin/sdk`. |
 | `pkgs/security` | Keyring, RSA, token, and payload security helpers. |
