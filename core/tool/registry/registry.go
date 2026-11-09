@@ -57,6 +57,7 @@ func init() {
 	RegisterTool(declarations.ListDirectoryTool, true)
 	RegisterTool(declarations.DeleteFileTool, true)
 	RegisterTool(declarations.MoveFileTool, true)
+	RegisterTool(declarations.CopyFileTool, true)
 	RegisterTool(declarations.GetUserDirectoriesTool, true)
 	RegisterTool(declarations.HashTool, true)
 	RegisterTool(declarations.ArchiveTool, true)
