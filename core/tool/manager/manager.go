@@ -16,6 +16,12 @@ import (
 	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
+// experimentalNoteComputerUse flags every computer use tool as an
+// experimental feature: GUI automation is slow, flaky, and costly for tasks
+// that a native tool could perform directly. Keep the feature behind this
+// warning until native "attached hands" tooling can serve those workflows.
+const experimentalNoteComputerUse = "computer use tools are an experimental feature: they are slow, unreliable and token-heavy compared to native tools"
+
 type ToolManager struct {
 	mu                   sync.RWMutex
 	cachedList           tool.ListTool
@@ -70,6 +76,9 @@ func (t *ToolManager) Call(ctx *context.ExecuteContext, toolCall *tool.Call) *to
 	if !isExist {
 		return toolResultBuilder.Failure(errors.New("tool doesn't exist")).Build()
 	}
+	if hasComputerUseCategory(calledTool.Tool.GetCategories()) {
+		warnExperimentalComputerUse(t.logger, toolCall.Name)
+	}
 
 	bindings := t.createBindings()
 	result, err := calledTool.Tool.WithBindings(bindings).Execute(ctx, toolCall.Args)
@@ -78,6 +87,38 @@ func (t *ToolManager) Call(ctx *context.ExecuteContext, toolCall *tool.Call) *to
 	}
 
 	return toolResultBuilder.Success(result).Build()
+}
+
+// hasComputerUseCategory reports whether any of the tool categories marks a
+// computer use tool.
+func hasComputerUseCategory(categories []string) bool {
+	for _, category := range categories {
+		if category == tool.ComputerUse {
+			return true
+		}
+	}
+	return false
+}
+
+// experimentalComputerUseWarnOnce guards the one-time experimental warning so
+// the log emits a single line per process instead of noise per tool call.
+var experimentalComputerUseWarnOnce sync.Once
+
+// warnExperimentalComputerUse logs the experimental status of computer use
+// tools: one structured warning listing registered tools, on first use.
+func warnExperimentalComputerUse(callLogger *logger.BaseLogger, toolName string) {
+	experimentalComputerUseWarnOnce.Do(func() {
+		var names []string
+		for name, item := range registry.Registry {
+			if hasComputerUseCategory(item.Tool.GetCategories()) {
+				names = append(names, name)
+			}
+		}
+
+		callLogger.Warn("Experimental tools registered", "category", tool.ComputerUse, "tools", strings.Join(names, ", "), "note", experimentalNoteComputerUse)
+	})
+
+	callLogger.Warn("Experimental feature used", "tool", toolName, "category", tool.ComputerUse, "note", experimentalNoteComputerUse)
 }
 
 func (t *ToolManager) FindToolsByKeywords(keywords []string) ([]tool.Metadata, error) {
