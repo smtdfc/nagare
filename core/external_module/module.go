@@ -66,7 +66,7 @@ func (e *ExternalModule) Start(connectCode string) error {
 		os.Environ(),
 		fmt.Sprintf("%s=%s", moduleIDEnv, e.ID),
 		fmt.Sprintf("%s=%s", moduleConnectCodeEnv, connectCode),
-		fmt.Sprintf("%s=%s", moduleSocketPathEnv, paths.ModuleSocketPath),
+		fmt.Sprintf("%s=%s", moduleSocketPathEnv, paths.GetModuleSocketPath(e.ID)),
 		fmt.Sprintf("%s=%s", moduleDataDirEnv, e.DataDir),
 		fmt.Sprintf("%s=%s", moduleConfigDirEnv, e.ConfigDir),
 		fmt.Sprintf("%s=%s", moduleLogFileEnv, filepath.Join(paths.ModuleLogDir, e.ID+".log")),
