@@ -1,0 +1,13 @@
+[package]
+name = "nagare_computer_use"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nagare_module = { path = "../nagare_module" }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal"] }
+log = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+xa11y = "0.15.4"
+uuid = { version = "1.29.1", features = ["v4"] }
