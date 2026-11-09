@@ -7,15 +7,6 @@ import (
 	"strings"
 )
 
-// GuardWebAccess blocks the URL when it targets loopback, link-local,
-// private, or CGNAT infrastructure. When allowPrivate is engaged explicitly
-// by the operator or tool arguments, all of these targets are accepted —
-// needed for legitimately private workloads like local dev servers.
-//
-// Rationale: callers execute next to the operator's real machine, where a
-// request to 169.254.169.254 (cloud metadata) or 127.0.0.1 (local services)
-// can bypass firewalls and reach credentials the application must never
-// touch.
 func GuardWebAccess(rawURL string, allowPrivate bool) (*url.URL, error) {
 	rawURL = strings.TrimSpace(rawURL)
 	if rawURL == "" {
@@ -52,8 +43,6 @@ func GuardWebAccess(rawURL string, allowPrivate bool) (*url.URL, error) {
 	return parsed, nil
 }
 
-// webAccessViolation returns the reason an IP is denied, or an empty string
-// when the target is acceptable.
 func webAccessViolation(ip net.IP) string {
 	switch {
 	case ip.IsLoopback():
@@ -71,7 +60,6 @@ func webAccessViolation(ip net.IP) string {
 	}
 }
 
-// isCGNAT matches the 100.64.0.0/10 carrier-grade NAT range.
 func isCGNAT(ip net.IP) bool {
 	v4 := ip.To4()
 	if v4 == nil {

@@ -9,14 +9,9 @@ import (
 	"unicode/utf8"
 )
 
-// DefaultRequestTimeout falls back to calls that omit a timeout.
 const DefaultRequestTimeout = 30 * time.Second
-
-// DefaultMaxBodyBytes caps unread response bodies at 256 KiB, matching the
-// output cap of the shell tools, to keep model context bounded.
 const DefaultMaxBodyBytes = 256 * 1024
 
-// RequestOptions describes a single outbound HTTP request.
 type RequestOptions struct {
 	Method       string
 	URL          string
@@ -26,9 +21,6 @@ type RequestOptions struct {
 	MaxBodyBytes int64
 }
 
-// Response is a size-capped HTTP response with raw body bytes. Plain text is
-// kept as-is; binary bodies are either valid UTF-8 or the caller may flag
-// them with utf8.Valid before rendering.
 type Response struct {
 	Status      int
 	StatusText  string
@@ -38,9 +30,6 @@ type Response struct {
 	Truncated   bool
 }
 
-// Do executes a single request and returns its capped response. HTTP error
-// statuses are returned as data instead of errors so callers can decide how
-// to present them.
 func Do(options RequestOptions) (*Response, error) {
 	method := strings.ToUpper(strings.TrimSpace(options.Method))
 	if method == "" {
@@ -94,10 +83,6 @@ func Do(options RequestOptions) (*Response, error) {
 	}, nil
 }
 
-// readBodyCapped reads the response body up to maxBytes, reporting whether
-// the limit forced a cut. When a cut happens mid-rune the trailing partial
-// sequence is dropped so text bodies stay UTF-8 friendly; bodies that remain
-// invalid are returned as-is for the caller to flag as binary.
 func readBodyCapped(body io.Reader, maxBytes int64) ([]byte, bool) {
 	data, err := io.ReadAll(io.LimitReader(body, maxBytes+1))
 	if err != nil && err != io.EOF {

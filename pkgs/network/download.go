@@ -13,16 +13,10 @@ import (
 	"unicode/utf8"
 )
 
-// DefaultDownloadTimeout falls back to downloads that omit a timeout.
 const DefaultDownloadTimeout = 120 * time.Second
-
-// DefaultDownloadMaxBytes caps file downloads at 1 GiB.
 const DefaultDownloadMaxBytes = 1 << 30
-
-// DefaultUserAgent identifies the application on outbound downloads.
 const DefaultUserAgent = "nagare-agent/1.0"
 
-// DownloadOptions configures a download.
 type DownloadOptions struct {
 	Timeout        time.Duration
 	MaxBytes       int64
@@ -31,17 +25,12 @@ type DownloadOptions struct {
 	ExpectedSha256 string
 }
 
-// DownloadResult reports the streamed file details: exact byte count, the
-// sha256 of the content, and whether the optional digest check passed.
 type DownloadResult struct {
 	Bytes    int64
 	SHA256   string
 	Verified bool
 }
 
-// Download streams url into destination with size, timeout, and digest
-// enforcement. Writes go to a temporary file first and are renamed into
-// place, so failures and digest mismatches never leave partial artifacts.
 func Download(rawURL string, destination string, options DownloadOptions) (DownloadResult, error) {
 	if options.Timeout <= 0 {
 		options.Timeout = DefaultDownloadTimeout
@@ -124,8 +113,6 @@ func Download(rawURL string, destination string, options DownloadOptions) (Downl
 	}, nil
 }
 
-// BodyIsText reports whether raw response bytes can be presented as UTF-8
-// text without corruption.
 func BodyIsText(data []byte) bool {
 	return utf8.Valid(data)
 }
