@@ -46,6 +46,7 @@ func init() {
 	RegisterTool(declarations.WeatherTool, true)
 	RegisterTool(declarations.ListProcessTool, true)
 	RegisterTool(declarations.CreateProcessTool, true)
+	RegisterTool(declarations.ExecuteShellCommandTool, true)
 	RegisterTool(declarations.KillProcessTool, true)
 	RegisterTool(declarations.PowerControlTool, true)
 	RegisterTool(declarations.VolumeControlTool, true)
