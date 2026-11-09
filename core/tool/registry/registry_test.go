@@ -31,6 +31,12 @@ func TestRegistry_Init(t *testing.T) {
 		"fetch_content_tool",
 		"get_active_display_tool",
 		"screenshot_tool",
+		"hash_tool",
+		"archive_tool",
+		"trash_tool",
+		"download_file_tool",
+		"http_request_tool",
+		"brightness_control_tool",
 	}
 
 	for _, name := range expectedTools {

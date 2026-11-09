@@ -55,6 +55,12 @@ func init() {
 	RegisterTool(declarations.ListDirectoryTool, true)
 	RegisterTool(declarations.DeleteFileTool, true)
 	RegisterTool(declarations.GetUserDirectoriesTool, true)
+	RegisterTool(declarations.HashTool, true)
+	RegisterTool(declarations.ArchiveTool, true)
+	RegisterTool(declarations.TrashTool, true)
+	RegisterTool(declarations.DownloadFileTool, true)
+	RegisterTool(declarations.HTTPRequestTool, true)
+	RegisterTool(declarations.BrightnessControlTool, true)
 	RegisterTool(declarations.GetActiveDisplayTool, true)
 	RegisterTool(declarations.ScreenshotTool, true)
 }
