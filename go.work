@@ -9,6 +9,7 @@ use (
 	./pkgs/helpers
 	./pkgs/ipc
 	./pkgs/messages
+	./pkgs/network
 	./pkgs/paths
 	./pkgs/plugin/builder
 	./pkgs/plugin/contracts
