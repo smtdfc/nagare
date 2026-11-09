@@ -70,6 +70,7 @@ func init() {
 	RegisterTool(declarations.InputTextTool, true)
 	RegisterTool(declarations.MouseActionTool, true)
 	RegisterTool(declarations.KeyboardShortcutTool, true)
+	RegisterTool(declarations.WindowControlTool, true)
 	RegisterTool(declarations.HashTool, true)
 	RegisterTool(declarations.ArchiveTool, true)
 	RegisterTool(declarations.TrashTool, true)
