@@ -62,6 +62,8 @@ func init() {
 	RegisterTool(declarations.StatFileTool, true)
 	RegisterTool(declarations.FindFilesTool, true)
 	RegisterTool(declarations.GetUserDirectoriesTool, true)
+	RegisterTool(declarations.GetActiveDisplayTool, true)
+	RegisterTool(declarations.ScreenshotTool, true)
 	RegisterTool(declarations.GetAppInstanceTool, true)
 	RegisterTool(declarations.ListRunningAppsTool, true)
 	RegisterTool(declarations.OpenAppTool, true)
@@ -78,6 +80,4 @@ func init() {
 	RegisterTool(declarations.DownloadFileTool, true)
 	RegisterTool(declarations.HTTPRequestTool, true)
 	RegisterTool(declarations.BrightnessControlTool, true)
-	RegisterTool(declarations.GetActiveDisplayTool, true)
-	RegisterTool(declarations.ScreenshotTool, true)
 }
