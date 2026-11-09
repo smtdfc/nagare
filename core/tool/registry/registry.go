@@ -68,6 +68,7 @@ func init() {
 	RegisterTool(declarations.GetUITreeTool, true)
 	RegisterTool(declarations.ClickElementTool, true)
 	RegisterTool(declarations.InputTextTool, true)
+	RegisterTool(declarations.MouseActionTool, true)
 	RegisterTool(declarations.HashTool, true)
 	RegisterTool(declarations.ArchiveTool, true)
 	RegisterTool(declarations.TrashTool, true)
