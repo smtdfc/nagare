@@ -1,28 +1,20 @@
 package declarations
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
-	"path/filepath"
-	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/tool"
+	"github.com/smtdfc/nagare/pkgs/network"
 	"github.com/smtdfc/nagare/pkgs/paths"
 	"github.com/smtdfc/nagare/pkgs/system"
 )
 
-const (
-	defaultDownloadTimeoutSeconds       = 120
-	defaultMaxDownloadBytes       int64 = 1 << 30 // 1 GiB
-	downloadUserAgent                   = "nagare-agent/1.0"
-)
+// defaultDownloadMaxBytes caps downloads issued by the tool: the helper
+// default is 1 GiB; the tool keeps the same default but allows explicit ops.
+const defaultDownloadMaxBytes = network.DefaultDownloadMaxBytes
 
 type DownloadFileToolInput struct {
 	URL            string `json:"url" jsonschema_description:"The http or https URL of the file to download."`
@@ -51,20 +43,19 @@ var DownloadFileTool = tool.DefineTool(
 			return nil, fmt.Errorf("download requires confirm=true")
 		}
 
-		parsed, err := GuardWebAccess(args.URL, args.AllowPrivate)
+		parsed, err := network.GuardWebAccess(args.URL, args.AllowPrivate)
 		if err != nil {
 			return nil, err
 		}
 
-		timeout := args.TimeoutSeconds
-		if timeout <= 0 {
-			timeout = defaultDownloadTimeoutSeconds
+		destination := args.Destination
+		if destination == "" {
+			destination = paths.ArtifactsDir
+			if destination == "" {
+				destination = os.TempDir()
+			}
 		}
-		if args.MaxBytes <= 0 {
-			args.MaxBytes = defaultMaxDownloadBytes
-		}
-
-		target, err := downloadTarget(parsed.Path, args.Destination, args.Filename)
+		target, err := system.DeriveDownloadPath(parsed.Path, destination, args.Filename)
 		if err != nil {
 			return nil, err
 		}
@@ -76,135 +67,22 @@ var DownloadFileTool = tool.DefineTool(
 			return nil, err
 		}
 
-		client := &http.Client{
-			Timeout: time.Duration(timeout) * time.Second,
-		}
-
-		req, err := http.NewRequest(http.MethodGet, parsed.String(), nil)
+		result, err := network.Download(parsed.String(), target, network.DownloadOptions{
+			Timeout:        time.Duration(args.TimeoutSeconds) * time.Second,
+			MaxBytes:       args.MaxBytes,
+			ExpectedSha256: args.ExpectedSha256,
+		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to build request: %w", err)
-		}
-		req.Header.Set("User-Agent", downloadUserAgent)
-
-		resp, err := client.Do(req)
-		if err != nil {
-			return nil, fmt.Errorf("download failed: %w", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode >= 400 {
-			return nil, fmt.Errorf("unsuccessful response status '%s' for %s", resp.Status, parsed.Redacted())
-		}
-
-		// Stream to a temporary file first so failures and digest mismatches
-		// never leave a partial artifact behind.
-		tmpFile := filepath.Join(filepath.Dir(target), "."+uuid.New().String()+".download")
-		defer os.Remove(tmpFile)
-
-		hasher := sha256.New()
-		out, err := os.Create(tmpFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create temporary file: %w", err)
-		}
-
-		var written int64
-		buf := make([]byte, 64*1024)
-		for {
-			n, readErr := resp.Body.Read(buf)
-			if n > 0 {
-				hasher.Write(buf[:n])
-				written += int64(n)
-				if written > args.MaxBytes {
-					out.Close()
-					return nil, fmt.Errorf("download exceeds the %d byte limit of this tool", args.MaxBytes)
-				}
-				if _, writeErr := out.Write(buf[:n]); writeErr != nil {
-					out.Close()
-					return nil, fmt.Errorf("failed to write download: %w", writeErr)
-				}
-			}
-			if readErr == io.EOF {
-				break
-			}
-			if readErr != nil {
-				out.Close()
-				return nil, fmt.Errorf("failed to read download stream: %w", readErr)
-			}
-		}
-		out.Close()
-
-		digest := hex.EncodeToString(hasher.Sum(nil))
-		if args.ExpectedSha256 != "" && !strings.EqualFold(args.ExpectedSha256, digest) {
-			return nil, fmt.Errorf("checksum mismatch: expected %s, got %s (file discarded)", args.ExpectedSha256, digest)
-		}
-
-		if err := os.Rename(tmpFile, target); err != nil {
-			return nil, fmt.Errorf("failed to finalize download: %w", err)
+			return nil, err
 		}
 
 		return &DownloadFileToolOutput{
 			URL:      parsed.Redacted(),
 			File:     target,
-			Bytes:    written,
-			SHA256:   digest,
-			Verified: args.ExpectedSha256 != "",
+			Bytes:    result.Bytes,
+			SHA256:   result.SHA256,
+			Verified: result.Verified,
 		}, nil
 	},
 	[]string{tool.NetworkingCategory, tool.FilesystemCategory},
 )
-
-// downloadTarget resolves the final absolute path for a download based on the
-// optional destination (either a file path or a directory) and filename.
-func downloadTarget(urlPath string, destination string, filename string) (string, error) {
-	name := sanitizeFilename(filename)
-	if name == "" {
-		name = sanitizeFilename(filepath.Base(urlPath))
-	}
-	if name == "" {
-		name = "download"
-	}
-
-	dir := destination
-	if dir == "" {
-		dir = paths.ArtifactsDir
-		if dir == "" {
-			dir = os.TempDir()
-		}
-	}
-
-	resolved, err := system.ResolveFilePath(dir)
-	if err != nil {
-		return "", err
-	}
-
-	info, err := os.Stat(resolved)
-	switch {
-	case err == nil && info.IsDir():
-		return filepath.Join(resolved, name), nil
-	case err == nil:
-		// destination is an existing file path, replace it content-wise
-		return resolved, nil
-	default:
-		if filepath.Ext(resolved) != "" {
-			// treat a non-existing path with an extension as a file
-			if err := os.MkdirAll(filepath.Dir(resolved), 0o755); err != nil {
-				return "", fmt.Errorf("failed to create destination directory: %w", err)
-			}
-			return resolved, nil
-		}
-		if err := os.MkdirAll(resolved, 0o755); err != nil {
-			return "", fmt.Errorf("failed to create destination directory: %w", err)
-		}
-		return filepath.Join(resolved, name), nil
-	}
-}
-
-// sanitizeFilename strips path separators from a download filename to keep
-// the artifact inside its directory.
-func sanitizeFilename(filename string) string {
-	name := filepath.Base(strings.TrimSpace(filename))
-	if name == "." || name == "/" || name == string(os.PathSeparator) {
-		return ""
-	}
-	return name
-}

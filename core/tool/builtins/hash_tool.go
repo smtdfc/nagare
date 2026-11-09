@@ -1,25 +1,14 @@
 package declarations
 
 import (
-	"crypto/md5"
-	"crypto/sha1"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
-	"hash"
-	"io"
 	"os"
 	"strings"
 
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/tool"
+	"github.com/smtdfc/nagare/pkgs/security"
 	"github.com/smtdfc/nagare/pkgs/system"
-)
-
-const (
-	HashAlgorithmSHA256 = "sha256"
-	HashAlgorithmSHA1   = "sha1"
-	HashAlgorithmMD5    = "md5"
 )
 
 type HashToolInput struct {
@@ -49,16 +38,19 @@ var HashTool = tool.DefineTool(
 			return nil, fmt.Errorf("provide either 'path' or 'content', not both")
 		}
 
-		algorithm, err := hashAlgorithm(args.Algorithm)
+		algorithm, err := security.ParseDigestAlgorithm(args.Algorithm)
 		if err != nil {
 			return nil, err
 		}
 
 		if args.Content != "" {
-			digest, size := hashData(algorithm.funcOf(), strings.NewReader(args.Content))
+			hexDigest, size, err := algorithm.Digest(strings.NewReader(args.Content))
+			if err != nil {
+				return nil, err
+			}
 			return &HashToolOutput{
-				Algorithm: algorithm.String(),
-				Hex:       hex.EncodeToString(digest),
+				Algorithm: string(algorithm),
+				Hex:       hexDigest,
 				Source:    "content",
 				Bytes:     size,
 			}, nil
@@ -82,65 +74,16 @@ var HashTool = tool.DefineTool(
 		}
 		defer file.Close()
 
-		digest, size := hashData(algorithm.funcOf(), file)
+		hexDigest, size, err := algorithm.Digest(file)
+		if err != nil {
+			return nil, err
+		}
 		return &HashToolOutput{
-			Algorithm: algorithm.String(),
-			Hex:       hex.EncodeToString(digest),
+			Algorithm: string(algorithm),
+			Hex:       hexDigest,
 			Source:    path,
 			Bytes:     size,
 		}, nil
 	},
 	[]string{tool.FilesystemCategory},
 )
-
-type hashAlgorithmKind int
-
-const (
-	hashAlgorithmKindSHA256 hashAlgorithmKind = iota
-	hashAlgorithmKindSHA1
-	hashAlgorithmKindMD5
-)
-
-func hashAlgorithm(name string) (hashAlgorithmKind, error) {
-	name = strings.ToLower(strings.TrimSpace(name))
-	switch name {
-	case "", HashAlgorithmSHA256:
-		return hashAlgorithmKindSHA256, nil
-	case HashAlgorithmSHA1:
-		return hashAlgorithmKindSHA1, nil
-	case HashAlgorithmMD5:
-		return hashAlgorithmKindMD5, nil
-	default:
-		return 0, fmt.Errorf("unsupported algorithm '%s'; allowed: sha256, sha1, md5", name)
-	}
-}
-
-func (k hashAlgorithmKind) String() string {
-	switch k {
-	case hashAlgorithmKindSHA1:
-		return HashAlgorithmSHA1
-	case hashAlgorithmKindMD5:
-		return HashAlgorithmMD5
-	default:
-		return HashAlgorithmSHA256
-	}
-}
-
-func (k hashAlgorithmKind) funcOf() func() hash.Hash {
-	switch k {
-	case hashAlgorithmKindSHA1:
-		return sha1.New
-	case hashAlgorithmKindMD5:
-		return md5.New
-	default:
-		return sha256.New
-	}
-}
-
-// hashData streams data through the hasher and returns the digest with the
-// exact number of hashed bytes.
-func hashData(newHash func() hash.Hash, reader io.Reader) ([]byte, int64) {
-	h := newHash()
-	size, _ := io.Copy(h, reader)
-	return h.Sum(nil), size
-}

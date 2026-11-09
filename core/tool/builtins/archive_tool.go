@@ -44,7 +44,7 @@ var ArchiveTool = tool.DefineTool(
 
 		format := system.DetectArchiveFormat(args.ArchivePath)
 		if format == system.ArchiveFormatUnknown {
-			return nil, fmt.Errorf("unsupported archive format: '%s' (supported: .zip, .tar, .tar.gz, .tgz)", extOf(args.ArchivePath))
+			return nil, fmt.Errorf("unsupported archive format: '%s' (supported: .zip, .tar, .tar.gz, .tgz)", args.ArchivePath)
 		}
 
 		if err := requireApproval(ctx, bindings, fmt.Sprintf("Allow the agent to %s archive %s", action, args.ArchivePath)); err != nil {
@@ -59,12 +59,20 @@ var ArchiveTool = tool.DefineTool(
 			if err := system.ArchiveCreate(args.Sources, args.ArchivePath); err != nil {
 				return nil, err
 			}
+
+			packedTotal := 0
+			for _, source := range args.Sources {
+				if files, listErr := system.ArchiveSourceFiles(source); listErr == nil {
+					packedTotal += len(files)
+				}
+			}
+
 			return &ArchiveToolOutput{
 				Action:      "create",
 				ArchivePath: args.ArchivePath,
 				Format:      string(format),
 				Sources:     args.Sources,
-				Files:       countPackedFiles(args.Sources),
+				Files:       packedTotal,
 			}, nil
 
 		default:
@@ -82,25 +90,3 @@ var ArchiveTool = tool.DefineTool(
 	},
 	[]string{tool.FilesystemCategory},
 )
-
-func extOf(path string) string {
-	lower := strings.ToLower(path)
-	if strings.HasSuffix(lower, ".tar.gz") {
-		return ".tar.gz"
-	}
-	return strings.ToLower(path) // lower ext report
-}
-
-// countPackedFiles counts the regular files available under the sources so
-// the operator can sanity-check the result size.
-func countPackedFiles(sources []string) int {
-	total := 0
-	for _, source := range sources {
-		files, err := system.ArchiveSourceFiles(source)
-		if err != nil {
-			continue
-		}
-		total += len(files)
-	}
-	return total
-}
