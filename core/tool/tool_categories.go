@@ -13,4 +13,5 @@ const (
 	TimingCategory            = "timing"
 	SystemCategory            = "system"
 	ResearchCategory          = "research"
+	ComputerUse               = "computer_use"
 )

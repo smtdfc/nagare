@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/smtdfc/nagare/core/computer_use"
 	"github.com/smtdfc/nagare/core/context"
 	cronjob_manager "github.com/smtdfc/nagare/core/cronjob/manager"
 	"github.com/smtdfc/nagare/core/discovery/manager"
@@ -17,12 +18,18 @@ import (
 )
 
 type ToolBindings struct {
-	approvalMgr  *hil.Manager
-	cronJobMgr   *cronjob_manager.CronJobManager
-	toolMgr      *ToolManager
-	eventBus     *event_bus.CoreEventBus
-	discoveryMgr *manager.DiscoveryManager
-	logger       *logger.BaseLogger
+	approvalMgr             *hil.Manager
+	cronJobMgr              *cronjob_manager.CronJobManager
+	toolMgr                 *ToolManager
+	eventBus                *event_bus.CoreEventBus
+	discoveryMgr            *manager.DiscoveryManager
+	computerUseOrchestrator *computer_use.ComputerUseOrchestrator
+	logger                  *logger.BaseLogger
+}
+
+// GetComputerUseOrchestrator implements [tool.Bindings].
+func (t *ToolBindings) GetComputerUseOrchestrator() *computer_use.ComputerUseOrchestrator {
+	return t.computerUseOrchestrator
 }
 
 // GetDiscoveryMgr implements [tool.Bindings].

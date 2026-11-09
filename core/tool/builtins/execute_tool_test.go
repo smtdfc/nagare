@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/smtdfc/nagare/core/computer_use"
 	core_context "github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/discovery/manager"
 	"github.com/smtdfc/nagare/core/tool"
@@ -16,6 +17,11 @@ type mockExecuteBindings struct {
 	calledName string
 	calledArgs string
 	result     *tool.Result
+}
+
+// GetComputerUseOrchestrator implements [tool.Bindings].
+func (m *mockExecuteBindings) GetComputerUseOrchestrator() *computer_use.ComputerUseOrchestrator {
+	panic("unimplemented")
 }
 
 // GetDiscoveryMgr implements [tool.Bindings].

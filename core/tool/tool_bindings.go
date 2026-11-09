@@ -1,6 +1,7 @@
 package tool
 
 import (
+	"github.com/smtdfc/nagare/core/computer_use"
 	context2 "github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/discovery/manager"
 )
@@ -12,4 +13,5 @@ type Bindings interface {
 	CallTool(ctx *context2.ExecuteContext, toolName string, args string) *Result
 	RequestToolApproval(ctx *context2.ExecuteContext, title string) bool
 	GetDiscoveryMgr() *manager.DiscoveryManager
+	GetComputerUseOrchestrator() *computer_use.ComputerUseOrchestrator
 }

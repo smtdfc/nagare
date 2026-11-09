@@ -2,9 +2,11 @@ package manager
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 
+	"github.com/smtdfc/nagare/core/computer_use"
 	"github.com/smtdfc/nagare/core/context"
 	cronjob_manager "github.com/smtdfc/nagare/core/cronjob/manager"
 	discovery_manager "github.com/smtdfc/nagare/core/discovery/manager"
@@ -23,24 +25,27 @@ import (
 const experimentalNoteComputerUse = "computer use tools are an experimental feature: they are slow, unreliable and token-heavy compared to native tools"
 
 type ToolManager struct {
-	mu                   sync.RWMutex
-	cachedList           tool.ListTool
-	logger               *logger.BaseLogger
-	cronJobMgr           *cronjob_manager.CronJobManager
-	eventBus             *event_bus.CoreEventBus
-	approvalMgr          *hil.Manager
-	discoveryMgr         *discovery_manager.DiscoveryManager
+	mu                      sync.RWMutex
+	cachedList              tool.ListTool
+	logger                  *logger.BaseLogger
+	cronJobMgr              *cronjob_manager.CronJobManager
+	eventBus                *event_bus.CoreEventBus
+	approvalMgr             *hil.Manager
+	discoveryMgr            *discovery_manager.DiscoveryManager
+	computerUseOrchestrator *computer_use.ComputerUseOrchestrator
+
 	toolCategories       map[string]string
 	pluginToolCategories map[string]map[string]string
 }
 
 func (t *ToolManager) createBindings() *ToolBindings {
 	return &ToolBindings{
-		cronJobMgr:   t.cronJobMgr,
-		eventBus:     t.eventBus,
-		toolMgr:      t,
-		approvalMgr:  t.approvalMgr,
-		discoveryMgr: t.discoveryMgr,
+		cronJobMgr:              t.cronJobMgr,
+		eventBus:                t.eventBus,
+		toolMgr:                 t,
+		approvalMgr:             t.approvalMgr,
+		discoveryMgr:            t.discoveryMgr,
+		computerUseOrchestrator: t.computerUseOrchestrator,
 	}
 }
 
@@ -76,6 +81,7 @@ func (t *ToolManager) Call(ctx *context.ExecuteContext, toolCall *tool.Call) *to
 	if !isExist {
 		return toolResultBuilder.Failure(errors.New("tool doesn't exist")).Build()
 	}
+
 	if hasComputerUseCategory(calledTool.Tool.GetCategories()) {
 		warnExperimentalComputerUse(t.logger, toolCall.Name)
 	}
@@ -98,27 +104,6 @@ func hasComputerUseCategory(categories []string) bool {
 		}
 	}
 	return false
-}
-
-// experimentalComputerUseWarnOnce guards the one-time experimental warning so
-// the log emits a single line per process instead of noise per tool call.
-var experimentalComputerUseWarnOnce sync.Once
-
-// warnExperimentalComputerUse logs the experimental status of computer use
-// tools: one structured warning listing registered tools, on first use.
-func warnExperimentalComputerUse(callLogger *logger.BaseLogger, toolName string) {
-	experimentalComputerUseWarnOnce.Do(func() {
-		var names []string
-		for name, item := range registry.Registry {
-			if hasComputerUseCategory(item.Tool.GetCategories()) {
-				names = append(names, name)
-			}
-		}
-
-		callLogger.Warn("Experimental tools registered", "category", tool.ComputerUse, "tools", strings.Join(names, ", "), "note", experimentalNoteComputerUse)
-	})
-
-	callLogger.Warn("Experimental feature used", "tool", toolName, "category", tool.ComputerUse, "note", experimentalNoteComputerUse)
 }
 
 func (t *ToolManager) FindToolsByKeywords(keywords []string) ([]tool.Metadata, error) {
@@ -156,26 +141,9 @@ func (t *ToolManager) FindToolsByKeywords(keywords []string) ([]tool.Metadata, e
 func (t *ToolManager) GetCategoriesPrompt() string {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
-
 	var prompt strings.Builder
-	for category, description := range t.toolCategories {
-		prompt.WriteString("<category name=\"")
-		prompt.WriteString(category)
-		prompt.WriteString("\">")
-		prompt.WriteString(description)
-		prompt.WriteString("</category>")
-	}
-
-	for pluginID, categories := range t.pluginToolCategories {
-		for categoryName, categoryDescription := range categories {
-			prompt.WriteString("<category name=\"")
-			prompt.WriteString(categoryName)
-			prompt.WriteString("\" plugin_id=\"")
-			prompt.WriteString(pluginID)
-			prompt.WriteString("\">")
-			prompt.WriteString(categoryDescription)
-			prompt.WriteString("</category>")
-		}
+	for name, desc := range t.toolCategories {
+		prompt.WriteString(fmt.Sprintf("%s (%s), ", name, desc))
 	}
 
 	return prompt.String()
@@ -200,13 +168,14 @@ func (t *ToolManager) AddPluginToolCategories(pluginID string, categories map[st
 }
 
 // @Injectable
-func NewToolManager(logger *logger.BaseLogger, cronJobMgr *cronjob_manager.CronJobManager, eventBus *event_bus.CoreEventBus, approvalMgr *hil.Manager, discoveryMgr *discovery_manager.DiscoveryManager) *ToolManager {
+func NewToolManager(logger *logger.BaseLogger, cronJobMgr *cronjob_manager.CronJobManager, eventBus *event_bus.CoreEventBus, approvalMgr *hil.Manager, discoveryMgr *discovery_manager.DiscoveryManager, computerUseOrchestrator *computer_use.ComputerUseOrchestrator) *ToolManager {
 	return &ToolManager{
-		logger:       logger.With("module", "tool-manager"),
-		cronJobMgr:   cronJobMgr,
-		eventBus:     eventBus,
-		approvalMgr:  approvalMgr,
-		discoveryMgr: discoveryMgr,
+		logger:                  logger.With("module", "tool-manager"),
+		cronJobMgr:              cronJobMgr,
+		eventBus:                eventBus,
+		approvalMgr:             approvalMgr,
+		discoveryMgr:            discoveryMgr,
+		computerUseOrchestrator: computerUseOrchestrator,
 		toolCategories: map[string]string{
 			tool.ProcessManagementCategory: "Process Management",
 			tool.PowerManagementCategory:   "Power Management",
@@ -220,7 +189,25 @@ func NewToolManager(logger *logger.BaseLogger, cronJobMgr *cronjob_manager.CronJ
 			tool.TimingCategory:            "Timing",
 			tool.SystemCategory:            "System",
 			tool.ResearchCategory:          "Research",
+			tool.ComputerUse:               "Computer use",
 		},
 		pluginToolCategories: make(map[string]map[string]string),
 	}
+}
+
+var experimentalComputerUseWarnOnce sync.Once
+
+func warnExperimentalComputerUse(callLogger *logger.BaseLogger, toolName string) {
+	experimentalComputerUseWarnOnce.Do(func() {
+		var names []string
+		for name, item := range registry.Registry {
+			if hasComputerUseCategory(item.Tool.GetCategories()) {
+				names = append(names, name)
+			}
+		}
+
+		callLogger.Warn("Experimental tools registered", "category", tool.ComputerUse, "tools", strings.Join(names, ", "), "note", experimentalNoteComputerUse)
+	})
+
+	callLogger.Warn("Experimental feature used", "tool", toolName, "category", tool.ComputerUse, "note", experimentalNoteComputerUse)
 }
