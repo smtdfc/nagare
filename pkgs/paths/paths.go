@@ -75,7 +75,6 @@ func init() {
 		PluginSocketPath = filepath.Join(DataDir, "nagare-plugin.sock")
 		ModuleSocketPath = filepath.Join(DataDir, "nagare-external-module.sock")
 	}
-
 	paths := []string{
 		DataDir,
 		ConfigDir,
@@ -105,4 +104,11 @@ func init() {
 			println(err)
 		}
 	}
+}
+
+func GetModuleSocketPath(moduleID string) string {
+	if runtime.GOOS == "windows" {
+		return fmt.Sprintf(`\\.\pipe\nagare-mod-%s`, moduleID)
+	}
+	return filepath.Join(DataDir, fmt.Sprintf("nagare-mod-%s.sock", moduleID))
 }
