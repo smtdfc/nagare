@@ -53,6 +53,7 @@ func init() {
 	RegisterTool(declarations.OpenBrowserTool, true)
 	RegisterTool(declarations.ReadFileTool, true)
 	RegisterTool(declarations.WriteFileTool, true)
+	RegisterTool(declarations.AppendFileTool, true)
 	RegisterTool(declarations.ListDirectoryTool, true)
 	RegisterTool(declarations.DeleteFileTool, true)
 	RegisterTool(declarations.GetUserDirectoriesTool, true)
