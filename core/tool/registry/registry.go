@@ -63,6 +63,7 @@ func init() {
 	RegisterTool(declarations.FindFilesTool, true)
 	RegisterTool(declarations.GetUserDirectoriesTool, true)
 	RegisterTool(declarations.GetAppInstanceTool, true)
+	RegisterTool(declarations.ListRunningAppsTool, true)
 	RegisterTool(declarations.HashTool, true)
 	RegisterTool(declarations.ArchiveTool, true)
 	RegisterTool(declarations.TrashTool, true)
