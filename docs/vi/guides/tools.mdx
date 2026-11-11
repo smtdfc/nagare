@@ -1,0 +1,81 @@
+---
+title: "Công cụ tích hợp"
+description: "Tìm hiểu các thao tác Nagare có thể thực hiện trên máy tính và cơ chế phê duyệt trước khi thực hiện những thao tác có rủi ro."
+---
+
+Công cụ cho phép Nagare tương tác với hệ thống và thực hiện các thao tác trên máy tính, chẳng hạn như xem tiến trình, đọc và chỉnh sửa tệp, điều chỉnh âm lượng hoặc chụp màn hình.
+
+Bạn không cần ghi nhớ tên hay cú pháp của từng công cụ. Chỉ cần mô tả điều mình muốn thực hiện bằng ngôn ngữ tự nhiên, Nagare sẽ tự lựa chọn công cụ phù hợp.
+
+## Cơ chế lựa chọn công cụ {#nagare-chon-cong-cu}
+
+Các công cụ được tổ chức thành từng nhóm theo chức năng, chẳng hạn như quản lý tiến trình, thao tác với tệp tin hoặc điều khiển hệ thống.
+
+Khi nhận được yêu cầu, Nagare xác định nhóm công cụ phù hợp, sau đó tìm và gọi công cụ cần thiết trong nhóm đó. Cách tổ chức này giúp quá trình lựa chọn công cụ hiệu quả hơn, đồng thời cho phép plugin mở rộng hệ thống bằng cách bổ sung các nhóm công cụ mới.
+
+Plugin cũng có thể đăng ký công cụ riêng. Xem [Tổng quan plugin](/plugins/overview) để tìm hiểu thêm.
+
+## Danh sách công cụ
+
+<Note>
+  Các công cụ có dấu ✅ trong cột **Phê duyệt** yêu cầu bạn xác nhận trước khi
+  thực thi.
+</Note>
+
+### Quản lý tiến trình
+
+| Công cụ               | Chức năng                                                                                                                         | Phê duyệt |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| `list_process_tool`   | Liệt kê các tiến trình đang chạy. Hỗ trợ lọc theo mức sử dụng RAM, CPU hoặc tên tiến trình; sắp xếp và giới hạn số lượng kết quả. |           |
+| `create_process_tool` | Khởi chạy một chương trình độc lập với phiên terminal hiện tại.                                                                   | ✅        |
+| `kill_process_tool`   | Kết thúc một tiến trình theo mã PID.                                                                                              | ✅        |
+
+### Tệp tin
+
+| Công cụ                     | Chức năng                                                                                                         | Phê duyệt |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------- | --------- |
+| `get_user_directories_tool` | Lấy đường dẫn đến các thư mục thông dụng như Home, Downloads, Desktop, Documents, thư mục tạm, cấu hình và cache. |           |
+| `list_directory_tool`       | Liệt kê nội dung của một thư mục.                                                                                 |           |
+| `read_file_tool`            | Đọc nội dung tệp văn bản.                                                                                         |           |
+| `write_file_tool`           | Tạo mới hoặc chỉnh sửa tệp văn bản.                                                                               | ✅        |
+| `delete_file_tool`          | Xóa một tệp. Công cụ này không hỗ trợ xóa thư mục.                                                                | ✅        |
+
+### Hệ thống
+
+| Công cụ                   | Chức năng                                                                   | Phê duyệt |
+| ------------------------- | --------------------------------------------------------------------------- | --------- |
+| `power_control_tool`      | Tắt máy, khởi động lại, chuyển sang chế độ ngủ hoặc ngủ đông, và đăng xuất. | ✅        |
+| `volume_control_tool`     | Kiểm tra, thiết lập, bật hoặc tắt âm lượng; tăng hoặc giảm mức âm lượng.    |           |
+| `get_active_display_tool` | Kiểm tra số lượng màn hình đang được sử dụng.                               |           |
+| `screenshot_tool`         | Chụp màn hình và lưu ảnh vào thư mục `~/.nagare/artifacts`.                 |           |
+| `open_browser_tool`       | Mở một hoặc nhiều trang web bằng trình duyệt mặc định.                      | ✅        |
+| `time_tool`               | Truy vấn ngày giờ hiện tại, có hỗ trợ chỉ định múi giờ.                     |           |
+
+### Tìm hiểu và tra cứu
+
+| Công cụ              | Chức năng                                                                  |
+| -------------------- | -------------------------------------------------------------------------- |
+| `weather_tool`       | Tra cứu thời tiết hiện tại tại một địa điểm.                               |
+| `search_tool`        | Tìm kiếm thông tin. Hiện tại, Nagare sử dụng Wikipedia làm nguồn tìm kiếm. |
+| `fetch_content_tool` | Truy xuất toàn bộ nội dung của một kết quả tìm kiếm.                       |
+
+### Lịch định kỳ
+
+| Công cụ               | Chức năng                                                                                                   |
+| --------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `create_cronjob_tool` | Tạo lịch để Nagare tự động thực hiện một tác vụ định kỳ. Xem [Cron job](/guides/cronjobs) để tìm hiểu thêm. |
+
+## Cơ chế phê duyệt {#phe-duyet-cong-cu}
+
+Một số thao tác có thể ảnh hưởng đáng kể đến hệ thống, chẳng hạn như xóa tệp, kết thúc tiến trình hoặc tắt máy. Với những thao tác này, Nagare sẽ yêu cầu bạn phê duyệt trước khi thực thi.
+
+Yêu cầu phê duyệt được gửi qua chính kênh trò chuyện mà bạn đang sử dụng:
+
+- **Giao diện web / desktop**: Hộp thoại phê duyệt xuất hiện trực tiếp trong cuộc trò chuyện.
+- **Telegram**: Nagare gửi tin nhắn kèm hai nút **Approve** và **Reject**. Bạn cũng có thể phản hồi bằng lệnh `/approve <request-id>` hoặc `/reject <request-id>`.
+
+### Những điều cần lưu ý
+
+- **Thời hạn phê duyệt**: Yêu cầu sẽ hết hạn sau **5 phút** nếu bạn không phản hồi. Khi đó, Nagare sẽ không thực hiện thao tác.
+- **Không có kênh phê duyệt**: Nếu không có kênh nào khả dụng để yêu cầu xác nhận, Nagare sẽ từ chối thực hiện thao tác.
+- **Ghi và xóa tệp**: Nagare luôn yêu cầu xác nhận bổ sung trước khi thực hiện các thao tác này.

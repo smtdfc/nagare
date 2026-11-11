@@ -1,0 +1,164 @@
+---
+title: "Troubleshooting"
+description: "How to identify and fix common problems when using Nagare."
+---
+
+## Diagnose problems
+
+When something goes wrong during installation or while using Nagare, run this command to check the health of your system:
+
+```bash
+nagare doctor
+```
+
+Nagare checks each component automatically and reports the problems it finds with their status.
+
+For the meaning of each check, see the [CLI reference](/en/guides/cli#nagare-doctor).
+
+## Common problems
+
+<AccordionGroup>
+  <Accordion title="nagare command not found">
+
+    Your terminal shows `command not found: nagare`.
+
+    The most common cause is that the Nagare install directory isn't on your `PATH`.
+
+    See [Add Nagare to PATH](/en/installation#add-to-path).
+
+  </Accordion>
+
+  <Accordion title="Gateway is not running">
+
+    The check output shows:
+
+    `Gateway process: not running — no PID file found`
+
+    This means the Gateway hasn't been started. Open a terminal window and run:
+
+    ```bash
+    nagare gateway start
+    ```
+
+    Keep this terminal window open while you use Nagare.
+
+  </Accordion>
+
+  <Accordion title="Cannot connect to the Gateway">
+
+    The check output shows:
+
+    `Gateway HTTP reachable: cannot reach ...`
+
+    The Gateway may be listening on a different port than the one configured, or the default port `9832` may already be in use by another process.
+
+    Check the value of the `NAGARE_GATEWAY_PORT` environment variable and confirm that the Gateway is listening on the correct port.
+
+  </Accordion>
+
+  <Accordion title="Cannot access the security keyring">
+
+    The check output shows:
+
+    `RSA keyring: error`
+
+    Nagare can't access your operating system's keychain.
+
+    On Linux, check that GNOME Keyring or KWallet is running and unlocked.
+
+  </Accordion>
+
+  <Accordion title="Missing memory module">
+
+    The check output shows:
+
+    `Module: nagare_vector — missing`
+
+    The `nagare_vector` memory module isn't installed, or it can't be found at the configured location.
+
+    Run the Nagare installer again to install the missing module.
+
+  </Accordion>
+
+  <Accordion title="Cannot sign in or the auth token is invalid">
+
+    Auth tokens are valid for 60 hours. A token can also stop working if the security key on your machine has changed.
+
+    To fix this, open the web UI with:
+
+    ```bash
+    nagare web
+    ```
+
+    If you still can't sign in, generate a new token:
+
+    ```bash
+    nagare auth token
+    ```
+
+    Then paste the new token on the sign-in screen.
+
+  </Accordion>
+
+  <Accordion title="Nagare doesn't respond">
+
+    If Nagare produces no response, check the following:
+
+    - **Model provider:** Make sure at least one provider is configured and a **Default model** is selected in **Settings → General**.
+    - **Connection details:** Check the API key and Base URL. Try listing models to confirm the connection works.
+    - **Logs:** Check `~/.nagare/logs/app.log` for details about the error.
+
+  </Accordion>
+
+  <Accordion title="Cannot request approval before running a tool">
+
+    Nagare shows:
+
+    `approval is required but no approval channel is available`
+
+    This happens when an action requires approval but no interactive channel is available to send the request to you.
+
+    Open a conversation through the web UI or connect Telegram to provide an approval channel.
+
+  </Accordion>
+
+  <Accordion title="Plugin doesn't work or has a failed status">
+
+    Work through these checks:
+
+    - **Check the logs:** Read the plugin's log at `~/.nagare/logs/plugins/<package_name>.log`.
+    - **Check environment variables:** Make sure any environment variables the plugin needs are set before Nagare starts. For example: `NAGARE_TELEGRAM_TOKEN`.
+    - **Check integrity:** If Nagare reports that the plugin file has been modified, reinstall the plugin.
+
+  </Accordion>
+
+  <Accordion title="Cannot install a plugin because the signature is invalid">
+
+    This error usually means the plugin package was modified after signing, or it was signed with a key that isn't in your trusted key list.
+
+    See [Plugin signing](/en/plugins/signing) for details.
+
+  </Accordion>
+</AccordionGroup>
+
+## Where logs are stored
+
+Nagare stores activity logs in these locations:
+
+| Component | Location                                                                    |
+| --------- | --------------------------------------------------------------------------- |
+| Nagare    | `~/.nagare/logs/app.log` and the terminal window running `nagare gateway start` |
+| Plugins   | `~/.nagare/logs/plugins/<package_name>.log`                                 |
+| Modules   | `~/.nagare/logs/modules/`                                                   |
+
+## Report a problem
+
+If you can't fix the problem yourself, open an issue on [GitHub Issues](https://github.com/smtdfc/nagare/issues).
+
+When you report a problem, include:
+
+- The output of `nagare doctor`.
+- The log excerpt related to the problem.
+- The steps that led to the error, if you can reproduce it.
+
+This information makes it faster to find the cause and fix the problem.

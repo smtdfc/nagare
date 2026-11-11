@@ -1,0 +1,102 @@
+---
+title: "Tổng quan plugin"
+description: "Tìm hiểu cách plugin mở rộng Nagare, cấu trúc dự án, quyền truy cập, quy trình đóng gói và cơ chế quản lý plugin."
+---
+
+Plugin là cơ chế mở rộng chức năng của Nagare. Một plugin có thể bổ sung công cụ, tích hợp kênh trò chuyện như Telegram hoặc cung cấp các chỉ dẫn riêng cho mô hình AI.
+
+Mỗi plugin được Nagare khởi chạy dưới dạng một tiến trình độc lập. Plugin giao tiếp với Nagare thông qua một kết nối nội bộ trên máy tính:
+
+- **Linux / macOS**: `~/.nagare/nagare-plugin.sock`.
+- **Windows**: `\\.\pipe\nagare-plugin`.
+
+Bạn có thể phát triển plugin bằng [Go](/plugins/go-sdk) hoặc [Rust](/plugins/rust-sdk).
+
+## Cấu trúc dự án
+
+Một dự án plugin cơ bản có cấu trúc như sau:
+
+```text
+my-plugin/
+├── metadata.json
+├── go.mod            # hoặc Cargo.toml
+└── main.go           # hoặc src/main.rs
+```
+
+### Tệp metadata.json {#metadata-json}
+
+Tệp `metadata.json` chứa thông tin định danh và cấu hình của plugin.
+
+Ví dụ:
+
+```json
+{
+  "package_name": "com.example.hello",
+  "name": "Hello plugin",
+  "version": "1.0.0",
+  "api_version": "1",
+  "author": "Your Name",
+  "features": ["plugin_tool"]
+}
+```
+
+Các trường trong tệp:
+
+| Trường         | Bắt buộc | Mô tả                                                                                                                                                                              |
+| -------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `package_name` | Có       | Tên định danh duy nhất của plugin. Chỉ chấp nhận chữ cái, chữ số, `_`, `.` và `-`. Tên phải bắt đầu và kết thúc bằng chữ cái hoặc chữ số, không được chứa `..` hoặc dấu gạch chéo. |
+| `name`         | Có       | Tên hiển thị của plugin.                                                                                                                                                           |
+| `version`      | Có       | Phiên bản hiện tại của plugin.                                                                                                                                                     |
+| `api_version`  | Có       | Phiên bản API plugin mà plugin sử dụng. Hiện tại là `"1"`.                                                                                                                         |
+| `author`       | Có       | Tên tác giả hoặc tổ chức phát triển.                                                                                                                                               |
+| `features`     | Không    | Danh sách quyền mà plugin yêu cầu. Xem [Quyền của plugin](#quyen-cua-plugin).                                                                                                      |
+| `bin`          | Không    | Đường dẫn đến tệp thực thi tương ứng với từng hệ điều hành. Lệnh `nagare plugin build` tự động tạo trường này.                                                                     |
+
+### Quyền của plugin {#quyen-cua-plugin}
+
+Plugin chỉ được sử dụng những tính năng được khai báo trong trường `features` của `metadata.json`.
+
+| Quyền            | Chức năng                                                                         |
+| ---------------- | --------------------------------------------------------------------------------- |
+| `plugin_tool`    | Đăng ký công cụ và nhóm công cụ mới.                                              |
+| `chat`           | Tích hợp kênh trò chuyện, gửi và nhận tin nhắn, đồng thời nhận kết quả phê duyệt. |
+| `model_provider` | Truy cập danh sách các nhà cung cấp mô hình đã cấu hình.                          |
+| `system_prompt`  | Thêm hoặc gỡ bỏ các chỉ dẫn riêng của plugin trong system prompt.                 |
+
+## Đóng gói plugin {#build-goi-plugin}
+
+Mở terminal tại thư mục dự án plugin và chạy:
+
+```bash
+nagare plugin build
+```
+
+Lệnh này thực hiện các bước sau:
+
+1. Đọc và kiểm tra cấu hình trong `metadata.json`.
+2. Biên dịch mã nguồn:
+   - Sử dụng `go build` nếu dự án có `go.mod`.
+   - Sử dụng `cargo build --release` nếu dự án có `Cargo.toml`.
+   - Không hỗ trợ dự án chứa đồng thời cả `go.mod` và `Cargo.toml`.
+3. Tính mã kiểm tra để phát hiện thay đổi đối với gói plugin sau khi đóng gói.
+4. Đóng các thành phần cần thiết thành một tệp có định dạng `<package_name>.nagare_plugin`.
+
+Để ký số gói plugin trong quá trình đóng gói, sử dụng tùy chọn `--sign`.
+
+Xem thêm [Ký số plugin](/plugins/signing).
+
+## Quản lý plugin {#quan-ly-plugin}
+
+Truy cập **Settings → Plugins** để quản lý các plugin đã cài đặt.
+
+| Thao tác            | Chức năng                                                                                                                                                         |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Install Plugin**  | Cài đặt plugin. Trên giao diện web, tải lên tệp `.nagare_plugin`, có thể đính kèm tệp chữ ký `.sig`. Trên ứng dụng desktop, nhập đường dẫn đầy đủ đến gói plugin. |
+| **Kích hoạt / Tắt** | Khởi chạy hoặc dừng plugin.                                                                                                                                       |
+| **Cập nhật**        | Cài đặt phiên bản mới của plugin. Lịch sử các cuộc trò chuyện vẫn được giữ nguyên.                                                                                |
+| **Trạng thái**      | Theo dõi mức sử dụng CPU và bộ nhớ của plugin.                                                                                                                    |
+| **Gỡ cài đặt**      | Xóa plugin khỏi Nagare.                                                                                                                                           |
+
+Trong quá trình cài đặt, Nagare có thể hiển thị cảnh báo nếu gói plugin **chưa được ký** hoặc **không xác minh được chữ ký**.
+
+Xem chi tiết tại [Ký số plugin](/plugins/signing#canh-bao-khi-cai-dat).

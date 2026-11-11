@@ -1,0 +1,72 @@
+---
+title: "Cron jobs"
+description: "Create and manage scheduled automatic tasks in Nagare."
+---
+
+A cron job is a task Nagare runs automatically on a schedule you set. You don't need to create configuration files or write schedule expressions by hand. Just describe the request in natural language in your conversation with Nagare.
+
+## Create a schedule
+
+You can ask Nagare to create a cron job right in the conversation. For example:
+
+```text
+Every day at 9 a.m., tell me the weather in Hanoi.
+```
+
+```text
+Every 30 minutes, check whether any process is using more than 2 GB of RAM.
+```
+
+Nagare parses the request and asks follow-up questions if it needs clarification before creating the schedule.
+
+Each cron job has three main parts:
+
+- **Task name:** The name used to identify and tell cron jobs apart.
+- **Task content:** A description of the work Nagare should do.
+- **Schedule:** When or how often the task runs.
+
+You can provide all three in a single message. Nagare parses them and turns them into the matching configuration.
+
+## Schedule configuration
+
+Nagare supports standard 5-field cron expressions, in this order:
+
+`minute hour day-of-month month day-of-week`
+
+A few common expressions:
+
+| Expression     | Description                        |
+| -------------- | ---------------------------------- |
+| `0 9 * * *`    | Run at 09:00 every day.            |
+| `*/30 * * * *` | Run every 30 minutes.              |
+| `0 8 * * 1`    | Run at 08:00 every Monday.         |
+| `@daily`       | Run once a day at 00:00.           |
+| `@hourly`      | Run once an hour.                  |
+
+If you don't want to write a cron expression, describe the schedule in natural language, such as "9 p.m. every day".
+
+Nagare turns that description into the matching schedule expression for you.
+
+## How execution works
+
+Cron jobs follow these rules:
+
+- **Tied to a conversation:** Each cron job is linked to the conversation where it was created. When it runs, the result is sent back to that conversation, including conversations over Telegram.
+- **Automatic rescheduling:** After each run, Nagare determines the next run time from the configured schedule.
+
+<Warning>
+  Cron jobs only run while the Nagare Gateway is running. If the Gateway is stopped or the computer is off, tasks don't run during that time.
+
+To keep using cron jobs, start the Gateway again:
+
+```bash
+nagare gateway start
+```
+
+</Warning>
+
+## Approval during execution
+
+If a task needs approval before it can use a tool, Nagare still has to ask for your confirmation when the cron job runs.
+
+See [Tool approval](/en/guides/tools#tool-approval) for details.

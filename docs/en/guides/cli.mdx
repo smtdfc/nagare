@@ -1,0 +1,139 @@
+---
+title: "CLI reference"
+description: "The commands, options, and usage of the Nagare CLI."
+---
+
+General syntax:
+
+```bash
+nagare [command] [options]
+```
+
+## Commands
+
+| Command                                         | Purpose                                         |
+| ----------------------------------------------- | ----------------------------------------------- |
+| [`nagare gateway start`](#nagare-gateway-start) | Start the Nagare Gateway.                       |
+| [`nagare gateway stop`](#nagare-gateway-stop)   | Stop the Nagare Gateway.                        |
+| [`nagare web`](#nagare-web)                     | Launch the web UI.                              |
+| [`nagare auth token`](#nagare-auth-token)       | Generate a sign-in code.                        |
+| [`nagare doctor`](#nagare-doctor)               | Check the status of Nagare's components.        |
+| [`nagare plugin build`](#nagare-plugin-build)   | Compile and package a plugin.                   |
+
+## Global options
+
+| Option            | Purpose                          |
+| ----------------- | -------------------------------- |
+| `-v`, `--version` | Show the Nagare version.         |
+| `-h`, `--help`    | Show usage help for the command. |
+
+## nagare gateway start
+
+Start the Nagare Gateway in the current terminal. The process runs in the foreground and the PID is saved to `~/.nagare/.gateway.pid`.
+
+```bash
+nagare gateway start [--host <host>]
+```
+
+| Option          | Purpose                                                          |
+| --------------- | ---------------------------------------------------------------- |
+| `--host <host>` | The address the Gateway listens on. Defaults to `localhost`.     |
+| `-d`, `--debug` | Enable debug mode, mainly for Nagare development.                 |
+
+On first launch, Nagare creates a security key and stores it in your operating system's keychain. This key is used to generate sign-in codes. You don't need to do anything else.
+
+<Warning>
+  With `--host 0.0.0.0`, the Gateway accepts connections from other machines on
+  the network. Requests still require a valid sign-in code, but think carefully
+  before exposing network access, because Nagare can act on your machine.
+</Warning>
+
+## nagare gateway stop
+
+Ask the running Nagare Gateway to stop.
+
+```bash
+nagare gateway stop
+```
+
+On success, Nagare prints:
+
+```text
+Nagare gateway shutdown requested.
+```
+
+If the Gateway isn't running, the command prints:
+
+```text
+Nagare gateway is not running.
+```
+
+## nagare web
+
+Launch the web UI with automatic sign-in.
+
+```bash
+nagare web [--addr <addr>] [--gateway <url>] [--token <token>] [--no-open]
+```
+
+| Option      | Default                 | Purpose                                                                                                       |
+| ----------- | ----------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `--addr`    | `127.0.0.1:3005`        | The address and port the web UI listens on. You can change the port with the `NAGARE_WEB_UI_PORT` environment variable. |
+| `--gateway` | `http://localhost:9832` | The URL of the Gateway to connect to. Can come from `NAGARE_GATEWAY_URL` or be derived from `NAGARE_GATEWAY_PORT`. |
+| `--token`   | Generated               | The token used for automatic sign-in.                                                                         |
+| `--no-open` | `false`                 | Don't open the browser automatically. Only print the address to visit.                                        |
+
+## nagare auth token
+
+Generate a sign-in token for the web UI, the desktop app, or direct API calls.
+
+```bash
+nagare auth token
+```
+
+Example output:
+
+```text
+Your token is: eyJhbGciOi...
+```
+
+The token is signed with Nagare's security key and is valid for **60 hours**.
+
+## nagare doctor
+
+Check the health of Nagare's components:
+
+| Component              | What it checks                                     |
+| ---------------------- | -------------------------------------------------- |
+| Gateway process        | Whether the Gateway is running.                    |
+| Gateway HTTP reachable | Whether the Gateway is reachable over HTTP.        |
+| Plugin IPC socket      | The socket Nagare and plugins use to communicate.  |
+| SQLite database        | Whether the SQLite database is accessible.         |
+| RSA keyring            | Whether the security keyring is accessible.        |
+| Module: nagare_vector  | Whether the vector memory module is installed.     |
+
+Run:
+
+```bash
+nagare doctor
+```
+
+The command exits with code `1` if at least one check fails.
+
+## nagare plugin build
+
+Compile and package the plugin in the current directory. See [Plugin overview](/en/plugins/overview#build-the-plugin).
+
+```bash
+nagare plugin build [--sign <private-key.pem>]
+```
+
+| Option                | Purpose                                                                       |
+| --------------------- | ----------------------------------------------------------------------------- |
+| `-s`, `--sign <path>` | Sign the plugin package with an Ed25519 private key. See [Plugin signing](/en/plugins/signing). |
+
+## nagare-desktop
+
+`nagare-desktop` is a standalone desktop app, not a subcommand of `nagare`.
+
+See [Use the desktop app](/en/installation#desktop-app).

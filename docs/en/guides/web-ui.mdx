@@ -1,0 +1,87 @@
+---
+title: "Web UI"
+description: "Open the UI, sign in, and manage your conversations with Nagare."
+---
+
+The web UI is where you chat and adjust settings. The desktop app uses the same UI, so everything you know from the web works there too.
+
+## Open the UI
+
+Start Nagare first:
+
+```bash
+nagare gateway start
+```
+
+Then open the UI:
+
+```bash
+nagare web
+```
+
+By default, this command:
+
+- Opens the UI at `http://127.0.0.1:3005`.
+- Creates a sign-in code for you.
+- Opens your browser and signs you in. Nagare then removes the code from the address bar so others can't see it.
+
+A few common options:
+
+```bash
+# Change the UI port
+nagare web --addr 127.0.0.1:8080
+
+# Only print the sign-in URL, don't open the browser
+nagare web --no-open
+
+# Connect to Nagare running on another machine
+nagare web --gateway http://192.168.1.10:9832
+```
+
+See the full list in the [CLI reference](/en/guides/cli#nagare-web).
+
+## Sign in manually
+
+If the UI asks you to sign in:
+
+1. Generate a code:
+   ```bash
+   nagare auth token
+   ```
+2. Open `http://127.0.0.1:3005` and paste the code into the sign-in field.
+3. If Nagare runs at a different address, click **Advanced** and enter that address.
+
+<Info>
+  Sign-in codes are valid for **60 hours**. When one expires, generate a new one with `nagare auth token`.
+</Info>
+
+## Chat
+
+Each conversation is its own **session**, with its own title, model, and history. In the UI you can:
+
+| Action | What it does |
+| --- | --- |
+| New session | Start a new conversation with the default model. |
+| Change model | Use a different model for this conversation only. |
+| Cancel | Stop the answer that is being written. |
+| Compact | Summarize a long conversation so Nagare doesn't get overloaded. |
+| Duplicate | Make a copy of the conversation. |
+| Archive | Move it out of the main list without deleting it. |
+| Delete | Delete the conversation and its history. |
+
+Nagare answers as it writes, so you don't have to wait for the whole response before seeing the content.
+
+## Approve actions
+
+When Nagare wants to do something risky — delete a file, shut down the machine, end a process — the UI shows a box where you can approve or reject it. See [Tools](/en/guides/tools#tool-approval).
+
+## Settings pages
+
+| Page | Contents |
+| --- | --- |
+| **General** | Default model and summary model. |
+| **Model providers** | Add, view, and delete model providers. |
+| **Credentials** | Store API keys to reuse across providers. |
+| **Plugins** | Install, update, enable/disable, and remove plugins, and view their status. |
+
+See [Model providers](/en/guides/model-providers) and [Plugin overview](/en/plugins/overview).

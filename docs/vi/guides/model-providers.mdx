@@ -1,0 +1,55 @@
+---
+title: "Nhà cung cấp mô hình"
+description: "Hướng dẫn cấu hình nhà cung cấp AI, quản lý API key và thiết lập mô hình mặc định trong Nagare."
+---
+
+Nagare không tích hợp sẵn mô hình AI. Để sử dụng các tính năng AI, bạn cần cấu hình một nhà cung cấp mô hình, chẳng hạn như OpenAI, Google Gemini hoặc các dịch vụ tương thích với API OpenAI.
+
+## Các loại nhà cung cấp được hỗ trợ
+
+Nagare hiện hỗ trợ hai loại giao thức kết nối:
+
+| Loại       | Mô tả                                                                                                                                                                   |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **OpenAI** | Dành cho các dịch vụ cung cấp API tương thích với chuẩn OpenAI. Bao gồm OpenAI, các dịch vụ AI của bên thứ ba và những mô hình được triển khai trên hạ tầng tự quản lý. |
+| **Google** | Dành cho các dịch vụ sử dụng Google Gemini API.                                                                                                                         |
+
+## Thêm nhà cung cấp mô hình
+
+Truy cập **Settings → Model providers** và cấu hình các trường sau:
+
+| Trường                   | Mô tả                                                                                                                                                            |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Name**                 | Tên định danh của nhà cung cấp. Bạn có thể đặt tên tùy ý, chẳng hạn `OpenAI` hoặc `Mô hình nội bộ`.                                                              |
+| **Compatible**           | Giao thức API mà nhà cung cấp sử dụng. Chọn `OpenAI` hoặc `Google`.                                                                                              |
+| **Base URL**             | Địa chỉ API của nhà cung cấp. Với loại OpenAI, nhập URL đầy đủ, ví dụ `https://api.openai.com/v1`. Với loại Google, có thể để trống để sử dụng địa chỉ mặc định. |
+| **API key / Credential** | API key dùng để xác thực với nhà cung cấp. Bạn có thể nhập key mới hoặc chọn thông tin xác thực đã lưu trước đó.                                                 |
+| **Models**               | Danh sách các mô hình được cấu hình để sử dụng với nhà cung cấp này.                                                                                             |
+
+Sau khi lưu cấu hình, Nagare có thể truy vấn API của nhà cung cấp để lấy danh sách mô hình khả dụng. Bạn có thể chọn mô hình từ danh sách thay vì nhập thủ công.
+
+## Quản lý thông tin xác thực
+
+Mục **Settings → Credentials** cho phép lưu trữ và quản lý API key tập trung.
+
+Mỗi thông tin xác thực có thể được gán một tên định danh để dễ dàng nhận biết và sử dụng lại với nhiều nhà cung cấp.
+
+Tại đây, bạn có thể:
+
+- Tạo thông tin xác thực mới.
+- Thay đổi tên định danh.
+- Cập nhật API key.
+- Xóa thông tin xác thực không còn sử dụng.
+
+Sau khi được lưu, giá trị API key sẽ không được hiển thị lại. Điều này giúp hạn chế việc vô tình để lộ thông tin xác thực trong giao diện.
+
+## Thiết lập mô hình mặc định
+
+Truy cập **Settings → General** để cấu hình các mô hình mặc định:
+
+| Thiết lập         | Mô tả                                                                                                                                             |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Default model** | Mô hình AI được sử dụng mặc định cho các cuộc trò chuyện mới.                                                                                     |
+| **Summary model** | Mô hình được sử dụng để tóm tắt lịch sử hội thoại khi cần rút gọn ngữ cảnh. Nếu để trống, Nagare sẽ sử dụng mô hình của cuộc trò chuyện hiện tại. |
+
+Bạn cũng có thể thay đổi mô hình trực tiếp trong từng cuộc trò chuyện. Việc thay đổi này không ảnh hưởng đến cấu hình mô hình mặc định.

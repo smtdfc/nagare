@@ -1,0 +1,72 @@
+---
+title: "Cron job"
+description: "Hướng dẫn tạo và quản lý các tác vụ tự động theo lịch bằng Nagare."
+---
+
+Cron job là tác vụ được Nagare thực thi tự động theo lịch trình đã thiết lập. Bạn không cần tạo tệp cấu hình hoặc viết biểu thức lập lịch thủ công. Thay vào đó, chỉ cần mô tả yêu cầu bằng ngôn ngữ tự nhiên trong cuộc trò chuyện với Nagare.
+
+## Tạo lịch thực thi
+
+Bạn có thể yêu cầu Nagare tạo Cron job trực tiếp trong cuộc trò chuyện. Ví dụ:
+
+```text
+Mỗi ngày lúc 9 giờ sáng, hãy cho tôi biết thời tiết ở Hà Nội.
+```
+
+```text
+Cứ 30 phút một lần, kiểm tra xem có tiến trình nào sử dụng quá 2 GB RAM hay không.
+```
+
+Nagare sẽ phân tích yêu cầu và hỏi lại nếu cần làm rõ thông tin trước khi tạo lịch.
+
+Mỗi Cron job bao gồm ba thành phần chính:
+
+- **Tên tác vụ:** Tên dùng để nhận diện và phân biệt các Cron job.
+- **Nội dung thực thi:** Mô tả công việc Nagare cần thực hiện.
+- **Lịch trình:** Thời điểm hoặc chu kỳ thực thi tác vụ.
+
+Bạn có thể cung cấp cả ba thông tin trong một câu lệnh. Nagare sẽ tự động phân tích và chuyển đổi chúng thành cấu hình tương ứng.
+
+## Cấu hình lịch trình
+
+Nagare hỗ trợ biểu thức Cron tiêu chuẩn gồm 5 trường theo thứ tự:
+
+`phút giờ ngày-trong-tháng tháng ngày-trong-tuần`
+
+Một số biểu thức phổ biến:
+
+| Biểu thức      | Mô tả                                    |
+| -------------- | ---------------------------------------- |
+| `0 9 * * *`    | Thực thi lúc 09:00 mỗi ngày.             |
+| `*/30 * * * *` | Thực thi mỗi 30 phút.                    |
+| `0 8 * * 1`    | Thực thi lúc 08:00 mỗi thứ Hai.          |
+| `@daily`       | Thực thi mỗi ngày một lần vào lúc 00:00. |
+| `@hourly`      | Thực thi mỗi giờ một lần.                |
+
+Nếu không muốn viết biểu thức Cron, bạn có thể mô tả lịch trình bằng ngôn ngữ tự nhiên, chẳng hạn: "9 giờ tối mỗi ngày".
+
+Nagare sẽ tự động chuyển đổi mô tả này thành biểu thức lịch trình tương ứng.
+
+## Cơ chế thực thi
+
+Cron job hoạt động theo các nguyên tắc sau:
+
+- **Gắn với cuộc trò chuyện:** Mỗi Cron job được liên kết với cuộc trò chuyện nơi nó được tạo. Khi đến thời điểm thực thi, kết quả sẽ được gửi về cuộc trò chuyện tương ứng, bao gồm cả các cuộc trò chuyện thông qua Telegram.
+- **Tự động lập lịch tiếp theo:** Sau mỗi lần thực thi, Nagare xác định thời điểm chạy tiếp theo dựa trên lịch trình đã cấu hình.
+
+<Warning>
+  Cron job chỉ được thực thi khi Nagare Gateway đang hoạt động. Nếu Gateway bị dừng hoặc máy tính tắt, các tác vụ sẽ không được thực thi trong khoảng thời gian đó.
+
+Để tiếp tục sử dụng Cron job, hãy khởi động lại Gateway:
+
+```bash
+nagare gateway start
+```
+
+</Warning>
+
+## Phê duyệt khi thực thi
+
+Nếu một tác vụ yêu cầu phê duyệt trước khi sử dụng công cụ, Nagare vẫn phải yêu cầu bạn xác nhận khi Cron job được thực thi.
+
+Tham khảo hướng dẫn [Phê duyệt công cụ](/guides/tools#phe-duyet-cong-cu) để biết thêm chi tiết.

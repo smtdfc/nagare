@@ -1,0 +1,112 @@
+---
+title: "Rust SDK"
+description: "Build Nagare plugins in Rust with the nagare_plugin crate."
+---
+
+This page walks you through building a simple Rust plugin that adds a greeting tool to Nagare. You only need basic Rust knowledge to follow along.
+
+## Prerequisites
+
+The `nagare_plugin` crate is provided in the Nagare source repository. Add these dependencies to `Cargo.toml`:
+
+```toml Cargo.toml
+[package]
+name = "hello-plugin"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nagare_plugin = { git = "https://github.com/smtdfc/nagare" }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+schemars = "0.8"
+```
+
+Create a `metadata.json` file as described in the [Plugin overview](/en/plugins/overview#metadata-json).
+
+## Example: a greeting plugin
+
+This example defines a `greet_tool` tool. The tool takes a person's name and returns the matching greeting.
+
+```rust src/main.rs
+use std::collections::HashMap;
+
+use nagare_plugin::{PluginClient, PluginError, define_tool};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+const METADATA: &str = include_str!("../metadata.json");
+
+#[derive(Deserialize, JsonSchema)]
+struct GreetArgs {
+    /// Name of the person to greet
+    name: String,
+}
+
+#[derive(Serialize)]
+struct GreetResult {
+    message: String,
+}
+
+#[tokio::main]
+async fn main() -> Result<(), PluginError> {
+    let client = PluginClient::new();
+    client.load_metadata(METADATA)?;
+
+    let greet = define_tool(
+        "greet_tool",
+        "Create a greeting for a person.",
+        |args: GreetArgs| -> Result<GreetResult, PluginError> {
+            Ok(GreetResult {
+                message: format!("Hello, {}!", args.name),
+            })
+        },
+        vec!["greeting".to_string()],
+    );
+
+    let c = client.clone();
+    client
+        .start(|| async move {
+            if c.handshake().await.is_err() {
+                return;
+            }
+
+            let mut categories = HashMap::new();
+            categories.insert(
+                "greeting".to_string(),
+                "Greeting tools".to_string(),
+            );
+            let _ = c.register_tool_categories(categories).await;
+
+            let _ = c.register_plugin_tool(greet).await;
+        })
+        .await
+}
+```
+
+To compile and package the plugin, run:
+
+```bash
+nagare plugin build
+```
+
+This command runs `cargo build --release --target-dir build`, then packs the executable into a `.nagare_plugin` package.
+
+## API reference
+
+| Function                                               | Purpose                                                                                                                                                                      |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PluginClient::new()`                                  | Creates a client that connects to Nagare and returns an `Arc<PluginClient>`. When the plugin runs, Nagare provides the `NAGARE_PLUGIN_LOG_FILE` and `NAGARE_PLUGIN_CONFIG_DIR` environment variables. |
+| `load_metadata(raw)`                                   | Loads and validates the contents of `metadata.json`.                                                                                                                          |
+| `start(on_start)`                                      | Connects to Nagare, runs the `on_start` callback, then waits until the connection closes.                                                                                     |
+| `handshake()`                                          | Performs the handshake with Nagare. Call it before any other communication in `on_start`.                                                                                      |
+| `define_tool(name, description, callback, categories)` | Defines a tool. The input type must implement `Deserialize` and `JsonSchema`; the result type must implement `Serialize`.                                                      |
+| `register_plugin_tool(tool)`                           | Registers the tool with Nagare. Requires the `plugin_tool` permission.                                                                                                        |
+| `register_tool_categories(map)`                        | Registers tool groups as a name → description map.                                                                                                                            |
+| `prepare_chat_channel(channel_id)`                     | Creates or reopens a chat channel. Requires the `chat` permission.                                                                                                            |
+| `send_chat_message(channel_id, text)`                  | Sends a message to Nagare.                                                                                                                                                    |
+| `reset_chat_channel(channel_id)`                       | Resets the chat channel to start a new conversation.                                                                                                                          |
+| `set_on_received_chat_message(cb)`                     | Registers an `Fn(channel_id: String, chunk: String)` callback to receive message chunks as JSON.                                                                              |
+| `config_dir()`                                         | Returns the path to the plugin's own config directory.                                                                                                                        |
+
+Each tool call has a timeout of 60 seconds.

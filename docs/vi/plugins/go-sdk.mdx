@@ -1,0 +1,141 @@
+---
+title: "SDK Go"
+description: "Hướng dẫn phát triển plugin Nagare bằng Go: đăng ký công cụ, tích hợp kênh trò chuyện và quản lý chỉ dẫn riêng."
+---
+
+Trang này hướng dẫn bạn xây dựng một plugin Go đơn giản cho Nagare, với chức năng đăng ký công cụ chào hỏi. Bạn chỉ cần có kiến thức Go cơ bản để bắt đầu.
+
+## Chuẩn bị
+
+Tạo thư mục dự án, khởi tạo Go module và cài đặt SDK:
+
+```bash
+mkdir hello-plugin && cd hello-plugin
+go mod init example.com/hello-plugin
+go get github.com/smtdfc/nagare/pkgs/plugin/sdk
+```
+
+Tiếp theo, tạo tệp `metadata.json` theo hướng dẫn trong [Tổng quan plugin](/plugins/overview#metadata-json).
+
+## Ví dụ: Tạo plugin đăng ký công cụ
+
+Tạo tệp `main.go` với nội dung sau:
+
+```go
+package main
+
+import (
+	"context"
+	_ "embed"
+	"fmt"
+
+	sdk "github.com/smtdfc/nagare/pkgs/plugin/sdk"
+)
+
+//go:embed metadata.json
+var metadata string
+
+type GreetArgs struct {
+	Name string `json:"name" jsonschema:"description=Tên người cần chào"`
+}
+
+type GreetResult struct {
+	Message string `json:"message"`
+}
+
+func main() {
+	ctx := context.Background()
+	plugin := sdk.NewPlugin()
+
+	if _, err := plugin.LoadMetadata(metadata); err != nil {
+		panic(err)
+	}
+
+	greet := sdk.DefineTool[GreetArgs, GreetResult](
+		"greet_tool",
+		"Tạo lời chào cho một người.",
+		func(ctx *context.Context, args *GreetArgs) (*GreetResult, error) {
+			return &GreetResult{
+				Message: fmt.Sprintf("Xin chào, %s!", args.Name),
+			}, nil
+		},
+		[]string{"greeting"},
+	)
+
+	err := plugin.Start(ctx, func() {
+		if err := plugin.Handshake(ctx); err != nil {
+			plugin.Logger.Error("handshake failed", "error", err)
+			return
+		}
+
+		_ = plugin.RegisterToolCategories(ctx, map[string]string{
+			"greeting": "Công cụ tạo lời chào",
+		})
+
+		if err := plugin.RegisterPluginTool(ctx, greet); err != nil {
+			plugin.Logger.Error("register tool failed", "error", err)
+		}
+	})
+	if err != nil {
+		plugin.Logger.Error("plugin stopped", "error", err)
+	}
+}
+```
+
+Trong `metadata.json`, khai báo quyền `plugin_tool` để plugin có thể đăng ký công cụ:
+
+```json
+{
+  "features": ["plugin_tool"]
+}
+```
+
+Sau khi hoàn thành, đóng gói plugin:
+
+```bash
+nagare plugin build
+```
+
+Lệnh này tạo gói `<package_name>.nagare_plugin`. Bạn có thể cài đặt gói thông qua **Settings → Plugins → Install Plugin**.
+
+## Trình tự khởi chạy plugin
+
+Quá trình khởi chạy plugin sử dụng các API theo thứ tự sau:
+
+1. **`sdk.NewPlugin()`**: Khởi tạo đối tượng plugin, thiết lập thông tin kết nối và đọc các thư mục log, cấu hình, dữ liệu được cấp cho plugin.
+2. **`LoadMetadata(raw)`**: Nạp và kiểm tra metadata của plugin. Có thể sử dụng `//go:embed metadata.json` để nhúng tệp metadata vào chương trình.
+3. **`Start(ctx, onStart)`**: Khởi chạy vòng đời plugin, thiết lập kết nối với Nagare, gọi callback `onStart` và chờ cho đến khi kết nối kết thúc.
+4. **`Handshake(ctx)`**: Phải được gọi ở đầu callback `onStart`, trước khi thực hiện các thao tác giao tiếp khác với Nagare.
+
+## Tham chiếu API
+
+### Đăng ký công cụ
+
+| API                                                             | Chức năng                                                                                                                                      |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sdk.DefineTool[I, O](name, description, callback, categories)` | Định nghĩa một công cụ. SDK tự động tạo JSON Schema từ kiểu tham số `I`. Callback có chữ ký `func(ctx *context.Context, args *I) (*O, error)`. |
+| `RegisterPluginTool(ctx, tool)`                                 | Đăng ký công cụ với Nagare. Yêu cầu quyền `plugin_tool`.                                                                                       |
+| `RegisterToolCategories(ctx, map[string]string)`                | Đăng ký các nhóm công cụ mới theo cấu trúc `tên → mô tả`. Nagare sử dụng thông tin này để phân loại và tìm kiếm công cụ.                       |
+
+Mỗi lần gọi công cụ có thời gian chờ tối đa **60 giây**.
+
+### Tích hợp kênh trò chuyện (quyền `chat`)
+
+| API                                                     | Chức năng                                                                                                                                                               |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PrepareChatChannel(ctx, channelID)`                    | Tạo kênh trò chuyện mới hoặc mở lại kênh đã tồn tại. `channelID` do plugin tự quản lý, ví dụ ID cuộc trò chuyện Telegram.                                               |
+| `SendChatMessage(ctx, channelID, text)`                 | Gửi tin nhắn của người dùng đến Nagare thông qua kênh tương ứng.                                                                                                        |
+| `ResetChatChannel(ctx, channelID)`                      | Bắt đầu một phiên trò chuyện mới cho kênh.                                                                                                                              |
+| `RegisterChatListener(ctx, sessionID)`                  | Đăng ký lắng nghe tin nhắn từ một phiên trò chuyện đã tồn tại.                                                                                                          |
+| `SubmitToolApproval(ctx, channelID, requestID, accept)` | Gửi kết quả phê duyệt hoặc từ chối một yêu cầu thực thi công cụ.                                                                                                        |
+| `OnReceivedChatMessage`                                 | Callback có chữ ký `func(channelID, chunk string)`, nhận từng đoạn phản hồi dưới dạng JSON. Xem [Định dạng tin nhắn trò chuyện](/plugins/overview#tin-nhan-tro-chuyen). |
+
+### Các API khác
+
+| API / Trường                       | Chức năng                                                                                                                                                                                      |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GetListModelProvider(ctx)`        | Trả về danh sách nhà cung cấp mô hình theo cấu trúc `map[id]name`. Yêu cầu quyền `model_provider`.                                                                                             |
+| `InjectSystemPrompt(ctx, content)` | Chèn chỉ dẫn riêng của plugin vào system prompt. Nội dung tối đa 64 KiB và thay thế chỉ dẫn đã chèn trước đó. Yêu cầu quyền `system_prompt`. Phải chèn lại sau khi kết nối được thiết lập lại. |
+| `ClearSystemPrompt(ctx)`           | Gỡ bỏ chỉ dẫn riêng đã chèn bởi plugin.                                                                                                                                                        |
+| `Logger`                           | Ghi nhật ký ra terminal và tệp log của plugin.                                                                                                                                                 |
+| `ConfigDir`, `DataDir`             | Cung cấp đường dẫn đến thư mục cấu hình và dữ liệu riêng của plugin.                                                                                                                           |

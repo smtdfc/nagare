@@ -1,0 +1,81 @@
+---
+title: "Built-in tools"
+description: "Learn what Nagare can do on your computer and how approval works before risky actions run."
+---
+
+Tools let Nagare interact with your system and perform actions on your computer, such as viewing processes, reading and editing files, adjusting the volume, or taking screenshots.
+
+You don't need to memorize tool names or syntax. Just describe what you want in natural language and Nagare picks the right tool.
+
+## How Nagare picks tools {#tool-selection}
+
+Tools are organized into groups by function, such as process management, file operations, or system control.
+
+When a request comes in, Nagare identifies the relevant tool group, then finds and calls the tool it needs within that group. This organization makes tool selection more efficient and lets plugins extend the system by adding new tool groups.
+
+Plugins can also register their own tools. See [Plugin overview](/en/plugins/overview) to learn more.
+
+## Tool list
+
+<Note>
+  Tools marked ✅ in the **Approval** column require your confirmation before they
+  run.
+</Note>
+
+### Process management
+
+| Tool                  | Function                                                                                                                                  | Approval |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `list_process_tool`   | List running processes. Filter by RAM or CPU usage or by process name, sort results, and limit how many are returned.                     |          |
+| `create_process_tool` | Launch a program independently of the current terminal session.                                                                            | ✅       |
+| `kill_process_tool`   | Terminate a process by PID.                                                                                                               | ✅       |
+
+### Files
+
+| Tool                        | Function                                                                                                          | Approval |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------- |
+| `get_user_directories_tool` | Get paths to common directories such as Home, Downloads, Desktop, Documents, temp, config, and cache.              |          |
+| `list_directory_tool`       | List the contents of a directory.                                                                                 |          |
+| `read_file_tool`            | Read the contents of a text file.                                                                                 |          |
+| `write_file_tool`           | Create or edit a text file.                                                                                       | ✅       |
+| `delete_file_tool`          | Delete a file. This tool doesn't support deleting directories.                                                    | ✅       |
+
+### System
+
+| Tool                      | Function                                                                        | Approval |
+| ------------------------- | ------------------------------------------------------------------------------- | -------- |
+| `power_control_tool`      | Shut down, restart, sleep, hibernate, and sign out.                             | ✅       |
+| `volume_control_tool`     | Check, set, mute, or unmute the volume; raise or lower the volume level.         |          |
+| `get_active_display_tool` | Check how many displays are in use.                                             |          |
+| `screenshot_tool`         | Take a screenshot and save the image to `~/.nagare/artifacts`.                  |          |
+| `open_browser_tool`       | Open one or more websites in the default browser.                               | ✅       |
+| `time_tool`               | Query the current date and time, optionally for a given time zone.               |          |
+
+### Lookups and research
+
+| Tool                 | Function                                                          |
+| -------------------- | ------------------------------------------------------------------ |
+| `weather_tool`       | Look up current weather for a location.                            |
+| `search_tool`        | Search for information. Nagare currently uses Wikipedia as the source. |
+| `fetch_content_tool` | Retrieve the full content of a search result.                      |
+
+### Scheduled jobs
+
+| Tool                  | Function                                                                                          |
+| --------------------- | -------------------------------------------------------------------------------------------------- |
+| `create_cronjob_tool` | Create a schedule for Nagare to run a task automatically. See [Cron jobs](/en/guides/cronjobs) to learn more. |
+
+## Approval {#tool-approval}
+
+Some actions can significantly affect your system, such as deleting files, ending processes, or shutting down. For these actions, Nagare asks for your approval before running them.
+
+Approval requests are sent through the same chat channel you're using:
+
+- **Web / desktop UI**: An approval dialog appears directly in the conversation.
+- **Telegram**: Nagare sends a message with **Approve** and **Reject** buttons. You can also reply with `/approve <request-id>` or `/reject <request-id>`.
+
+### Things to keep in mind
+
+- **Approval timeout**: A request expires after **5 minutes** if you don't respond. Nagare then skips the action.
+- **No approval channel**: If no channel is available to ask you for confirmation, Nagare refuses to run the action.
+- **Writing and deleting files**: Nagare always asks for extra confirmation before these actions.

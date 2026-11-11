@@ -1,0 +1,127 @@
+---
+title: "Installation"
+---
+
+## Prerequisites
+
+Before installing Nagare, make sure your system meets these requirements:
+
+- **Operating system:** 64-bit Linux, macOS, or Windows on x86-64 (Intel/AMD) or ARM64.
+- **API key:** An API key from a supported AI model provider, such as OpenAI, Google, or a compatible service.
+- **Keychain:** Your operating system's keychain must be installed and working. Nagare uses it to store the security key. On Linux, common keychains include GNOME Keyring and KWallet.
+
+## Install with one command
+
+Nagare provides an automatic install script for Linux, macOS, and Windows. Choose the command for your operating system.
+
+<Tabs>
+  <Tab title="Linux / macOS">
+
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/smtdfc/nagare/main/installers/linux/install.sh | sudo bash
+    ```
+
+  </Tab>
+  <Tab title="Windows (PowerShell)">
+
+    ```powershell
+    irm https://raw.githubusercontent.com/smtdfc/nagare/main/installers/window/install.ps1 | iex
+    ```
+
+  </Tab>
+</Tabs>
+
+The install script performs the following steps:
+
+1. **Download Nagare:** Downloads the latest version from [GitHub Releases](https://github.com/smtdfc/nagare/releases).
+2. **Install the programs:** Installs three executables into `$HOME/.local/bin`:
+   - `nagare`: The command-line interface (CLI).
+   - `nagare-gateway`: The background process that handles requests.
+   - `nagare-desktop`: The desktop app.
+3. **Install assets:** Copies bundled assets into `~/.nagare/assets/`, including built-in plugins, core plugins, and the web UI.
+4. **Install the module:** Installs the `nagare_vector` memory module into `~/.nagare/modules`.
+
+<Note>
+  If your current working directory contains `./dist/nagare`, the installer uses
+  the local build instead of downloading a release from GitHub. This is useful
+  when you build Nagare from source.
+</Note>
+
+## Add Nagare to PATH {#add-to-path}
+
+If your terminal doesn't recognize the `nagare` command, add the install directory to your `PATH` environment variable.
+
+**Bash:**
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**Zsh:**
+
+If you use Zsh, replace `~/.bashrc` with `~/.zshrc` in the commands above.
+
+## Verify the installation
+
+After installation finishes, run these commands to check the version and system health:
+
+```bash
+nagare --version
+nagare doctor
+```
+
+If Nagare hasn't been started yet, `nagare doctor` may report that the Gateway isn't running. This is normal after installation. Start the Gateway with:
+
+```bash
+nagare gateway start
+```
+
+## Use the desktop app {#desktop-app}
+
+To use Nagare in its own application window instead of the browser, launch:
+
+```bash
+nagare-desktop
+```
+
+The desktop app uses the same UI as the web version.
+
+For automatic sign-in, the app supports two environment variables:
+
+| Environment variable | Description                                              |
+| -------------------- | -------------------------------------------------------- |
+| `NAGARE_GATEWAY_URL` | Address of the running Gateway, for example `http://localhost:9832`. |
+| `NAGARE_AUTH_TOKEN`  | An auth token generated with `nagare auth token`.        |
+
+Example:
+
+```bash
+nagare auth token
+# Your token is: <TOKEN>
+
+NAGARE_GATEWAY_URL=http://localhost:9832 \
+NAGARE_AUTH_TOKEN="<TOKEN>" \
+nagare-desktop
+```
+
+If you'd rather not set environment variables, launch the desktop app and paste the auth token on the sign-in screen instead.
+
+## Where data is stored
+
+Nagare stores user data in the `~/.nagare` directory.
+
+See [Configuration](/en/guides/configuration) for the environment variables Nagare reads and how they affect where it listens and connects.
+
+## Uninstall
+
+To remove Nagare completely:
+
+1. Stop the Gateway if it is running.
+2. Delete the installed executables in `$HOME/.local/bin`:
+   - `nagare`
+   - `nagare-gateway`
+   - `nagare-desktop`
+3. Delete the `~/.nagare` data directory.
+
+**Note:** Deleting `~/.nagare` removes all user data, including configuration, databases, plugins, and installed assets.

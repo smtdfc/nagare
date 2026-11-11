@@ -1,0 +1,164 @@
+---
+title: "Khắc phục sự cố"
+description: "Hướng dẫn nhận diện và xử lý các sự cố thường gặp khi sử dụng Nagare."
+---
+
+## Chẩn đoán sự cố
+
+Khi gặp sự cố trong quá trình cài đặt hoặc sử dụng Nagare, hãy chạy lệnh sau để kiểm tra trạng thái hệ thống:
+
+```bash
+nagare doctor
+```
+
+Nagare sẽ tự động kiểm tra các thành phần và hiển thị những vấn đề được phát hiện cùng trạng thái tương ứng.
+
+Để biết ý nghĩa chi tiết của từng mục kiểm tra, xem [Tham chiếu CLI](/reference/cli#nagare-doctor).
+
+## Các sự cố thường gặp
+
+<AccordionGroup>
+  <Accordion title="Không tìm thấy lệnh nagare">
+
+    Terminal hiển thị thông báo `command not found: nagare`.
+
+    Nguyên nhân thường gặp là thư mục cài đặt Nagare chưa được thêm vào biến môi trường `PATH`.
+
+    Tham khảo hướng dẫn [Thêm Nagare vào PATH](/installation#them-vao-path).
+
+  </Accordion>
+
+  <Accordion title="Gateway chưa chạy">
+
+    Kết quả kiểm tra hiển thị:
+
+    `Gateway process: not running — no PID file found`
+
+    Điều này cho biết Gateway chưa được khởi động. Mở một cửa sổ terminal và chạy:
+
+    ```bash
+    nagare gateway start
+    ```
+
+    Giữ cửa sổ terminal này mở trong khi sử dụng Nagare.
+
+  </Accordion>
+
+  <Accordion title="Không thể kết nối đến Gateway">
+
+    Kết quả kiểm tra hiển thị:
+
+    `Gateway HTTP reachable: cannot reach ...`
+
+    Nguyên nhân có thể là Gateway đang sử dụng cổng khác với cổng được cấu hình, hoặc cổng mặc định `9832` đang được một tiến trình khác sử dụng.
+
+    Kiểm tra giá trị của biến môi trường `NAGARE_GATEWAY_PORT` và xác nhận Gateway đang lắng nghe trên đúng cổng.
+
+  </Accordion>
+
+  <Accordion title="Không thể truy cập kho khóa bảo mật">
+
+    Kết quả kiểm tra hiển thị:
+
+    `RSA keyring: error`
+
+    Nagare không thể truy cập trình quản lý mật khẩu của hệ điều hành.
+
+    Trên Linux, hãy kiểm tra xem GNOME Keyring hoặc KWallet đã được khởi động và mở khóa hay chưa.
+
+  </Accordion>
+
+  <Accordion title="Thiếu module bộ nhớ">
+
+    Kết quả kiểm tra hiển thị:
+
+    `Module: nagare_vector — missing`
+
+    Module bộ nhớ `nagare_vector` chưa được cài đặt hoặc không được tìm thấy tại vị trí cấu hình.
+
+    Chạy lại trình cài đặt Nagare để cài đặt module còn thiếu.
+
+  </Accordion>
+
+  <Accordion title="Không thể đăng nhập hoặc mã xác thực không hợp lệ">
+
+    Mã xác thực có thời hạn sử dụng 60 giờ. Ngoài ra, mã có thể không còn hợp lệ nếu khóa bảo mật trên máy đã thay đổi.
+
+    Để khắc phục, hãy mở giao diện web bằng lệnh:
+
+    ```bash
+    nagare web
+    ```
+
+    Nếu vẫn không thể đăng nhập, tạo mã xác thực mới:
+
+    ```bash
+    nagare auth token
+    ```
+
+    Sau đó, nhập mã mới vào màn hình đăng nhập.
+
+  </Accordion>
+
+  <Accordion title="Nagare không phản hồi">
+
+    Nếu Nagare không tạo ra phản hồi, hãy kiểm tra các mục sau:
+
+    - **Nhà cung cấp mô hình:** Đảm bảo đã cấu hình ít nhất một nhà cung cấp và chọn mô hình mặc định (*Default model*) trong **Settings → General**.
+    - **Thông tin kết nối:** Kiểm tra API key và Base URL. Thử sử dụng chức năng lấy danh sách mô hình để xác nhận kết nối.
+    - **Nhật ký hoạt động:** Kiểm tra tệp `~/.nagare/logs/app.log` để tìm thông tin về lỗi phát sinh.
+
+  </Accordion>
+
+  <Accordion title="Không thể yêu cầu phê duyệt trước khi thực thi công cụ">
+
+    Nagare hiển thị thông báo:
+
+    `approval is required but no approval channel is available`
+
+    Điều này xảy ra khi một thao tác yêu cầu phê duyệt nhưng không có kênh tương tác khả dụng để gửi yêu cầu đến người dùng.
+
+    Hãy mở cuộc trò chuyện thông qua giao diện web hoặc kết nối Telegram để cung cấp kênh phê duyệt.
+
+  </Accordion>
+
+  <Accordion title="Plugin không hoạt động hoặc có trạng thái failed">
+
+    Thực hiện các bước kiểm tra sau:
+
+    - **Kiểm tra nhật ký:** Xem tệp nhật ký tương ứng tại `~/.nagare/logs/plugins/<package_name>.log`.
+    - **Kiểm tra biến môi trường:** Đảm bảo các biến môi trường mà plugin yêu cầu đã được thiết lập trước khi khởi động Nagare. Ví dụ: `NAGARE_TELEGRAM_TOKEN`.
+    - **Kiểm tra tính toàn vẹn:** Nếu Nagare thông báo tệp plugin đã bị thay đổi, hãy cài đặt lại plugin.
+
+  </Accordion>
+
+  <Accordion title="Không thể cài đặt plugin do chữ ký không hợp lệ">
+
+    Lỗi này thường xảy ra khi gói plugin đã bị thay đổi sau khi ký hoặc được ký bằng khóa không nằm trong danh sách khóa đáng tin cậy.
+
+    Tham khảo hướng dẫn [Ký số plugin](/plugins/signing) để biết thêm chi tiết.
+
+  </Accordion>
+</AccordionGroup>
+
+## Vị trí lưu trữ nhật ký
+
+Nagare lưu trữ nhật ký hoạt động tại các vị trí sau:
+
+| Thành phần | Vị trí                                                                       |
+| ---------- | ---------------------------------------------------------------------------- |
+| Nagare     | `~/.nagare/logs/app.log` và cửa sổ terminal đang chạy `nagare gateway start` |
+| Plugin     | `~/.nagare/logs/plugins/<package_name>.log`                                  |
+| Module     | `~/.nagare/logs/modules/`                                                    |
+
+## Báo cáo sự cố
+
+Nếu không thể tự khắc phục sự cố, hãy tạo issue tại [GitHub Issues](https://github.com/smtdfc/nagare/issues).
+
+Khi gửi báo cáo, hãy đính kèm:
+
+- Kết quả thực thi lệnh `nagare doctor`.
+- Đoạn nhật ký liên quan đến sự cố.
+- Các bước thực hiện dẫn đến lỗi (nếu có).
+
+Những thông tin này sẽ giúp quá trình xác định nguyên nhân và xử lý sự cố diễn ra nhanh chóng hơn.

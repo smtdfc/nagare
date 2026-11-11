@@ -1,0 +1,90 @@
+---
+title: "Telegram channel"
+description: "Connect Telegram to Nagare to chat, receive scheduled results, and approve actions remotely."
+---
+
+The Telegram plugin lets you chat with Nagare over Telegram, receive results from scheduled tasks, and approve actions even when you're away from your computer.
+
+## Setup
+
+<Steps>
+  <Step title="Create a Telegram bot">
+    Open a chat with [@BotFather](https://t.me/BotFather), send `/newbot`, and follow the prompts.
+
+    When you're done, BotFather gives you a **bot token**. Save this token for the next step.
+
+  </Step>
+  <Step title="Configure the bot token">
+    Nagare reads the bot token from the `NAGARE_TELEGRAM_TOKEN` environment variable.
+
+    The plugin only reads environment variables at startup, so set the token **before starting the Gateway**.
+
+    <Tabs>
+      <Tab title="Linux / macOS">
+        ```bash
+        export NAGARE_TELEGRAM_TOKEN="123456:ABC-your-bot-token"
+        nagare gateway start
+        ```
+      </Tab>
+      <Tab title="Windows (PowerShell)">
+        ```powershell
+        $env:NAGARE_TELEGRAM_TOKEN = "123456:ABC-your-bot-token"
+        nagare gateway start
+        ```
+      </Tab>
+    </Tabs>
+
+  </Step>
+  <Step title="Install the Telegram plugin">
+    The plugin is bundled with Nagare at:
+
+    ```text
+    ~/.nagare/assets/plugins/builtins/nagare.plugin.builtins.telegram.nagare_plugin
+    ```
+
+    Open **Settings → Plugins → Install Plugin** and install the plugin:
+
+    - **Web UI**: Upload the `.nagare_plugin` file at the path above.
+    - **Desktop app**: Enter the full path to the plugin file.
+
+    After installing, enable the plugin to activate it. See [Plugin overview](/en/plugins/overview#manage-plugins).
+
+  </Step>
+  <Step title="Start chatting">
+    Open the bot you just created in Telegram and send `/start` to begin.
+  </Step>
+</Steps>
+
+## Supported commands
+
+| Command                 | Function                                        |
+| ----------------------- | ----------------------------------------------- |
+| `/start`                | Start using the bot.                            |
+| `/help`                 | Show the list of supported commands.            |
+| `/ping`                 | Check whether the bot is responding.            |
+| `/chat_id`              | Show the ID of the current Telegram chat.       |
+| `/reset`                | Start a new conversation with Nagare.           |
+| `/model_providers`      | List the configured model providers.            |
+| `/approve <request-id>` | Approve a request that is waiting for confirmation. |
+| `/reject <request-id>`  | Reject a request that is waiting for confirmation.  |
+
+Besides these commands, you can send ordinary text messages to chat with Nagare directly.
+
+## Approve actions over Telegram
+
+When Nagare needs to run an action that requires approval, the bot sends a message with **Approve** and **Reject** buttons.
+
+You can tap either button to respond. You can also use `/approve <request-id>` or `/reject <request-id>` with the ID of the relevant request.
+
+## Notes
+
+<Warning>
+  The plugin doesn't restrict who can message the bot. Anyone who finds the bot can send requests to Nagare on your computer.
+
+Keep the bot's details private and always review a request carefully before approving an action.
+
+</Warning>
+
+- **No port forwarding needed**: The bot connects out to Telegram, so you don't need to configure port forwarding or open ports on your router.
+- **Reconnects automatically**: If a conversation is idle for **2 hours**, Nagare closes the connection. When the next message arrives, the connection is re-established automatically.
+- **Logs**: Plugin logs are stored at `~/.nagare/logs/plugins/nagare.plugin.builtins.telegram.log`.

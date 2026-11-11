@@ -1,0 +1,112 @@
+---
+title: "SDK Rust"
+description: "Hướng dẫn phát triển plugin Nagare bằng Rust với crate nagare_plugin."
+---
+
+Trang này hướng dẫn bạn xây dựng một plugin Rust đơn giản, bổ sung công cụ tạo lời chào cho Nagare. Bạn chỉ cần có kiến thức cơ bản về Rust.
+
+## Chuẩn bị
+
+Crate `nagare_plugin` được cung cấp trong kho mã nguồn Nagare. Thêm các dependency sau vào `Cargo.toml`:
+
+```toml Cargo.toml
+[package]
+name = "hello-plugin"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nagare_plugin = { git = "https://github.com/smtdfc/nagare" }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+schemars = "0.8"
+```
+
+Tạo tệp `metadata.json` theo hướng dẫn tại [Tổng quan plugin](/plugins/overview#metadata-json).
+
+## Ví dụ: Plugin tạo lời chào
+
+Ví dụ sau định nghĩa công cụ `greet_tool`. Công cụ nhận tên một người và trả về lời chào tương ứng.
+
+```rust src/main.rs
+use std::collections::HashMap;
+
+use nagare_plugin::{PluginClient, PluginError, define_tool};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+const METADATA: &str = include_str!("../metadata.json");
+
+#[derive(Deserialize, JsonSchema)]
+struct GreetArgs {
+    /// Tên người cần chào
+    name: String,
+}
+
+#[derive(Serialize)]
+struct GreetResult {
+    message: String,
+}
+
+#[tokio::main]
+async fn main() -> Result<(), PluginError> {
+    let client = PluginClient::new();
+    client.load_metadata(METADATA)?;
+
+    let greet = define_tool(
+        "greet_tool",
+        "Tạo lời chào cho một người.",
+        |args: GreetArgs| -> Result<GreetResult, PluginError> {
+            Ok(GreetResult {
+                message: format!("Xin chào, {}!", args.name),
+            })
+        },
+        vec!["greeting".to_string()],
+    );
+
+    let c = client.clone();
+    client
+        .start(|| async move {
+            if c.handshake().await.is_err() {
+                return;
+            }
+
+            let mut categories = HashMap::new();
+            categories.insert(
+                "greeting".to_string(),
+                "Công cụ tạo lời chào".to_string(),
+            );
+            let _ = c.register_tool_categories(categories).await;
+
+            let _ = c.register_plugin_tool(greet).await;
+        })
+        .await
+}
+```
+
+Để biên dịch và đóng gói plugin, chạy:
+
+```bash
+nagare plugin build
+```
+
+Lệnh này thực thi `cargo build --release --target-dir build`, sau đó đóng gói tệp thực thi thành gói plugin `.nagare_plugin`.
+
+## Tham chiếu API
+
+| Hàm                                                    | Công dụng                                                                                                                                                                 |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PluginClient::new()`                                  | Tạo client kết nối tới Nagare và trả về `Arc<PluginClient>`. Khi chạy plugin, Nagare cung cấp các biến môi trường `NAGARE_PLUGIN_LOG_FILE` và `NAGARE_PLUGIN_CONFIG_DIR`. |
+| `load_metadata(raw)`                                   | Nạp và kiểm tra nội dung `metadata.json`.                                                                                                                                 |
+| `start(on_start)`                                      | Kết nối tới Nagare, thực thi callback `on_start`, sau đó chờ cho đến khi kết nối đóng.                                                                                    |
+| `handshake()`                                          | Thực hiện bắt tay với Nagare. Phải gọi hàm này trước các lệnh giao tiếp khác trong `on_start`.                                                                            |
+| `define_tool(name, description, callback, categories)` | Định nghĩa công cụ. Kiểu dữ liệu đầu vào phải triển khai `Deserialize` và `JsonSchema`; kiểu dữ liệu kết quả phải triển khai `Serialize`.                                 |
+| `register_plugin_tool(tool)`                           | Đăng ký công cụ với Nagare. Yêu cầu quyền `plugin_tool`.                                                                                                                  |
+| `register_tool_categories(map)`                        | Đăng ký các nhóm công cụ theo ánh xạ tên → mô tả.                                                                                                                         |
+| `prepare_chat_channel(channel_id)`                     | Tạo hoặc mở lại kênh trò chuyện. Yêu cầu quyền `chat`.                                                                                                                    |
+| `send_chat_message(channel_id, text)`                  | Gửi tin nhắn tới Nagare.                                                                                                                                                  |
+| `reset_chat_channel(channel_id)`                       | Đặt lại kênh trò chuyện để bắt đầu phiên mới.                                                                                                                             |
+| `set_on_received_chat_message(cb)`                     | Đăng ký callback `Fn(channel_id: String, chunk: String)` để nhận các phần tin nhắn ở định dạng JSON.                                                                      |
+| `config_dir()`                                         | Trả về đường dẫn thư mục cấu hình riêng của plugin.                                                                                                                       |
+
+Mỗi lần gọi công cụ có thời gian chờ tối đa 60 giây.

@@ -1,0 +1,55 @@
+---
+title: "Model providers"
+description: "Configure AI providers, manage API keys, and set default models in Nagare."
+---
+
+Nagare doesn't ship with an AI model built in. To use AI features, configure a model provider such as OpenAI, Google Gemini, or a service compatible with the OpenAI API.
+
+## Supported provider types
+
+Nagare currently supports two connection protocols:
+
+| Type       | Description                                                                                                                                                     |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **OpenAI** | For services that expose an OpenAI-compatible API. This includes OpenAI, third-party AI services, and models deployed on your own infrastructure.                |
+| **Google** | For services that use the Google Gemini API.                                                                                                                     |
+
+## Add a model provider
+
+Go to **Settings → Model providers** and fill in these fields:
+
+| Field                    | Description                                                                                                                                              |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Name**                 | An identifier for the provider. You can choose any name, such as `OpenAI` or `Local models`.                                                              |
+| **Compatible**           | The API protocol the provider uses. Choose `OpenAI` or `Google`.                                                                                         |
+| **Base URL**             | The provider's API address. For OpenAI type, enter the full URL, such as `https://api.openai.com/v1`. For Google type, you can leave it empty to use the default address. |
+| **API key / Credential** | The API key used to authenticate with the provider. You can enter a new key or pick a credential you saved earlier.                                      |
+| **Models**               | The list of models configured for this provider.                                                                                                         |
+
+After you save the configuration, Nagare can query the provider's API for the list of available models. You can pick models from the list instead of typing them by hand.
+
+## Manage credentials
+
+**Settings → Credentials** lets you store and manage API keys in one place.
+
+Each credential can have an identifier so it's easy to recognize and reuse across multiple providers.
+
+There you can:
+
+- Create a new credential.
+- Rename a credential.
+- Update an API key.
+- Delete credentials you no longer use.
+
+Once saved, an API key is never shown again. This helps prevent credentials from being exposed in the UI by accident.
+
+## Set default models
+
+Go to **Settings → General** to configure the default models:
+
+| Setting           | Description                                                                                                                                          |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Default model** | The AI model used by default for new conversations.                                                                                                  |
+| **Summary model** | The model used to summarize conversation history when context needs to be shortened. If left empty, Nagare uses the current conversation's model.    |
+
+You can also change the model inside an individual conversation. This change doesn't affect the default model configuration.

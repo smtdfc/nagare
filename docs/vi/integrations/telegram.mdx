@@ -1,0 +1,90 @@
+---
+title: "Kênh Telegram"
+description: "Kết nối Telegram với Nagare để trò chuyện, nhận kết quả từ lịch định kỳ và phê duyệt thao tác từ xa."
+---
+
+Plugin Telegram cho phép bạn trò chuyện với Nagare thông qua Telegram, nhận kết quả từ các tác vụ định kỳ và phê duyệt thao tác ngay cả khi không ngồi trước máy tính.
+
+## Cài đặt
+
+<Steps>
+  <Step title="Tạo bot Telegram">
+    Mở cuộc trò chuyện với [@BotFather](https://t.me/BotFather), gửi lệnh `/newbot` và làm theo hướng dẫn.
+
+    Sau khi hoàn tất, BotFather sẽ cung cấp **bot token**. Hãy lưu lại token này để sử dụng ở bước tiếp theo.
+
+  </Step>
+  <Step title="Cấu hình bot token">
+    Nagare lấy bot token từ biến môi trường `NAGARE_TELEGRAM_TOKEN`.
+
+    Plugin chỉ đọc biến môi trường khi khởi động, vì vậy bạn cần thiết lập token **trước khi khởi chạy Gateway**.
+
+    <Tabs>
+      <Tab title="Linux / macOS">
+        ```bash
+        export NAGARE_TELEGRAM_TOKEN="123456:ABC-your-bot-token"
+        nagare gateway start
+        ```
+      </Tab>
+      <Tab title="Windows (PowerShell)">
+        ```powershell
+        $env:NAGARE_TELEGRAM_TOKEN = "123456:ABC-your-bot-token"
+        nagare gateway start
+        ```
+      </Tab>
+    </Tabs>
+
+  </Step>
+  <Step title="Cài đặt plugin Telegram">
+    Plugin được đóng gói sẵn trên máy tại đường dẫn:
+
+    ```text
+    ~/.nagare/assets/plugins/builtins/nagare.plugin.builtins.telegram.nagare_plugin
+    ```
+
+    Mở **Settings → Plugins → Install Plugin** và cài đặt plugin:
+
+    - **Giao diện web**: Tải lên tệp `.nagare_plugin` tại đường dẫn trên.
+    - **Ứng dụng desktop**: Nhập đường dẫn đầy đủ đến tệp plugin.
+
+    Sau khi cài đặt, bật plugin để kích hoạt. Xem thêm [Tổng quan plugin](/plugins/overview#quan-ly-plugin).
+
+  </Step>
+  <Step title="Bắt đầu trò chuyện">
+    Mở bot vừa tạo trong Telegram và gửi lệnh `/start` để bắt đầu.
+  </Step>
+</Steps>
+
+## Các lệnh hỗ trợ
+
+| Lệnh                    | Chức năng                                          |
+| ----------------------- | -------------------------------------------------- |
+| `/start`                | Bắt đầu sử dụng bot.                               |
+| `/help`                 | Hiển thị danh sách lệnh hỗ trợ.                    |
+| `/ping`                 | Kiểm tra bot có đang phản hồi hay không.           |
+| `/chat_id`              | Hiển thị ID của cuộc trò chuyện Telegram hiện tại. |
+| `/reset`                | Bắt đầu một cuộc trò chuyện mới với Nagare.        |
+| `/model_providers`      | Liệt kê các nhà cung cấp mô hình đã cấu hình.      |
+| `/approve <request-id>` | Phê duyệt một yêu cầu đang chờ xác nhận.           |
+| `/reject <request-id>`  | Từ chối một yêu cầu đang chờ xác nhận.             |
+
+Ngoài các lệnh trên, bạn có thể gửi tin nhắn văn bản thông thường để trò chuyện trực tiếp với Nagare.
+
+## Phê duyệt thao tác qua Telegram
+
+Khi Nagare cần thực hiện một thao tác yêu cầu phê duyệt, bot sẽ gửi tin nhắn kèm hai nút **Approve** và **Reject**.
+
+Bạn có thể chọn một trong hai nút để phản hồi. Ngoài ra, có thể sử dụng lệnh `/approve <request-id>` hoặc `/reject <request-id>` với ID của yêu cầu tương ứng.
+
+## Lưu ý
+
+<Warning>
+  Plugin hiện không giới hạn người có thể nhắn tin cho bot. Bất kỳ ai tìm thấy bot đều có thể gửi yêu cầu đến Nagare trên máy tính của bạn.
+
+Hãy giữ kín thông tin về bot và luôn kiểm tra kỹ nội dung yêu cầu trước khi phê duyệt thao tác.
+
+</Warning>
+
+- **Không cần mở cổng mạng**: Bot chủ động kết nối đến Telegram, vì vậy bạn không cần cấu hình port forwarding hoặc mở cổng trên router.
+- **Tự kết nối lại**: Nếu cuộc trò chuyện không có hoạt động trong **2 giờ**, Nagare sẽ tạm đóng kết nối. Khi nhận được tin nhắn tiếp theo, kết nối sẽ được thiết lập lại tự động.
+- **Nhật ký hoạt động**: Log của plugin được lưu tại `~/.nagare/logs/plugins/nagare.plugin.builtins.telegram.log`.

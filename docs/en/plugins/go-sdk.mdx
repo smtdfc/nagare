@@ -1,0 +1,141 @@
+---
+title: "Go SDK"
+description: "Build Nagare plugins in Go: register tools, integrate chat channels, and manage custom instructions."
+---
+
+This page walks you through building a simple Go plugin for Nagare that registers a greeting tool. You only need basic Go knowledge to follow along.
+
+## Prerequisites
+
+Create a project directory, initialize a Go module, and install the SDK:
+
+```bash
+mkdir hello-plugin && cd hello-plugin
+go mod init example.com/hello-plugin
+go get github.com/smtdfc/nagare/pkgs/plugin/sdk
+```
+
+Next, create a `metadata.json` file as described in the [Plugin overview](/en/plugins/overview#metadata-json).
+
+## Example: build a plugin that registers a tool
+
+Create a `main.go` file with the following content:
+
+```go
+package main
+
+import (
+	"context"
+	_ "embed"
+	"fmt"
+
+	sdk "github.com/smtdfc/nagare/pkgs/plugin/sdk"
+)
+
+//go:embed metadata.json
+var metadata string
+
+type GreetArgs struct {
+	Name string `json:"name" jsonschema:"description=Name of the person to greet"`
+}
+
+type GreetResult struct {
+	Message string `json:"message"`
+}
+
+func main() {
+	ctx := context.Background()
+	plugin := sdk.NewPlugin()
+
+	if _, err := plugin.LoadMetadata(metadata); err != nil {
+		panic(err)
+	}
+
+	greet := sdk.DefineTool[GreetArgs, GreetResult](
+		"greet_tool",
+		"Create a greeting for a person.",
+		func(ctx *context.Context, args *GreetArgs) (*GreetResult, error) {
+			return &GreetResult{
+				Message: fmt.Sprintf("Hello, %s!", args.Name),
+			}, nil
+		},
+		[]string{"greeting"},
+	)
+
+	err := plugin.Start(ctx, func() {
+		if err := plugin.Handshake(ctx); err != nil {
+			plugin.Logger.Error("handshake failed", "error", err)
+			return
+		}
+
+		_ = plugin.RegisterToolCategories(ctx, map[string]string{
+			"greeting": "Greeting tools",
+		})
+
+		if err := plugin.RegisterPluginTool(ctx, greet); err != nil {
+			plugin.Logger.Error("register tool failed", "error", err)
+		}
+	})
+	if err != nil {
+		plugin.Logger.Error("plugin stopped", "error", err)
+	}
+}
+```
+
+In `metadata.json`, declare the `plugin_tool` permission so the plugin can register tools:
+
+```json
+{
+  "features": ["plugin_tool"]
+}
+```
+
+When you're done, package the plugin:
+
+```bash
+nagare plugin build
+```
+
+This command creates a `<package_name>.nagare_plugin` package. You can install it through **Settings → Plugins → Install Plugin**.
+
+## Plugin startup sequence
+
+Plugin startup uses the APIs in this order:
+
+1. **`sdk.NewPlugin()`**: Creates the plugin object, sets up connection details, and reads the log, config, and data directories provided to the plugin.
+2. **`LoadMetadata(raw)`**: Loads and validates the plugin metadata. You can use `//go:embed metadata.json` to embed the metadata file in the program.
+3. **`Start(ctx, onStart)`**: Starts the plugin lifecycle, connects to Nagare, calls the `onStart` callback, and waits until the connection closes.
+4. **`Handshake(ctx)`**: Must be called at the start of the `onStart` callback, before any other communication with Nagare.
+
+## API reference
+
+### Registering tools
+
+| API                                                             | Function                                                                                                                                       |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sdk.DefineTool[I, O](name, description, callback, categories)` | Defines a tool. The SDK generates a JSON Schema from the `I` argument type. The callback has the signature `func(ctx *context.Context, args *I) (*O, error)`. |
+| `RegisterPluginTool(ctx, tool)`                                 | Registers the tool with Nagare. Requires the `plugin_tool` permission.                                                                         |
+| `RegisterToolCategories(ctx, map[string]string)`                | Registers new tool groups as `name → description`. Nagare uses this information to categorize and find tools.                                  |
+
+Each tool call has a timeout of **60 seconds**.
+
+### Chat channel integration (the `chat` permission)
+
+| API                                                     | Function                                                                                                                                                   |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PrepareChatChannel(ctx, channelID)`                    | Creates a new chat channel or reopens an existing one. `channelID` is managed by the plugin, for example a Telegram chat ID.                               |
+| `SendChatMessage(ctx, channelID, text)`                 | Sends a user message to Nagare through the matching channel.                                                                                               |
+| `ResetChatChannel(ctx, channelID)`                      | Starts a new conversation for the channel.                                                                                                                 |
+| `RegisterChatListener(ctx, sessionID)`                  | Subscribes to messages from an existing conversation session.                                                                                              |
+| `SubmitToolApproval(ctx, channelID, requestID, accept)` | Submits the approval or rejection of a tool execution request.                                                                                             |
+| `OnReceivedChatMessage`                                 | Callback with the signature `func(channelID, chunk string)` that receives each response chunk as JSON.                                                     |
+
+### Other APIs
+
+| API / Field                        | Function                                                                                                                                                                     |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GetListModelProvider(ctx)`        | Returns the configured model providers as `map[id]name`. Requires the `model_provider` permission.                                                                           |
+| `InjectSystemPrompt(ctx, content)` | Injects the plugin's own instructions into the system prompt. Content is capped at 64 KiB and replaces previously injected instructions. Requires the `system_prompt` permission. Inject again after the connection is re-established. |
+| `ClearSystemPrompt(ctx)`           | Removes the instructions injected by the plugin.                                                                                                                             |
+| `Logger`                           | Writes logs to the terminal and the plugin's log file.                                                                                                                       |
+| `ConfigDir`, `DataDir`             | Provide paths to the plugin's own config and data directories.                                                                                                               |

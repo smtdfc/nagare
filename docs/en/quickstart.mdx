@@ -1,0 +1,84 @@
+---
+title: "Quickstart"
+---
+
+This guide walks you through setting up Nagare from scratch and chatting with the AI assistant in just a few minutes.
+
+<Steps>
+  <Step title="Install Nagare">
+    Open a terminal (or PowerShell on Windows) and run the command for your system:
+
+    <Tabs>
+      <Tab title="Linux / macOS">
+        ```bash
+        curl -fsSL https://raw.githubusercontent.com/smtdfc/nagare/main/installers/linux/install.sh | sudo bash
+        ```
+      </Tab>
+      <Tab title="Windows (PowerShell)">
+        ```powershell
+        irm https://raw.githubusercontent.com/smtdfc/nagare/main/installers/window/install.ps1 | iex
+        ```
+      </Tab>
+    </Tabs>
+
+    Verify the installation:
+
+    ```bash
+    nagare --version
+    ```
+
+    If your system reports that the `nagare` command is not found, see [Add Nagare to PATH](/en/installation#add-to-path).
+
+  </Step>
+  <Step title="Start Nagare">
+    ```bash
+    nagare gateway start
+    ```
+
+    Nagare runs in the current terminal window. Keep this window open and use another terminal for the next steps.
+
+    <Note>
+      On first launch, Nagare automatically creates a security key and stores it in your system keychain. This key is used to generate sign-in codes. You don't need to do anything else.
+    </Note>
+
+  </Step>
+  <Step title="Open the UI">
+    ```bash
+    nagare web
+    ```
+
+    Nagare creates a sign-in code, opens your browser at `http://127.0.0.1:3005`, and signs you in. You don't have to type anything.
+
+  </Step>
+  <Step title="Add a model provider">
+    Nagare needs a "brain" to answer. Go to **Settings → Model providers** and add an **OpenAI**, **Google**, or compatible provider, paste your API key, then select a model.
+
+    Don't have an API key yet? See [Model providers](/en/guides/model-providers) to choose a service.
+
+  </Step>
+  <Step title="Choose a default model">
+    Go to **Settings → General** and select **Default model**. This is the model Nagare uses for new conversations.
+  </Step>
+  <Step title="Try a conversation">
+    Create a new conversation and try:
+
+    ```text
+    What time is it? List the 5 processes using the most RAM.
+    ```
+
+    Nagare picks the right tools to answer. If your request could be harmful — deleting files, shutting down the machine, and so on — Nagare stops and asks you first.
+
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+If you run into problems while setting up or using Nagare, run this command to check the health of your system:
+
+```bash
+nagare doctor
+```
+
+Nagare checks each component automatically and reports the issues that need attention.
+
+For more information, see the [Troubleshooting](/en/troubleshooting) guide.

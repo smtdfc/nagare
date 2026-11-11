@@ -1,0 +1,66 @@
+---
+title: "Introduction to Nagare"
+sidebarTitle: "Introduction"
+description: "Nagare is an AI assistant that runs on your machine and handles everyday work from simple instructions."
+---
+
+**Nagare** (流れ, meaning "flow") is an AI assistant that lives on your computer. Just say what you want — check the machine, open a file, set a reminder, look something up — and Nagare figures out how to do it instead of making you memorize commands.
+
+Nagare runs on Linux, macOS, and Windows. Everything Nagare remembers — conversations, settings, sign-in codes — stays on your machine, in the `~/.nagare` directory.
+
+## What you can ask Nagare to do
+
+<CardGroup cols={2}>
+  <Card title="Chat with AI" icon="messages" href="/en/guides/web-ui">
+    Ask questions, write, summarize documents, and more in the web UI or the desktop app.
+  </Card>
+
+<Card title="Act on your machine" icon="wrench" href="/en/guides/tools">
+  View processes, read and write files, change the volume, take screenshots, and more.
+  If something could be harmful, Nagare asks first.
+</Card>
+
+<Card title="Scheduled jobs" icon="clock" href="/en/guides/cronjobs">
+  Have Nagare do something at a fixed time, such as reporting the weather every morning.
+</Card>
+
+<Card title="Telegram channel" icon="telegram" href="/en/integrations/telegram">
+  Message Nagare and approve actions from your phone, without sitting at your
+  computer.
+</Card>
+
+<Card
+  title="Multiple model providers"
+  icon="microchip-ai"
+  href="/en/guides/model-providers"
+>
+  Use OpenAI, Google Gemini, or any service with a compatible API.
+</Card>
+
+  <Card title="Extend with plugins" icon="puzzle-piece" href="/en/plugins/overview">
+    Write your own tools or chat channels in Go or Rust.
+  </Card>
+</CardGroup>
+
+## What's inside Nagare
+
+You don't need to know these parts to use Nagare, but a quick overview makes the documentation easier to follow:
+
+| Component      | What it does                                                                                              |
+| -------------- | --------------------------------------------------------------------------------------------------------- |
+| Nagare CLI     | The command-line program that starts Nagare, opens the UI, creates sign-in codes, and checks your machine. |
+| Nagare Gateway | The "brain" of Nagare. It runs in the background, answers messages, calls tools, and keeps scheduled jobs. |
+| Nagare web UI  | The website where you chat and adjust settings. Open it with `nagare web` at `http://127.0.0.1:3005`.      |
+| Nagare Desktop | The same UI, packaged as its own window.                                                                   |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/en/quickstart">
+    Install Nagare and send your first message in minutes.
+  </Card>
+
+  <Card title="CLI reference" icon="terminal" href="/en/guides/cli">
+    Every `nagare` command and option.
+  </Card>
+</CardGroup>

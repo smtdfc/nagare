@@ -1,0 +1,109 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "luma",
+  "name": "Nagare",
+  "colors": {
+    "primary": "#16A34A",
+    "light": "#07C983",
+    "dark": "#15803D"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "languages": [
+      {
+        "language": "vi",
+        "default": true,
+        "groups": [
+          {
+            "group": "Bắt đầu",
+            "pages": ["vi/index", "vi/quickstart", "vi/installation"]
+          },
+          {
+            "group": "Hướng dẫn sử dụng",
+            "pages": [
+              "vi/guides/model-providers",
+              "vi/guides/tools",
+              "vi/guides/cronjobs",
+              "vi/guides/cli",
+              "vi/guides/configuration",
+              "vi/guides/web-ui"
+            ]
+          },
+          {
+            "group": "Tích hợp",
+            "pages": ["vi/integrations/telegram"]
+          },
+          {
+            "group": "Phát triển plugin",
+            "pages": [
+              "vi/plugins/overview",
+              "vi/plugins/go-sdk",
+              "vi/plugins/rust-sdk",
+              "vi/plugins/signing"
+            ]
+          }
+        ]
+      },
+      {
+        "language": "en",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": ["en/index", "en/quickstart", "en/installation"]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "en/guides/model-providers",
+              "en/guides/tools",
+              "en/guides/cronjobs",
+              "en/guides/cli",
+              "en/guides/configuration",
+              "en/guides/web-ui"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": ["en/integrations/telegram"]
+          },
+          {
+            "group": "Plugin development",
+            "pages": [
+              "en/plugins/overview",
+              "en/plugins/go-sdk",
+              "en/plugins/rust-sdk",
+              "en/plugins/signing"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/smtdfc/nagare"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/smtdfc/nagare"
+    }
+  }
+}

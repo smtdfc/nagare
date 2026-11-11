@@ -1,0 +1,76 @@
+---
+title: "Plugin signing"
+description: "Sign plugin packages to verify who published them and detect modified contents."
+---
+
+Signing lets users verify who published a plugin and check whether the package was modified after it was signed.
+
+Nagare uses **Ed25519** signatures. The signature is stored in a separate file next to the plugin package, named `<package_name>.nagare_plugin.sig`.
+
+## If you publish plugins
+
+<Steps>
+  <Step title="Generate a key pair">
+    Generate a private key and a public key with OpenSSL:
+
+    ```bash
+    openssl genpkey -algorithm ED25519 -out plugin-signing-key.pem
+    openssl pkey -in plugin-signing-key.pem -pubout -out plugin-signing-key.pub.pem
+    ```
+
+    Keep `plugin-signing-key.pem` secret. It is the private key used to sign plugins, and it must never be shared or committed to a public repository.
+
+    Share `plugin-signing-key.pub.pem` with users so they can verify your signatures.
+
+  </Step>
+  <Step title="Build and sign the plugin">
+    Run:
+
+    ```bash
+    nagare plugin build --sign plugin-signing-key.pem
+    ```
+
+    When the build finishes, you have a `.nagare_plugin` package and a matching `.sig` signature file.
+
+    If you build without `--sign`, any old signature file is removed so a signature that no longer matches the new package can't be used by mistake.
+
+  </Step>
+  <Step title="Publish">
+    Publish both the `.nagare_plugin` file and the `.sig` file so users can install and verify the plugin.
+  </Step>
+</Steps>
+
+## If you install plugins
+
+### Set up trusted keys
+
+To let Nagare verify a publisher's plugin, copy their public key into the `~/.nagare/trusted` directory:
+
+```bash
+mkdir -p ~/.nagare/trusted
+cp plugin-signing-key.pub.pem ~/.nagare/trusted/publisher.pem
+```
+
+The public key can be in PEM format, or a raw Base64 or hex string. You can add multiple keys to this directory to trust several publishers.
+
+### Install a signed plugin
+
+- **Web UI:** Upload the `.nagare_plugin` file and its `.sig` file.
+- **Desktop app:** Choose the plugin package to install. If you don't provide a `.sig` file, Nagare looks for the matching signature file next to the package.
+
+### Install warnings {#install-warnings}
+
+Nagare shows the signature verification status when you install a plugin:
+
+| Status       | Meaning                                                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `verified`   | The signature is valid and was verified with a public key in `~/.nagare/trusted`.                                    |
+| `unverified` | The package is signed, but no matching trusted key was found to verify it. The plugin is still installed, with a warning. |
+| `unsigned`   | The package has no signature. The plugin is still installed, with a warning.                                         |
+
+If the signature is invalid, Nagare refuses to install the plugin. This happens when the signature doesn't match the package contents or can't be verified with a matching key.
+
+<Warning>
+  Plugins run with your current user's permissions. Only install plugins from
+  sources you trust, and review them carefully before granting permissions.
+</Warning>

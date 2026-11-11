@@ -1,0 +1,76 @@
+---
+title: "Ký số plugin"
+description: "Hướng dẫn ký số gói plugin để xác minh nguồn phát hành và phát hiện nội dung bị thay đổi."
+---
+
+Ký số giúp người dùng xác minh nguồn phát hành plugin và kiểm tra xem gói plugin có bị thay đổi sau khi được ký hay không.
+
+Nagare sử dụng thuật toán chữ ký **Ed25519**. Chữ ký được lưu trong một tệp riêng, đặt cạnh gói plugin với tên `<package_name>.nagare_plugin.sig`.
+
+## Nếu bạn là tác giả plugin
+
+<Steps>
+  <Step title="Tạo cặp khóa">
+    Tạo khóa riêng và khóa công khai bằng OpenSSL:
+
+    ```bash
+    openssl genpkey -algorithm ED25519 -out plugin-signing-key.pem
+    openssl pkey -in plugin-signing-key.pem -pubout -out plugin-signing-key.pub.pem
+    ```
+
+    Giữ bí mật tệp `plugin-signing-key.pem`. Đây là khóa riêng dùng để ký plugin, không được chia sẻ hoặc đưa vào kho mã nguồn công khai.
+
+    Chia sẻ tệp `plugin-signing-key.pub.pem` với người dùng để họ có thể xác minh chữ ký.
+
+  </Step>
+  <Step title="Đóng gói và ký plugin">
+    Chạy lệnh:
+
+    ```bash
+    nagare plugin build --sign plugin-signing-key.pem
+    ```
+
+    Sau khi hoàn tất, bạn sẽ có gói `.nagare_plugin` và tệp chữ ký `.sig` tương ứng.
+
+    Nếu thực hiện build mà không dùng tùy chọn `--sign`, tệp chữ ký cũ sẽ bị xóa để tránh sử dụng nhầm chữ ký không còn khớp với gói plugin mới.
+
+  </Step>
+  <Step title="Phát hành">
+    Phát hành cả hai tệp `.nagare_plugin` và `.sig` để người dùng có thể cài đặt và xác minh plugin.
+  </Step>
+</Steps>
+
+## Nếu bạn là người dùng
+
+### Thiết lập khóa tin cậy
+
+Để Nagare xác minh plugin của tác giả, hãy chép khóa công khai của họ vào thư mục `~/.nagare/trusted`:
+
+```bash
+mkdir -p ~/.nagare/trusted
+cp plugin-signing-key.pub.pem ~/.nagare/trusted/publisher.pem
+```
+
+Khóa công khai có thể ở định dạng PEM hoặc chuỗi Base64/hex thô. Bạn có thể thêm nhiều khóa vào thư mục này để tin cậy nhiều tác giả khác nhau.
+
+### Cài đặt plugin đã ký
+
+- **Giao diện web:** Tải lên tệp `.nagare_plugin` và tệp `.sig` tương ứng.
+- **Giao diện desktop:** Chọn gói plugin để cài đặt. Nếu không cung cấp tệp `.sig`, Nagare sẽ tìm tệp chữ ký tương ứng nằm cạnh gói plugin.
+
+### Cảnh báo khi cài đặt {#canh-bao-khi-cai-dat}
+
+Nagare hiển thị trạng thái xác minh chữ ký khi cài đặt plugin:
+
+| Trạng thái   | Ý nghĩa                                                                                                   |
+| ------------ | --------------------------------------------------------------------------------------------------------- |
+| `verified`   | Chữ ký hợp lệ và được xác minh bằng một khóa công khai trong `~/.nagare/trusted`.                         |
+| `unverified` | Gói có chữ ký nhưng chưa tìm thấy khóa tin cậy phù hợp để xác minh. Plugin vẫn được cài đặt kèm cảnh báo. |
+| `unsigned`   | Gói không có chữ ký. Plugin vẫn được cài đặt kèm cảnh báo.                                                |
+
+Nếu chữ ký không hợp lệ, Nagare từ chối cài đặt plugin. Điều này xảy ra khi chữ ký không khớp với nội dung gói hoặc không thể xác minh bằng khóa phù hợp.
+
+<Warning>
+  Plugin chạy với quyền của người dùng hiện tại. Chỉ cài đặt plugin từ những
+  nguồn bạn tin tưởng và kiểm tra kỹ trước khi cấp quyền cho plugin.
+</Warning>

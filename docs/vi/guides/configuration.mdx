@@ -1,0 +1,25 @@
+---
+title: "Cấu hình"
+description: "Danh sách biến môi trường Nagare sử dụng và ý nghĩa của từng thư mục trong ~/.nagare."
+---
+
+Nagare sử dụng các biến môi trường để xác định địa chỉ lắng nghe, cổng kết nối và thông tin xác thực. Hầu hết các giá trị đã được thiết lập sẵn. Bạn chỉ cần thay đổi chúng khi muốn tùy chỉnh cổng, chạy giao diện trên một máy khác hoặc tích hợp Nagare vào quy trình tự động hóa.
+
+## Biến môi trường
+
+### Nagare Gateway
+
+| Biến                        | Mặc định    | Ý nghĩa                                                                                                                                                                                                                  |
+| --------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `NAGARE_GATEWAY_HOST`       | `localhost` | Địa chỉ mà Gateway lắng nghe. Lệnh `nagare gateway start --host` tự thiết lập biến này.                                                                                                                                  |
+| `NAGARE_GATEWAY_PORT`       | `9832`      | Cổng mà giao diện và API sử dụng để kết nối tới Gateway.                                                                                                                                                                 |
+| `NAGARE_GATEWAY_PUBLIC_KEY` | —           | Khóa công khai dùng để xác minh mã đăng nhập. Nagare tự thiết lập biến này.                                                                                                                                              |
+| `NAGARE_GATEWAY_MODE`       | —           | Chế độ chạy của Gateway. Lệnh `nagare gateway start` mặc định đặt giá trị `prod`. Giá trị `debug` bật thêm các endpoint `/metrics` và `/debug/pprof` phục vụ giám sát và phân tích hiệu năng trong quá trình phát triển. |
+
+### Giao diện web và ứng dụng desktop
+
+| Biến                 | Được sử dụng bởi               | Mặc định | Ý nghĩa                                                          |
+| -------------------- | ------------------------------ | -------- | ---------------------------------------------------------------- |
+| `NAGARE_WEB_UI_PORT` | `nagare web`                   | `3005`   | Cổng mà giao diện web sử dụng.                                   |
+| `NAGARE_GATEWAY_URL` | `nagare web`, `nagare-desktop` | —        | URL của Gateway mà giao diện kết nối tới.                        |
+| `NAGARE_AUTH_TOKEN`  | `nagare-desktop`               | —        | Token xác thực được cung cấp sẵn khi khởi chạy ứng dụng desktop. |

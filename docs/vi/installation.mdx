@@ -1,0 +1,127 @@
+---
+title: "Cài đặt"
+---
+
+## Yêu cầu trước khi cài đặt
+
+Trước khi cài đặt Nagare, hãy đảm bảo hệ thống đáp ứng các yêu cầu sau:
+
+- **Hệ điều hành:** Linux, macOS hoặc Windows phiên bản 64-bit, sử dụng kiến trúc x86-64 (Intel/AMD) hoặc ARM64.
+- **API key:** Một API key từ nhà cung cấp mô hình AI được hỗ trợ, chẳng hạn như OpenAI, Google hoặc một dịch vụ tương thích.
+- **Trình quản lý mật khẩu:** Trình quản lý mật khẩu của hệ điều hành phải được cài đặt và đang hoạt động. Nagare sử dụng thành phần này để lưu trữ khóa xác thực. Trên Linux, các trình quản lý mật khẩu phổ biến bao gồm GNOME Keyring và KWallet.
+
+## Cài đặt bằng một lệnh
+
+Nagare cung cấp script cài đặt tự động cho Linux, macOS và Windows. Chọn lệnh tương ứng với hệ điều hành của bạn.
+
+<Tabs>
+  <Tab title="Linux / macOS">
+
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/smtdfc/nagare/main/installers/linux/install.sh | sudo bash
+    ```
+
+  </Tab>
+  <Tab title="Windows (PowerShell)">
+
+    ```powershell
+    irm https://raw.githubusercontent.com/smtdfc/nagare/main/installers/window/install.ps1 | iex
+    ```
+
+  </Tab>
+</Tabs>
+
+Script cài đặt sẽ thực hiện các bước sau:
+
+1. **Tải Nagare:** Tải phiên bản mới nhất từ [GitHub Releases](https://github.com/smtdfc/nagare/releases).
+2. **Cài đặt các chương trình:** Cài đặt ba executable vào `$HOME/.local/bin`:
+   - `nagare`: Giao diện dòng lệnh (CLI).
+   - `nagare-gateway`: Tiến trình nền xử lý các yêu cầu.
+   - `nagare-desktop`: Ứng dụng desktop.
+3. **Cài đặt tài nguyên:** Sao chép các tài nguyên đi kèm vào `~/.nagare/assets/`, bao gồm các plugin tích hợp, plugin lõi và giao diện web.
+4. **Cài đặt module:** Cài đặt module bộ nhớ `nagare_vector` vào `~/.nagare/modules`.
+
+<Note>
+  Nếu thư mục làm việc hiện tại chứa `./dist/nagare`, trình cài đặt sẽ ưu tiên
+  sử dụng bản build cục bộ thay vì tải phiên bản từ GitHub. Điều này hữu ích khi
+  bạn tự build Nagare từ mã nguồn.
+</Note>
+
+## Thêm Nagare vào PATH {#them-vao-path}
+
+Nếu terminal không nhận diện được lệnh `nagare`, hãy thêm thư mục cài đặt vào biến môi trường `PATH`.
+
+**Bash:**
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**Zsh:**
+
+Nếu sử dụng Zsh, thay `~/.bashrc` bằng `~/.zshrc` trong các lệnh trên.
+
+## Kiểm tra cài đặt
+
+Sau khi hoàn tất cài đặt, chạy các lệnh sau để kiểm tra phiên bản và trạng thái hệ thống:
+
+```bash
+nagare --version
+nagare doctor
+```
+
+Nếu Nagare chưa được khởi động, `nagare doctor` có thể thông báo rằng Gateway chưa hoạt động. Đây là trạng thái bình thường sau khi cài đặt. Khởi động Gateway bằng lệnh:
+
+```bash
+nagare gateway start
+```
+
+## Sử dụng ứng dụng desktop {#ung-dung-desktop}
+
+Nếu muốn sử dụng Nagare trong một cửa sổ ứng dụng riêng thay vì trình duyệt, hãy khởi chạy:
+
+```bash
+nagare-desktop
+```
+
+Ứng dụng desktop sử dụng chung giao diện với phiên bản web.
+
+Để tự động đăng nhập, ứng dụng hỗ trợ hai biến môi trường sau:
+
+| Biến môi trường      | Mô tả                                                     |
+| -------------------- | --------------------------------------------------------- |
+| `NAGARE_GATEWAY_URL` | Địa chỉ Gateway đang chạy, ví dụ `http://localhost:9832`. |
+| `NAGARE_AUTH_TOKEN`  | Mã xác thực được tạo bằng lệnh `nagare auth token`.       |
+
+Ví dụ:
+
+```bash
+nagare auth token
+# Your token is: <TOKEN>
+
+NAGARE_GATEWAY_URL=http://localhost:9832 \
+NAGARE_AUTH_TOKEN="<TOKEN>" \
+nagare-desktop
+```
+
+Nếu không muốn thiết lập các biến môi trường, bạn có thể khởi chạy ứng dụng desktop và nhập mã xác thực trực tiếp tại màn hình đăng nhập.
+
+## Vị trí lưu trữ dữ liệu
+
+Nagare lưu trữ dữ liệu người dùng trong thư mục `~/.nagare`.
+
+Xem chi tiết cấu trúc thư mục và các vị trí lưu trữ tại [Cấu hình](/reference/configuration#thu-muc-du-lieu).
+
+## Gỡ cài đặt
+
+Để gỡ bỏ Nagare hoàn toàn:
+
+1. Dừng Gateway nếu đang hoạt động.
+2. Xóa các executable đã cài đặt trong `$HOME/.local/bin`:
+   - `nagare`
+   - `nagare-gateway`
+   - `nagare-desktop`
+3. Xóa thư mục dữ liệu `~/.nagare`.
+
+**Lưu ý:** Thao tác xóa `~/.nagare` sẽ xóa toàn bộ dữ liệu người dùng, bao gồm cấu hình, cơ sở dữ liệu, plugin và các tài nguyên đã cài đặt.

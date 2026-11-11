@@ -1,0 +1,84 @@
+---
+title: "Bắt đầu nhanh"
+---
+
+Hướng dẫn này sẽ giúp bạn thiết lập Nagare từ đầu và bắt đầu trò chuyện với trợ lý AI chỉ trong vài phút.
+
+<Steps>
+  <Step title="Cài Nagare">
+    Mở terminal (hoặc PowerShell trên Windows) và chạy lệnh tương ứng:
+
+    <Tabs>
+      <Tab title="Linux / macOS">
+        ```bash
+        curl -fsSL https://raw.githubusercontent.com/smtdfc/nagare/main/installers/linux/install.sh | sudo bash
+        ```
+      </Tab>
+      <Tab title="Windows (PowerShell)">
+        ```powershell
+        irm https://raw.githubusercontent.com/smtdfc/nagare/main/installers/window/install.ps1 | iex
+        ```
+      </Tab>
+    </Tabs>
+
+    Kiểm tra lại:
+
+    ```bash
+    nagare --version
+    ```
+
+    Nếu máy báo không tìm thấy lệnh `nagare`, xem cách thêm vào `PATH` tại [Cài đặt](/installation#them-vao-path).
+
+  </Step>
+  <Step title="Khởi động Nagare">
+    ```bash
+    nagare gateway start
+    ```
+
+    Nagare sẽ chạy trong cửa sổ terminal hiện tại. Giữ cửa sổ này mở và sử dụng một terminal khác để thực hiện các bước tiếp theo.
+
+    <Note>
+      Trong lần khởi động đầu tiên, Nagare sẽ tự động tạo khóa bảo mật và lưu khóa vào trình quản lý mật khẩu của hệ thống. Khóa này được sử dụng để tạo mã đăng nhập. Bạn không cần thực hiện thêm thao tác nào.
+    </Note>
+
+  </Step>
+  <Step title="Mở giao diện">
+    ```bash
+    nagare web
+    ```
+
+    Nagare tự tạo mã đăng nhập, mở trình duyệt tại `http://127.0.0.1:3005` và đăng nhập sẵn cho bạn. Bạn không phải gõ gì.
+
+  </Step>
+  <Step title="Thêm nhà cung cấp mô hình">
+    Nagare cần một "bộ não" để trả lời. Vào **Settings → Model providers**, thêm một nhà cung cấp **OpenAI**, **Google** hoặc dịch vụ tương thích, dán API key rồi chọn mô hình.
+
+    Chưa có API key? Xem [Nhà cung cấp mô hình](/guides/model-providers) để biết cách chọn dịch vụ.
+
+  </Step>
+  <Step title="Chọn mô hình mặc định">
+    Vào **Settings → General**, chọn **Default model**. Đây là mô hình Nagare dùng cho các cuộc trò chuyện mới.
+  </Step>
+  <Step title="Trò chuyện thử">
+    Tạo một cuộc trò chuyện mới và thử:
+
+    ```text
+    Mấy giờ rồi? Liệt kê 5 tiến trình đang dùng nhiều RAM nhất.
+    ```
+
+    Nagare sẽ tự chọn công cụ phù hợp để trả lời. Nếu việc bạn nhờ có thể gây hại — xóa tệp, tắt máy... — Nagare dừng lại và hỏi bạn trước khi làm.
+
+  </Step>
+</Steps>
+
+## Khắc phục sự cố
+
+Nếu gặp sự cố trong quá trình thiết lập hoặc sử dụng Nagare, hãy chạy lệnh sau để kiểm tra trạng thái hệ thống:
+
+```bash
+nagare doctor
+```
+
+Nagare sẽ tự động kiểm tra các thành phần và hiển thị những vấn đề cần được xử lý.
+
+Để biết thêm thông tin, xem hướng dẫn [Khắc phục sự cố](/troubleshooting).

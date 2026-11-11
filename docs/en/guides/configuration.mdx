@@ -1,0 +1,25 @@
+---
+title: "Configuration"
+description: "The environment variables Nagare uses and what each directory in ~/.nagare is for."
+---
+
+Nagare uses environment variables to determine listen addresses, connection ports, and credentials. Most values are already set for you. Change them only when you want to customize the port, run the UI on another machine, or integrate Nagare into automation.
+
+## Environment variables
+
+### Nagare Gateway
+
+| Variable                    | Default     | Meaning                                                                                                                                                                                                                |
+| --------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NAGARE_GATEWAY_HOST`       | `localhost` | The address the Gateway listens on. `nagare gateway start --host` sets this variable for you.                                                                                                                          |
+| `NAGARE_GATEWAY_PORT`       | `9832`      | The port the UI and API use to connect to the Gateway.                                                                                                                                                                 |
+| `NAGARE_GATEWAY_PUBLIC_KEY` | —           | The public key used to verify sign-in codes. Nagare sets this variable for you.                                                                                                                                        |
+| `NAGARE_GATEWAY_MODE`       | —           | The Gateway run mode. `nagare gateway start` defaults to `prod`. `debug` also enables the `/metrics` and `/debug/pprof` endpoints for monitoring and performance analysis during development.                             |
+
+### Web UI and desktop app
+
+| Variable             | Used by                        | Default | Meaning                                                      |
+| -------------------- | ------------------------------ | ------- | ------------------------------------------------------------ |
+| `NAGARE_WEB_UI_PORT` | `nagare web`                   | `3005`  | The port the web UI uses.                                    |
+| `NAGARE_GATEWAY_URL` | `nagare web`, `nagare-desktop` | —       | The URL of the Gateway the UI connects to.                   |
+| `NAGARE_AUTH_TOKEN`  | `nagare-desktop`               | —       | An auth token provided up front when the desktop app starts. |

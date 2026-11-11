@@ -1,0 +1,66 @@
+---
+title: "Giới thiệu Nagare"
+sidebarTitle: "Giới thiệu"
+description: "Nagare là trợ lý AI chạy trên máy của bạn, giúp bạn xử lý công việc hằng ngày bằng những câu nói đơn giản."
+---
+
+**Nagare** (流れ, nghĩa là "dòng chảy") là trợ lý AI sống trên máy tính của bạn. Bạn chỉ cần nói mình muốn gì — kiểm tra máy, mở tệp, nhắc việc, tìm thông tin — Nagare sẽ tự tìm cách làm, thay vì bắt bạn nhớ từng câu lệnh.
+
+Nagare chạy được trên Linux, macOS và Windows. Mọi thứ Nagare ghi nhớ — cuộc trò chuyện, thiết lập, mã đăng nhập — đều nằm trên máy bạn, trong thư mục `~/.nagare`.
+
+## Bạn có thể nhờ Nagare làm gì
+
+<CardGroup cols={2}>
+  <Card title="Trò chuyện với AI" icon="messages" href="/guides/web-ui">
+    Hỏi đáp, viết lách, tóm tắt tài liệu... trên giao diện web hoặc ứng dụng desktop.
+  </Card>
+
+<Card title="Thao tác trên máy" icon="wrench" href="/guides/tools">
+  Xem tiến trình, đọc ghi tệp, chỉnh âm lượng, chụp màn hình... Việc gì có thể
+  gây hại, Nagare sẽ hỏi bạn trước.
+</Card>
+
+<Card title="Lịch định kỳ" icon="clock" href="/guides/cronjobs">
+  Dặn Nagare làm một việc vào giờ cố định, ví dụ mỗi sáng báo thời tiết.
+</Card>
+
+<Card title="Kênh Telegram" icon="telegram" href="/guides/telegram">
+  Nhắn với Nagare và duyệt thao tác ngay trên điện thoại, không cần ngồi trước
+  máy.
+</Card>
+
+<Card
+  title="Nhiều nhà cung cấp mô hình"
+  icon="microchip-ai"
+  href="/guides/model-providers"
+>
+  Dùng OpenAI, Google Gemini hoặc bất kỳ dịch vụ nào có API tương thích.
+</Card>
+
+  <Card title="Mở rộng bằng plugin" icon="puzzle-piece" href="/plugins/overview">
+    Tự viết thêm công cụ hoặc kênh trò chuyện bằng Go hoặc Rust.
+  </Card>
+</CardGroup>
+
+## Bên trong Nagare có gì
+
+Bạn không cần quan tâm đến những phần này để dùng Nagare, nhưng biết sơ qua sẽ dễ hiểu tài liệu hơn:
+
+| Thành phần     | Nó làm gì                                                                                              |
+| -------------- | ------------------------------------------------------------------------------------------------------ |
+| Nagare CLI     | Chương trình dòng lệnh để bật Nagare, mở giao diện, tạo mã đăng nhập và kiểm tra máy.                  |
+| Nagare Gateway | "Bộ não" của Nagare. Nó chạy nền, trả lời tin nhắn, gọi công cụ và giữ các lịch định kỳ.               |
+| Nagare web UI  | Trang web để bạn trò chuyện và chỉnh thiết lập. Mở bằng lệnh `nagare web` tại `http://127.0.0.1:3005`. |
+| Nagare Desktop | Cùng giao diện đó, đóng gói thành một cửa sổ riêng.                                                    |
+
+## Bước tiếp theo
+
+<CardGroup cols={2}>
+  <Card title="Bắt đầu nhanh" icon="rocket" href="/quickstart">
+    Cài đặt và gửi tin nhắn đầu tiên trong vài phút.
+  </Card>
+
+  <Card title="Tham chiếu CLI" icon="terminal" href="/reference/cli">
+    Toàn bộ lệnh và tùy chọn của `nagare`.
+  </Card>
+</CardGroup>

@@ -1,0 +1,102 @@
+---
+title: "Plugin overview"
+description: "How plugins extend Nagare, the project structure, permissions, packaging, and plugin management."
+---
+
+Plugins are how you extend Nagare. A plugin can add tools, integrate a chat channel such as Telegram, or provide its own instructions to the AI model.
+
+Nagare runs each plugin as a separate process. Plugins talk to Nagare over a local connection on your computer:
+
+- **Linux / macOS**: `~/.nagare/nagare-plugin.sock`.
+- **Windows**: `\\.\pipe\nagare-plugin`.
+
+You can develop plugins in [Go](/en/plugins/go-sdk) or [Rust](/en/plugins/rust-sdk).
+
+## Project structure
+
+A basic plugin project looks like this:
+
+```text
+my-plugin/
+├── metadata.json
+├── go.mod            # or Cargo.toml
+└── main.go           # or src/main.rs
+```
+
+### The metadata.json file {#metadata-json}
+
+`metadata.json` holds the plugin's identity and configuration.
+
+Example:
+
+```json
+{
+  "package_name": "com.example.hello",
+  "name": "Hello plugin",
+  "version": "1.0.0",
+  "api_version": "1",
+  "author": "Your Name",
+  "features": ["plugin_tool"]
+}
+```
+
+The fields:
+
+| Field          | Required | Description                                                                                                                                                     |
+| -------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `package_name` | Yes      | A unique identifier for the plugin. Only letters, digits, `_`, `.`, and `-` are allowed. It must start and end with a letter or digit, and can't contain `..` or slashes. |
+| `name`         | Yes      | The plugin's display name.                                                                                                                                      |
+| `version`      | Yes      | The plugin's current version.                                                                                                                                   |
+| `api_version`  | Yes      | The plugin API version the plugin uses. Currently `"1"`.                                                                                                        |
+| `author`       | Yes      | The name of the author or organization.                                                                                                                         |
+| `features`     | No       | The list of permissions the plugin requests. See [Plugin permissions](#plugin-permissions).                                                                     |
+| `bin`          | No       | Paths to the executable for each operating system. `nagare plugin build` generates this field.                                                                  |
+
+### Plugin permissions {#plugin-permissions}
+
+A plugin can only use the capabilities declared in the `features` field of `metadata.json`.
+
+| Permission       | Capability                                                                         |
+| ---------------- | ---------------------------------------------------------------------------------- |
+| `plugin_tool`    | Register new tools and tool groups.                                                |
+| `chat`           | Integrate a chat channel, send and receive messages, and receive approval results. |
+| `model_provider` | Access the list of configured model providers.                                     |
+| `system_prompt`  | Add to or remove the plugin's own instructions in the system prompt.               |
+
+## Build the plugin {#build-the-plugin}
+
+Open a terminal in the plugin project directory and run:
+
+```bash
+nagare plugin build
+```
+
+This command does the following:
+
+1. Reads and validates the configuration in `metadata.json`.
+2. Compiles the source code:
+   - Uses `go build` if the project has a `go.mod`.
+   - Uses `cargo build --release` if the project has a `Cargo.toml`.
+   - Projects containing both `go.mod` and `Cargo.toml` aren't supported.
+3. Computes a checksum to detect changes to the plugin package after packaging.
+4. Packs the required parts into a single `<package_name>.nagare_plugin` file.
+
+To sign the plugin package while building, use the `--sign` option.
+
+See [Plugin signing](/en/plugins/signing).
+
+## Manage plugins {#manage-plugins}
+
+Go to **Settings → Plugins** to manage installed plugins.
+
+| Action               | Function                                                                                                                                                             |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Install Plugin**   | Install a plugin. In the web UI, upload a `.nagare_plugin` file, optionally with a `.sig` signature file. In the desktop app, enter the full path to the plugin package. |
+| **Enable / Disable** | Start or stop the plugin.                                                                                                                                            |
+| **Update**           | Install a new plugin version. Conversation history is kept.                                                                                                           |
+| **Status**           | Monitor the plugin's CPU and memory usage.                                                                                                                           |
+| **Uninstall**        | Remove the plugin from Nagare.                                                                                                                                        |
+
+During installation, Nagare may warn you if the plugin package is **unsigned** or if its **signature can't be verified**.
+
+See [Plugin signing](/en/plugins/signing#install-warnings) for details.

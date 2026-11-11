@@ -1,0 +1,140 @@
+---
+title: "Tham chiếu CLI"
+description: "Danh sách lệnh, tùy chọn và cách sử dụng CLI của Nagare."
+---
+
+Cú pháp chung:
+
+```bash
+nagare [lệnh] [tùy chọn]
+```
+
+## Danh sách lệnh
+
+| Lệnh                                            | Công dụng                                      |
+| ----------------------------------------------- | ---------------------------------------------- |
+| [`nagare gateway start`](#nagare-gateway-start) | Khởi động Nagare Gateway.                      |
+| [`nagare gateway stop`](#nagare-gateway-stop)   | Dừng Nagare Gateway.                           |
+| [`nagare web`](#nagare-web)                     | Khởi chạy giao diện web.                       |
+| [`nagare auth token`](#nagare-auth-token)       | Tạo mã đăng nhập.                              |
+| [`nagare doctor`](#nagare-doctor)               | Kiểm tra trạng thái các thành phần của Nagare. |
+| [`nagare plugin build`](#nagare-plugin-build)   | Biên dịch và đóng gói plugin.                  |
+
+## Tùy chọn chung
+
+| Tùy chọn          | Công dụng                        |
+| ----------------- | -------------------------------- |
+| `-v`, `--version` | Hiển thị phiên bản Nagare.       |
+| `-h`, `--help`    | Hiển thị hướng dẫn sử dụng lệnh. |
+
+## nagare gateway start
+
+Khởi động Nagare Gateway ngay trong terminal hiện tại. Tiến trình chạy ở foreground và mã PID được lưu tại `~/.nagare/.gateway.pid`.
+
+```bash
+nagare gateway start [--host <host>]
+```
+
+| Tùy chọn        | Công dụng                                                       |
+| --------------- | --------------------------------------------------------------- |
+| `--host <host>` | Địa chỉ mà Gateway lắng nghe. Mặc định là `localhost`.          |
+| `-d`, `--debug` | Bật chế độ gỡ lỗi, chủ yếu phục vụ quá trình phát triển Nagare. |
+
+Trong lần khởi động đầu tiên, Nagare tự tạo khóa bảo mật và lưu vào trình quản lý mật khẩu của hệ điều hành. Khóa này được sử dụng để tạo mã đăng nhập. Bạn không cần thực hiện thêm thao tác nào.
+
+<Warning>
+  Khi sử dụng `--host 0.0.0.0`, Gateway có thể nhận kết nối từ các máy khác
+  trong mạng. Các yêu cầu vẫn cần mã đăng nhập hợp lệ, nhưng hãy cân nhắc kỹ
+  trước khi mở quyền truy cập mạng vì Nagare có khả năng thực hiện thao tác trên
+  máy của bạn.
+</Warning>
+
+## nagare gateway stop
+
+Yêu cầu dừng Nagare Gateway đang chạy.
+
+```bash
+nagare gateway stop
+```
+
+Khi xử lý thành công, Nagare hiển thị thông báo:
+
+```text
+Nagare gateway shutdown requested.
+```
+
+Nếu Gateway chưa chạy, lệnh hiển thị:
+
+```text
+Nagare gateway is not running.
+```
+
+## nagare web
+
+Khởi chạy giao diện web và hỗ trợ đăng nhập tự động.
+
+```bash
+nagare web [--addr <addr>] [--gateway <url>] [--token <token>] [--no-open]
+```
+
+| Tùy chọn    | Mặc định                | Công dụng                                                                                                          |
+| ----------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `--addr`    | `127.0.0.1:3005`        | Địa chỉ và cổng mà giao diện web lắng nghe. Có thể thay đổi cổng bằng biến môi trường `NAGARE_WEB_UI_PORT`.        |
+| `--gateway` | `http://localhost:9832` | URL của Gateway cần kết nối. Có thể lấy từ `NAGARE_GATEWAY_URL` hoặc được xác định dựa trên `NAGARE_GATEWAY_PORT`. |
+| `--token`   | Tự tạo                  | Token dùng để đăng nhập tự động.                                                                                   |
+| `--no-open` | `false`                 | Không tự động mở trình duyệt. Chỉ hiển thị địa chỉ truy cập.                                                       |
+
+## nagare auth token
+
+Tạo token đăng nhập để sử dụng với giao diện web, ứng dụng desktop hoặc khi gọi API trực tiếp.
+
+```bash
+nagare auth token
+```
+
+Ví dụ kết quả:
+
+```text
+Your token is: eyJhbGciOi...
+```
+
+Token được ký bằng khóa bảo mật của Nagare và có hiệu lực trong **60 giờ**.
+
+## nagare doctor
+
+Kiểm tra trạng thái hoạt động của các thành phần Nagare:
+
+| Thành phần             | Nội dung kiểm tra                                       |
+| ---------------------- | ------------------------------------------------------- |
+| Gateway process        | Kiểm tra Gateway có đang chạy hay không.                |
+| Gateway HTTP reachable | Kiểm tra khả năng kết nối tới Gateway qua HTTP.         |
+| Plugin IPC socket      | Kiểm tra socket giao tiếp giữa Nagare và plugin.        |
+| SQLite database        | Kiểm tra khả năng truy cập cơ sở dữ liệu SQLite.        |
+| RSA keyring            | Kiểm tra khả năng truy cập kho khóa xác thực.           |
+| Module: nagare_vector  | Kiểm tra module bộ nhớ vector đã được cài đặt hay chưa. |
+
+Chạy lệnh:
+
+```bash
+nagare doctor
+```
+
+Lệnh trả về mã thoát `1` nếu có ít nhất một mục kiểm tra không đạt.
+
+## nagare plugin build
+
+Biên dịch và đóng gói plugin trong thư mục hiện tại. Xem thêm [Tổng quan plugin](/plugins/overview#build-goi-plugin).
+
+```bash
+nagare plugin build [--sign <private-key.pem>]
+```
+
+| Tùy chọn              | Công dụng                                                                         |
+| --------------------- | --------------------------------------------------------------------------------- |
+| `-s`, `--sign <path>` | Ký gói plugin bằng khóa riêng Ed25519. Xem thêm [Ký số plugin](/plugins/signing). |
+
+## nagare-desktop
+
+`nagare-desktop` là ứng dụng desktop độc lập, không phải lệnh con của `nagare`.
+
+Xem hướng dẫn [Cài đặt ứng dụng desktop](/installation#ung-dung-desktop).

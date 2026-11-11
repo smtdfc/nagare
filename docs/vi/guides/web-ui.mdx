@@ -1,0 +1,87 @@
+---
+title: "Giao diện web"
+description: "Mở giao diện, đăng nhập và quản lý các cuộc trò chuyện với Nagare."
+---
+
+Giao diện web là nơi bạn trò chuyện và chỉnh thiết lập. Ứng dụng desktop dùng chung giao diện này, nên mọi thứ bạn quen trên web đều giống bên đó.
+
+## Mở giao diện
+
+Bật Nagare trước:
+
+```bash
+nagare gateway start
+```
+
+Rồi mở giao diện:
+
+```bash
+nagare web
+```
+
+Mặc định, lệnh này:
+
+- Mở giao diện tại `http://127.0.0.1:3005`.
+- Tự tạo một mã đăng nhập.
+- Mở trình duyệt và đăng nhập sẵn cho bạn. Sau đó Nagare xóa mã khỏi thanh địa chỉ để người khác không thấy.
+
+Vài tùy chọn thường dùng:
+
+```bash
+# Đổi cổng giao diện
+nagare web --addr 127.0.0.1:8080
+
+# Chỉ in đường dẫn đăng nhập, không mở trình duyệt
+nagare web --no-open
+
+# Kết nối tới Nagare đang chạy ở máy khác
+nagare web --gateway http://192.168.1.10:9832
+```
+
+Xem đầy đủ tại [Tham chiếu CLI](/reference/cli#nagare-web).
+
+## Tự đăng nhập
+
+Nếu giao diện yêu cầu đăng nhập:
+
+1. Tạo mã:
+   ```bash
+   nagare auth token
+   ```
+2. Mở `http://127.0.0.1:3005` và dán mã vào ô đăng nhập.
+3. Nếu Nagare chạy ở địa chỉ khác, bấm **Advanced** rồi nhập địa chỉ đó.
+
+<Info>
+  Mã đăng nhập dùng được trong **60 giờ**. Hết hạn thì tạo mã mới bằng `nagare auth token`.
+</Info>
+
+## Trò chuyện
+
+Mỗi cuộc trò chuyện là một **phiên** riêng, có tiêu đề, mô hình và lịch sử riêng. Trong giao diện, bạn có thể:
+
+| Thao tác | Công dụng |
+| --- | --- |
+| Tạo phiên mới | Bắt đầu cuộc trò chuyện mới với mô hình mặc định. |
+| Đổi mô hình | Dùng mô hình khác cho riêng cuộc trò chuyện này. |
+| Hủy | Dừng câu trả lời đang được viết. |
+| Thu gọn | Tóm tắt bớt hội thoại dài để Nagare không bị quá tải. |
+| Nhân bản | Tạo bản sao của cuộc trò chuyện. |
+| Lưu trữ | Cất khỏi danh sách chính mà không xóa. |
+| Xóa | Xóa cuộc trò chuyện và lịch sử. |
+
+Nagare trả lời dần ngay khi đang viết, nên bạn không phải chờ đến khi xong mới thấy nội dung.
+
+## Duyệt thao tác
+
+Khi Nagare muốn làm một việc có rủi ro — xóa tệp, tắt máy, đóng tiến trình — giao diện hiện một hộp để bạn đồng ý hoặc từ chối. Xem [Công cụ](/guides/tools#phe-duyet-cong-cu).
+
+## Các trang cài đặt
+
+| Trang | Nội dung |
+| --- | --- |
+| **General** | Mô hình mặc định và mô hình tóm tắt. |
+| **Model providers** | Thêm, xem, xóa nhà cung cấp mô hình. |
+| **Credentials** | Lưu API key để dùng lại cho nhiều nhà cung cấp. |
+| **Plugins** | Cài, cập nhật, bật/tắt, gỡ plugin và xem trạng thái. |
+
+Xem [Nhà cung cấp mô hình](/guides/model-providers) và [Tổng quan plugin](/plugins/overview).
