@@ -26,6 +26,8 @@ import (
 //go:embed web_dist/*
 var Files embed.FS
 
+const webDaemonEnv = "NAGARE_WEB_DAEMON"
+
 type spaHandler struct {
 	fs fs.FS
 }
@@ -81,9 +83,6 @@ func Handler() http.Handler {
 	}
 }
 
-// StartServer serves the Web UI on addr. When the listener is ready, onReady
-// runs before the server blocks serving requests, so callers can open a browser
-// without racing the bind.
 func StartServer(addr string, onReady func()) error {
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -102,19 +101,10 @@ func StartServer(addr string, onReady func()) error {
 	return server.Serve(listener)
 }
 
-// webDaemonEnv marks the detached child process so the web command serves
-// requests instead of spawning another background process.
-const webDaemonEnv = "NAGARE_WEB_DAEMON"
-
-// IsWebDaemon reports whether the current process is the detached Web UI
-// daemon started by StartBackgroundWebUI.
 func IsWebDaemon() bool {
 	return os.Getenv(webDaemonEnv) == "1"
 }
 
-// StartBackgroundWebUI re-executes the nagare CLI as a detached daemon with
-// the same arguments, redirecting its output to a log file. The parent
-// process returns as soon as the Web UI answers on its address.
 func StartBackgroundWebUI(addr string) error {
 	executable, err := os.Executable()
 	if err != nil {
@@ -157,8 +147,6 @@ func StartBackgroundWebUI(addr string) error {
 	return nil
 }
 
-// waitForWebUI polls the Web UI address until it accepts TCP connections,
-// so the CLI can report a failure to bind instead of exiting silently.
 func waitForWebUI(addr string, timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
@@ -211,6 +199,9 @@ func TryStopWebUI() (bool, error) {
 	}
 
 	if err := requestWebUIShutdown(process); err != nil {
+		// The PID file may outlive the daemon when the machine restarts or
+		// the daemon exits through its own signal handler; treat a finished
+		// process as "nothing to stop" instead of surfacing an error.
 		if isProcessFinished(err) {
 			_ = removeWebUIPID()
 			return false, nil

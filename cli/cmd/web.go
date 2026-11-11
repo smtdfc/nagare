@@ -29,8 +29,6 @@ func defaultWebAddr() string {
 	return "127.0.0.1:" + port
 }
 
-// defaultGatewayURL points at the gateway on the same machine, matching the
-// gateway default port used everywhere else.
 func defaultGatewayURL() string {
 	if gatewayURL := strings.TrimSpace(os.Getenv("NAGARE_GATEWAY_URL")); gatewayURL != "" {
 		return gatewayURL
@@ -44,7 +42,6 @@ func defaultGatewayURL() string {
 	return "http://localhost:" + port
 }
 
-// browserAddr rewrites wildcard listen addresses to a host a browser can open.
 func browserAddr(addr string) string {
 	host, port, err := net.SplitHostPort(addr)
 	if err != nil {
@@ -59,9 +56,6 @@ func browserAddr(addr string) string {
 	return net.JoinHostPort(host, port)
 }
 
-// bootstrapURL carries the gateway URL and token to the Web UI so it can sign
-// in without asking for them. The UI strips both parameters from the address
-// bar after storing them.
 func bootstrapURL(addr, gateway, token string) string {
 	u := url.URL{
 		Scheme: "http",
@@ -90,7 +84,10 @@ var webCmd = &cobra.Command{
 			}
 			return
 		}
+
 		if helpers.IsWebDaemon() {
+			// The daemon owns the PID file; remove it when the process is
+			// asked to terminate so `nagare web stop` stays accurate.
 			helpers.InstallWebDaemonSignalCleanup()
 		}
 
