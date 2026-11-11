@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -11,9 +12,12 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/smtdfc/nagare/pkgs/paths"
@@ -138,6 +142,11 @@ func StartBackgroundWebUI(addr string) error {
 		return fmt.Errorf("failed to start the Web UI daemon: %w", err)
 	}
 
+	if err := saveWebUIPID(cmd.Process.Pid); err != nil {
+		_ = cmd.Process.Kill()
+		return fmt.Errorf("failed to save Web UI PID: %w", err)
+	}
+
 	fmt.Printf("Starting Nagare Web UI in the background with PID %d...\n", cmd.Process.Pid)
 	fmt.Printf("Logs: %s\n", logFile)
 
@@ -162,4 +171,74 @@ func waitForWebUI(addr string, timeout time.Duration) error {
 	}
 
 	return fmt.Errorf("the Web UI did not start listening on %s within %s", addr, timeout)
+}
+
+// saveWebUIPID records the daemon PID so `nagare web stop` can reach it.
+func saveWebUIPID(pid int) error {
+	return os.WriteFile(paths.WebUIPIDFile, []byte(strconv.Itoa(pid)), 0o644)
+}
+
+// removeWebUIPID deletes the PID file, treating a missing file as success.
+func removeWebUIPID() error {
+	err := os.Remove(paths.WebUIPIDFile)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	return err
+}
+
+// TryStopWebUI signals the background Web UI daemon to shut down through its
+// PID file. It reports false when no daemon is recorded or the PID is gone.
+func TryStopWebUI() (bool, error) {
+	data, err := os.ReadFile(paths.WebUIPIDFile)
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("failed to read Web UI PID file: %w", err)
+	}
+
+	pid, err := strconv.Atoi(strings.TrimSpace(string(data)))
+	if err != nil || pid <= 0 {
+		_ = removeWebUIPID()
+		return false, fmt.Errorf("invalid Web UI PID in %s", paths.WebUIPIDFile)
+	}
+
+	process, err := os.FindProcess(pid)
+	if err != nil {
+		_ = removeWebUIPID()
+		return false, nil
+	}
+
+	if err := requestWebUIShutdown(process); err != nil {
+		if isProcessFinished(err) {
+			_ = removeWebUIPID()
+			return false, nil
+		}
+		_ = removeWebUIPID()
+		return false, fmt.Errorf("failed to stop Web UI process %d: %w", pid, err)
+	}
+	_ = removeWebUIPID()
+
+	return true, nil
+}
+
+// isProcessFinished matches the runtime error for signalling a process that
+// has already exited.
+func isProcessFinished(err error) bool {
+	return errors.Is(err, os.ErrProcessDone) || strings.Contains(err.Error(), "process already finished")
+}
+
+// InstallWebDaemonSignalCleanup makes the detached Web UI daemon remove its
+// PID file and exit when it receives a termination signal.
+func InstallWebDaemonSignalCleanup() {
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		if _, ok := <-signals; ok {
+			_ = removeWebUIPID()
+			os.Exit(0)
+		}
+	}()
 }

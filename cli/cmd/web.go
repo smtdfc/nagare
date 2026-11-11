@@ -90,6 +90,9 @@ var webCmd = &cobra.Command{
 			}
 			return
 		}
+		if helpers.IsWebDaemon() {
+			helpers.InstallWebDaemonSignalCleanup()
+		}
 
 		token := strings.TrimSpace(webToken)
 		if token == "" {

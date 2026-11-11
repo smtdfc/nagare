@@ -13,6 +13,7 @@ import (
 var DataDir = ""
 var ConfigFile = ""
 var GatewayPIDFile = ""
+var WebUIPIDFile = ""
 var ConfigDir = ""
 var GatewayBinFile = ""
 var LogDir = ""
@@ -53,6 +54,7 @@ func init() {
 	TempDir = filepath.Join(DataDir, "temp")
 	ConfigFile = filepath.Join(DataDir, "config.json")
 	GatewayPIDFile = filepath.Join(DataDir, ".gateway.pid")
+	WebUIPIDFile = filepath.Join(DataDir, ".web-ui.pid")
 	GatewayBinFile = filepath.Join("/opt", "nagare", "nagare-gateway")
 	CredentialsDir = filepath.Join(DataDir, "credentials")
 	TrustedDir = filepath.Join(DataDir, "trusted")
