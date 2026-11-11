@@ -35,9 +35,6 @@ func runGateway(cmd *exec.Cmd, background bool) error {
 	return err
 }
 
-// startDetachedGateway launches the gateway as a daemon: the process survives
-// the CLI process and logs to its own files, while the PID file keeps the
-// standard `nagare gateway stop` flow working.
 func startDetachedGateway(cmd *exec.Cmd) error {
 	cmd.SysProcAttr = detachSysProcAttr()
 	cmd.Stdout = nil
