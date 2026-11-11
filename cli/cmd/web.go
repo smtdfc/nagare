@@ -13,10 +13,11 @@ import (
 )
 
 var (
-	webAddr    string
-	webGateway string
-	webToken   string
-	webNoOpen  bool
+	webAddr       string
+	webGateway    string
+	webToken      string
+	webNoOpen     bool
+	webBackground bool
 )
 
 func defaultWebAddr() string {
@@ -83,6 +84,13 @@ var webCmd = &cobra.Command{
 	Short: "Start the Nagare Web UI",
 	Long:  "Start the embedded Nagare Web UI and serve it over HTTP. A token is generated automatically and handed to the UI so the dashboard opens already signed in.",
 	Run: func(cmd *cobra.Command, args []string) {
+		if webBackground && !helpers.IsWebDaemon() {
+			if err := helpers.StartBackgroundWebUI(browserAddr(webAddr)); err != nil {
+				fmt.Printf("Failed to start Web UI in the background: %v\n", err)
+			}
+			return
+		}
+
 		token := strings.TrimSpace(webToken)
 		if token == "" {
 			generated, err := helpers.GenerateUserToken(helpers.DefaultTokenTTL)
@@ -123,4 +131,5 @@ func init() {
 	webCmd.Flags().StringVar(&webGateway, "gateway", defaultGatewayURL(), "Gateway URL used for automatic sign-in")
 	webCmd.Flags().StringVar(&webToken, "token", "", "Token used for automatic sign-in (a fresh token is generated when empty)")
 	webCmd.Flags().BoolVar(&webNoOpen, "no-open", false, "Do not open the Web UI in a browser")
+	webCmd.Flags().BoolVarP(&webBackground, "background", "b", false, "Run the Web UI in the background (detached from this terminal)")
 }

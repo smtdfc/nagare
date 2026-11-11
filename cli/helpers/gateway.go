@@ -9,7 +9,7 @@ import (
 	"os/exec"
 )
 
-func TryStartGateway(isDebugMode bool, host string) error {
+func TryStartGateway(isDebugMode bool, host string, background bool) error {
 	cmd := exec.Command("nagare-gateway")
 	cmd.Env = append(os.Environ(), "NAGARE_GATEWAY_MODE=prod")
 
@@ -28,5 +28,5 @@ func TryStartGateway(isDebugMode bool, host string) error {
 
 	cmd.Env = append(cmd.Environ(), fmt.Sprintf("NAGARE_GATEWAY_PUBLIC_KEY=%s", publicKey))
 
-	return runGateway(cmd)
+	return runGateway(cmd, background)
 }

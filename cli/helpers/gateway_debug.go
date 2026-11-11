@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 )
 
-func TryStartGateway(isDebugMode bool, host string) error {
+func TryStartGateway(isDebugMode bool, host string, background bool) error {
 	var cmd *exec.Cmd
 	workingDir, _ := os.Getwd()
 	gatewayDir := filepath.Join(workingDir, "../gateway")
@@ -51,5 +51,5 @@ func TryStartGateway(isDebugMode bool, host string) error {
 
 	cmd.Env = append(cmd.Environ(), fmt.Sprintf("NAGARE_GATEWAY_PUBLIC_KEY=%s", publicKey))
 
-	return runGateway(cmd)
+	return runGateway(cmd, background)
 }

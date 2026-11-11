@@ -11,7 +11,11 @@ import (
 	"github.com/smtdfc/nagare/pkgs/paths"
 )
 
-func runGateway(cmd *exec.Cmd) error {
+func runGateway(cmd *exec.Cmd, background bool) error {
+	if background {
+		return startDetachedGateway(cmd)
+	}
+
 	if err := cmd.Start(); err != nil {
 		return err
 	}
@@ -29,6 +33,30 @@ func runGateway(cmd *exec.Cmd) error {
 	}
 
 	return err
+}
+
+// startDetachedGateway launches the gateway as a daemon: the process survives
+// the CLI process and logs to its own files, while the PID file keeps the
+// standard `nagare gateway stop` flow working.
+func startDetachedGateway(cmd *exec.Cmd) error {
+	cmd.SysProcAttr = detachSysProcAttr()
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	cmd.Stdin = nil
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	if err := saveGatewayPID(cmd.Process.Pid); err != nil {
+		_ = requestGatewayShutdown(cmd.Process)
+		return fmt.Errorf("failed to save gateway PID: %w", err)
+	}
+
+	fmt.Printf("Starting Nagare gateway in the background with PID %d...\n", cmd.Process.Pid)
+	fmt.Printf("Stop it with: nagare gateway stop\n")
+
+	return nil
 }
 
 func saveGatewayPID(pid int) error {
