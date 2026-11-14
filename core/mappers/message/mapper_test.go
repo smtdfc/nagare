@@ -75,3 +75,32 @@ func TestMessageMapper(t *testing.T) {
 		t.Errorf("expected error for unknown message kind")
 	}
 }
+
+func TestMessageMapper_ToolPromoteMessage(t *testing.T) {
+	mapper := NewMessageMapper()
+	sessID := uuid.New()
+
+	promoteMsg := messages.NewToolPromoteMessage([]string{"read_file_tool", "time_tool"})
+	promoteMsg.SetInvokeID(uuid.New().String())
+
+	entity, err := mapper.ToEntity(promoteMsg, sessID.String())
+	if err != nil {
+		t.Fatalf("unexpected error on ToEntity: %v", err)
+	}
+	if entity.MessageKind != string(messages.ToolPromoteMessageType) {
+		t.Errorf("expected kind %q, got %q", messages.ToolPromoteMessageType, entity.MessageKind)
+	}
+
+	domainBack, err := mapper.ToDomain(entity)
+	if err != nil {
+		t.Fatalf("unexpected error on ToDomain: %v", err)
+	}
+
+	promoteBack, ok := domainBack.(*messages.ToolPromoteMessage)
+	if !ok {
+		t.Fatalf("expected ToolPromoteMessage, got %T", domainBack)
+	}
+	if len(promoteBack.Tools) != 2 || promoteBack.Tools[0] != "read_file_tool" || promoteBack.Tools[1] != "time_tool" {
+		t.Errorf("unexpected promoted tools: %v", promoteBack.Tools)
+	}
+}
