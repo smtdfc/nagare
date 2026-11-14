@@ -10,9 +10,8 @@ import (
 	"github.com/smtdfc/nagare/core/logger"
 	provider_mgr "github.com/smtdfc/nagare/core/model_provider/manager"
 	"github.com/smtdfc/nagare/core/plugin/manager"
-	"github.com/smtdfc/nagare/core/prompt"
+	"github.com/smtdfc/nagare/core/plugin/resource"
 	session_mgr "github.com/smtdfc/nagare/core/session/manager"
-	manager2 "github.com/smtdfc/nagare/core/tool/manager"
 	"github.com/smtdfc/nagare/pkgs/ipc"
 	"github.com/smtdfc/nagare/pkgs/paths"
 	contracts "github.com/smtdfc/nagare/pkgs/plugin/contracts"
@@ -21,7 +20,7 @@ import (
 type PluginHost struct {
 	modelProvider *provider_mgr.ModelProviderManager
 	pluginMgr     *manager.PluginManager
-	toolMgr       *manager2.ToolManager
+	resourceMgr   *resource.Manager
 	sessionMgr    *session_mgr.SessionManager
 	eventBus      *event_bus.CoreEventBus
 	approvalMgr   *hil.Manager
@@ -37,15 +36,21 @@ type PluginHost struct {
 
 func (h *PluginHost) unregister(conn *PluginConnection) {
 	h.mu.Lock()
-	defer h.mu.Unlock()
-	if h.connections[conn.pluginID] == conn {
+	isOwner := h.connections[conn.pluginID] == conn
+	if isOwner {
 		delete(h.connections, conn.pluginID)
-		prompt.ClearPluginSystemPrompt(conn.pluginID)
 		for sessionID, c := range h.chatListeners {
 			if c == conn {
 				delete(h.chatListeners, sessionID)
 			}
 		}
+	}
+	h.mu.Unlock()
+
+	// Only the connection that currently owns the plugin ID may revoke the
+	// resources registered by that plugin.
+	if isOwner && h.resourceMgr != nil {
+		h.resourceMgr.Release(conn.pluginID)
 	}
 }
 
@@ -191,7 +196,7 @@ func (h *PluginHost) dispatch(pConn *PluginConnection, payload *contracts.Payloa
 func NewPluginHost(
 	pluginMgr *manager.PluginManager,
 	sessionMgr *session_mgr.SessionManager,
-	toolMgr *manager2.ToolManager,
+	resourceMgr *resource.Manager,
 	modelProvider *provider_mgr.ModelProviderManager,
 	eventBus *event_bus.CoreEventBus,
 	approvalMgr *hil.Manager,
@@ -200,7 +205,7 @@ func NewPluginHost(
 	return &PluginHost{
 		pluginMgr:     pluginMgr,
 		sessionMgr:    sessionMgr,
-		toolMgr:       toolMgr,
+		resourceMgr:   resourceMgr,
 		eventBus:      eventBus,
 		approvalMgr:   approvalMgr,
 		modelProvider: modelProvider,

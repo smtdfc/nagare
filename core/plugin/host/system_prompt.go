@@ -2,7 +2,6 @@ package host
 
 import (
 	core_plugin "github.com/smtdfc/nagare/core/plugin"
-	"github.com/smtdfc/nagare/core/prompt"
 	contracts "github.com/smtdfc/nagare/pkgs/plugin/contracts"
 )
 
@@ -29,19 +28,12 @@ func (h *PluginHost) handleInjectSystemPrompt(conn *PluginConnection, payload *c
 		return
 	}
 
-	if len(data.Content) > contracts.MaxSystemPromptBytes {
+	if err := h.resourceMgr.SetSystemPrompt(conn.pluginID, data.Content); err != nil {
 		_ = conn.Send(contracts.InjectSystemPromptFailedEvent, &contracts.InjectSystemPromptFailedEventPayload{
-			Cause: "system prompt too large",
+			Cause: err.Error(),
 		}, payload.RequestID)
 		return
 	}
-
-	prompt.SetPluginSystemPrompt(conn.pluginID, data.Content)
-	h.logger.Info(
-		"Injected plugin system prompt",
-		"pluginID", conn.pluginID,
-		"bytes", len(data.Content),
-	)
 
 	_ = conn.Send(contracts.InjectSystemPromptSuccessEvent, &contracts.InjectSystemPromptSuccessEventPayload{}, payload.RequestID)
 }
@@ -61,11 +53,7 @@ func (h *PluginHost) handleClearSystemPrompt(conn *PluginConnection, payload *co
 		return
 	}
 
-	prompt.ClearPluginSystemPrompt(conn.pluginID)
-	h.logger.Info(
-		"Cleared plugin system prompt",
-		"pluginID", conn.pluginID,
-	)
+	h.resourceMgr.ClearSystemPrompt(conn.pluginID)
 
 	_ = conn.Send(contracts.ClearSystemPromptSuccessEvent, &contracts.ClearSystemPromptSuccessEventPayload{}, payload.RequestID)
 }

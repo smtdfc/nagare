@@ -5,7 +5,6 @@ import (
 
 	"github.com/smtdfc/nagare/core/event_bus"
 	core_plugin "github.com/smtdfc/nagare/core/plugin"
-	tool_registry "github.com/smtdfc/nagare/core/tool/registry"
 	contracts "github.com/smtdfc/nagare/pkgs/plugin/contracts"
 )
 
@@ -32,16 +31,13 @@ func (h *PluginHost) handleRegisterPluginTool(conn *PluginConnection, payload *c
 		return
 	}
 
-	h.logger.Info("Registering plugin tool", "name", data.Tool.Name, "pluginID", conn.pluginID)
-	tool_registry.RegisterPluginTool(
-		data.Tool.Name,
-		data.Tool.Args,
-		data.Tool.Description,
-		data.Tool.Categories,
-		conn.pluginID,
-		true,
-		h.eventBus,
-	)
+	if err := h.resourceMgr.RegisterTool(conn.pluginID, data.Tool); err != nil {
+		h.logger.Warn("Failed to register plugin tool", "pluginID", conn.pluginID, "name", data.Tool.Name, "err", err)
+		_ = conn.Send(contracts.RegisterPluginToolFailedEvent, &contracts.RegisterPluginToolFailedEventPayload{
+			Cause: err.Error(),
+		}, payload.RequestID)
+		return
+	}
 
 	_ = conn.Send(contracts.RegisterPluginToolSuccessEvent, &contracts.RegisterPluginToolSuccessEventPayload{}, payload.RequestID)
 }
@@ -69,8 +65,7 @@ func (h *PluginHost) handleRegisterToolCategories(conn *PluginConnection, payloa
 		return
 	}
 
-	h.toolMgr.AddPluginToolCategories(conn.pluginID, data.Categories)
-	h.logger.Info("Registered plugin tool categories", "categories", data.Categories, "pluginID", conn.pluginID)
+	h.resourceMgr.RegisterToolCategories(conn.pluginID, data.Categories)
 	_ = conn.Send(contracts.RegisterToolCategoriesSuccessEvent, &contracts.RegisterToolCategoriesSuccessEventPayload{}, payload.RequestID)
 }
 

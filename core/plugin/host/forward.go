@@ -1,6 +1,8 @@
 package host
 
 import (
+	"context"
+
 	"github.com/smtdfc/nagare/core/event_bus"
 	"github.com/smtdfc/nagare/core/session"
 	"github.com/smtdfc/nagare/pkgs/helpers"
@@ -30,6 +32,7 @@ func (h *PluginHost) forwardPluginToolCalls() {
 
 			if !exists {
 				h.logger.Error("Plugin connection not found for tool call", "pluginID", call.PluginID, "name", call.Name, "requestID", call.RequestID)
+				h.failPluginToolCall(call.RequestID, "plugin is not connected")
 				continue
 			}
 
@@ -39,11 +42,25 @@ func (h *PluginHost) forwardPluginToolCalls() {
 			}, call.RequestID)
 			if err != nil {
 				h.logger.Error("Failed to forward plugin tool call", "error", err, "pluginID", call.PluginID, "requestID", call.RequestID)
+				h.failPluginToolCall(call.RequestID, err.Error())
 				continue
 			}
 			h.logger.Info("Forwarded plugin tool call", "pluginID", call.PluginID, "requestID", call.RequestID)
 		}
 	}
+}
+
+// failPluginToolCall publishes a failure result so the waiting plugin tool call
+// returns immediately instead of blocking until its timeout.
+func (h *PluginHost) failPluginToolCall(requestID, cause string) {
+	if requestID == "" {
+		return
+	}
+
+	h.eventBus.Publish(context.Background(), event_bus.PluginToolCallResultEvent, &event_bus.PluginToolCallResultEventPayload{
+		RequestID: requestID,
+		Error:     cause,
+	})
 }
 
 func (h *PluginHost) forwardChatChunks() {
