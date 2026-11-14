@@ -12,6 +12,7 @@ import (
 	"github.com/smtdfc/nagare/core/message"
 	"github.com/smtdfc/nagare/core/model_provider/provider"
 	"github.com/smtdfc/nagare/core/tool"
+	declarations "github.com/smtdfc/nagare/core/tool/builtins"
 	"github.com/smtdfc/nagare/core/tool/manager"
 	"github.com/smtdfc/nagare/pkgs/helpers"
 	"github.com/smtdfc/nagare/pkgs/messages"
@@ -66,6 +67,80 @@ func (a *Executor) HandleError(message *messages.ResponseFailedMessage) *custom_
 	return custom_errors.ErrUnknown
 }
 
+func (a *Executor) PrepareTool(history messages.ListMessage) tool.ListTool {
+	seen := make(map[string]struct{})
+	tools := make(tool.ListTool, 0)
+
+	appendTool := func(candidate tool.Tool) {
+		if candidate == nil {
+			return
+		}
+
+		name := candidate.GetName()
+		if name == "" {
+			return
+		}
+
+		if _, exists := seen[name]; exists {
+			return
+		}
+
+		seen[name] = struct{}{}
+		tools = append(tools, candidate)
+	}
+
+	for _, candidate := range a.toolMgr.GetListTool() {
+		appendTool(candidate)
+	}
+
+	for _, msg := range history {
+		promote, ok := msg.(*messages.ToolPromoteMessage)
+		if !ok || promote == nil {
+			continue
+		}
+
+		for _, name := range promote.Tools {
+			appendTool(a.toolMgr.FindToolByName(name))
+		}
+	}
+
+	return tools
+}
+
+// BuildToolPromoteMessage turns a successful find_tool_by_categories call into a
+// promote marker so every discovered tool stays available in later agent turns
+// without being rediscovered.
+func (a *Executor) BuildToolPromoteMessage(toolCall *tool.Call, result *tool.Result) *messages.ToolPromoteMessage {
+	if toolCall == nil || result == nil || !result.IsSuccess {
+		return nil
+	}
+
+	if toolCall.Name != declarations.FindToolByCategories.GetName() {
+		return nil
+	}
+
+	output, err := helpers.UnmarshalJson[declarations.FindToolByCategoriesOutput](result.Result)
+	if err != nil {
+		a.logger.Warn("failed to parse tool discovery output for promotion", "tool", toolCall.Name, "err", err)
+		return nil
+	}
+
+	names := make([]string, 0, len(output.Tools))
+	for _, found := range output.Tools {
+		if found.Name == "" {
+			continue
+		}
+
+		names = append(names, found.Name)
+	}
+
+	if len(names) == 0 {
+		return nil
+	}
+
+	return messages.NewToolPromoteMessage(names)
+}
+
 func (a *Executor) Execute(ctx *context.ExecuteContext, model string, modelAdapter provider.ModelProviderAdapter, output message.WriteOnlyChannel, opts *InvokeOption) {
 	defer close(output)
 
@@ -118,7 +193,9 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, modelAdapt
 			break
 		}
 
-		llmOutput, err := modelAdapter.Send(ctx, model, a.state.GetFullMessage(), a.toolMgr.GetListTool())
+		history := a.state.GetFullMessage()
+		tools := a.PrepareTool(history)
+		llmOutput, err := modelAdapter.Send(ctx, model, history, tools)
 		if err != nil {
 			if ctx.Err() != nil {
 				isCancel = true
@@ -193,6 +270,9 @@ func (a *Executor) Execute(ctx *context.ExecuteContext, model string, modelAdapt
 			}
 			result := a.ExecuteTool(ctx, toolCall)
 			a.state.AppendMessage(result.ToMessage())
+			if promote := a.BuildToolPromoteMessage(toolCall, result); promote != nil {
+				a.state.AppendMessage(promote)
+			}
 		}
 
 		if isCancel {
