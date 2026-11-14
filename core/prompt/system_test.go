@@ -13,13 +13,13 @@ func TestSystemPromptTemplate_Markers(t *testing.T) {
 
 	expectedMarkers := []string{
 		"You are Nagare",
-		"Mandatory Rules",
-		"Tool Selection and Execution",
+		"TOOL ROUTING PROTOCOL",
 		"find_tool_by_categories",
 		"execute_tool",
 		"{{.ToolCategories}}",
-		"Accurate and Natural Responses",
-		"Mathematical Expressions and UI Rendering",
+		"Recovery ladder",
+		"Safety gate",
+		"MATH (LaTeX)",
 		"Additional Rules",
 		"{{.PluginPrompts}}",
 	}
