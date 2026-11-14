@@ -138,6 +138,16 @@ func (t *ToolManager) FindToolsByKeywords(keywords []string) ([]tool.Metadata, e
 	return list, nil
 }
 
+func (t *ToolManager) FindToolByName(name string) tool.Tool {
+	for _, item := range registry.Registry {
+		if item.Tool.GetName() == name {
+			return item.Tool
+		}
+	}
+
+	return nil
+}
+
 func (t *ToolManager) GetCategoriesPrompt() string {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
