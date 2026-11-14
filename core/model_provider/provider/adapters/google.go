@@ -142,6 +142,12 @@ func (g *GoogleAdapter) TransformToProviderMessage(msg messages.Message) (intera
 func (g *GoogleAdapter) TransformToProviderInput(inputs messages.ListMessage) ([]interactions.Step, error) {
 	steps := make([]interactions.Step, 0, len(inputs))
 	for _, msg := range inputs {
+		// Promotion markers only control which tools are declared to the model;
+		// they are never part of the conversation sent to the provider.
+		if _, isPromote := msg.(*messages.ToolPromoteMessage); isPromote {
+			continue
+		}
+
 		if text, ok := msg.(*messages.TextMessage); ok &&
 			(text.Role == messages.SYSTEM || text.Role == messages.DEVELOPER) {
 			continue

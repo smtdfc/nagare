@@ -152,19 +152,26 @@ func (o *OpenAICompatibleAdapter) Send(ctx context.Context, model string, listMe
 	// }
 
 	inputs := responses.ResponseInputParam{}
-	listTool, err := o.TransformToolDeclarations(tools)
-	if err != nil {
-		o.logger.Error("TransformToolDeclarations error", "error", err)
-		return nil, err
-	}
 
 	for _, msg := range listMessage {
+		// Promotion markers only control which tools are declared to the model;
+		// they are never part of the conversation sent to the provider.
+		if _, isPromote := msg.(*messages.ToolPromoteMessage); isPromote {
+			continue
+		}
+
 		input, err := o.TransformToProviderMessage(msg)
 		if err != nil {
 			o.logger.Error("TransformToProviderMessage error", "error", err)
 			return nil, err
 		}
 		inputs = append(inputs, input)
+	}
+
+	listTool, err := o.TransformToolDeclarations(tools)
+	if err != nil {
+		o.logger.Error("TransformToolDeclarations error", "error", err)
+		return nil, err
 	}
 
 	outputChannel := make(chan messages.Message)

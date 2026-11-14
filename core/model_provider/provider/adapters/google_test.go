@@ -177,3 +177,21 @@ func TestTransformToProviderMessage_Unsupported(t *testing.T) {
 		t.Fatal("expected an error for an unsupported message type")
 	}
 }
+
+// TestTransformToProviderInput_SkipsToolPromote verifies promotion markers never
+// reach the provider as conversation steps.
+func TestTransformToProviderInput_SkipsToolPromote(t *testing.T) {
+	adapter := newTestGoogleAdapter()
+
+	steps, err := adapter.TransformToProviderInput(messages.ListMessage{
+		messages.NewTextMessage(messages.USER, "hello"),
+		messages.NewToolPromoteMessage([]string{"read_file_tool"}),
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(steps) != 1 || steps[0].UserInputStep == nil {
+		t.Fatalf("expected only the user step, got %#v", steps)
+	}
+}
