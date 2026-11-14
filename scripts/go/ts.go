@@ -70,6 +70,7 @@ export type Message =
 	| CronJobTriggerMessage
     | TextMessage
     | ToolCallMessage
+    | ToolPromoteMessage
     | ToolResultMessage;
 `
 			output += messageUnion
