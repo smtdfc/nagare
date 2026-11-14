@@ -1,8 +1,6 @@
 package declarations
 
 import (
-	"fmt"
-
 	"github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/tool"
 )
@@ -11,8 +9,16 @@ type FindToolByCategoriesInput struct {
 	Categories []string `json:"categories" jsonschema:"title=Categories" jsonschema_description:"A list of categories to filter tools by. The search will return tools that belong to any of the specified categories, helping to discover relevant capabilities."`
 }
 
+// FoundTool is the compact view of a discovered tool. The full definition,
+// including its argument schema, is promoted into the conversation context by
+// the executor, so repeating it in the tool result only wastes tokens.
+type FoundTool struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 type FindToolByCategoriesOutput struct {
-	Tools []tool.Metadata `json:"tools"`
+	Tools []FoundTool `json:"tools"`
 }
 
 var FindToolByCategories = tool.DefineTool(
@@ -24,10 +30,16 @@ var FindToolByCategories = tool.DefineTool(
 			return nil, err
 		}
 
-		fmt.Printf("found %d tools for categories %v", len(foundTools), args.Categories)
+		tools := make([]FoundTool, 0, len(foundTools))
+		for _, found := range foundTools {
+			tools = append(tools, FoundTool{
+				Name:        found.Name,
+				Description: found.Description,
+			})
+		}
 
 		return &FindToolByCategoriesOutput{
-			Tools: foundTools,
+			Tools: tools,
 		}, nil
 	},
 	[]string{tool.RoutingCategory},

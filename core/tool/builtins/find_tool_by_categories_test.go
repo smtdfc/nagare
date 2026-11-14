@@ -3,6 +3,7 @@ package declarations
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/smtdfc/nagare/core/computer_use"
@@ -46,8 +47,8 @@ func TestFindToolByCategories_Metadata(t *testing.T) {
 func TestFindToolByCategories_Execute(t *testing.T) {
 	mb := &mockFindBindings{
 		tools: []tool.Metadata{
-			{Name: "time_tool", Description: "Get time"},
-			{Name: "read_file_tool", Description: "Read a file"},
+			{Name: "time_tool", Description: "Get time", Args: `{"type":"object"}`},
+			{Name: "read_file_tool", Description: "Read a file", Args: `{"type":"object"}`},
 		},
 	}
 	tl := withBindings(t, FindToolByCategories, mb)
@@ -73,6 +74,12 @@ func TestFindToolByCategories_Execute(t *testing.T) {
 	}
 	if out.Tools[1].Description != "Read a file" {
 		t.Errorf("expected second tool description 'Read a file', got %q", out.Tools[1].Description)
+	}
+
+	// The argument schema is promoted into the context by the executor, so the
+	// tool result must not repeat it.
+	if strings.Contains(res, "args") {
+		t.Errorf("expected the tool result to omit argument schemas, got %s", res)
 	}
 }
 
