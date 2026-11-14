@@ -21,6 +21,7 @@ import (
 	plugin_mapper "github.com/smtdfc/nagare/core/mappers/plugin"
 	"github.com/smtdfc/nagare/core/persistence/database/repositories"
 	"github.com/smtdfc/nagare/core/plugin"
+	"github.com/smtdfc/nagare/core/plugin/resource"
 	"github.com/smtdfc/nagare/pkgs/helpers"
 	"github.com/smtdfc/nagare/pkgs/paths"
 	"github.com/smtdfc/nagare/pkgs/plugin/metadata"
@@ -36,6 +37,7 @@ type PluginManager struct {
 	mu           sync.RWMutex
 	pluginRepo   *repositories.PluginRepository
 	pluginMapper plugin_mapper.IPluginMapper
+	resourceMgr  *resource.Manager
 	connectCodes map[string]string
 	socketPath   string
 	logger       *logger.BaseLogger
@@ -224,6 +226,11 @@ func (p *PluginManager) setLastStatus(ctx context.Context, plg *plugin.Plugin, s
 }
 
 func (p *PluginManager) StopPlugin(ctx context.Context, plg *plugin.Plugin) error {
+	// A plugin that is stopping must not leave its tools, categories or system
+	// prompt behind. Release is idempotent, so the crash/unregister path may run
+	// it again safely.
+	defer p.releaseResources(plg)
+
 	pidPath := plg.Bin + ".pid"
 
 	data, err := os.ReadFile(pidPath)
@@ -743,6 +750,8 @@ func (p *PluginManager) Uninstall(ctx context.Context, id string) error {
 		return custom_errors.ErrUninstallPluginFailed
 	}
 
+	p.releaseResources(plg)
+
 	pluginDir := filepath.Join(paths.PluginDir, plg.PackageName)
 	err = os.RemoveAll(pluginDir)
 	if err != nil {
@@ -869,13 +878,25 @@ func (p *PluginManager) GetPluginStatus(ctx context.Context, id string) (*plugin
 func NewPluginManager(
 	pluginRepo *repositories.PluginRepository,
 	pluginMapper plugin_mapper.IPluginMapper,
+	resourceMgr *resource.Manager,
 	logger *logger.BaseLogger,
 ) *PluginManager {
 	return &PluginManager{
 		pluginRepo:   pluginRepo,
 		pluginMapper: pluginMapper,
+		resourceMgr:  resourceMgr,
 		logger:       logger.With("module", "plugin-manager"),
 		connectCodes: make(map[string]string),
 		socketPath:   paths.PluginSocketPath,
 	}
+}
+
+// releaseResources revokes the runtime resources a plugin injected. A nil
+// manager or plugin keeps unit tests and partially wired hosts safe.
+func (p *PluginManager) releaseResources(plg *plugin.Plugin) {
+	if p.resourceMgr == nil || plg == nil {
+		return
+	}
+
+	p.resourceMgr.Release(plg.ID.String())
 }
