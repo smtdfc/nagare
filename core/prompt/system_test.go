@@ -18,7 +18,6 @@ func TestSystemPromptTemplate_Markers(t *testing.T) {
 		"execute_tool",
 		"{{.ToolCategories}}",
 		"Recovery ladder",
-		"Safety gate",
 		"MATH (LaTeX)",
 		"Additional Rules",
 		"{{.PluginPrompts}}",
