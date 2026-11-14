@@ -3,6 +3,7 @@ package manager
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 
@@ -64,8 +65,8 @@ func (t *ToolManager) GetListTool() tool.ListTool {
 		return t.cachedList
 	}
 
-	list := make(tool.ListTool, 0, len(registry.Registry))
-	for _, item := range registry.Registry {
+	list := make(tool.ListTool, 0, registry.Len())
+	for _, item := range registry.List() {
 		if !item.RequiresRouter {
 			list = append(list, item.Tool)
 		}
@@ -77,7 +78,7 @@ func (t *ToolManager) GetListTool() tool.ListTool {
 
 func (t *ToolManager) Call(ctx *context.ExecuteContext, toolCall *tool.Call) *tool.Result {
 	toolResultBuilder := tool.NewToolResultBuilder(toolCall.CallID, toolCall.Name)
-	calledTool, isExist := registry.Registry[toolCall.Name]
+	calledTool, isExist := registry.Get(toolCall.Name)
 	if !isExist {
 		return toolResultBuilder.Failure(errors.New("tool doesn't exist")).Build()
 	}
@@ -109,7 +110,7 @@ func hasComputerUseCategory(categories []string) bool {
 func (t *ToolManager) FindToolsByKeywords(keywords []string) ([]tool.Metadata, error) {
 	list := make([]tool.Metadata, 0)
 
-	for _, item := range registry.Registry {
+	for _, item := range registry.List() {
 		if !item.RequiresRouter {
 			continue
 		}
@@ -139,21 +140,45 @@ func (t *ToolManager) FindToolsByKeywords(keywords []string) ([]tool.Metadata, e
 }
 
 func (t *ToolManager) FindToolByName(name string) tool.Tool {
-	for _, item := range registry.Registry {
-		if item.Tool.GetName() == name {
-			return item.Tool
-		}
+	item, exists := registry.Get(name)
+	if !exists {
+		return nil
 	}
 
-	return nil
+	return item.Tool
 }
 
 func (t *ToolManager) GetCategoriesPrompt() string {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
+
+	categories := make(map[string]string, len(t.toolCategories))
+	for name, description := range t.toolCategories {
+		categories[name] = description
+	}
+
+	// Plugin categories are merged in only when they do not shadow a built-in
+	// category, so a plugin cannot rewrite the routing description of a trusted
+	// capability.
+	for _, pluginCategories := range t.pluginToolCategories {
+		for name, description := range pluginCategories {
+			if _, exists := categories[name]; exists {
+				continue
+			}
+
+			categories[name] = description
+		}
+	}
+
+	names := make([]string, 0, len(categories))
+	for name := range categories {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
 	var prompt strings.Builder
-	for name, desc := range t.toolCategories {
-		prompt.WriteString(fmt.Sprintf("%s (%s), ", name, desc))
+	for _, name := range names {
+		prompt.WriteString(fmt.Sprintf("%s (%s), ", name, categories[name]))
 	}
 
 	return prompt.String()
@@ -175,6 +200,15 @@ func (t *ToolManager) AddPluginToolCategories(pluginID string, categories map[st
 	}
 
 	t.pluginToolCategories[pluginID] = categories
+}
+
+// RemovePluginToolCategories revokes the categories a plugin registered while it
+// was running.
+func (t *ToolManager) RemovePluginToolCategories(pluginID string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	delete(t.pluginToolCategories, pluginID)
 }
 
 // @Injectable
@@ -210,9 +244,9 @@ var experimentalComputerUseWarnOnce sync.Once
 func warnExperimentalComputerUse(callLogger *logger.BaseLogger, toolName string) {
 	experimentalComputerUseWarnOnce.Do(func() {
 		var names []string
-		for name, item := range registry.Registry {
+		for _, item := range registry.List() {
 			if hasComputerUseCategory(item.Tool.GetCategories()) {
-				names = append(names, name)
+				names = append(names, item.Tool.GetName())
 			}
 		}
 

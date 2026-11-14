@@ -72,7 +72,7 @@ func (t *ToolBindings) CallTool(ctx *context.ExecuteContext, toolName string, ar
 
 func (t *ToolBindings) FindToolsByCategories(_ *context.ExecuteContext, categories []string) ([]tool.Metadata, error) {
 	list := make([]tool.Metadata, 0)
-	for _, item := range registry.Registry {
+	for _, item := range registry.List() {
 
 		categoriesMatch := false
 		for _, category := range item.Tool.GetCategories() {
