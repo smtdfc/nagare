@@ -13,6 +13,7 @@ const (
 	TextMessageType                MessageType = "TEXT_MESSAGE"
 	ToolCallMessageType            MessageType = "TOOL_CALL_MESSAGE"
 	ToolResultMessageType          MessageType = "TOOL_RESULT_MESSAGE"
+	ToolPromoteMessageType         MessageType = "TOOL_PROMOTE_MESSAGE"
 	ReasoningMessageType           MessageType = "REASONING_MESSAGE"
 	AgentStartedMessageType        MessageType = "AGENT_STARTED_MESSAGE"
 	AgentCompletedMessageType      MessageType = "AGENT_COMPLETED_MESSAGE"

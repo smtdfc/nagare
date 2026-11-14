@@ -71,3 +71,34 @@ func NewToolResultMessage(callID string, name string, result string) *ToolResult
 		Result: result,
 	}
 }
+
+type ToolPromoteMessage struct {
+	ID       string      `json:"id"`
+	Type     MessageType `json:"type"`
+	InvokeID string      `json:"invokeID"`
+	Tools    []string    `json:"tools"`
+}
+
+func (m *ToolPromoteMessage) GetMessageID() string {
+	return m.ID
+}
+
+func (m *ToolPromoteMessage) GetMessageType() MessageType {
+	return m.Type
+}
+
+func (m *ToolPromoteMessage) GetInvokeID() string {
+	return m.InvokeID
+}
+
+func (m *ToolPromoteMessage) SetInvokeID(invokeID string) {
+	m.InvokeID = invokeID
+}
+
+func NewToolPromoteMessage(tools []string) *ToolPromoteMessage {
+	return &ToolPromoteMessage{
+		ID:    helpers.GenerateUUID(),
+		Type:  ToolPromoteMessageType,
+		Tools: tools,
+	}
+}
