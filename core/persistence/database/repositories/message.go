@@ -14,16 +14,15 @@ import (
 func preloadMessages(db *gorm.DB) *gorm.DB {
 	return db.
 		Where(`
-            rowid >= COALESCE(
-                (
-                    SELECT MAX(m2.rowid)
-                    FROM messages AS m2
-                    WHERE m2.session_id = messages.session_id
-                    AND m2.message_kind = ?
-                ),
-                0
-            )
-        `, messages.ConversationSummaryMessageType).
+            (
+                rowid >= COALESCE(
+                    (SELECT MAX(m2.rowid) FROM messages AS m2
+                     WHERE m2.session_id = messages.session_id
+                       AND m2.message_kind = ?),
+                    0
+                )
+                OR message_kind = ?
+            )`, messages.ConversationSummaryMessageType, messages.ToolPromoteMessageType).
 		Order("created_at ASC, rowid ASC")
 }
 
