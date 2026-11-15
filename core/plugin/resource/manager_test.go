@@ -24,7 +24,7 @@ func newTestManager(t *testing.T) (*Manager, *tool_manager.ToolManager) {
 		Logger: *slog.New(slog.NewTextHandler(io.Discard, nil)),
 	}
 	bus := event_bus.NewEventBus(baseLogger)
-	toolMgr := tool_manager.NewToolManager(baseLogger, nil, bus, nil, nil, nil)
+	toolMgr := tool_manager.NewToolManager(baseLogger, nil, bus, nil, nil)
 
 	mgr := NewPluginResourceManager(toolMgr, bus, baseLogger)
 	t.Cleanup(func() { mgr.Release(testPluginID) })

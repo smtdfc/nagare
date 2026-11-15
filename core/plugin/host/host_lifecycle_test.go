@@ -24,7 +24,7 @@ func newTestLogger() *logger.BaseLogger {
 func newTestHost() *PluginHost {
 	baseLogger := newTestLogger()
 	eventBus := event_bus.NewEventBus(baseLogger)
-	toolMgr := tool_manager.NewToolManager(baseLogger, nil, eventBus, nil, nil, nil)
+	toolMgr := tool_manager.NewToolManager(baseLogger, nil, eventBus, nil, nil)
 
 	return &PluginHost{
 		logger:        baseLogger,

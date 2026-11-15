@@ -7,7 +7,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/smtdfc/nagare/core/computer_use"
 	"github.com/smtdfc/nagare/core/context"
 	cronjob_manager "github.com/smtdfc/nagare/core/cronjob/manager"
 	discovery_manager "github.com/smtdfc/nagare/core/discovery/manager"
@@ -19,21 +18,14 @@ import (
 	"github.com/smtdfc/nagare/pkgs/helpers"
 )
 
-// experimentalNoteComputerUse flags every computer use tool as an
-// experimental feature: GUI automation is slow, flaky, and costly for tasks
-// that a native tool could perform directly. Keep the feature behind this
-// warning until native "attached hands" tooling can serve those workflows.
-const experimentalNoteComputerUse = "computer use tools are an experimental feature: they are slow, unreliable and token-heavy compared to native tools"
-
 type ToolManager struct {
-	mu                      sync.RWMutex
-	cachedList              tool.ListTool
-	logger                  *logger.BaseLogger
-	cronJobMgr              *cronjob_manager.CronJobManager
-	eventBus                *event_bus.CoreEventBus
-	approvalMgr             *hil.Manager
-	discoveryMgr            *discovery_manager.DiscoveryManager
-	computerUseOrchestrator *computer_use.ComputerUseOrchestrator
+	mu           sync.RWMutex
+	cachedList   tool.ListTool
+	logger       *logger.BaseLogger
+	cronJobMgr   *cronjob_manager.CronJobManager
+	eventBus     *event_bus.CoreEventBus
+	approvalMgr  *hil.Manager
+	discoveryMgr *discovery_manager.DiscoveryManager
 
 	toolCategories       map[string]string
 	pluginToolCategories map[string]map[string]string
@@ -41,12 +33,11 @@ type ToolManager struct {
 
 func (t *ToolManager) createBindings() *ToolBindings {
 	return &ToolBindings{
-		cronJobMgr:              t.cronJobMgr,
-		eventBus:                t.eventBus,
-		toolMgr:                 t,
-		approvalMgr:             t.approvalMgr,
-		discoveryMgr:            t.discoveryMgr,
-		computerUseOrchestrator: t.computerUseOrchestrator,
+		cronJobMgr:   t.cronJobMgr,
+		eventBus:     t.eventBus,
+		toolMgr:      t,
+		approvalMgr:  t.approvalMgr,
+		discoveryMgr: t.discoveryMgr,
 	}
 }
 
@@ -83,10 +74,6 @@ func (t *ToolManager) Call(ctx *context.ExecuteContext, toolCall *tool.Call) *to
 		return toolResultBuilder.Failure(errors.New("tool doesn't exist")).Build()
 	}
 
-	if hasComputerUseCategory(calledTool.Tool.GetCategories()) {
-		warnExperimentalComputerUse(t.logger, toolCall.Name)
-	}
-
 	bindings := t.createBindings()
 	result, err := calledTool.Tool.WithBindings(bindings).Execute(ctx, toolCall.Args)
 	if err != nil {
@@ -94,17 +81,6 @@ func (t *ToolManager) Call(ctx *context.ExecuteContext, toolCall *tool.Call) *to
 	}
 
 	return toolResultBuilder.Success(result).Build()
-}
-
-// hasComputerUseCategory reports whether any of the tool categories marks a
-// computer use tool.
-func hasComputerUseCategory(categories []string) bool {
-	for _, category := range categories {
-		if category == tool.ComputerUse {
-			return true
-		}
-	}
-	return false
 }
 
 func (t *ToolManager) FindToolsByKeywords(keywords []string) ([]tool.Metadata, error) {
@@ -212,14 +188,13 @@ func (t *ToolManager) RemovePluginToolCategories(pluginID string) {
 }
 
 // @Injectable
-func NewToolManager(logger *logger.BaseLogger, cronJobMgr *cronjob_manager.CronJobManager, eventBus *event_bus.CoreEventBus, approvalMgr *hil.Manager, discoveryMgr *discovery_manager.DiscoveryManager, computerUseOrchestrator *computer_use.ComputerUseOrchestrator) *ToolManager {
+func NewToolManager(logger *logger.BaseLogger, cronJobMgr *cronjob_manager.CronJobManager, eventBus *event_bus.CoreEventBus, approvalMgr *hil.Manager, discoveryMgr *discovery_manager.DiscoveryManager) *ToolManager {
 	return &ToolManager{
-		logger:                  logger.With("module", "tool-manager"),
-		cronJobMgr:              cronJobMgr,
-		eventBus:                eventBus,
-		approvalMgr:             approvalMgr,
-		discoveryMgr:            discoveryMgr,
-		computerUseOrchestrator: computerUseOrchestrator,
+		logger:       logger.With("module", "tool-manager"),
+		cronJobMgr:   cronJobMgr,
+		eventBus:     eventBus,
+		approvalMgr:  approvalMgr,
+		discoveryMgr: discoveryMgr,
 		toolCategories: map[string]string{
 			tool.ProcessManagementCategory: "Process Management",
 			tool.PowerManagementCategory:   "Power Management",
@@ -233,25 +208,7 @@ func NewToolManager(logger *logger.BaseLogger, cronJobMgr *cronjob_manager.CronJ
 			tool.TimingCategory:            "Timing",
 			tool.SystemCategory:            "System",
 			tool.ResearchCategory:          "Research",
-			tool.ComputerUse:               "Computer use",
 		},
 		pluginToolCategories: make(map[string]map[string]string),
 	}
-}
-
-var experimentalComputerUseWarnOnce sync.Once
-
-func warnExperimentalComputerUse(callLogger *logger.BaseLogger, toolName string) {
-	experimentalComputerUseWarnOnce.Do(func() {
-		var names []string
-		for _, item := range registry.List() {
-			if hasComputerUseCategory(item.Tool.GetCategories()) {
-				names = append(names, item.Tool.GetName())
-			}
-		}
-
-		callLogger.Warn("Experimental tools registered", "category", tool.ComputerUse, "tools", strings.Join(names, ", "), "note", experimentalNoteComputerUse)
-	})
-
-	callLogger.Warn("Experimental feature used", "tool", toolName, "category", tool.ComputerUse, "note", experimentalNoteComputerUse)
 }

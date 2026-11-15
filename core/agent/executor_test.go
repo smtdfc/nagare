@@ -129,7 +129,7 @@ func newTestExecutor(t *testing.T) *Executor {
 	}
 
 	return &Executor{
-		toolMgr: manager.NewToolManager(baseLogger, nil, nil, nil, nil, nil),
+		toolMgr: manager.NewToolManager(baseLogger, nil, nil, nil, nil),
 		logger:  baseLogger,
 	}
 }

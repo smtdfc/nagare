@@ -50,8 +50,7 @@ func NewExternalModuleManager(
 	return &ExternalModuleManager{
 		connectCodes: make(map[string]string),
 		ExternalModules: map[string]ExternalModule{
-			"nagare_vector":       NewExternalModule("nagare_vector"),
-			"nagare_computer_use": NewExternalModule("nagare_computer_use"),
+			"nagare_vector": NewExternalModule("nagare_vector"),
 		},
 		logger: logger.With("module", "external-module-manager"),
 	}

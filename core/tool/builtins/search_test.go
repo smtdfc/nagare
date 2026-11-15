@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/smtdfc/nagare/core/computer_use"
 	"github.com/smtdfc/nagare/core/custom_errors"
 	"github.com/smtdfc/nagare/core/discovery"
 	discovery_manager "github.com/smtdfc/nagare/core/discovery/manager"
@@ -42,11 +41,6 @@ func (f *fakeDiscoveryProvider) Fetch(_ context.Context, id string) (*discovery.
 type fakeDiscoveryBindings struct {
 	mockCronJobBindings
 	discoveryMgr *discovery_manager.DiscoveryManager
-}
-
-// GetComputerUseOrchestrator implements [tool.Bindings].
-func (f *fakeDiscoveryBindings) GetComputerUseOrchestrator() *computer_use.ComputerUseOrchestrator {
-	panic("unimplemented")
 }
 
 func (f *fakeDiscoveryBindings) GetDiscoveryMgr() *discovery_manager.DiscoveryManager {

@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/smtdfc/nagare/core/computer_use"
 	core_context "github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/discovery/manager"
 	"github.com/smtdfc/nagare/core/tool"
@@ -17,11 +16,6 @@ type mockFindBindings struct {
 	gotCategories []string
 	tools         []tool.Metadata
 	err           error
-}
-
-// GetComputerUseOrchestrator implements [tool.Bindings].
-func (m *mockFindBindings) GetComputerUseOrchestrator() *computer_use.ComputerUseOrchestrator {
-	panic("unimplemented")
 }
 
 // GetDiscoveryMgr implements [tool.Bindings].

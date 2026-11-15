@@ -3,17 +3,11 @@ package tool
 import (
 	"testing"
 
-	"github.com/smtdfc/nagare/core/computer_use"
 	context2 "github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/discovery/manager"
 )
 
 type mockBindings struct{}
-
-// GetComputerUseOrchestrator implements [Bindings].
-func (m *mockBindings) GetComputerUseOrchestrator() *computer_use.ComputerUseOrchestrator {
-	panic("unimplemented")
-}
 
 // GetDiscoveryMgr implements [Bindings].
 func (m *mockBindings) GetDiscoveryMgr() *manager.DiscoveryManager {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/smtdfc/nagare/core/computer_use"
 	core_context "github.com/smtdfc/nagare/core/context"
 	"github.com/smtdfc/nagare/core/discovery/manager"
 	"github.com/smtdfc/nagare/core/tool"
@@ -35,11 +34,6 @@ type fakeApprovalBindings struct {
 	mockCronJobBindings
 	approve bool
 	calls   []string
-}
-
-// GetComputerUseOrchestrator implements [tool.Bindings].
-func (f *fakeApprovalBindings) GetComputerUseOrchestrator() *computer_use.ComputerUseOrchestrator {
-	panic("unimplemented")
 }
 
 // GetDiscoveryMgr implements [tool.Bindings].
