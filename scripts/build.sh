@@ -101,13 +101,13 @@ cp "$DESKTOP_SOURCE/bin/nagare-desktop${exe_ext}" "$DIST_DIR"
 
 echo "Building Nagare CLI..."
 cd "$CLI_SOURCE"
-go build -ldflags "-X github.com/smtdfc/nagare/cli/cmd.Version=$VERSION"  -o "$DIST_DIR/nagare${exe_ext}"
+go build -trimpath -ldflags "-X github.com/smtdfc/nagare/cli/cmd.Version=$VERSION -s -w"  -o "$DIST_DIR/nagare${exe_ext}"
 cd - > /dev/null
 
 echo "Building Nagare Gateway..."
 cd "$GATEWAY_SOURCE"
 dix wire --workspace
-go build -ldflags "-X github.com/smtdfc/nagare/gateway/app.Version=$VERSION" -o "$DIST_DIR/nagare-gateway${exe_ext}"
+go build -trimpath -ldflags "-X github.com/smtdfc/nagare/gateway/app.Version=$VERSION -s -w" -o "$DIST_DIR/nagare-gateway${exe_ext}"
 cd - > /dev/null
 
 
