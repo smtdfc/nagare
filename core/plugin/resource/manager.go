@@ -12,14 +12,8 @@ import (
 	contracts "github.com/smtdfc/nagare/pkgs/plugin/contracts"
 )
 
-// ErrSystemPromptTooLarge is returned when a plugin injects a system prompt
-// fragment that exceeds [contracts.MaxSystemPromptBytes].
 var ErrSystemPromptTooLarge = errors.New("system prompt too large")
 
-// Manager owns every runtime resource a plugin injects into the core: tools,
-// tool categories and system prompt fragments. All plugin mutations go through
-// this manager so a single Release call can revoke everything when a plugin
-// stops, crashes or is uninstalled.
 type Manager struct {
 	toolMgr  *tool_manager.ToolManager
 	eventBus *event_bus.CoreEventBus
@@ -39,7 +33,6 @@ func NewPluginResourceManager(
 	}
 }
 
-// RegisterTool adds a plugin-provided tool to the dynamic tool registry.
 func (m *Manager) RegisterTool(pluginID string, definition contracts.PluginTool) error {
 	if err := registry.RegisterPluginTool(
 		definition.Name,
@@ -57,15 +50,11 @@ func (m *Manager) RegisterTool(pluginID string, definition contracts.PluginTool)
 	return nil
 }
 
-// RegisterToolCategories adds the categories a plugin wants the model to route
-// to. Built-in category descriptions always win.
 func (m *Manager) RegisterToolCategories(pluginID string, categories map[string]string) {
 	m.toolMgr.AddPluginToolCategories(pluginID, categories)
 	m.logger.Info("Registered plugin tool categories", "pluginID", pluginID, "count", len(categories))
 }
 
-// SetSystemPrompt replaces the system prompt fragment injected by a plugin.
-// An empty content clears the fragment.
 func (m *Manager) SetSystemPrompt(pluginID, content string) error {
 	if len(content) > contracts.MaxSystemPromptBytes {
 		return ErrSystemPromptTooLarge
@@ -81,14 +70,11 @@ func (m *Manager) SetSystemPrompt(pluginID, content string) error {
 	return nil
 }
 
-// ClearSystemPrompt removes the system prompt fragment injected by a plugin.
 func (m *Manager) ClearSystemPrompt(pluginID string) {
 	prompt.ClearPluginSystemPrompt(pluginID)
 	m.logger.Info("Cleared plugin system prompt", "pluginID", pluginID)
 }
 
-// Release revokes every resource owned by pluginID. It is safe to call for a
-// plugin that never registered anything.
 func (m *Manager) Release(pluginID string) {
 	pluginID = strings.TrimSpace(pluginID)
 	if pluginID == "" {

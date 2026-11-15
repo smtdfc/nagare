@@ -50,8 +50,6 @@ func (h *PluginHost) forwardPluginToolCalls() {
 	}
 }
 
-// failPluginToolCall publishes a failure result so the waiting plugin tool call
-// returns immediately instead of blocking until its timeout.
 func (h *PluginHost) failPluginToolCall(requestID, cause string) {
 	if requestID == "" {
 		return

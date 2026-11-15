@@ -107,9 +107,6 @@ func (a *Executor) PrepareTool(history messages.ListMessage) tool.ListTool {
 	return tools
 }
 
-// BuildToolPromoteMessage turns a successful find_tool_by_categories call into a
-// promote marker so every discovered tool stays available in later agent turns
-// without being rediscovered.
 func (a *Executor) BuildToolPromoteMessage(toolCall *tool.Call, result *tool.Result) *messages.ToolPromoteMessage {
 	if toolCall == nil || result == nil || !result.IsSuccess {
 		return nil

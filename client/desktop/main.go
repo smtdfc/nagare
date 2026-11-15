@@ -18,9 +18,6 @@ func init() {
 	application.RegisterEvent[string]("time")
 }
 
-// bootstrapURL forwards launcher-provided connection settings to the frontend.
-// The window URL format matches `nagare web`, so the shared UI can store the
-// token and gateway and open already signed in.
 func bootstrapURL() string {
 	query := url.Values{}
 	if gateway := strings.TrimSpace(os.Getenv("NAGARE_GATEWAY_URL")); gateway != "" {
